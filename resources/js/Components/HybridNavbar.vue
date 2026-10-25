@@ -26,6 +26,7 @@ import FloatingChat from './FloatingChat.vue';
 import ThemeSwitcher from './ThemeSwitcher.vue';
 import CommandPalette from './CommandPalette.vue';
 import { Toaster } from 'vue-sonner';
+import { useSidebar } from '@/composables/useSidebar';
 
 const props = defineProps({
   mode: {
@@ -185,8 +186,16 @@ const currentUser = computed(() => {
   }
 });
 
-// Sidebar Drawer State
-const sidebarOpen = ref(false);
+// Synchronized persistent sidebar state via composable
+const { isOpen, isCollapsed, toggleCollapse, toggleOpen } = useSidebar();
+
+const handleSidebarToggle = () => {
+  if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
+    toggleCollapse();
+  } else {
+    toggleOpen();
+  }
+};
 
 // Global Command Palette State
 const commandPaletteRef = ref(null);
@@ -319,7 +328,7 @@ onMounted(() => {
     window.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
         e.preventDefault();
-        sidebarOpen.value = !sidebarOpen.value;
+        handleSidebarToggle();
       }
       if (e.key === 'Escape') {
         closeAllDropdowns();
@@ -343,30 +352,43 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 w-full backdrop-blur-xl bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
-    <!-- User Impersonation Alert Banner -->
-    <div v-if="currentUser?.is_impersonating" class="bg-amber-500 text-slate-950 font-medium text-xs px-4 py-1.5 flex items-center justify-between shadow-xs">
-      <div class="flex items-center gap-2">
-        <span class="inline-block animate-bounce">⚠️</span>
-        <span>Anda sedang login sebagai <strong>{{ currentUser.name }}</strong> (Mode Impersonasi)</span>
-      </div>
-      <a :href="getUrl('/impersonate/leave')" class="px-2.5 py-0.5 rounded-md bg-slate-950 text-white text-[11px] font-semibold hover:bg-slate-800 transition-colors">
-        Kembali ke Super Admin ✕
-      </a>
-    </div>
+  <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-500 selection:text-white transition-colors duration-200 flex flex-col">
+    <!-- Enterprise Persistent Sidebar Navigation -->
+    <AdminSidebar 
+      :mode="mode" 
+      :currentRoute="currentRoute" 
+    />
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <!-- Sidebar Trigger & Brand -->
-        <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          <button
-            type="button"
-            @click="sidebarOpen = !sidebarOpen"
-            class="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/80 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-all cursor-pointer flex items-center justify-center group shrink-0"
-            title="Buka Navigasi Sidebar (Ctrl+B)"
-          >
-            <Menu class="w-4 h-4 transition-transform group-hover:scale-110" />
-          </button>
+    <!-- Main Layout Wrapper (Auto-offset for persistent desktop sidebar) -->
+    <div 
+      class="flex-1 flex flex-col transition-all duration-300 w-full"
+      :class="isCollapsed ? 'lg:pl-20' : 'lg:pl-72'"
+    >
+      <!-- Top Navbar Header (Full Width) -->
+      <header class="sticky top-0 z-30 w-full backdrop-blur-xl bg-white/85 dark:bg-slate-950/85 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
+        <!-- User Impersonation Alert Banner -->
+        <div v-if="currentUser?.is_impersonating" class="bg-amber-500 text-slate-950 font-medium text-xs px-4 py-1.5 flex items-center justify-between shadow-xs">
+          <div class="flex items-center gap-2">
+            <span class="inline-block animate-bounce">⚠️</span>
+            <span>Anda sedang login sebagai <strong>{{ currentUser.name }}</strong> (Mode Impersonasi)</span>
+          </div>
+          <a :href="getUrl('/impersonate/leave')" class="px-2.5 py-0.5 rounded-md bg-slate-950 text-white text-[11px] font-semibold hover:bg-slate-800 transition-colors">
+            Kembali ke Super Admin ✕
+          </a>
+        </div>
+
+        <div class="w-full px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center justify-between h-16">
+            <!-- Sidebar Trigger & Brand -->
+            <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+              <button
+                type="button"
+                @click="handleSidebarToggle"
+                class="p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-900/80 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 transition-all cursor-pointer flex items-center justify-center group shrink-0"
+                :title="isCollapsed ? 'Perluas Sidebar (Ctrl+B)' : 'Ciutkan Sidebar (Ctrl+B)'"
+              >
+                <Menu class="w-4 h-4 transition-transform group-hover:scale-110" />
+              </button>
 
           <a :href="getUrl('/')" @click="handleNav('/', $event)" class="flex items-center gap-2 sm:gap-2.5 group cursor-pointer shrink-0">
             <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-black text-white shadow-lg transition-all duration-300 shrink-0"
@@ -621,19 +643,19 @@ const handleLogout = () => {
     </div>
   </Transition>
 
-  <!-- Enterprise Collapsible Sidebar Navigation -->
-  <AdminSidebar 
-    v-model:open="sidebarOpen" 
-    :mode="mode" 
-    :currentRoute="currentRoute" 
-  />
+        <!-- Page Content Slot (Full Width) -->
+        <div class="flex-1 w-full">
+          <slot />
+        </div>
+      </div>
 
-  <!-- Real-Time Floating Chat strictly at Bottom-Right -->
-  <FloatingChat :mode="mode" />
+      <!-- Real-Time Floating Chat strictly at Bottom-Right -->
+      <FloatingChat :mode="mode" />
 
-  <!-- Global Command Palette Modal (Ctrl + K) -->
-  <CommandPalette ref="commandPaletteRef" :mode="mode" />
+      <!-- Global Command Palette Modal (Ctrl + K) -->
+      <CommandPalette ref="commandPaletteRef" :mode="mode" />
 
-  <!-- Vue Sonner Global Rich Toasts -->
-  <Toaster position="top-right" richColors />
-</template>
+      <!-- Vue Sonner Global Rich Toasts -->
+      <Toaster position="top-right" richColors />
+    </div>
+  </template>

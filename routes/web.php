@@ -1,12 +1,14 @@
 <?php
 
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\AircraftInspectionController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\TravelConsentController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -31,6 +33,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 });
 
+// --- Public Travel Consent & Aircraft Sanitation Inspection Routes ---
+Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
+    Route::get('/public_aircraft', [TravelConsentController::class, 'publicAircraft'])->name('public_aircraft');
+    Route::get('/aircraft', [TravelConsentController::class, 'publicAircraft'])->name('aircraft');
+    Route::post('/submit_aircraft', [TravelConsentController::class, 'submitAircraft'])->name('submit_aircraft');
+    Route::get('/receipt/{registration_no}', [TravelConsentController::class, 'receipt'])->name('receipt');
+    Route::get('/pdf/{registration_no}', [TravelConsentController::class, 'downloadPdf'])->name('public_pdf');
+});
+
 // --- Logout Route (GET & POST) ---
 Route::match(['get', 'post'], '/logout', [AuthController::class, 'logout'])->name('logout');
 
@@ -53,6 +64,16 @@ Route::middleware('auth')->group(function () {
 
     // System Activity & Audit Trail
     Route::get('/audit-logs', [ActivityLogController::class, 'index'])->name('audit.index');
+
+    // Aircraft Sanitation Inspection Management & Dashboard
+    Route::prefix('aircraft-inspections')->name('aircraft-inspections.')->group(function () {
+        Route::get('/', [AircraftInspectionController::class, 'index'])->name('index');
+        Route::get('/dashboard', [AircraftInspectionController::class, 'dashboard'])->name('dashboard');
+        Route::put('/{id}/status', [AircraftInspectionController::class, 'updateStatus'])->name('updateStatus');
+        Route::delete('/{id}', [AircraftInspectionController::class, 'destroy'])->name('destroy');
+        Route::get('/export', [AircraftInspectionController::class, 'export'])->name('export');
+        Route::get('/{id}/pdf', [AircraftInspectionController::class, 'downloadPdf'])->name('pdf');
+    });
 
     // System Data Exports (Excel, CSV, PDF)
     Route::prefix('exports/audit-logs')->name('exports.audit.')->group(function () {

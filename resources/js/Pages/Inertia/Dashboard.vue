@@ -18,7 +18,8 @@ import {
   Clock,
   Sparkles,
   BookOpen,
-  Code
+  Code,
+  Plane
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -142,11 +143,8 @@ const activityChartOption = computed(() => {
 <template>
   <Head title="Pusat Kontrol & Dashboard" />
 
-  <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-500 selection:text-white transition-colors duration-200">
-    <!-- Hybrid Navbar -->
-    <HybridNavbar mode="inertia" currentRoute="dashboard" />
-
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 space-y-8">
+  <HybridNavbar mode="inertia" currentRoute="dashboard">
+    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       <!-- Welcome Hero Banner -->
       <div class="relative bg-gradient-to-r from-indigo-900/30 via-purple-900/20 to-slate-900/60 border border-indigo-700/30 dark:border-indigo-800/40 rounded-3xl p-6 sm:p-8 backdrop-blur-sm shadow-xl">
         <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -168,6 +166,15 @@ const activityChartOption = computed(() => {
 
           <!-- Quick Action Buttons -->
           <div class="flex flex-wrap items-center gap-3">
+            <a
+              :href="getUrl('/aircraft-inspections')"
+              class="px-4 py-2.5 rounded-xl font-semibold text-xs text-white bg-sky-600 hover:bg-sky-500 transition-all shadow-md shadow-sky-600/30 flex items-center gap-1.5 group cursor-pointer"
+            >
+              <Plane class="w-4 h-4" />
+              <span>Inspeksi Pesawat BKK</span>
+              <ArrowRight class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </a>
+
             <a
               :href="getUrl('/spa')"
               class="px-4 py-2.5 rounded-xl font-semibold text-xs text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-md shadow-emerald-600/30 flex items-center gap-1.5 group cursor-pointer"
@@ -421,5 +428,5 @@ const activityChartOption = computed(() => {
         </div>
       </div>
     </main>
-  </div>
+  </HybridNavbar>
 </template>
