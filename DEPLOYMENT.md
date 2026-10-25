@@ -161,7 +161,7 @@ sudo systemctl start nginx
 ### 4.1 Kloning Repositori ke Direktori Web
 ```bash
 cd /var/www
-sudo git clone https://github.com/paradigma-monolith/starterkit_paradigma.git starterkit_paradigma
+sudo git clone https://github.com/paradigma-monolith/sadaya.git starterkit_paradigma
 cd /var/www/starterkit_paradigma
 ```
 

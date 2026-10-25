@@ -31,8 +31,8 @@ Pastikan sistem Anda telah terpasang **PHP 8.2+**, **Composer**, **Node.js LTS (
 
 ```bash
 # 1. Kloning repositori resmi dari GitHub
-git clone https://github.com/paradigma-monolith/starterkit_paradigma.git
-cd starterkit_paradigma
+git clone https://github.com/paradigma-monolith/sadaya.git
+cd sadaya
 
 # 2. Salin berkas lingkungan
 cp .env.example .env

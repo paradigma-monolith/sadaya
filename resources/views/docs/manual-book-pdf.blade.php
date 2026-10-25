@@ -366,7 +366,7 @@
         <table class="cover-meta-table">
             <tr>
                 <td class="cover-meta-label">Nama Repositori:</td>
-                <td class="cover-meta-val"><a href="https://github.com/paradigma-monolith/starterkit_paradigma" target="_blank">paradigma-monolith/starterkit_paradigma ↗</a></td>
+                <td class="cover-meta-val"><a href="https://github.com/paradigma-monolith/sadaya" target="_blank">paradigma-monolith/sadaya ↗</a></td>
             </tr>
             <tr>
                 <td class="cover-meta-label">Basis Arsitektur:</td>
@@ -474,7 +474,7 @@
             &bull; <strong>Aplikasi Utama / Login:</strong> <a href="http://127.0.0.1:8000/login" target="_blank">http://127.0.0.1:8000/login ↗</a> &nbsp;|&nbsp; 
             &bull; <strong>Interactive Scramble OpenAPI:</strong> <a href="http://127.0.0.1:8000/docs/api" target="_blank">http://127.0.0.1:8000/docs/api ↗</a><br>
             &bull; <strong>Laravel Pulse Telemetry:</strong> <a href="http://127.0.0.1:8000/pulse" target="_blank">http://127.0.0.1:8000/pulse ↗</a> &nbsp;|&nbsp; 
-            &bull; <strong>Repositori GitHub Resmi:</strong> <a href="https://github.com/paradigma-monolith/starterkit_paradigma" target="_blank">paradigma-monolith/starterkit_paradigma ↗</a>
+            &bull; <strong>Repositori GitHub Resmi:</strong> <a href="https://github.com/paradigma-monolith/sadaya" target="_blank">paradigma-monolith/sadaya ↗</a>
         </div>
 
         <div class="section-header" style="margin-top: 10px;">
@@ -594,7 +594,7 @@
         </ul>
 
         <h3>1.4 Anatomi Struktur Direktori Terorganisir</h3>
-        <pre>starterkit_paradigma/  (Hasil git clone repositori GitHub)
+        <pre>sadaya/  (Hasil git clone repositori GitHub)
 ├── app/
 │   ├── Exports/                     # Handler ekspor multi-format (AuditLogsExport.php)
 │   ├── Http/
@@ -791,8 +791,8 @@
 
         <h3>3.1 Langkah demi Langkah Instalasi Awal (Setup 1 Kali)</h3>
         <pre># 1. Kloning Repositori Resmi dari GitHub &amp; Masuk ke Folder Proyek
-git clone https://github.com/paradigma-monolith/starterkit_paradigma.git
-cd starterkit_paradigma
+git clone https://github.com/paradigma-monolith/sadaya.git
+cd sadaya
 
 # 2. Salin berkas konfigurasi template lingkungan .env
 cp .env.example .env
@@ -1451,7 +1451,7 @@ sudo /var/www/starterkit_paradigma/deploy/deploy.sh</pre>
 
         <div class="callout callout-info">
             <div class="callout-title">Panduan Lengkap Terintegrasi</div>
-            Dokumentasi instalasi server dari awal (Ubuntu 22.04 LTS, MySQL, Redis, firewall UFW, dan instalasi sertifikat SSL gratis via Certbot Let's Encrypt) dapat Anda pelajari secara komprehensif pada dokumen repositori <a href="https://github.com/paradigma-monolith/starterkit_paradigma/blob/main/DEPLOYMENT.md" target="_blank">DEPLOYMENT.md ↗</a>.
+            Dokumentasi instalasi server dari awal (Ubuntu 22.04 LTS, MySQL, Redis, firewall UFW, dan instalasi sertifikat SSL gratis via Certbot Let's Encrypt) dapat Anda pelajari secara komprehensif pada dokumen repositori <a href="https://github.com/paradigma-monolith/sadaya/blob/main/DEPLOYMENT.md" target="_blank">DEPLOYMENT.md ↗</a>.
         </div>
 
         <div style="margin-top: 25px; text-align: center; color: #94a3b8; font-size: 8.5px; border-top: 1px solid #e2e8f0; padding-top: 10px;">
