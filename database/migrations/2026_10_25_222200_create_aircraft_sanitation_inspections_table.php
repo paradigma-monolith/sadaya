@@ -40,6 +40,12 @@ return new class extends Migration
             $table->longText('petugas_kabin_ttd')->nullable();
             $table->string('petugas_bkk_nama');
             $table->longText('petugas_bkk_ttd')->nullable();
+
+            // Geotagging & Photo Documentation
+            $table->decimal('latitude', 11, 8)->nullable();
+            $table->decimal('longitude', 11, 8)->nullable();
+            $table->string('lokasi_geotag')->nullable();
+            $table->json('foto_dokumentasi')->nullable();
             
             // Workflow & Verification Status
             $table->string('status', 30)->default('submitted')->index(); // submitted, verified, approved, rejected

@@ -406,6 +406,13 @@
         </tbody>
     </table>
 
+    @if($inspection->latitude && $inspection->longitude)
+    <div style="font-size: 9px; color: #334155; margin-bottom: 8px; background: #f0f9ff; border: 1px solid #bae6fd; padding: 4px 8px; border-radius: 4px;">
+        <strong>Koordinat Geotagging GPS:</strong> {{ $inspection->latitude }}, {{ $inspection->longitude }} 
+        @if($inspection->lokasi_geotag) &bull; Lokasi: {{ $inspection->lokasi_geotag }} @endif
+    </div>
+    @endif
+
     <!-- Digital Signatures Table -->
     <table class="signature-table">
         <tr>
@@ -443,5 +450,51 @@
         Keaslian dokumen dapat diverifikasi melalui nomor registrasi resmi: <strong>{{ $inspection->registration_no }}</strong>
     </div>
 
+    @if(!empty($inspection->foto_dokumentasi) && count($inspection->foto_dokumentasi) > 0)
+    <div style="page-break-before: always; margin-top: 10px;">
+        <div class="kop-surat">
+            <img src="{{ public_path('storage/images/Kop_BKK_bandung.png') }}" onerror="this.onerror=null;this.src='{{ public_path('images/Kop_BKK_bandung.png') }}';" style="width: 100%; height: auto;">
+        </div>
+        <div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 3px; text-decoration: underline;">
+            LAMPIRAN DOKUMENTASI FOTO GEOTAGGING INSPEKSI SANITASI PESAWAT
+        </div>
+        <div style="text-align: center; font-size: 9.5px; color: #475569; margin-bottom: 12px;">
+            Nomor Registrasi: <strong>{{ $inspection->registration_no }}</strong> &bull; Pesawat: <strong>{{ $inspection->tanda_kebangsaan }}</strong> ({{ $inspection->pemilik }})
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse;">
+            @foreach(array_chunk($inspection->foto_dokumentasi, 2) as $row)
+            <tr>
+                @foreach($row as $p)
+                <td style="width: 50%; padding: 6px; vertical-align: top; border: 1px solid #cbd5e1; background: #ffffff;">
+                    <div style="height: 180px; text-align: center; background: #0f172a; overflow: hidden; margin-bottom: 4px;">
+                        @php
+                            $fullImgPath = public_path($p['path'] ?? '');
+                            if (!file_exists($fullImgPath)) {
+                                $fullImgPath = storage_path('app/public/' . ($p['path'] ?? ''));
+                            }
+                        @endphp
+                        @if(file_exists($fullImgPath))
+                            <img src="{{ $fullImgPath }}" style="max-width: 100%; max-height: 175px; object-fit: contain;">
+                        @else
+                            <div style="padding-top: 60px; color: #94a3b8; font-size: 10px;">[ Foto: {{ $p['category'] ?? 'Dokumentasi' }} ]</div>
+                        @endif
+                    </div>
+                    <div style="font-size: 10px; font-weight: bold; color: #0f172a;">{{ $p['category'] ?? 'Dokumentasi Lapangan' }}</div>
+                    @if(!empty($p['latitude']) && !empty($p['longitude']))
+                    <div style="font-size: 8.5px; color: #0284c7; font-family: monospace; margin-top: 2px;">
+                        📍 Lat: {{ number_format($p['latitude'], 6) }}, Lng: {{ number_format($p['longitude'], 6) }}
+                    </div>
+                    @endif
+                </td>
+                @endforeach
+                @if(count($row) === 1)
+                <td style="width: 50%; border: none;"></td>
+                @endif
+            </tr>
+            @endforeach
+        </table>
+    </div>
+    @endif
 </body>
 </html>

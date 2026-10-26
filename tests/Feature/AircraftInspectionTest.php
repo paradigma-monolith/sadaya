@@ -7,6 +7,8 @@ use App\Models\User;
 use Database\Seeders\AircraftSanitationInspectionSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class AircraftInspectionTest extends TestCase
@@ -104,6 +106,54 @@ class AircraftInspectionTest extends TestCase
         $inspection = AircraftSanitationInspection::where('tanda_kebangsaan', 'PK-GAA')->first();
         $this->assertNotNull($inspection);
         $this->assertNotNull($inspection->registration_no);
+
+        $response->assertRedirect(route('travelconsent.receipt', $inspection->registration_no));
+    }
+
+    public function test_public_user_can_submit_aircraft_inspection_with_geotagged_photos(): void
+    {
+        Storage::fake('public');
+
+        $payload = [
+            'pemilik' => 'PT Citilink Indonesia',
+            'tanda_kebangsaan' => 'PK-GLQ',
+            'tanggal' => now()->format('Y-m-d'),
+            'waktu' => '14:20',
+            'kabin_penumpang' => ['a' => 'baik'],
+            'kompartemen_toilet' => ['a' => 'baik'],
+            'galley' => ['a' => 'baik'],
+            'dokumen_kesehatan' => ['a' => 'baik'],
+            'pembuangan_kotoran' => 'ya',
+            'penanganan_air' => ['petugas' => 'ya'],
+            'keadaan_makanan' => ['kondisi' => 'baik'],
+            'binatang_pengganggu' => ['lain2' => 'Nihil'],
+            'surat_sanitasi' => 'ada',
+            'kesimpulan' => 'layak',
+            'petugas_kabin_nama' => 'Siti Rahmawati',
+            'petugas_bkk_nama' => 'dr. Hendra Setiawan',
+            'latitude' => -6.903892,
+            'longitude' => 107.618615,
+            'lokasi_geotag' => 'Apron Barat Bandara Husein Sastranegara',
+            'foto_kategori' => ['Kabin Penumpang', 'Kompartemen Toilet'],
+            'foto_latitudes' => [-6.903892, -6.903880],
+            'foto_longitudes' => [107.618615, 107.618620],
+            'foto_accuracies' => [5.5, 6.0],
+            'foto_dokumentasi' => [
+                UploadedFile::fake()->image('kabin.jpg', 640, 480),
+                UploadedFile::fake()->image('toilet.jpg', 640, 480),
+            ],
+        ];
+
+        $response = $this->post('/travelconsent/submit_aircraft', $payload);
+
+        $inspection = AircraftSanitationInspection::where('tanda_kebangsaan', 'PK-GLQ')->first();
+        $this->assertNotNull($inspection);
+        $this->assertEqualsWithDelta(-6.903892, $inspection->latitude, 0.0001);
+        $this->assertEqualsWithDelta(107.618615, $inspection->longitude, 0.0001);
+        $this->assertEquals('Apron Barat Bandara Husein Sastranegara', $inspection->lokasi_geotag);
+        $this->assertIsArray($inspection->foto_dokumentasi);
+        $this->assertCount(2, $inspection->foto_dokumentasi);
+        $this->assertEquals('Kabin Penumpang', $inspection->foto_dokumentasi[0]['category']);
 
         $response->assertRedirect(route('travelconsent.receipt', $inspection->registration_no));
     }

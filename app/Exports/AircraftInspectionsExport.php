@@ -42,6 +42,8 @@ class AircraftInspectionsExport implements FromCollection, WithHeadings, ShouldA
                 'Status' => strtoupper($item->status),
                 'Petugas Kabin' => $item->petugas_kabin_nama,
                 'Petugas BKK' => $item->petugas_bkk_nama,
+                'Koordinat GPS' => ($item->latitude && $item->longitude) ? "{$item->latitude}, {$item->longitude}" : '-',
+                'Jumlah Foto' => is_array($item->foto_dokumentasi) ? count($item->foto_dokumentasi) : 0,
                 'Waktu Submit' => $item->created_at->format('Y-m-d H:i'),
             ];
         });
@@ -60,6 +62,8 @@ class AircraftInspectionsExport implements FromCollection, WithHeadings, ShouldA
             'Status Approval',
             'Petugas Kabin (Crew)',
             'Petugas BKK Bandung',
+            'Koordinat GPS',
+            'Jumlah Foto Geotag',
             'Waktu Input Sistem',
         ];
     }

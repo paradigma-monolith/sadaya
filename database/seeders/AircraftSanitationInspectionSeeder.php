@@ -32,6 +32,29 @@ class AircraftSanitationInspectionSeeder extends Seeder
                 'catatan_rekomendasi' => 'Sanitasi pesawat memenuhi standar karantina kesehatan.',
                 'petugas_kabin_nama' => 'Capt. Budi Santoso',
                 'petugas_bkk_nama' => 'dr. Hendra Setiawan',
+                'latitude' => -6.903892,
+                'longitude' => 107.618615,
+                'lokasi_geotag' => 'Apron Barat Bandara Internasional Husein Sastranegara (BDO)',
+                'foto_dokumentasi' => [
+                    [
+                        'path' => 'aircraft_inspections/sample_kabin.jpg',
+                        'url' => '/storage/images/Kop_BKK_bandung.png',
+                        'category' => 'Kabin Penumpang',
+                        'latitude' => -6.903892,
+                        'longitude' => 107.618615,
+                        'accuracy' => 5.2,
+                        'captured_at' => now()->subDays(6)->toIso8601String(),
+                    ],
+                    [
+                        'path' => 'aircraft_inspections/sample_galley.jpg',
+                        'url' => '/storage/images/Kop_BKK_bandung.png',
+                        'category' => 'Galley / Dapur Pesawat',
+                        'latitude' => -6.903885,
+                        'longitude' => 107.618620,
+                        'accuracy' => 4.8,
+                        'captured_at' => now()->subDays(6)->toIso8601String(),
+                    ]
+                ],
                 'status' => 'approved',
                 'verified_by' => $admin?->id,
                 'verified_at' => now()->subDays(6)->addHours(2),
@@ -176,7 +199,12 @@ class AircraftSanitationInspectionSeeder extends Seeder
             ],
         ];
 
-        foreach ($sampleData as $data) {
+        foreach ($sampleData as $i => $data) {
+            if (empty($data['registration_no'])) {
+                $dateCode = date('Ymd', strtotime($data['tanggal'] ?? 'now'));
+                $code = strtoupper(substr(bin2hex(random_bytes(2)), 0, 4));
+                $data['registration_no'] = "BKK-AC-{$dateCode}-{$code}";
+            }
             AircraftSanitationInspection::create($data);
         }
     }

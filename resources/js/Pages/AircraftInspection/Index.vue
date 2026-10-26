@@ -20,7 +20,9 @@ import {
   BarChart3,
   Trash2,
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Camera,
+  MapPin,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -65,6 +67,7 @@ const resetFilter = () => {
 // Modal Inspection Details & Verification
 const activeInspection = ref(null);
 const showDetailModal = ref(false);
+const selectedPhotoModal = ref(null);
 const statusForm = ref({
   status: 'approved',
   kesimpulan: 'layak',
@@ -311,8 +314,12 @@ const deleteInspection = (id, regNo) => {
                 </td>
 
                 <!-- Tanda Registrasi -->
-                <td class="px-5 py-4 font-mono font-bold text-slate-700 dark:text-slate-300">
-                  {{ item.tanda_kebangsaan }}
+                <td class="px-5 py-4 font-mono text-slate-700 dark:text-slate-300">
+                  <div class="font-bold">{{ item.tanda_kebangsaan }}</div>
+                  <div v-if="item.foto_dokumentasi && item.foto_dokumentasi.length" class="inline-flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded text-[10px] font-sans font-medium bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60" title="Foto geotagging dilampirkan">
+                    <Camera class="w-3 h-3 text-sky-600" />
+                    <span>{{ item.foto_dokumentasi.length }} Foto</span>
+                  </div>
                 </td>
 
                 <!-- Waktu -->
@@ -514,6 +521,70 @@ const deleteInspection = (id, regNo) => {
               </div>
             </div>
 
+            <!-- Geotagging & Photo Documentation Section -->
+            <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-950/40 space-y-3">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2 font-bold text-slate-900 dark:text-white">
+                  <Camera class="w-4 h-4 text-sky-600" />
+                  <span>Dokumentasi Foto Geotagging Lapangan</span>
+                  <span v-if="activeInspection.foto_dokumentasi && activeInspection.foto_dokumentasi.length" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">
+                    {{ activeInspection.foto_dokumentasi.length }} Berkas
+                  </span>
+                </div>
+
+                <div v-if="activeInspection.latitude && activeInspection.longitude">
+                  <a
+                    :href="`https://www.google.com/maps?q=${activeInspection.latitude},${activeInspection.longitude}`"
+                    target="_blank"
+                    class="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100 transition-colors"
+                  >
+                    <MapPin class="w-3.5 h-3.5 text-emerald-600" />
+                    <span>📍 {{ Number(activeInspection.latitude).toFixed(6) }}, {{ Number(activeInspection.longitude).toFixed(6) }} (Peta ↗)</span>
+                  </a>
+                </div>
+              </div>
+
+              <div v-if="activeInspection.lokasi_geotag" class="text-xs text-slate-500">
+                Lokasi: <span class="font-semibold text-slate-700 dark:text-slate-300">{{ activeInspection.lokasi_geotag }}</span>
+              </div>
+
+              <!-- Photo Gallery Grid -->
+              <div v-if="activeInspection.foto_dokumentasi && activeInspection.foto_dokumentasi.length" class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-2">
+                <div
+                  v-for="(foto, fIdx) in activeInspection.foto_dokumentasi"
+                  :key="fIdx"
+                  class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-2xs group flex flex-col"
+                >
+                  <div
+                    class="relative h-32 w-full bg-slate-950 cursor-pointer overflow-hidden"
+                    @click="selectedPhotoModal = foto"
+                    title="Klik untuk melihat foto resolusi penuh"
+                  >
+                    <img
+                      :src="foto.url || ('/storage/' + foto.path)"
+                      :alt="foto.category || 'Dokumentasi Lapangan'"
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
+                    <div v-if="foto.latitude && foto.longitude" class="absolute bottom-0 inset-x-0 bg-slate-950/85 text-[9.5px] font-mono text-white px-2 py-0.5 truncate pointer-events-none">
+                      📍 {{ Number(foto.latitude).toFixed(5) }}, {{ Number(foto.longitude).toFixed(5) }}
+                    </div>
+                  </div>
+                  <div class="p-2.5 flex flex-col gap-1 flex-grow">
+                    <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60 truncate">
+                      {{ foto.category || 'Dokumentasi Lapangan' }}
+                    </span>
+                    <div v-if="foto.captured_at" class="text-[10px] text-slate-400">
+                      {{ new Date(foto.captured_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="text-xs text-slate-400 italic py-4 text-center bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                Belum ada foto dokumentasi geotagging yang diunggah pada inspeksi ini.
+              </div>
+            </div>
+
             <!-- Status & Recommendation Update Form -->
             <div class="p-5 rounded-2xl border border-sky-200 dark:border-sky-900 bg-sky-50/40 dark:bg-sky-950/20 space-y-4">
               <div class="font-bold text-sm text-sky-900 dark:text-sky-200 flex items-center gap-2">
@@ -589,6 +660,43 @@ const deleteInspection = (id, regNo) => {
               >
                 Simpan Perubahan
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lightbox Photo Modal -->
+      <div
+        v-if="selectedPhotoModal"
+        class="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md"
+        @click="selectedPhotoModal = null"
+      >
+        <div
+          class="relative max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden p-3 shadow-2xl flex flex-col"
+          @click.stop
+        >
+          <button
+            type="button"
+            @click="selectedPhotoModal = null"
+            class="absolute top-4 right-4 z-20 p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-white transition-colors"
+          >
+            <X class="w-5 h-5" />
+          </button>
+
+          <div class="overflow-hidden rounded-2xl flex items-center justify-center bg-black/60 max-h-[75vh]">
+            <img
+              :src="selectedPhotoModal.url || ('/storage/' + selectedPhotoModal.path)"
+              :alt="selectedPhotoModal.category"
+              class="max-h-[75vh] w-auto max-w-full object-contain"
+            />
+          </div>
+
+          <div class="pt-3 px-2 flex flex-wrap items-center justify-between gap-2 text-xs text-white">
+            <div class="font-bold">
+              {{ selectedPhotoModal.category || 'Dokumentasi Lapangan' }}
+            </div>
+            <div v-if="selectedPhotoModal.latitude && selectedPhotoModal.longitude" class="font-mono text-sky-400">
+              📍 Lat: {{ Number(selectedPhotoModal.latitude).toFixed(6) }}, Lng: {{ Number(selectedPhotoModal.longitude).toFixed(6) }}
             </div>
           </div>
         </div>

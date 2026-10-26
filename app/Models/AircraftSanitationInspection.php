@@ -37,6 +37,10 @@ class AircraftSanitationInspection extends Model
         'petugas_kabin_ttd',
         'petugas_bkk_nama',
         'petugas_bkk_ttd',
+        'latitude',
+        'longitude',
+        'lokasi_geotag',
+        'foto_dokumentasi',
         'status',
         'verified_by',
         'verified_at',
@@ -44,6 +48,9 @@ class AircraftSanitationInspection extends Model
 
     protected $casts = [
         'tanggal' => 'date:Y-m-d',
+        'latitude' => 'float',
+        'longitude' => 'float',
+        'foto_dokumentasi' => 'array',
         'kabin_penumpang' => 'array',
         'kompartemen_toilet' => 'array',
         'galley' => 'array',
@@ -65,6 +72,9 @@ class AircraftSanitationInspection extends Model
                 'kesimpulan',
                 'tindakan',
                 'status',
+                'latitude',
+                'longitude',
+                'lokasi_geotag',
                 'petugas_kabin_nama',
                 'petugas_bkk_nama',
             ])

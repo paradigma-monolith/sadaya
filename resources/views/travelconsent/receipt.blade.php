@@ -159,7 +159,54 @@
             <span style="color: #64748b;">Petugas BKK Bandung:</span>
             <span>{{ $inspection->petugas_bkk_nama }}</span>
         </div>
+        @if($inspection->latitude && $inspection->longitude)
+        <div class="detail-row">
+            <span style="color: #64748b;">Koordinat Geotagging:</span>
+            <span>
+                <a href="https://www.google.com/maps?q={{ $inspection->latitude }},{{ $inspection->longitude }}" target="_blank" style="color: #0284c7; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700; text-decoration: underline;">
+                    📍 {{ $inspection->latitude }}, {{ $inspection->longitude }} ↗
+                </a>
+            </span>
+        </div>
+        @endif
+        @if($inspection->lokasi_geotag)
+        <div class="detail-row">
+            <span style="color: #64748b;">Lokasi Bandara:</span>
+            <span>{{ $inspection->lokasi_geotag }}</span>
+        </div>
+        @endif
     </div>
+
+    @if(!empty($inspection->foto_dokumentasi) && count($inspection->foto_dokumentasi) > 0)
+    <div style="margin-bottom: 30px; text-align: left;">
+        <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 6px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            <span>Dokumentasi Foto Geotagging ({{ count($inspection->foto_dokumentasi) }} Foto)</span>
+        </h4>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;">
+            @foreach($inspection->foto_dokumentasi as $foto)
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <div style="position: relative; width: 100%; height: 120px; background: #0f172a;">
+                    <a href="{{ $foto['url'] ?? asset($foto['path']) }}" target="_blank" title="Klik untuk memperbesar">
+                        <img src="{{ $foto['url'] ?? asset($foto['path']) }}" alt="Foto Dokumentasi" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null;this.src='/images/photo-placeholder.png';">
+                    </a>
+                    @if(!empty($foto['latitude']) && !empty($foto['longitude']))
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(15, 23, 42, 0.85); color: #ffffff; font-family: monospace; font-size: 9px; padding: 3px 6px; pointer-events: none;">
+                        📍 {{ number_format($foto['latitude'], 5) }}, {{ number_format($foto['longitude'], 5) }}
+                    </div>
+                    @endif
+                </div>
+                <div style="padding: 8px 10px; font-size: 11px;">
+                    <span style="display: inline-block; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; padding: 2px 6px; border-radius: 4px; font-weight: 600;">
+                        {{ $foto['category'] ?? 'Dokumentasi' }}
+                    </span>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
         <a href="{{ route('travelconsent.public_pdf', $inspection->registration_no) }}" class="btn btn-primary">
