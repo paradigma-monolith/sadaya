@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Inertia;
 
 use App\Http\Controllers\Controller;
+use App\Models\AircraftSanitationInspection;
 use App\Models\LoginHistory;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -18,10 +19,13 @@ class DashboardController extends Controller
      */
     public function dashboard(): Response
     {
-        // 1. Gather User & Security Metrics
+        // 1. Gather User, Security & Inspection Metrics
         $totalUsers = User::count();
         $totalRoles = class_exists(Role::class) ? Role::count() : 3;
         $totalActivities = Activity::count();
+        $totalInspections = class_exists(AircraftSanitationInspection::class) ? AircraftSanitationInspection::count() : 0;
+        $layakInspections = class_exists(AircraftSanitationInspection::class) ? AircraftSanitationInspection::where('kesimpulan', 'layak')->count() : 0;
+        $tidakLayakInspections = class_exists(AircraftSanitationInspection::class) ? AircraftSanitationInspection::where('kesimpulan', 'tidak_layak')->count() : 0;
 
         // 2. Recent Audit Trail Activities
         $recentActivities = Activity::with('causer')
@@ -108,6 +112,9 @@ class DashboardController extends Controller
                 'total_users' => $totalUsers,
                 'total_roles' => $totalRoles,
                 'total_activities' => $totalActivities,
+                'total_inspections' => $totalInspections,
+                'layak_inspections' => $layakInspections,
+                'tidak_layak_inspections' => $tidakLayakInspections,
             ],
             'recent_activities' => $recentActivities,
             'recent_logins' => $recentLogins,

@@ -1,28 +1,22 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { usePage, router as inertiaRouter } from '@inertiajs/vue3';
 import { useRouter } from 'vue-router';
 import { 
-  Home, 
-  LayoutDashboard, 
+  Gauge,
+  PieChart,
+  Plane,
   Globe,
-  Boxes, 
-  ShoppingBag, 
-  Compass, 
-  History, 
-  User as UserIcon, 
-  BookOpen, 
-  Activity, 
-  LogOut, 
-  ChevronLeft, 
-  ChevronRight, 
-  Sparkles,
+  History,
+  User as UserIcon,
+  BookOpen,
+  Activity,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
   Layers,
   X,
-  ShieldCheck,
-  FileSpreadsheet,
-  Plane,
-  BarChart3
+  MoreHorizontal
 } from 'lucide-vue-next';
 import { useSidebar } from '@/composables/useSidebar';
 
@@ -48,7 +42,6 @@ const prefix = computed(() => {
 
 const getUrl = (path) => `${prefix.value}${path}`;
 
-// Safely obtain Vue Router if in SPA mode
 let vueRouter = null;
 try {
   vueRouter = useRouter();
@@ -56,7 +49,6 @@ try {
   vueRouter = null;
 }
 
-// Safely resolve active authenticated user
 const currentUser = computed(() => {
   if (isSpa.value) {
     return (typeof window !== 'undefined' && window.authUser) ? window.authUser : null;
@@ -69,7 +61,6 @@ const currentUser = computed(() => {
   }
 });
 
-// Synchronized persistent sidebar state via composable
 const { isOpen, isCollapsed, toggleCollapse, closeMobile } = useSidebar();
 
 const handleNavClick = (targetPath, isExternal, e) => {
@@ -78,7 +69,6 @@ const handleNavClick = (targetPath, isExternal, e) => {
   }
   if (isExternal || !targetPath) return;
 
-  // Case 1: In SPA mode & clicking an SPA link -> instantaneous Vue Router push
   if (isSpa.value && (targetPath === '/spa' || targetPath.startsWith('/spa/'))) {
     if (vueRouter) {
       if (e) e.preventDefault();
@@ -88,7 +78,6 @@ const handleNavClick = (targetPath, isExternal, e) => {
     }
   }
 
-  // Case 2: In Inertia mode & clicking an Inertia/Hub link -> smooth Inertia visit
   if (!isSpa.value && !targetPath.startsWith('/spa') && !targetPath.startsWith('/docs') && !targetPath.startsWith('/pulse')) {
     try {
       if (inertiaRouter && typeof inertiaRouter.visit === 'function') {
@@ -107,36 +96,24 @@ const handleLogout = () => {
 const navSections = computed(() => {
   return [
     {
-      title: 'Pusat Kontrol',
+      title: 'Utama & Analitik',
       items: [
         {
-          name: 'Pusat Dashboard',
+          name: 'Pusat Analytics',
           path: '/inertia/dashboard',
           url: getUrl('/inertia/dashboard'),
-          icon: LayoutDashboard,
+          icon: Gauge,
           active: !isSpa.value && (props.currentRoute === 'dashboard' || props.currentRoute === 'home'),
           badge: 'Utama',
-          badgeColor: 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
         },
-      ],
-    },
-    {
-      title: 'Single Page App',
-      items: [
         {
-          name: 'Dashboard (SPA)',
-          path: '/spa',
-          url: getUrl('/spa'),
-          icon: Layers,
-          active: isSpa.value,
-          badge: 'Client',
-          badgeColor: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+          name: 'Dashboard Sanitasi BKK',
+          path: '/aircraft-inspections/dashboard',
+          url: getUrl('/aircraft-inspections/dashboard'),
+          icon: PieChart,
+          active: props.currentRoute === 'aircraft-dashboard',
+          badge: 'Analytics',
         },
-      ],
-    },
-    {
-      title: 'Karantina Kesehatan Udara',
-      items: [
         {
           name: 'Data Inspeksi Pesawat',
           path: '/aircraft-inspections',
@@ -144,17 +121,20 @@ const navSections = computed(() => {
           icon: Plane,
           active: props.currentRoute === 'aircraft-inspections',
           badge: 'BKK',
-          badgeColor: 'bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800',
         },
         {
-          name: 'Dashboard Analisis',
-          path: '/aircraft-inspections/dashboard',
-          url: getUrl('/aircraft-inspections/dashboard'),
-          icon: BarChart3,
-          active: props.currentRoute === 'aircraft-dashboard',
-          badge: 'ECharts',
-          badgeColor: 'bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+          name: 'Dashboard SPA Mandiri',
+          path: '/spa',
+          url: getUrl('/spa'),
+          icon: Layers,
+          active: isSpa.value,
+          badge: 'SPA',
         },
+      ],
+    },
+    {
+      title: 'Layanan & Tata Kelola',
+      items: [
         {
           name: 'Form Publik Pesawat',
           path: '/travelconsent/public_aircraft',
@@ -162,44 +142,22 @@ const navSections = computed(() => {
           icon: Globe,
           external: true,
           badge: 'Public',
-          badgeColor: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
         },
-      ],
-    },
-    {
-      title: 'Tata Kelola & Keamanan',
-      items: [
         {
           name: 'Audit Trail Logs',
           path: '/audit-logs',
           url: getUrl('/audit-logs'),
           icon: History,
           active: props.currentRoute === 'audit',
-          badge: 'Spatie',
-          badgeColor: 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+          badge: 'Audit',
         },
-        {
-          name: 'Profil & Keamanan',
-          path: '/profile',
-          url: getUrl('/profile'),
-          icon: UserIcon,
-          active: props.currentRoute === 'profile',
-          badge: 'RBAC',
-          badgeColor: 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-        },
-      ],
-    },
-    {
-      title: 'DevTools & Monitoring',
-      items: [
         {
           name: 'Scramble API Docs',
           path: '/docs/api',
           url: getUrl('/docs/api'),
           icon: BookOpen,
           external: true,
-          badge: 'OpenAPI',
-          badgeColor: 'bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800',
+          badge: 'API',
         },
         {
           name: 'Laravel Pulse',
@@ -207,8 +165,7 @@ const navSections = computed(() => {
           url: getUrl('/pulse'),
           icon: Activity,
           external: true,
-          badge: 'Metrics',
-          badgeColor: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800',
+          badge: 'Live',
         },
       ],
     },
@@ -218,7 +175,7 @@ const navSections = computed(() => {
 
 <template>
   <div>
-    <!-- Backdrop (shown ONLY on mobile when drawer is open) -->
+    <!-- Mobile Drawer Backdrop -->
     <transition
       enter-active-class="transition-opacity duration-300 ease-out"
       enter-from-class="opacity-0"
@@ -230,162 +187,244 @@ const navSections = computed(() => {
       <div 
         v-if="isOpen" 
         @click="closeMobile"
-        class="fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-sm lg:hidden"
+        class="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs lg:hidden"
       ></div>
     </transition>
 
-    <!-- Sidebar Aside Element (Always visible on desktop, responsive drawer on mobile) -->
+    <!-- Slim Dark Navy Sidebar Rail (#111322) matching reference UI -->
     <aside
-      class="fixed top-0 bottom-0 left-0 z-40 bg-white/95 dark:bg-slate-950/95 border-r border-slate-200 dark:border-slate-800/90 backdrop-blur-2xl flex flex-col transition-all duration-300 font-sans shadow-2xl lg:shadow-none"
+      class="fixed top-0 bottom-0 left-0 z-40 bg-[#111322] text-white flex flex-col justify-between transition-all duration-300 font-sans select-none shadow-2xl"
       :class="[
-        // Visibility: ON DESKTOP ALWAYS SHOWN (lg:translate-x-0)! On mobile slides in when isOpen
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-        // Desktop width: compact w-20 or full w-72
-        isCollapsed ? 'w-20' : 'w-72 max-w-[85vw]',
+        isCollapsed ? 'w-20' : 'w-68 max-w-[85vw]',
       ]"
     >
-      <!-- Sidebar Header -->
-      <div class="h-16 px-4 border-b border-slate-200 dark:border-slate-800/80 flex items-center justify-between">
-        <a :href="getUrl('/')" @click="handleNavClick('/', false, $event)" class="flex items-center gap-3 overflow-hidden group cursor-pointer">
-          <div 
-            class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center font-black text-white shadow-lg transition-all"
-            :class="isSpa 
-              ? 'bg-gradient-to-tr from-emerald-600 to-teal-400 shadow-emerald-500/20' 
-              : 'bg-gradient-to-tr from-indigo-600 to-violet-500 shadow-indigo-500/20'"
-          >
-            <span class="text-xs tracking-wider">HL</span>
+      <!-- Top Brand S-Ribbon Logo & Expand/Collapse Trigger -->
+      <div class="pt-6 pb-4 px-3 flex items-center" :class="isCollapsed ? 'justify-center' : 'justify-between px-5'">
+        <a 
+          :href="getUrl('/')" 
+          @click="handleNavClick('/', false, $event)" 
+          class="flex items-center gap-3 group cursor-pointer"
+          title="SADAYA Analytics Hub"
+        >
+          <!-- Stylized Multi-Layered Coral/Orange/Pink Ribbon "S" Logo from Reference Image -->
+          <div class="w-10 h-10 rounded-2xl flex items-center justify-center relative shrink-0 group-hover:scale-105 transition-transform">
+            <svg viewBox="0 0 40 40" class="w-8 h-8 drop-shadow-md" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="sadayaGrad1" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FF8A65" />
+                  <stop offset="50%" stop-color="#FF5C77" />
+                  <stop offset="100%" stop-color="#F84593" />
+                </linearGradient>
+                <linearGradient id="sadayaGrad2" x1="40" y1="0" x2="0" y2="40" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FFB385" />
+                  <stop offset="100%" stop-color="#FF5263" />
+                </linearGradient>
+              </defs>
+              <!-- Top Ribbon Fold -->
+              <path d="M23.5 6L11 14.5L18.5 20L30 11.5L23.5 6Z" fill="url(#sadayaGrad2)" />
+              <!-- Center Diagonal Ribbon -->
+              <path d="M11 14.5L29 25.5L21.5 31L9.5 21.5L11 14.5Z" fill="url(#sadayaGrad1)" />
+              <!-- Bottom Ribbon Fold -->
+              <path d="M29 25.5L16.5 34L10 28.5L21.5 20L29 25.5Z" fill="#F48FB1" fill-opacity="0.85" />
+            </svg>
           </div>
 
-          <div v-if="!isCollapsed" class="transition-opacity duration-200">
-            <span class="block text-sm font-bold text-slate-900 dark:text-white tracking-tight group-hover:text-indigo-600 dark:group-hover:text-slate-200 transition-colors">
-              Hybrid Laravel
+          <div v-if="!isCollapsed" class="overflow-hidden">
+            <span class="block text-base font-extrabold tracking-tight text-white">
+              SADAYA
             </span>
-            <span class="block text-[10px] font-mono text-indigo-600 dark:text-indigo-400">
-              Starter Kit v2.0
+            <span class="block text-[10px] font-medium text-[#FF7A59] tracking-wider uppercase">
+              Analytics Hub
             </span>
           </div>
         </a>
 
-        <!-- Controls: Desktop Collapse, Mobile Close -->
-        <div class="flex items-center gap-1">
-          <!-- Desktop Collapse Button -->
-          <button
-            type="button"
-            @click="toggleCollapse"
-            class="hidden lg:flex p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
-            :title="isCollapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'"
-          >
-            <ChevronRight v-if="isCollapsed" class="w-4 h-4" />
-            <ChevronLeft v-else class="w-4 h-4" />
-          </button>
+        <!-- Desktop Collapse / Expand Button when Expanded -->
+        <button
+          v-if="!isCollapsed"
+          type="button"
+          @click="toggleCollapse"
+          class="hidden lg:flex p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          title="Ciutkan ke Icon Rail"
+        >
+          <ChevronLeft class="w-4 h-4" />
+        </button>
 
-          <!-- Close Drawer Button (Mobile Only) -->
-          <button
-            type="button"
-            @click="closeMobile"
-            class="lg:hidden p-1.5 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            title="Tutup Navigasi"
-          >
-            <X class="w-4 h-4" />
-          </button>
-        </div>
+        <!-- Mobile Close Button -->
+        <button
+          type="button"
+          @click="closeMobile"
+          class="lg:hidden p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          title="Tutup Navigasi"
+        >
+          <X class="w-4 h-4" />
+        </button>
       </div>
 
-      <!-- Navigation Links Container -->
-      <div class="flex-1 overflow-y-auto px-3 py-4 space-y-5 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-800">
-        <div v-for="(section, sIndex) in navSections" :key="sIndex" class="space-y-1">
-          <!-- Section Title (Hidden when collapsed) -->
+      <!-- Vertical Navigation Rail -->
+      <div class="flex-1 overflow-y-auto py-4 space-y-5 no-scrollbar" :class="isCollapsed ? 'px-0' : 'px-3'">
+        <div v-for="(section, sIndex) in navSections" :key="sIndex" class="space-y-2">
+          <!-- Section Title (Only when expanded) -->
           <div 
             v-if="!isCollapsed" 
-            class="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500"
+            class="px-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-slate-500"
           >
             {{ section.title }}
           </div>
-          <div v-else class="h-[1px] bg-slate-200 dark:bg-slate-800/70 my-2 mx-1"></div>
 
-          <!-- Section Links -->
-          <a
-            v-for="(item, iIndex) in section.items"
-            :key="iIndex"
-            :href="item.url"
-            :target="item.external ? '_blank' : '_self'"
-            @click="handleNavClick(item.path, item.external, $event)"
-            class="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all group relative cursor-pointer"
-            :class="item.active 
-              ? (isSpa ? 'bg-teal-50 dark:bg-teal-600/20 text-teal-800 dark:text-teal-200 font-semibold border border-teal-200 dark:border-teal-700/40' : 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-800 dark:text-indigo-200 font-semibold border border-indigo-200 dark:border-indigo-700/40')
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 border border-transparent'"
-            :title="isCollapsed ? item.name : ''"
-          >
-            <component 
-              :is="item.icon" 
-              class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-110"
-              :class="item.active ? (isSpa ? 'text-teal-600 dark:text-teal-400' : 'text-indigo-600 dark:text-indigo-400') : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'"
-            />
-
-            <!-- Label & Badge -->
-            <div v-if="!isCollapsed" class="flex-1 flex items-center justify-between overflow-hidden">
-              <span class="truncate">{{ item.name }}</span>
-              <span 
-                v-if="item.badge" 
-                class="text-[9px] font-mono px-1.5 py-0.2 rounded border"
-                :class="item.badgeColor"
-              >
-                {{ item.badge }}
-              </span>
-            </div>
-
-            <!-- Tooltip Popup when collapsed -->
-            <div 
-              v-if="isCollapsed" 
-              class="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-medium rounded-lg shadow-xl border border-slate-700 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50"
+          <!-- Navigation Links -->
+          <div v-for="(item, iIndex) in section.items" :key="iIndex" class="relative flex items-center" :class="isCollapsed ? 'justify-center' : ''">
+            <a
+              :href="item.url"
+              :target="item.external ? '_blank' : '_self'"
+              @click="handleNavClick(item.path, item.external, $event)"
+              class="group relative flex items-center transition-all duration-200 cursor-pointer"
+              :class="[
+                isCollapsed
+                  ? (item.active
+                      ? 'w-[78px] mr-auto py-3 pl-6 pr-3 rounded-r-full bg-[#9A9BA6] text-white shadow-lg justify-between -mr-2 z-20'
+                      : 'w-12 h-11 rounded-2xl text-slate-400 hover:text-white hover:bg-white/8 justify-center')
+                  : (item.active
+                      ? 'w-full px-3.5 py-2.5 rounded-2xl bg-gradient-to-r from-[#FF7556] to-[#F84593] text-white font-semibold shadow-lg shadow-[#FF5C77]/25 gap-3'
+                      : 'w-full px-3.5 py-2.5 rounded-2xl text-slate-400 hover:text-white hover:bg-white/8 gap-3 font-medium text-xs')
+              ]"
+              :title="isCollapsed ? item.name : ''"
             >
-              {{ item.name }}
-              <span v-if="item.external" class="text-cyan-400 ml-1">↗</span>
-            </div>
-          </a>
+              <component 
+                :is="item.icon" 
+                class="w-[19px] h-[19px] shrink-0 transition-transform duration-200 group-hover:scale-110"
+                :class="item.active ? 'text-white stroke-[2.2]' : 'text-slate-400 group-hover:text-white stroke-[1.75]'"
+              />
+
+              <!-- Active Dot on Slim Rail Pill (Signature detail from reference UI) -->
+              <span 
+                v-if="isCollapsed && item.active" 
+                class="w-1.5 h-1.5 rounded-full bg-white shadow-xs shrink-0"
+              ></span>
+
+              <!-- Expanded Text & Badge -->
+              <div v-if="!isCollapsed" class="flex-1 flex items-center justify-between overflow-hidden text-xs">
+                <span class="truncate">{{ item.name }}</span>
+                <span 
+                  v-if="item.badge" 
+                  class="text-[9px] font-mono px-2 py-0.5 rounded-full"
+                  :class="item.active ? 'bg-white/25 text-white font-bold' : 'bg-white/8 text-slate-400'"
+                >
+                  {{ item.badge }}
+                </span>
+              </div>
+
+              <!-- Hover Tooltip in Slim Rail Mode -->
+              <div 
+                v-if="isCollapsed" 
+                class="fixed left-22 px-3 py-1.5 bg-[#1A1D30] text-white text-xs font-semibold rounded-xl shadow-xl border border-white/10 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50 flex items-center gap-1.5"
+              >
+                <span>{{ item.name }}</span>
+                <span v-if="item.external" class="text-[#FF7A59]">↗</span>
+              </div>
+            </a>
+          </div>
         </div>
       </div>
 
+      <!-- Bottom Section: 3D Ribbon Loop Accent + Expand Toggle + User Avatar & Quick Actions -->
+      <div class="pb-5 pt-2 flex flex-col items-center gap-4">
+        <!-- Decorative 3D Torus/Ribbon Loop Accent + Rail Expand/Collapse Button -->
+        <button
+          type="button"
+          @click="toggleCollapse"
+          class="hidden lg:flex items-center justify-center group relative cursor-pointer focus:outline-none"
+          :title="isCollapsed ? 'Perluas Sidebar (Ctrl+B)' : 'Ciutkan Sidebar (Ctrl+B)'"
+        >
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center relative transition-transform duration-300 group-hover:scale-110">
+            <!-- 3D Loop SVG inspired by the floating yellow-orange-pink loop on the reference sidebar -->
+            <svg viewBox="0 0 64 64" class="w-11 h-11 drop-shadow-[0_6px_12px_rgba(255,92,119,0.35)]" fill="none">
+              <defs>
+                <linearGradient id="loopGradA" x1="8" y1="12" x2="56" y2="52" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#FFE066" />
+                  <stop offset="45%" stop-color="#FF8A5B" />
+                  <stop offset="100%" stop-color="#F84593" />
+                </linearGradient>
+                <linearGradient id="loopGradB" x1="54" y1="14" x2="14" y2="54" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#EA80FC" />
+                  <stop offset="50%" stop-color="#FF5C77" />
+                  <stop offset="100%" stop-color="#FFB74D" />
+                </linearGradient>
+              </defs>
+              <path d="M18 38C11 33 11 21 19 16C27 11 37 18 43 26C49 34 53 42 46 48C39 54 29 48 24 41" stroke="url(#loopGradB)" stroke-width="9" stroke-linecap="round" />
+              <path d="M46 24C53 29 53 41 45 46C37 51 27 44 21 36C15 28 11 20 18 14C25 8 35 14 40 21" stroke="url(#loopGradA)" stroke-width="9" stroke-linecap="round" />
+            </svg>
+          </div>
+          <span v-if="!isCollapsed" class="text-xs font-medium text-slate-400 group-hover:text-white ml-1">
+            Mode Ringkas
+          </span>
+        </button>
 
-      <!-- Sidebar Footer: User Profile & Quick Logout -->
-      <div class="p-3 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50/90 dark:bg-slate-950/90">
-        <div class="flex items-center gap-2.5" :class="isCollapsed ? 'justify-center' : 'justify-between'">
-          
-          <!-- Avatar + Info -->
-          <a 
-            :href="getUrl('/profile')"
-            @click="handleNavClick('/profile', false, $event)"
-            class="flex items-center gap-2.5 overflow-hidden group cursor-pointer"
-            :title="isCollapsed ? (currentUser?.name || 'Profil Akun') : ''"
-          >
-            <img
-              :src="currentUser?.avatar_url || 'https://ui-avatars.com/api/?name=Admin&background=6366f1&color=fff'"
-              :alt="currentUser?.name || 'User'"
-              class="w-8 h-8 rounded-full object-cover border border-indigo-500/40 flex-shrink-0 group-hover:border-indigo-400 transition-colors"
-            />
-            <div v-if="!isCollapsed" class="overflow-hidden text-left">
-              <span class="block text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-white truncate transition-colors">
-                {{ currentUser?.name || 'Administrator' }}
-              </span>
-              <span class="block text-[10px] font-mono text-indigo-600 dark:text-indigo-400 truncate">
-                {{ currentUser?.roles?.[0] || 'Superadmin' }}
-              </span>
-            </div>
-          </a>
+        <!-- User Avatar Card & Footer Icons (Matching bottom-left of reference image) -->
+        <div class="w-full px-3 flex flex-col items-center gap-3">
+          <div class="flex items-center" :class="isCollapsed ? 'justify-center' : 'w-full justify-between px-2'">
+            <a
+              :href="getUrl('/profile')"
+              @click="handleNavClick('/profile', false, $event)"
+              class="relative group cursor-pointer flex items-center gap-3"
+              :title="currentUser?.name || 'Profil Saya'"
+            >
+              <!-- Rounded Square Frame around Avatar -->
+              <div class="relative p-1 rounded-2xl border border-white/20 bg-white/5 group-hover:border-[#FF7556] transition-colors">
+                <img
+                  :src="currentUser?.avatar_url || 'https://ui-avatars.com/api/?name=Admin&background=FF5C77&color=fff'"
+                  :alt="currentUser?.name || 'User'"
+                  class="w-9 h-9 rounded-xl object-cover"
+                />
+                <!-- Coral Notification Badge on Avatar Corner (Like '6' in reference image) -->
+                <span class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#FF574A] text-white text-[10px] font-extrabold flex items-center justify-center shadow-md ring-2 ring-[#111322]">
+                  {{ currentUser?.roles?.length || 1 }}
+                </span>
+              </div>
 
-          <!-- Logout Button -->
-          <button
-            v-if="!isCollapsed"
-            type="button"
-            @click="handleLogout"
-            class="p-2 rounded-xl text-slate-400 hover:text-rose-600 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 dark:hover:border-rose-900/40 transition-all cursor-pointer"
-            title="Keluar dari sesi"
-          >
-            <LogOut class="w-4 h-4" />
-          </button>
+              <div v-if="!isCollapsed" class="overflow-hidden text-left">
+                <span class="block text-xs font-bold text-white truncate">
+                  {{ currentUser?.name || 'Administrator' }}
+                </span>
+                <span class="block text-[10px] text-slate-400 truncate">
+                  {{ currentUser?.roles?.[0] || 'Super Admin' }}
+                </span>
+              </div>
+            </a>
+
+            <button
+              v-if="!isCollapsed"
+              type="button"
+              @click="handleLogout"
+              class="p-2 rounded-xl text-slate-400 hover:text-[#FF574A] hover:bg-white/8 transition-colors cursor-pointer"
+              title="Keluar dari sesi"
+            >
+              <LogOut class="w-4 h-4" />
+            </button>
+          </div>
+
+          <!-- Bottom Mini Action Row ([->  ...) when in Slim Rail mode -->
+          <div v-if="isCollapsed" class="flex items-center justify-center gap-2.5 pt-0.5 text-slate-400">
+            <button
+              type="button"
+              @click="handleLogout"
+              class="p-1.5 rounded-lg hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Keluar Sesi"
+            >
+              <LogOut class="w-3.5 h-3.5" />
+            </button>
+            <a
+              :href="getUrl('/profile')"
+              @click="handleNavClick('/profile', false, $event)"
+              class="p-1.5 rounded-lg hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              title="Pengaturan Profil"
+            >
+              <MoreHorizontal class="w-3.5 h-3.5" />
+            </a>
+          </div>
         </div>
       </div>
-
     </aside>
   </div>
 </template>
