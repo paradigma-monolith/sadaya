@@ -420,7 +420,7 @@
         .photo-preview-wrap {
             position: relative;
             width: 100%;
-            height: 160px;
+            height: 180px;
             background: #0f172a;
             overflow: hidden;
         }
@@ -435,11 +435,11 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 0%, rgba(15, 23, 42, 0.75) 80%, transparent 100%);
-            padding: 6px 10px 4px 10px;
+            background: linear-gradient(to top, rgba(15, 23, 42, 0.96) 0%, rgba(15, 23, 42, 0.82) 85%, transparent 100%);
+            padding: 8px 10px 5px 10px;
             color: #ffffff;
             font-family: 'JetBrains Mono', monospace;
-            font-size: 10px;
+            font-size: 9.5px;
             line-height: 1.35;
             pointer-events: none;
         }
@@ -1088,16 +1088,20 @@
                             <span style="font-size: 11px; color: #0369a1; background: #e0f2fe; padding: 2px 6px; border-radius: 4px;" id="lblAccuracy">Akurasi: &plusmn; 10m</span>
                         </div>
 
+                        <div id="displayFullAddress" style="font-size: 11px; color: #475569; margin: 4px 0 8px 0; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 6px; padding: 6px 10px; display: flex; align-items: flex-start; gap: 6px;">
+                            <span style="font-size: 13px; line-height: 1;">🏠</span>
+                            <span id="lblFullAddress" style="word-break: break-word; line-height: 1.3;">Memuat alamat lengkap bandara...</span>
+                        </div>
+
                         <div style="margin-top: 8px;">
                             <label style="font-size: 11.5px; font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Keterangan / Lokasi Bandara:</label>
-                            <input type="text" name="lokasi_geotag" id="input_lokasi_geotag" class="underline-input" style="font-size: 12px; padding: 4px 6px;" placeholder="Contoh: Apron Bandara Husein Sastranegara (BDO) / Kertajati (KJT)" value="{{ old('lokasi_geotag', 'Apron Bandara Internasional Husein Sastranegara (BDO)') }}">
+                            <input type="text" name="lokasi_geotag" id="input_lokasi_geotag" class="underline-input" style="font-size: 12px; padding: 4px 6px;" placeholder="Contoh: Apron Bandara Husein Sastranegara (BDO) / Kertajati (KJT)" value="{{ old('lokasi_geotag', 'Bandara Husein Sastranegara, Jl. Pajajaran No. 156, Husen Sastranegara, Kec. Cicendo, Kota Bandung, Jawa Barat 40174') }}">
                         </div>
 
                         <div style="margin-top: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                             <span style="font-size: 11px; color: #64748b;">Pilihan Cepat:</span>
-                            <button type="button" class="preset-badge" onclick="setPresetLocation(-6.90389, 107.61861, 'Bandara Husein Sastranegara (BDO) - Bandung')">Bandara BDO</button>
-                            <button type="button" class="preset-badge" onclick="setPresetLocation(-6.65750, 108.19667, 'Bandara Internasional Kertajati (KJT) - Majalengka')">Bandara KJT</button>
-                            <button type="button" class="preset-badge" onclick="setPresetLocation(-6.12750, 106.65360, 'Bandara Internasional Soekarno-Hatta (CGK) - Cengkareng')">Bandara CGK</button>
+                            <button type="button" class="preset-badge" onclick="setPresetLocation(-6.90389, 107.61861, 'Bandara Husein Sastranegara (BDO) - Bandung', 'Bandara Husein Sastranegara, Jl. Pajajaran No. 156, Husen Sastranegara, Kec. Cicendo, Kota Bandung, Jawa Barat 40174')">Bandara BDO</button>
+                            <button type="button" class="preset-badge" onclick="setPresetLocation(-6.65750, 108.19667, 'Bandara Internasional Kertajati (KJT) - Majalengka', 'Bandara Internasional Kertajati (BIJB), Jl. Raya Kertajati - Majalengka, Kertajati, Kec. Kertajati, Kab. Majalengka, Jawa Barat 45457')">Bandara KJT</button>
                         </div>
                     </div>
 
@@ -1214,6 +1218,9 @@
                 <div>✈️ BKK BANDUNG &bull; SANITASI PESAWAT</div>
                 <div id="camLiveCoords">📍 Koordinat: -6.903890, 107.618610</div>
                 <div id="camLiveTime">🕒 Memuat waktu...</div>
+                <div id="camLiveAddress" style="font-size: 9.5px; color: #e2e8f0; margin-top: 2px; line-height: 1.25; opacity: 0.95; word-break: break-word;">
+                    🏠 <span id="camLiveAddressText">Memuat alamat lengkap...</span>
+                </div>
             </div>
         </div>
 
@@ -1287,8 +1294,65 @@
     var currentLatitude = parseFloat(document.getElementById('input_latitude').value) || -6.903890;
     var currentLongitude = parseFloat(document.getElementById('input_longitude').value) || 107.618610;
     var currentAccuracy = 10;
+    var currentFullAddress = document.getElementById('input_lokasi_geotag')?.value || 'Bandara Husein Sastranegara, Jl. Pajajaran No. 156, Husen Sastranegara, Kec. Cicendo, Kota Bandung, Jawa Barat 40174';
     var mapInstance = null;
     var markerInstance = null;
+    var reverseGeocodeCache = {};
+    var reverseGeocodeTimeout = null;
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function applyFullAddress(addr) {
+        if (!addr) return;
+        currentFullAddress = addr;
+
+        var camLiveAddrText = document.getElementById('camLiveAddressText');
+        if (camLiveAddrText) camLiveAddrText.textContent = addr;
+
+        var lblFullAddr = document.getElementById('lblFullAddress');
+        if (lblFullAddr) lblFullAddr.textContent = addr;
+
+        var inputLokasi = document.getElementById('input_lokasi_geotag');
+        if (inputLokasi && (!inputLokasi.dataset.userEdited || inputLokasi.value.trim() === '')) {
+            inputLokasi.value = addr.length > 250 ? addr.substring(0, 247) + '...' : addr;
+        }
+
+        if (markerInstance) {
+            markerInstance.bindPopup('<b>Lokasi Inspeksi Pesawat</b><br><span style="font-size: 11px; color: #475569;">' + escapeHtml(addr) + '</span>');
+        }
+    }
+
+    function fetchReverseGeocode(lat, lng) {
+        var key = lat.toFixed(4) + ',' + lng.toFixed(4);
+        if (reverseGeocodeCache[key]) {
+            applyFullAddress(reverseGeocodeCache[key]);
+            return;
+        }
+
+        if (reverseGeocodeTimeout) clearTimeout(reverseGeocodeTimeout);
+        reverseGeocodeTimeout = setTimeout(function() {
+            var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=' + lat + '&lon=' + lng + '&zoom=18&addressdetails=1';
+            fetch(url, { headers: { 'Accept-Language': 'id,en;q=0.8' } })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data && data.display_name) {
+                        reverseGeocodeCache[key] = data.display_name;
+                        applyFullAddress(data.display_name);
+                    }
+                })
+                .catch(function(err) {
+                    console.debug('Reverse geocoding not reachable:', err);
+                });
+        }, 500);
+    }
 
     function initMiniMap(lat, lng) {
         var mapContainer = document.getElementById('geoMiniMap');
@@ -1302,12 +1366,13 @@
                 }).addTo(mapInstance);
 
                 markerInstance = L.marker([lat, lng]).addTo(mapInstance);
-                markerInstance.bindPopup('<b>Lokasi Inspeksi Pesawat</b><br>BKK Bandung').openPopup();
+                markerInstance.bindPopup('<b>Lokasi Inspeksi Pesawat</b><br><span style="font-size: 11px; color: #475569;">' + escapeHtml(currentFullAddress) + '</span>').openPopup();
                 L.control.zoom({ position: 'bottomright' }).addTo(mapInstance);
             } else {
                 mapInstance.setView([lat, lng], 15);
                 if (markerInstance) {
                     markerInstance.setLatLng([lat, lng]);
+                    markerInstance.bindPopup('<b>Lokasi Inspeksi Pesawat</b><br><span style="font-size: 11px; color: #475569;">' + escapeHtml(currentFullAddress) + '</span>');
                 }
             }
         } catch (err) {
@@ -1315,7 +1380,7 @@
         }
     }
 
-    function updateGpsUI(lat, lng, acc) {
+    function updateGpsUI(lat, lng, acc, skipReverseGeocode) {
         currentLatitude = parseFloat(lat);
         currentLongitude = parseFloat(lng);
         if (acc) currentAccuracy = Math.round(acc);
@@ -1342,6 +1407,10 @@
         }
 
         initMiniMap(currentLatitude, currentLongitude);
+
+        if (!skipReverseGeocode) {
+            fetchReverseGeocode(currentLatitude, currentLongitude);
+        }
     }
 
     function detectGeolocation(showNotice) {
@@ -1379,9 +1448,27 @@
         }
     }
 
-    function setPresetLocation(lat, lng, label) {
-        document.getElementById('input_lokasi_geotag').value = label;
-        updateGpsUI(lat, lng, 5);
+    function setPresetLocation(lat, lng, label, fullAddress) {
+        var full = fullAddress || label;
+        var inputLokasi = document.getElementById('input_lokasi_geotag');
+        if (inputLokasi) {
+            inputLokasi.value = full.length > 250 ? full.substring(0, 247) + '...' : full;
+            delete inputLokasi.dataset.userEdited;
+        }
+        applyFullAddress(full);
+        updateGpsUI(lat, lng, 5, true);
+    }
+
+    var inputLokasiEl = document.getElementById('input_lokasi_geotag');
+    if (inputLokasiEl) {
+        inputLokasiEl.addEventListener('input', function() {
+            this.dataset.userEdited = 'true';
+            currentFullAddress = this.value;
+            var camLiveAddrText = document.getElementById('camLiveAddressText');
+            if (camLiveAddrText) camLiveAddrText.textContent = this.value || 'Apron Bandara';
+            var lblFullAddr = document.getElementById('lblFullAddress');
+            if (lblFullAddr) lblFullAddr.textContent = this.value || '-';
+        });
     }
 
     document.getElementById('btnRefreshGps').addEventListener('click', function() {
@@ -1494,6 +1581,10 @@
 
         modal.style.display = 'flex';
         updateLiveCameraOverlayClock();
+        var camLiveAddrText = document.getElementById('camLiveAddressText');
+        if (camLiveAddrText) {
+            camLiveAddrText.textContent = currentFullAddress || document.getElementById('input_lokasi_geotag')?.value || 'Apron Bandara';
+        }
         if (liveClockInterval) clearInterval(liveClockInterval);
         liveClockInterval = setInterval(updateLiveCameraOverlayClock, 1000);
 
@@ -1580,27 +1671,72 @@
         // Draw camera frame
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Render official geotag banner at the bottom of captured photo
-        var bannerHeight = Math.max(68, Math.round(canvas.height * 0.13));
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        // Responsive typography & sizing for geotag banner
+        var fontSize = Math.max(14, Math.round(canvas.height * 0.024));
+        var addressFontSize = Math.max(10, Math.round(fontSize * 0.65)); // Small font for address
+        var padding = Math.max(16, Math.round(canvas.width * 0.02));
+        var bannerHeight = Math.max(92, Math.round(canvas.height * 0.165));
+
+        // Semi-transparent dark banner overlay
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
         ctx.fillRect(0, canvas.height - bannerHeight, canvas.width, bannerHeight);
 
-        var fontSize = Math.max(15, Math.round(canvas.height * 0.026));
+        // 1. Header Line
         ctx.font = 'bold ' + fontSize + 'px sans-serif';
         ctx.fillStyle = '#ffffff';
-
         var line1 = '✈️ BKK BANDUNG • AIRCRAFT SANITATION INSPECTION';
+        ctx.fillText(line1, padding, canvas.height - bannerHeight + (fontSize * 1.25));
+
+        // 2. Coordinates Line
+        ctx.font = 'bold ' + (fontSize * 0.82) + 'px monospace';
+        ctx.fillStyle = '#38bdf8';
         var line2 = '📍 Lat: ' + currentLatitude.toFixed(6) + ', Lng: ' + currentLongitude.toFixed(6) + ' (±' + currentAccuracy + 'm)';
+        ctx.fillText(line2, padding, canvas.height - bannerHeight + (fontSize * 2.35));
+
+        // 3. Time & Aircraft Reg Line
+        ctx.font = (fontSize * 0.78) + 'px monospace';
+        ctx.fillStyle = '#cbd5e1';
         var regNo = document.querySelector('input[name="tanda_kebangsaan"]')?.value || 'PESAWAT';
         var line3 = '🕒 ' + new Date().toLocaleString('id-ID') + ' • Reg: ' + regNo;
+        ctx.fillText(line3, padding, canvas.height - bannerHeight + (fontSize * 3.4));
 
-        ctx.fillText(line1, 24, canvas.height - bannerHeight + (fontSize * 1.3));
-        ctx.font = 'bold ' + (fontSize * 0.85) + 'px monospace';
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillText(line2, 24, canvas.height - bannerHeight + (fontSize * 2.6));
-        ctx.font = (fontSize * 0.8) + 'px monospace';
-        ctx.fillStyle = '#cbd5e1';
-        ctx.fillText(line3, 24, canvas.height - bannerHeight + (fontSize * 3.8));
+        // 4. Full Address Line in Small Font ("berukuran kecil")
+        ctx.font = addressFontSize + 'px sans-serif';
+        ctx.fillStyle = '#f1f5f9';
+        var addrRaw = currentFullAddress || document.getElementById('input_lokasi_geotag')?.value || 'Apron Bandara';
+        var addressText = '🏠 ' + addrRaw;
+
+        var maxAddrWidth = canvas.width - (padding * 2);
+        var words = addressText.split(' ');
+        var currentLine = '';
+        var startY = canvas.height - bannerHeight + (fontSize * 4.35);
+        var lineHeight = addressFontSize * 1.35;
+        var maxLines = 2;
+        var renderedLines = 0;
+
+        for (var n = 0; n < words.length; n++) {
+            var testLine = currentLine + words[n] + ' ';
+            var metrics = ctx.measureText(testLine);
+            if (metrics.width > maxAddrWidth && n > 0) {
+                ctx.fillText(currentLine.trim(), padding, startY);
+                currentLine = words[n] + ' ';
+                startY += lineHeight;
+                renderedLines++;
+                if (renderedLines >= maxLines - 1) {
+                    var remaining = words.slice(n).join(' ');
+                    while (ctx.measureText(remaining + '...').width > maxAddrWidth && remaining.length > 0) {
+                        remaining = remaining.substring(0, remaining.length - 1);
+                    }
+                    currentLine = remaining + '... ';
+                    break;
+                }
+            } else {
+                currentLine = testLine;
+            }
+        }
+        if (currentLine.trim().length > 0) {
+            ctx.fillText(currentLine.trim(), padding, startY);
+        }
 
         canvas.toBlob(function(blob) {
             if (!blob) return;
@@ -1735,14 +1871,19 @@
         card.className = 'photo-card-item';
         card.dataset.index = index;
 
+        var displayAddress = currentFullAddress || document.getElementById('input_lokasi_geotag')?.value || 'Apron Bandara';
+
         card.innerHTML = `
             <button type="button" class="btn-delete-card" title="Hapus foto ini">&times;</button>
             <div class="photo-preview-wrap">
                 <img src="${dataUrl}" alt="${file.name}">
                 <div class="geotag-stamp-badge">
-                    <div>✈️ BKK BANDUNG &bull; SANITASI PESAWAT</div>
+                    <div style="font-weight: 700;">✈️ BKK BANDUNG &bull; SANITASI PESAWAT</div>
                     <div>📍 ${lat.toFixed(6)}, ${lng.toFixed(6)} (&plusmn;${acc}m)</div>
                     <div>🕒 ${timeStr}</div>
+                    <div style="font-size: 8.5px; opacity: 0.92; color: #f1f5f9; margin-top: 2px; line-height: 1.25; word-break: break-word; max-height: 24px; overflow: hidden;">
+                        🏠 ${escapeHtml(displayAddress)}
+                    </div>
                 </div>
             </div>
             <div class="photo-details-body">
@@ -1794,6 +1935,7 @@
 
     /* Initialize Map & GPS on Document Ready */
     document.addEventListener("DOMContentLoaded", function() {
+        applyFullAddress(currentFullAddress);
         detectGeolocation(false);
         initMiniMap(currentLatitude, currentLongitude);
     });
