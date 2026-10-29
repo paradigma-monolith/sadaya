@@ -1,6 +1,9 @@
 <script setup>
 import { ref, shallowRef, onMounted, onUnmounted, watch } from 'vue';
 import * as echarts from 'echarts';
+import { useSidebar } from '@/composables/useSidebar';
+
+const { isCollapsed, isOpen } = useSidebar();
 
 const props = defineProps({
   option: {
@@ -22,10 +25,7 @@ const chartInstance = shallowRef(null);
 let resizeObserver = null;
 let themeObserver = null;
 
-const isDarkMode = () => {
-  if (typeof document === 'undefined') return false;
-  return document.documentElement.classList.contains('dark');
-};
+const isDarkMode = () => false;
 
 const initChart = () => {
   if (!chartRef.value) return;
@@ -34,10 +34,9 @@ const initChart = () => {
     chartInstance.value.dispose();
   }
 
-  const dark = isDarkMode();
   chartInstance.value = echarts.init(
     chartRef.value, 
-    dark ? 'dark' : undefined, 
+    undefined, 
     { 
       renderer: 'canvas',
       backgroundColor: 'transparent',
@@ -46,9 +45,9 @@ const initChart = () => {
 
   if (props.loading) {
     chartInstance.value.showLoading({
-      color: '#6366f1',
-      textColor: dark ? '#cbd5e1' : '#475569',
-      maskColor: dark ? 'rgba(15, 23, 42, 0.6)' : 'rgba(255, 255, 255, 0.6)',
+      color: '#10b981',
+      textColor: '#475569',
+      maskColor: 'rgba(255, 255, 255, 0.8)',
     });
   } else {
     chartInstance.value.setOption(props.option, true);
@@ -87,6 +86,17 @@ watch(() => props.option, (newVal) => {
     chartInstance.value.setOption(newVal, true);
   }
 }, { deep: true });
+
+// Smoothly resize ECharts canvas throughout the 300ms sidebar collapse/expand transition
+watch([isCollapsed, isOpen], () => {
+  [50, 120, 200, 280, 350].forEach((delay) => {
+    setTimeout(() => {
+      if (chartInstance.value) {
+        chartInstance.value.resize();
+      }
+    }, delay);
+  });
+});
 
 watch(() => props.loading, (isLoading) => {
   if (!chartInstance.value) return;

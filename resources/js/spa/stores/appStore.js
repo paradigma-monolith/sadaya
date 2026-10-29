@@ -11,6 +11,7 @@ export const useAppStore = defineStore('appStore', {
 
   getters: {
     metrics: (state) => state.systemStats?.metrics || {},
+    bkkOffices: (state) => state.systemStats?.bkk_offices || [],
     database: (state) => state.systemStats?.architecture?.database || {},
     server: (state) => state.systemStats?.server || {},
     infrastructure: (state) => state.systemStats?.infrastructure || {},

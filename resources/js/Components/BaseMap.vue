@@ -2,6 +2,9 @@
 import { ref, shallowRef, onMounted, onUnmounted, watch } from 'vue';
 import * as maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { useSidebar } from '@/composables/useSidebar';
+
+const { isCollapsed, isOpen } = useSidebar();
 
 const props = defineProps({
   markers: {
@@ -30,7 +33,7 @@ const props = defineProps({
   },
   styleType: {
     type: String,
-    default: 'auto', // 'auto' | 'dark' | 'light' | 'voyager' | 'osm'
+    default: 'osm', // 'auto' | 'dark' | 'light' | 'voyager' | 'osm'
   },
 });
 
@@ -38,7 +41,7 @@ const emit = defineEmits(['selectMarker', 'mapMove', 'mapLoaded']);
 
 const mapContainer = ref(null);
 const mapInstance = shallowRef(null);
-const currentStyleKey = ref('dark');
+const currentStyleKey = ref('osm');
 const activeMarkerId = ref(null);
 let markerInstances = [];
 let resizeObserver = null;
@@ -126,49 +129,47 @@ const renderMarkers = () => {
     el.style.zIndex = '15';
     el.setAttribute('data-node-id', node.id);
 
-    const isPrimary = node.id === 'jkt-01';
+    const isPrimary = Boolean(node.is_hq || node.no === 1 || node.id === 'jkt-01');
+    const badgeLabel = node.flag || node.short_code || '📍';
 
     el.innerHTML = `
       <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
         <span style="position: absolute; width: 100%; height: 100%; border-radius: 9999px; opacity: 0.75; animation: maplibre-pulse-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; background-color: ${isPrimary ? '#6366f1' : '#10b981'};"></span>
-        <div style="position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); border: 2px solid #ffffff; background-color: ${isPrimary ? '#4f46e5' : '#059669'}; color: #ffffff; font-size: 13px; font-weight: bold; cursor: pointer; transition: transform 0.2s;">
-          ${node.flag || '📍'}
+        <div style="position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); border: 2px solid #ffffff; background-color: ${isPrimary ? '#4f46e5' : '#059669'}; color: #ffffff; font-size: ${badgeLabel.length > 2 ? '10px' : '12px'}; font-family: monospace; font-weight: 800; cursor: pointer; transition: transform 0.2s;">
+          ${badgeLabel}
         </div>
       </div>
     `;
 
-    // Interactive HTML Popup
+    // Interactive Compact HTML Popup
     const popup = new maplibregl.Popup({
-      offset: 22,
+      offset: 18,
       closeButton: true,
-      closeOnClick: false,
+      closeOnClick: true,
+      maxWidth: '205px',
       className: 'custom-maplibre-popup',
     }).setHTML(`
-      <div style="padding: 12px; font-family: sans-serif; color: #0f172a; min-width: 220px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; margin-bottom: 8px;">
-          <div style="display: flex; align-items: center; gap: 6px; font-weight: bold; font-size: 12px; color: #0f172a;">
-            <span>${node.flag || '🌐'}</span>
-            <span>${node.name}</span>
+      <div style="padding: 7px 9px; font-family: sans-serif; color: #0f172a; min-width: 155px; max-width: 195px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 5px; padding-right: 12px;">
+          <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 10px; color: #0f172a; line-height: 1.2;">
+            <span style="font-family: monospace; background: #e2e8f0; padding: 1px 4px; border-radius: 3px; font-size: 8.5px;">${badgeLabel}</span>
+            <span>${node.short_name || node.name}</span>
           </div>
-          <span style="padding: 2px 6px; border-radius: 9999px; font-size: 10px; font-weight: bold; text-transform: uppercase; background-color: #d1fae5; color: #065f46;">
-            ${node.status}
+          <span style="padding: 1px 4px; border-radius: 9999px; font-size: 8px; font-weight: 700; text-transform: uppercase; background-color: #d1fae5; color: #065f46; flex-shrink: 0;">
+            ${node.status || 'ONLINE'}
           </span>
         </div>
-        <div style="font-size: 11px; color: #475569; display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px;">
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: #64748b;">Peran Node:</span>
-            <span style="font-weight: 500; color: #1e293b;">${node.type || 'Edge Cluster'}</span>
+        <div style="font-size: 9px; color: #475569; display: flex; flex-direction: column; gap: 2.5px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #64748b;">Peran: <strong style="color: #1e293b;">${node.type || 'Wilker'}</strong></span>
+            <span style="font-weight: 700; color: #059669;">${node.ping || '4ms'}</span>
           </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: #64748b;">Ping Latency:</span>
-            <span style="font-weight: bold; color: #059669;">${node.ping || '4ms'}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: #64748b;">Koneksi Aktif:</span>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #64748b;">Throughput:</span>
             <span style="font-family: monospace; font-weight: 600; color: #4f46e5;">${node.connections ? Number(node.connections).toLocaleString() : '1420'} req/s</span>
           </div>
-          <div style="font-size: 10px; color: #94a3b8; margin-top: 4px;">
-            📍 ${node.location || ''}
+          <div style="font-size: 8.5px; color: #475569; margin-top: 2px; line-height: 1.25; border-top: 1px dashed #e2e8f0; padding-top: 3px;">
+            📍 ${node.address || node.location || ''}
           </div>
         </div>
       </div>
@@ -213,16 +214,60 @@ const initMap = () => {
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
   map.addControl(new maplibregl.FullscreenControl(), 'top-right');
   map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
-  map.addControl(
-    new maplibregl.AttributionControl({
-      compact: true,
-      customAttribution: 'MapLibre GL JS • Carto / OSM',
-    }),
-    'bottom-right'
-  );
+
+  const renderNetworkLines = () => {
+    if (!mapInstance.value || !props.markers || props.markers.length < 2) return;
+    const hq = props.markers.find(m => m.is_hq || m.no === 1) || props.markers[0];
+    if (!hq || !hq.coordinates) return;
+
+    const features = props.markers
+      .filter(m => m.id !== hq.id && m.coordinates && m.coordinates.length >= 2)
+      .map(w => ({
+        type: 'Feature',
+        geometry: {
+          type: 'LineString',
+          coordinates: [hq.coordinates, w.coordinates],
+        },
+      }));
+
+    if (mapInstance.value.getSource('bkk-wilker-links')) {
+      mapInstance.value.getSource('bkk-wilker-links').setData({
+        type: 'FeatureCollection',
+        features,
+      });
+    } else {
+      mapInstance.value.addSource('bkk-wilker-links', {
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features,
+        },
+      });
+      mapInstance.value.addLayer({
+        id: 'bkk-wilker-links-layer',
+        type: 'line',
+        source: 'bkk-wilker-links',
+        paint: {
+          'line-color': '#f97316',
+          'line-width': 2,
+          'line-dasharray': [3, 2],
+          'line-opacity': 0.85,
+        },
+      });
+    }
+  };
 
   map.on('load', () => {
+    renderNetworkLines();
     renderMarkers();
+    const center = map.getCenter();
+    emit('mapMove', {
+      lng: Number(center.lng.toFixed(4)),
+      lat: Number(center.lat.toFixed(4)),
+      zoom: Number(map.getZoom().toFixed(2)),
+      pitch: Number(map.getPitch().toFixed(0)),
+      bearing: Number(map.getBearing().toFixed(0)),
+    });
     emit('mapLoaded', map);
   });
 
@@ -232,8 +277,8 @@ const initMap = () => {
       lng: Number(center.lng.toFixed(4)),
       lat: Number(center.lat.toFixed(4)),
       zoom: Number(map.getZoom().toFixed(2)),
-      pitch: Number(map.getPitch().toFixed(1)),
-      bearing: Number(map.getBearing().toFixed(1)),
+      pitch: Number(map.getPitch().toFixed(0)),
+      bearing: Number(map.getBearing().toFixed(0)),
     });
   });
 
@@ -263,6 +308,37 @@ const setStyle = (styleKey) => {
   mapInstance.value.setStyle(style);
   mapInstance.value.once('style.load', () => {
     renderMarkers();
+    if (mapInstance.value && props.markers && props.markers.length >= 2) {
+      const hq = props.markers.find(m => m.is_hq || m.no === 1) || props.markers[0];
+      if (hq && hq.coordinates) {
+        const features = props.markers
+          .filter(m => m.id !== hq.id && m.coordinates && m.coordinates.length >= 2)
+          .map(w => ({
+            type: 'Feature',
+            geometry: {
+              type: 'LineString',
+              coordinates: [hq.coordinates, w.coordinates],
+            },
+          }));
+        if (!mapInstance.value.getSource('bkk-wilker-links')) {
+          mapInstance.value.addSource('bkk-wilker-links', {
+            type: 'geojson',
+            data: { type: 'FeatureCollection', features },
+          });
+          mapInstance.value.addLayer({
+            id: 'bkk-wilker-links-layer',
+            type: 'line',
+            source: 'bkk-wilker-links',
+            paint: {
+              'line-color': '#f97316',
+              'line-width': 2,
+              'line-dasharray': [3, 2],
+              'line-opacity': 0.85,
+            },
+          });
+        }
+      }
+    }
   });
 };
 
@@ -334,6 +410,17 @@ watch(() => props.styleType, (newVal) => {
   setStyle(newVal);
 });
 
+// Smoothly resize WebGL map canvas throughout the 300ms sidebar collapse/expand transition
+watch([isCollapsed, isOpen], () => {
+  [50, 120, 200, 280, 350].forEach((delay) => {
+    setTimeout(() => {
+      if (mapInstance.value) {
+        mapInstance.value.resize();
+      }
+    }, delay);
+  });
+});
+
 onUnmounted(() => {
   if (orbitInterval) {
     clearInterval(orbitInterval);
@@ -398,16 +485,17 @@ defineExpose({
 }
 
 .custom-maplibre-popup .maplibregl-popup-content {
-  border-radius: 1rem;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.25);
+  border-radius: 0.65rem;
+  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.22), 0 4px 8px -4px rgba(0, 0, 0, 0.18);
   padding: 0;
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 1px solid rgba(226, 232, 240, 0.85);
   backdrop-filter: blur(8px);
 }
 .maplibregl-popup-close-button {
-  padding: 6px 10px;
+  padding: 2px 6px;
   color: #64748b;
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1;
 }
 .maplibregl-popup-close-button:hover {
   color: #0f172a;

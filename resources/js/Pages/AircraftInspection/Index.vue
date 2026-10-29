@@ -117,11 +117,11 @@ const deleteInspection = (id, regNo) => {
     <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       
       <!-- Top Title & Quick Action Bar -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-6 shadow-xs">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800/60 mb-2">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-orange-50 dark:bg-orange-500/15 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/40 mb-2">
             <Plane class="w-3.5 h-3.5" />
-            <span>Kekarantinaan Kesehatan Alat Angkut Udara (BKK Bandung)</span>
+            <span>Kekarantinaan Kesehatan Alat Angkut Udara (BKK Kelas I Bandung)</span>
           </div>
           <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Data Inspeksi Sanitasi Pesawat
@@ -134,16 +134,16 @@ const deleteInspection = (id, regNo) => {
         <div class="flex flex-wrap items-center gap-2.5">
           <Link
             href="/aircraft-inspections/dashboard"
-            class="px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5"
+            class="px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-[#1a202c] hover:bg-slate-200 dark:hover:bg-[#232b3a] border border-slate-200 dark:border-[#2d3748] transition-colors flex items-center gap-1.5"
           >
-            <BarChart3 class="w-4 h-4 text-indigo-500" />
+            <BarChart3 class="w-4 h-4 text-orange-500" />
             <span>Dashboard Grafik</span>
           </Link>
 
           <a
             href="/travelconsent/public_aircraft"
             target="_blank"
-            class="px-4 py-2.5 rounded-xl font-semibold text-xs text-white bg-sky-600 hover:bg-sky-500 transition-all shadow-md shadow-sky-600/30 flex items-center gap-1.5"
+            class="px-4 py-2.5 rounded-xl font-bold text-xs text-slate-950 bg-orange-500 hover:bg-orange-400 transition-all shadow-md shadow-orange-500/30 flex items-center gap-1.5"
           >
             <Plus class="w-4 h-4" />
             <span>Buka Form Publik ↗</span>
@@ -163,10 +163,10 @@ const deleteInspection = (id, regNo) => {
       <!-- Live Metric Cards Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
         <!-- Total -->
-        <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 shadow-xs">
           <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
             <span>TOTAL INSPEKSI</span>
-            <Plane class="w-4 h-4 text-sky-500" />
+            <Plane class="w-4 h-4 text-orange-500" />
           </div>
           <div class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1.5">
             {{ stats.total }}
@@ -175,21 +175,21 @@ const deleteInspection = (id, regNo) => {
         </div>
 
         <!-- Kepatuhan / Layak -->
-        <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 shadow-xs">
           <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
             <span>LAYAK TERBANG</span>
-            <CheckCircle2 class="w-4 h-4 text-emerald-500" />
+            <CheckCircle2 class="w-4 h-4 text-orange-500" />
           </div>
-          <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5">
+          <div class="text-2xl font-extrabold text-orange-500 mt-1.5">
             {{ stats.layak_count }}
           </div>
-          <div class="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">
+          <div class="text-[11px] text-orange-400/80 mt-0.5">
             {{ stats.compliance_rate }}% Kelaikan
           </div>
         </div>
 
         <!-- Tidak Layak -->
-        <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 shadow-xs">
           <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
             <span>TIDAK LAYAK</span>
             <AlertTriangle class="w-4 h-4 text-rose-500" />
@@ -201,32 +201,32 @@ const deleteInspection = (id, regNo) => {
         </div>
 
         <!-- Tindakan Penyehatan -->
-        <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 shadow-xs">
           <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
             <span>TINDAKAN DISINSEKSI</span>
             <ShieldCheck class="w-4 h-4 text-amber-500" />
           </div>
-          <div class="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1.5">
+          <div class="text-2xl font-extrabold text-amber-500 mt-1.5">
             {{ stats.need_action_count }}
           </div>
           <div class="text-[11px] text-amber-500/80 mt-0.5">Penyehatan pesawat</div>
         </div>
 
         <!-- Hari Ini -->
-        <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs col-span-2 sm:col-span-1">
+        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 shadow-xs col-span-2 sm:col-span-1">
           <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
             <span>INSPEKSI HARI INI</span>
-            <FileCheck class="w-4 h-4 text-teal-500" />
+            <FileCheck class="w-4 h-4 text-orange-400" />
           </div>
           <div class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1.5">
             {{ stats.today_count }}
           </div>
-          <div class="text-[11px] text-teal-600 dark:text-teal-400 mt-0.5">Real-time update</div>
+          <div class="text-[11px] text-orange-400 mt-0.5">Real-time update</div>
         </div>
       </div>
 
       <!-- Filters & Search Toolbar -->
-      <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
+      <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
         <div class="relative w-full md:w-80">
           <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
           <input
@@ -234,7 +234,7 @@ const deleteInspection = (id, regNo) => {
             @keyup.enter="handleFilter"
             type="text"
             placeholder="Cari maskapai, no registrasi, petugas..."
-            class="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            class="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#0d1017] border border-slate-200 dark:border-[#232a36] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
           />
         </div>
 
@@ -242,7 +242,7 @@ const deleteInspection = (id, regNo) => {
           <select
             v-model="selectedKesimpulan"
             @change="handleFilter"
-            class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#0d1017] border border-slate-200 dark:border-[#232a36] text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
             <option value="">Semua Kelaikan</option>
             <option value="layak">Layak Bebas Serangga</option>
@@ -252,7 +252,7 @@ const deleteInspection = (id, regNo) => {
           <select
             v-model="selectedStatus"
             @change="handleFilter"
-            class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-[#0d1017] border border-slate-200 dark:border-[#232a36] text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
             <option value="">Semua Status</option>
             <option value="submitted">Submitted (Menunggu)</option>
@@ -264,7 +264,7 @@ const deleteInspection = (id, regNo) => {
           <button
             type="button"
             @click="handleFilter"
-            class="px-3 py-2 text-xs font-semibold rounded-xl bg-sky-600 hover:bg-sky-500 text-white transition-colors"
+            class="px-3 py-2 text-xs font-bold rounded-xl bg-orange-500 hover:bg-orange-400 text-slate-950 transition-colors cursor-pointer"
           >
             Terapkan
           </button>
@@ -281,7 +281,7 @@ const deleteInspection = (id, regNo) => {
       </div>
 
       <!-- Main Inspections Table Container -->
-      <div class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+      <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl overflow-hidden shadow-xs">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
@@ -303,7 +303,7 @@ const deleteInspection = (id, regNo) => {
                 class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
               >
                 <!-- Registration No -->
-                <td class="px-5 py-4 font-mono font-bold text-sky-600 dark:text-sky-400 whitespace-nowrap">
+                <td class="px-5 py-4 font-mono font-bold text-orange-600 dark:text-orange-400 whitespace-nowrap">
                   {{ item.registration_no }}
                 </td>
 
@@ -656,7 +656,7 @@ const deleteInspection = (id, regNo) => {
               <button
                 type="button"
                 @click="submitStatusUpdate"
-                class="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-sky-600 hover:bg-sky-500 transition-colors shadow-sm"
+                class="px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-orange-500 hover:bg-orange-400 transition-colors shadow-sm"
               >
                 Simpan Perubahan
               </button>

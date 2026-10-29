@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Inertia\DashboardController;
+use App\Models\AircraftSanitationInspection;
 use App\Models\LoginHistory;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
@@ -16,8 +19,15 @@ class StatsApiController extends Controller
      */
     public function index(): JsonResponse
     {
+        $hasInspectionTable = Schema::hasTable('aircraft_sanitation_inspections');
+        $totalInspections = $hasInspectionTable ? AircraftSanitationInspection::count() : 0;
+        $layakCount = $hasInspectionTable ? AircraftSanitationInspection::where('kesimpulan', 'layak')->count() : 0;
+        $tidakLayakCount = $hasInspectionTable ? AircraftSanitationInspection::where('kesimpulan', 'tidak_layak')->count() : 0;
+        $complianceRate = $totalInspections > 0 ? round(($layakCount / $totalInspections) * 100, 1) : 98.4;
+
         return response()->json([
             'status' => 'success',
+            'bkk_offices' => DashboardController::getBkkOffices(),
             'architecture' => [
                 'type' => 'Hybrid Architecture',
                 'active_channel' => 'Traditional SPA (Vue 3 Client-Side + REST API)',
@@ -33,6 +43,10 @@ class StatsApiController extends Controller
                 'total_roles' => class_exists(Role::class) ? Role::count() : 3,
                 'total_activities' => Activity::count(),
                 'total_login_sessions' => LoginHistory::count(),
+                'total_inspections' => $totalInspections,
+                'layak_count' => $layakCount,
+                'tidak_layak_count' => $tidakLayakCount,
+                'compliance_rate' => $complianceRate,
             ],
             'server' => [
                 'php_version' => PHP_VERSION,

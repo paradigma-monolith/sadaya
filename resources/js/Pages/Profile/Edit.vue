@@ -134,7 +134,7 @@ const triggerAvatarSelect = () => {
 </script>
 
 <template>
-  <Head title="Pengaturan Profil & Keamanan - Hybrid Laravel" />
+  <Head title="Pengaturan Profil & Keamanan - BKK Kelas I Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="profile">
     <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
@@ -145,13 +145,13 @@ const triggerAvatarSelect = () => {
             Pengaturan Akun &amp; Profil
           </h1>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Kelola data profil, foto avatar, keamanan kata sandi, dan log riwayat sesi login.
+            Kelola data profil, foto avatar, keamanan kata sandi, dan log riwayat sesi login BKK Kelas I Bandung.
           </p>
         </div>
 
         <div class="flex items-center gap-2">
-          <span v-for="role in user.roles" :key="role" class="px-3 py-1 rounded-full text-xs font-mono font-medium bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700/60 flex items-center gap-1.5">
-            <ShieldCheck class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+          <span v-for="role in user.roles" :key="role" class="px-3 py-1 rounded-full text-xs font-mono font-semibold bg-orange-500/15 text-orange-400 border border-orange-500/40 flex items-center gap-1.5">
+            <ShieldCheck class="w-3.5 h-3.5 text-orange-400" />
             <span>{{ role }}</span>
           </span>
         </div>
@@ -167,12 +167,12 @@ const triggerAvatarSelect = () => {
       <div class="grid lg:grid-cols-3 gap-6 mb-8">
         <!-- Left Column: Avatar & Roles Info Card -->
         <div class="lg:col-span-1 space-y-6">
-          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 backdrop-blur-xl text-center shadow-sm">
+          <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-6 backdrop-blur-xl text-center shadow-sm">
             <div class="relative w-28 h-28 mx-auto mb-4 group cursor-pointer" @click="triggerAvatarSelect" title="Klik untuk mengubah foto profil">
               <img
                 :src="avatarPreview"
                 :alt="user.name"
-                class="w-full h-full rounded-3xl object-cover border-2 border-indigo-500/40 shadow-lg group-hover:opacity-80 transition-opacity"
+                class="w-full h-full rounded-3xl object-cover border-2 border-orange-500/50 shadow-lg group-hover:opacity-80 transition-opacity"
               />
               <div class="absolute inset-0 rounded-3xl bg-slate-950/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium">
                 <Camera class="w-5 h-5" />
@@ -194,7 +194,7 @@ const triggerAvatarSelect = () => {
               type="button"
               @click="triggerAvatarSelect"
               :disabled="avatarForm.processing"
-              class="mt-4 w-full py-2.5 px-3 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-600/20 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-600/30 border border-indigo-200 dark:border-indigo-500/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              class="mt-4 w-full py-2.5 px-3 rounded-xl text-xs font-semibold bg-orange-500/15 text-orange-400 hover:bg-orange-500/25 border border-orange-500/40 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <UploadCloud class="w-3.5 h-3.5" />
               <span>{{ avatarForm.processing ? 'Mengunggah...' : 'Ubah Foto Avatar' }}</span>
@@ -205,13 +205,13 @@ const triggerAvatarSelect = () => {
           </div>
 
           <!-- Permissions Badge Card -->
-          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 rounded-3xl p-5 backdrop-blur-xl shadow-sm">
+          <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-5 backdrop-blur-xl shadow-sm">
             <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1.5 font-mono">
-              <ShieldCheck class="w-3.5 h-3.5 text-indigo-500" />
+              <ShieldCheck class="w-3.5 h-3.5 text-orange-500" />
               <span>Izin Hak Akses (RBAC)</span>
             </h4>
             <div class="flex flex-wrap gap-1.5">
-              <span v-for="perm in user.permissions" :key="perm" class="px-2 py-0.5 rounded-lg text-[10px] font-mono bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800">
+              <span v-for="perm in user.permissions" :key="perm" class="px-2 py-0.5 rounded-lg text-[10px] font-mono bg-slate-100 dark:bg-[#0d1017] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#232a36]">
                 {{ perm }}
               </span>
               <span v-if="user.permissions.length === 0" class="text-xs text-slate-500 italic">
@@ -224,7 +224,7 @@ const triggerAvatarSelect = () => {
         <!-- Right Column: Profile & Password Forms -->
         <div class="lg:col-span-2 space-y-6">
           <!-- Profile Information Form -->
-          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-sm">
+          <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-sm">
             <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-0.5">Informasi Pengguna</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">Perbarui nama lengkap dan alamat email akun Anda.</p>
 
@@ -239,7 +239,7 @@ const triggerAvatarSelect = () => {
                     v-model="profileForm.name"
                     type="text"
                     required
-                    class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-950/70 border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:outline-none transition-colors"
+                    class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-[#0d1017] border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-[#232a36] focus:border-orange-500 focus:outline-none transition-colors"
                   />
                 </div>
                 <p v-if="profileForm.errors.name" class="text-xs text-rose-500 mt-1">{{ profileForm.errors.name }}</p>
@@ -255,7 +255,7 @@ const triggerAvatarSelect = () => {
                     v-model="profileForm.email"
                     type="email"
                     required
-                    class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-950/70 border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:outline-none font-mono transition-colors"
+                    class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-[#0d1017] border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-[#232a36] focus:border-orange-500 focus:outline-none font-mono transition-colors"
                   />
                 </div>
                 <p v-if="profileForm.errors.email" class="text-xs text-rose-500 mt-1">{{ profileForm.errors.email }}</p>
@@ -265,7 +265,7 @@ const triggerAvatarSelect = () => {
                 <button
                   type="submit"
                   :disabled="profileForm.processing"
-                  class="py-2.5 px-5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
+                  class="py-2.5 px-5 rounded-xl text-xs font-bold text-slate-950 bg-orange-500 hover:bg-orange-400 shadow-md shadow-orange-500/20 transition-all flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
                 >
                   <Save class="w-3.5 h-3.5" />
                   <span>{{ profileForm.processing ? 'Menyimpan...' : 'Simpan Profil' }}</span>
@@ -275,7 +275,7 @@ const triggerAvatarSelect = () => {
           </div>
 
           <!-- Update Password Form -->
-          <div class="bg-white dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-sm">
+          <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-6 sm:p-8 backdrop-blur-xl shadow-sm">
             <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-0.5">Keamanan Kata Sandi</h3>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">Pastikan akun Anda menggunakan kata sandi yang kuat dan aman.</p>
 
@@ -291,7 +291,7 @@ const triggerAvatarSelect = () => {
                     type="password"
                     required
                     placeholder="••••••••"
-                    class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-950/70 border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:outline-none font-mono transition-colors"
+                    class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-[#0d1017] border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-[#232a36] focus:border-orange-500 focus:outline-none font-mono transition-colors"
                   />
                 </div>
                 <p v-if="passwordForm.errors.current_password" class="text-xs text-rose-500 mt-1">{{ passwordForm.errors.current_password }}</p>
@@ -309,7 +309,7 @@ const triggerAvatarSelect = () => {
                       type="password"
                       required
                       placeholder="Minimal 8 karakter"
-                      class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-950/70 border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:outline-none font-mono transition-colors"
+                      class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-[#0d1017] border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-[#232a36] focus:border-orange-500 focus:outline-none font-mono transition-colors"
                     />
                   </div>
                   <p v-if="passwordForm.errors.password" class="text-xs text-rose-500 mt-1">{{ passwordForm.errors.password }}</p>
@@ -326,7 +326,7 @@ const triggerAvatarSelect = () => {
                       type="password"
                       required
                       placeholder="Konfirmasi sandi"
-                      class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-950/70 border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-slate-800 focus:border-indigo-500 focus:outline-none font-mono transition-colors"
+                      class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 dark:bg-[#0d1017] border rounded-xl text-slate-900 dark:text-white border-slate-200 dark:border-[#232a36] focus:border-orange-500 focus:outline-none font-mono transition-colors"
                     />
                   </div>
                 </div>
@@ -336,7 +336,7 @@ const triggerAvatarSelect = () => {
                 <button
                   type="submit"
                   :disabled="passwordForm.processing"
-                  class="py-2.5 px-5 rounded-xl text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 shadow-md shadow-indigo-600/20 transition-all flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
+                  class="py-2.5 px-5 rounded-xl text-xs font-bold text-slate-950 bg-orange-500 hover:bg-orange-400 shadow-md shadow-orange-500/20 transition-all flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
                 >
                   <Lock class="w-3.5 h-3.5" />
                   <span>{{ passwordForm.processing ? 'Menyimpan...' : 'Perbarui Kata Sandi' }}</span>
@@ -348,7 +348,7 @@ const triggerAvatarSelect = () => {
       </div>
 
       <!-- Full-Width Section: Riwayat Sesi & Keamanan Login Pengguna -->
-      <div class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 backdrop-blur-xl shadow-xl transition-colors">
+      <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 backdrop-blur-xl shadow-xl transition-colors">
         <!-- Section Header -->
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 sm:pb-6 border-b border-slate-200 dark:border-slate-800/80 mb-5 sm:mb-6">
           <div class="flex items-center gap-3 sm:gap-3.5">

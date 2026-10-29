@@ -58,16 +58,16 @@ const getUrl = (path) => {
 </script>
 
 <template>
-  <Head title="Audit Trail & Riwayat Keamanan - Hybrid Laravel" />
+  <Head title="Audit Trail & Riwayat Keamanan - BKK Kelas I Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="audit">
     <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       <!-- Header -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <div class="inline-flex items-center gap-2 text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-1">
+          <div class="inline-flex items-center gap-2 text-xs font-mono font-semibold text-orange-600 dark:text-orange-400 uppercase tracking-wider mb-1">
             <History class="w-4 h-4" />
-            <span>Audit Trail &bull; Enterprise Security</span>
+            <span>Audit Trail &bull; BKK Kelas I Bandung</span>
           </div>
           <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
             Pusat Audit &amp; Keamanan Sistem
@@ -78,32 +78,32 @@ const getUrl = (path) => {
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-xs font-mono shadow-xs">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] text-xs font-mono shadow-xs">
+            <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
             <span class="text-slate-500 dark:text-slate-400">IP Anda:</span>
-            <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ current_ip }}</span>
+            <span class="font-bold text-orange-600 dark:text-orange-400">{{ current_ip }}</span>
           </div>
 
-          <a :href="getUrl('/api/v1/audit-logs')" target="_blank" class="px-3 py-1.5 rounded-xl font-mono text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center gap-1.5 shadow-xs transition-colors">
+          <a :href="getUrl('/api/v1/audit-logs')" target="_blank" class="px-3 py-1.5 rounded-xl font-mono text-xs text-slate-700 dark:text-slate-300 bg-white dark:bg-[#12161f] hover:bg-slate-100 dark:hover:bg-[#1a202c] border border-slate-200 dark:border-[#232a36] flex items-center gap-1.5 shadow-xs transition-colors">
             <span>JSON Feed</span>
-            <span class="text-slate-400">↗</span>
+            <span class="text-orange-400">↗</span>
           </a>
         </div>
       </div>
 
       <!-- Tab Switcher Navigation (Responsive segmented control) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-6 p-1.5 bg-slate-200/70 dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 w-full sm:w-auto sm:inline-flex">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-6 p-1.5 bg-slate-200/70 dark:bg-[#12161f] rounded-2xl border border-slate-200 dark:border-[#232a36] w-full sm:w-auto sm:inline-flex">
         <button
           type="button"
           @click="activeTab = 'activities'"
           class="px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between sm:justify-start gap-2 cursor-pointer"
-          :class="activeTab === 'activities' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+          :class="activeTab === 'activities' ? 'bg-orange-500 text-slate-950 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
         >
           <div class="flex items-center gap-2">
-            <Activity class="w-4 h-4 text-indigo-500 shrink-0" />
+            <Activity class="w-4 h-4 shrink-0" :class="activeTab === 'activities' ? 'text-slate-950' : 'text-orange-500'" />
             <span>Log Aktivitas Data (Spatie)</span>
           </div>
-          <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-mono">
+          <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-950/20 font-mono">
             {{ activities.total || activities.data.length }}
           </span>
         </button>
@@ -112,20 +112,20 @@ const getUrl = (path) => {
           type="button"
           @click="activeTab = 'logins'"
           class="px-3.5 py-2 rounded-xl text-xs font-semibold transition-all flex items-center justify-between sm:justify-start gap-2 cursor-pointer"
-          :class="activeTab === 'logins' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
+          :class="activeTab === 'logins' ? 'bg-orange-500 text-slate-950 font-bold shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'"
         >
           <div class="flex items-center gap-2">
-            <Globe class="w-4 h-4 text-cyan-500 shrink-0" />
+            <Globe class="w-4 h-4 shrink-0" :class="activeTab === 'logins' ? 'text-slate-950' : 'text-orange-400'" />
             <span>Riwayat Login IP (Semua Akun)</span>
           </div>
-          <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-cyan-100 dark:bg-cyan-950 text-cyan-700 dark:text-cyan-300 font-mono">
+          <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-slate-950/20 font-mono">
             {{ login_histories.total || login_histories.data.length }}
           </span>
         </button>
       </div>
 
       <!-- Tab 1: Activity Log Table (Spatie) -->
-      <div v-if="activeTab === 'activities'" class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl sm:rounded-3xl p-4 sm:p-6 backdrop-blur-xl shadow-xl transition-colors">
+      <div v-if="activeTab === 'activities'" class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl sm:rounded-3xl p-4 sm:p-6 backdrop-blur-xl shadow-xl transition-colors">
         <!-- Desktop/Tablet View -->
         <div class="hidden md:block overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800/80">
           <table class="w-full text-left text-sm text-slate-700 dark:text-slate-300">

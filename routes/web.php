@@ -82,9 +82,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/pdf', [ExportController::class, 'exportPdf'])->name('pdf');
     });
 
-    // Manual Book Documentation PDF Download
-    Route::get('/docs/manual-book/download', [ExportController::class, 'exportManualBookPdf'])->name('docs.manual-book.download');
-
     // In-App & Real-Time Notifications (Reverb WebSocket Powered)
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
@@ -95,23 +92,6 @@ Route::middleware('auth')->group(function () {
     // Real-Time Live Chat (Reverb WebSocket Powered)
     Route::get('/chat/messages', [\App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
     Route::post('/chat/messages', [\App\Http\Controllers\ChatController::class, 'send'])->name('chat.send');
-
-    // Traditional SPA Host Route
-    Route::get('/spa/{any?}', function () {
-        $user = auth()->user();
-
-        return view('spa', [
-            'authUser' => $user ? [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'avatar_url' => $user->avatar_url,
-                'roles' => $user->getRoleNames(),
-                'permissions' => $user->getAllPermissions()->pluck('name'),
-                'is_impersonating' => app('impersonate')->isImpersonating(),
-            ] : null,
-        ]);
-    })->where('any', '.*')->name('spa');
 
     // User Impersonation Routes (/impersonate/take/{id} & /impersonate/leave)
     Route::impersonate();
