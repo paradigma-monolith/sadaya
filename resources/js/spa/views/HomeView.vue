@@ -262,15 +262,15 @@ onMounted(async () => {
       </div>
 
       <!-- Map Container -->
-      <div class="relative rounded-xl overflow-hidden border border-slate-200">
+      <div class="relative rounded-xl overflow-hidden border border-slate-200 shadow-xs">
         <BaseMap
           ref="spaMapRef"
           :markers="offices"
-          :initialCenter="[107.6108, -6.68]"
-          :initialZoom="7.75"
-          :initialPitch="35"
+          :initialCenter="[107.55, -6.65]"
+          :initialZoom="7.9"
+          :initialPitch="25"
           :initialBearing="0"
-          height="440px"
+          height="460px"
           styleType="osm"
           @selectMarker="(node) => selectOffice(node)"
           @mapMove="(coords) => (mapHud = coords)"

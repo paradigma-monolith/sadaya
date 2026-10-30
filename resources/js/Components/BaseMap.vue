@@ -75,22 +75,22 @@ const STYLES = {
   dark: createRasterStyle(
     ['a', 'b', 'c', 'd'],
     'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap &copy; CARTO'
+    '&copy; OpenStreetMap contributors &copy; CARTO'
   ),
   light: createRasterStyle(
     ['a', 'b', 'c', 'd'],
     'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap &copy; CARTO'
+    '&copy; OpenStreetMap contributors &copy; CARTO'
   ),
   voyager: createRasterStyle(
     ['a', 'b', 'c', 'd'],
     'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap &copy; CARTO'
+    '&copy; OpenStreetMap contributors &copy; CARTO'
   ),
   osm: createRasterStyle(
-    ['tile'],
-    'https://{s}.openstreetmap.org/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap contributors'
+    ['a', 'b', 'c', 'd'],
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors &copy; CARTO'
   ),
 };
 
@@ -101,9 +101,9 @@ const isDarkMode = () => {
 
 const resolveStyle = (styleKey) => {
   if (styleKey === 'auto') {
-    return isDarkMode() ? STYLES.dark : STYLES.light;
+    return isDarkMode() ? STYLES.dark : STYLES.osm;
   }
-  return STYLES[styleKey] || STYLES.dark;
+  return STYLES[styleKey] || STYLES.osm;
 };
 
 // Clear all markers from map canvas
@@ -130,12 +130,12 @@ const renderMarkers = () => {
     el.setAttribute('data-node-id', node.id);
 
     const isPrimary = Boolean(node.is_hq || node.no === 1 || node.id === 'jkt-01');
-    const badgeLabel = node.flag || node.short_code || '📍';
+    const badgeLabel = node.flag || node.short_code || node.shortCode || '📍';
 
     el.innerHTML = `
       <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
-        <span style="position: absolute; width: 100%; height: 100%; border-radius: 9999px; opacity: 0.75; animation: maplibre-pulse-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; background-color: ${isPrimary ? '#6366f1' : '#10b981'};"></span>
-        <div style="position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5); border: 2px solid #ffffff; background-color: ${isPrimary ? '#4f46e5' : '#059669'}; color: #ffffff; font-size: ${badgeLabel.length > 2 ? '10px' : '12px'}; font-family: monospace; font-weight: 800; cursor: pointer; transition: transform 0.2s;">
+        <span style="position: absolute; width: 100%; height: 100%; border-radius: 9999px; opacity: 0.75; animation: maplibre-pulse-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; background-color: ${isPrimary ? '#334155' : '#10b981'};"></span>
+        <div style="position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.35); border: 2px solid #ffffff; background-color: ${isPrimary ? '#0f172a' : '#059669'}; color: #ffffff; font-size: ${badgeLabel.length > 2 ? '10px' : '12px'}; font-family: monospace; font-weight: 800; cursor: pointer; transition: transform 0.2s;">
           ${badgeLabel}
         </div>
       </div>
@@ -215,8 +215,9 @@ const initMap = () => {
   map.addControl(new maplibregl.FullscreenControl(), 'top-right');
   map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
 
-  const renderNetworkLines = () => {
-    if (!mapInstance.value || !props.markers || props.markers.length < 2) return;
+  const renderNetworkLines = (targetMap) => {
+    const map = targetMap || mapInstance.value;
+    if (!map || !props.markers || props.markers.length < 2) return;
     const hq = props.markers.find(m => m.is_hq || m.no === 1) || props.markers[0];
     if (!hq || !hq.coordinates) return;
 
@@ -230,25 +231,25 @@ const initMap = () => {
         },
       }));
 
-    if (mapInstance.value.getSource('bkk-wilker-links')) {
-      mapInstance.value.getSource('bkk-wilker-links').setData({
+    if (map.getSource('bkk-wilker-links')) {
+      map.getSource('bkk-wilker-links').setData({
         type: 'FeatureCollection',
         features,
       });
     } else {
-      mapInstance.value.addSource('bkk-wilker-links', {
+      map.addSource('bkk-wilker-links', {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
           features,
         },
       });
-      mapInstance.value.addLayer({
+      map.addLayer({
         id: 'bkk-wilker-links-layer',
         type: 'line',
         source: 'bkk-wilker-links',
         paint: {
-          'line-color': '#f97316',
+          'line-color': '#10b981',
           'line-width': 2,
           'line-dasharray': [3, 2],
           'line-opacity': 0.85,
@@ -258,7 +259,8 @@ const initMap = () => {
   };
 
   map.on('load', () => {
-    renderNetworkLines();
+    mapInstance.value = map;
+    renderNetworkLines(map);
     renderMarkers();
     const center = map.getCenter();
     emit('mapMove', {
@@ -308,42 +310,35 @@ const setStyle = (styleKey) => {
   mapInstance.value.setStyle(style);
   mapInstance.value.once('style.load', () => {
     renderMarkers();
-    if (mapInstance.value && props.markers && props.markers.length >= 2) {
-      const hq = props.markers.find(m => m.is_hq || m.no === 1) || props.markers[0];
-      if (hq && hq.coordinates) {
-        const features = props.markers
-          .filter(m => m.id !== hq.id && m.coordinates && m.coordinates.length >= 2)
-          .map(w => ({
-            type: 'Feature',
-            geometry: {
-              type: 'LineString',
-              coordinates: [hq.coordinates, w.coordinates],
-            },
-          }));
-        if (!mapInstance.value.getSource('bkk-wilker-links')) {
-          mapInstance.value.addSource('bkk-wilker-links', {
-            type: 'geojson',
-            data: { type: 'FeatureCollection', features },
-          });
-          mapInstance.value.addLayer({
-            id: 'bkk-wilker-links-layer',
-            type: 'line',
-            source: 'bkk-wilker-links',
-            paint: {
-              'line-color': '#f97316',
-              'line-width': 2,
-              'line-dasharray': [3, 2],
-              'line-opacity': 0.85,
-            },
-          });
-        }
-      }
-    }
+    renderNetworkLines(mapInstance.value);
   });
 };
 
+const fitAllMarkers = (padding = 50) => {
+  if (!mapInstance.value || !props.markers || props.markers.length === 0) return;
+  const bounds = new maplibregl.LngLatBounds();
+  props.markers.forEach((m) => {
+    if (m.coordinates && m.coordinates.length >= 2) {
+      bounds.extend(m.coordinates);
+    }
+  });
+  if (!bounds.isEmpty()) {
+    mapInstance.value.fitBounds(bounds, {
+      padding,
+      maxZoom: 10.5,
+      pitch: 25,
+      bearing: 0,
+      duration: 900,
+    });
+  }
+};
+
 const resetView = () => {
-  flyTo(props.initialCenter, props.initialZoom, props.initialPitch, props.initialBearing);
+  if (props.markers && props.markers.length > 0) {
+    fitAllMarkers(55);
+  } else {
+    flyTo(props.initialCenter, props.initialZoom, props.initialPitch, props.initialBearing);
+  }
 };
 
 const toggle3DPitch = () => {
@@ -446,14 +441,16 @@ defineExpose({
   flyTo,
   setStyle,
   resetView,
+  fitAllMarkers,
   toggle3DPitch,
   toggleOrbit,
   renderMarkers,
+  renderNetworkLines,
 });
 </script>
 
 <template>
-  <div class="relative w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md">
+  <div class="relative w-full h-full overflow-hidden">
     <div ref="mapContainer" :style="{ height, width: '100%' }" class="w-full"></div>
     <slot name="overlay"></slot>
   </div>
