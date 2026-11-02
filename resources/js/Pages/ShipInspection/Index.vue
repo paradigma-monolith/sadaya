@@ -27,6 +27,8 @@ import {
   Compass,
   Check,
   Info,
+  Link2,
+  Copy,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -78,6 +80,41 @@ const resetFilter = () => {
 // Modal Inspection Details & Verification
 const activeInspection = ref(null);
 const showDetailModal = ref(false);
+const showShareModal = ref(false);
+const shareTarget = ref(null);
+const copied = ref(false);
+
+const getPublicUrl = (regNo) => {
+  if (typeof window === 'undefined') return `/travelconsent/receipt_sanitasi/${regNo}`;
+  return `${window.location.origin}/travelconsent/receipt_sanitasi/${regNo}`;
+};
+
+const openShareModal = (item) => {
+  shareTarget.value = item;
+  copied.value = false;
+  showShareModal.value = true;
+};
+
+const copyPublicUrl = async (url) => {
+  try {
+    await navigator.clipboard.writeText(url);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2500);
+  } catch (e) {
+    const input = document.createElement('input');
+    input.value = url;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2500);
+  }
+};
 const activeTab = ref('overview'); // 'overview' | 'checklist' | 'verify'
 
 const statusForm = ref({
@@ -394,6 +431,15 @@ const deleteInspection = (id, regNo, shipName) => {
                 <!-- Actions -->
                 <td class="px-5 py-4 text-right whitespace-nowrap">
                   <div class="inline-flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      @click="openShareModal(item)"
+                      class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 transition-colors cursor-pointer"
+                      title="Salin / Lihat Link Publik Dokumen"
+                    >
+                      <Link2 class="w-4 h-4" />
+                    </button>
+
                     <button
                       type="button"
                       @click="openDetail(item)"
@@ -760,6 +806,99 @@ const deleteInspection = (id, regNo, shipName) => {
         </div>
 
       </div>
+      <!-- Modal Link Publik Hasil Dokumen Sanitasi Kapal -->
+      <div 
+        v-if="showShareModal && shareTarget" 
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
+        @click.self="showShareModal = false"
+      >
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6 relative">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0">
+                <Link2 class="w-5 h-5" />
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                  Link Publik Hasil Dokumen Sanitasi Kapal
+                </h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Dapat diakses publik tanpa login untuk melihat &amp; membagikan sertifikat.
+                </p>
+              </div>
+            </div>
+            <button 
+              type="button" 
+              @click="showShareModal = false" 
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+            >
+              <X class="w-4 h-4" />
+            </button>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3 mb-4 text-xs space-y-1.5 border border-slate-200/80 dark:border-slate-700/80">
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">Nomor Registrasi:</span>
+              <span class="font-mono font-bold text-teal-700 dark:text-teal-400">{{ shareTarget.registration_no }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">Nama Kapal &bull; IMO:</span>
+              <span class="font-semibold text-slate-800 dark:text-slate-200 truncate max-w-[240px]">
+                {{ shareTarget.nama_kapal }} &bull; {{ shareTarget.imo_no }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-500">Pelabuhan:</span>
+              <span class="font-medium text-slate-700 dark:text-slate-300">
+                {{ shareTarget.pelabuhan }}
+              </span>
+            </div>
+          </div>
+
+          <div class="space-y-2 mb-5">
+            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              Tautan Dokumen Publik:
+            </label>
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                readonly 
+                :value="getPublicUrl(shareTarget.registration_no)" 
+                class="flex-1 px-3 py-2 text-xs font-mono bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 select-all focus:outline-none focus:ring-2 focus:ring-teal-500"
+                @focus="$event.target.select()"
+              />
+              <button
+                type="button"
+                @click="copyPublicUrl(getPublicUrl(shareTarget.registration_no))"
+                class="px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 shrink-0 shadow-xs cursor-pointer text-white"
+                :class="copied ? 'bg-emerald-600' : 'bg-slate-900 hover:bg-slate-800'"
+              >
+                <component :is="copied ? Check : Copy" class="w-3.5 h-3.5" />
+                <span>{{ copied ? 'Tersalin!' : 'Salin Link' }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <a 
+              :href="getPublicUrl(shareTarget.registration_no)" 
+              target="_blank" 
+              class="px-3.5 py-2 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/60 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800 transition-colors inline-flex items-center gap-1.5"
+            >
+              <ExternalLink class="w-3.5 h-3.5" />
+              <span>Buka Dokumen</span>
+            </a>
+            <button 
+              type="button" 
+              @click="showShareModal = false" 
+              class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+
     </div>
 
   </HybridNavbar>

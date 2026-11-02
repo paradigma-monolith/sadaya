@@ -129,11 +129,12 @@ class TravelConsentController extends Controller
 
         $inspection = AircraftSanitationInspection::create($validated);
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => 'Inspeksi sanitasi pesawat berhasil disimpan.',
-                'data' => $inspection,
+                'registration_no' => $inspection->registration_no,
+                'receipt_url' => route('travelconsent.receipt', $inspection->registration_no),
                 'pdf_url' => route('travelconsent.public_pdf', $inspection->registration_no),
             ]);
         }
@@ -350,6 +351,15 @@ class TravelConsentController extends Controller
             'status' => 'submitted',
         ]);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Formulir Sertifikat Pengendalian Sanitasi Kapal berhasil disubmit.',
+                'registration_no' => $inspection->registration_no,
+                'receipt_url' => route('travelconsent.receipt_sanitasi', $inspection->registration_no),
+            ]);
+        }
+
         return redirect()->route('travelconsent.receipt_sanitasi', $inspection->registration_no)
             ->with('success', 'Formulir Sertifikat Pengendalian Sanitasi Kapal berhasil disubmit.');
     }
@@ -483,6 +493,15 @@ class TravelConsentController extends Controller
             'status' => 'submitted',
         ]);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Daftar pemakaian alat kesehatan kotak P3K & emergensi berhasil disubmit.',
+                'registration_no' => $inspection->registration_no,
+                'receipt_url' => route('travelconsent.receipt_alat', $inspection->registration_no),
+            ]);
+        }
+
         return redirect()->route('travelconsent.receipt_alat', $inspection->registration_no)
             ->with('success', 'Daftar pemakaian alat kesehatan kotak P3K & emergensi berhasil disubmit.');
     }
@@ -600,6 +619,15 @@ class TravelConsentController extends Controller
             'lokasi_geotag' => $validated['lokasi_geotag'] ?? null,
             'status' => 'submitted',
         ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Daftar pemakaian obat kotak P3K & emergensi berhasil disubmit.',
+                'registration_no' => $inspection->registration_no,
+                'receipt_url' => route('travelconsent.receipt_obat', $inspection->registration_no),
+            ]);
+        }
 
         return redirect()->route('travelconsent.receipt_obat', $inspection->registration_no)
             ->with('success', 'Daftar pemakaian obat kotak P3K & emergensi berhasil disubmit.');

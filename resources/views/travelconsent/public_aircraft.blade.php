@@ -1946,7 +1946,12 @@
     });
 
     /* Final Submit Hook */
-    document.getElementById('aircraftForm').addEventListener('submit', function(e) {
+    document.getElementById('aircraftForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        var form = this;
+        var submitBtn = form.querySelector('button[type="submit"]');
+        var originalBtnHtml = submitBtn ? submitBtn.innerHTML : '';
+
         if (padKabin && !padKabin.isEmpty()) {
             document.getElementById('ttd_kabin').value = padKabin.toDataURL();
         }
@@ -1955,8 +1960,47 @@
         }
         // Ensure files are synced to real input
         realPhotoInput.files = photoTransfer.files;
+
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Menyimpan Formulir...</span>';
+        }
+
+        try {
+            var formData = new FormData(form);
+            var response = await fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                var result = await response.json();
+                if (result.success) {
+                    showPublicModal({
+                        regNo: result.registration_no,
+                        publicUrl: result.receipt_url,
+                        title: 'Formulir Berhasil Disubmit!'
+                    });
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<span>✓ Berhasil Terkirim</span>';
+                    }
+                    return;
+                }
+            }
+            form.submit();
+        } catch (err) {
+            console.error('AJAX submit fallback:', err);
+            form.submit();
+        }
     });
 </script>
+
+@include('travelconsent.modal_public_link')
 
 </body>
 </html>

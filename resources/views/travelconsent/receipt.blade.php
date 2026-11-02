@@ -208,11 +208,45 @@
     </div>
     @endif
 
+    <!-- Link Publik Dokumen Box -->
+    <div style="background: #f0fdf4; border: 1.5px solid #bbf7d0; border-radius: 16px; padding: 16px; margin-bottom: 25px; text-align: left;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #166534;">
+                🔗 Link Publik Hasil Dokumen
+            </span>
+            <span style="font-size: 10.5px; color: #64748b;">Dapat diakses langsung tanpa login</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <input 
+                type="text" 
+                id="pageLinkInput" 
+                readonly 
+                value="{{ url()->current() }}" 
+                style="flex: 1; min-width: 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 9px 12px; font-size: 12px; font-family: monospace; color: #1e293b; outline: none;"
+                onclick="this.select()"
+            >
+            <button 
+                type="button" 
+                id="btnPageCopy" 
+                onclick="copyPageLink()" 
+                style="background: #0f172a; color: #ffffff; border: none; border-radius: 8px; padding: 9px 16px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap;"
+            >
+                Salin Link
+            </button>
+        </div>
+        <div id="pageCopyMsg" style="display: none; font-size: 11px; font-weight: 600; color: #16a34a; margin-top: 6px;">
+            ✓ Link berhasil disalin ke clipboard!
+        </div>
+    </div>
+
     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
         <a href="{{ route('travelconsent.public_pdf', $inspection->registration_no) }}" class="btn btn-primary">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Unduh Berkas PDF Resmi</span>
         </a>
+        <button type="button" onclick="showPublicModal({ regNo: '{{ $inspection->registration_no }}', publicUrl: window.location.href, title: 'Formulir Berhasil Disubmit!' })" class="btn btn-secondary" style="border: 1px solid #0284c7; color: #0284c7; background: #f0f9ff;">
+            <span>Pop-up Link Dokumen</span>
+        </button>
         <a href="{{ route('travelconsent.public_aircraft') }}" class="btn btn-secondary">
             <span>Input Formulir Lain</span>
         </a>
@@ -222,6 +256,54 @@
         Balai Kekarantinaan Kesehatan Kelas I Bandung &bull; Kementerian Kesehatan Republik Indonesia
     </div>
 </div>
+
+@include('travelconsent.modal_public_link')
+
+<script>
+    function copyPageLink() {
+        var input = document.getElementById('pageLinkInput');
+        if (!input) return;
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(input.value).then(function() {
+                showPageCopyDone();
+            }).catch(function() {
+                input.select();
+                document.execCommand('copy');
+                showPageCopyDone();
+            });
+        } else {
+            input.select();
+            document.execCommand('copy');
+            showPageCopyDone();
+        }
+    }
+
+    function showPageCopyDone() {
+        var btn = document.getElementById('btnPageCopy');
+        var msg = document.getElementById('pageCopyMsg');
+        if (btn) {
+            btn.style.backgroundColor = '#16a34a';
+            btn.textContent = 'Tersalin! ✓';
+        }
+        if (msg) msg.style.display = 'block';
+        setTimeout(function() {
+            if (btn) {
+                btn.style.backgroundColor = '#0f172a';
+                btn.textContent = 'Salin Link';
+            }
+            if (msg) msg.style.display = 'none';
+        }, 3000);
+    }
+
+    // Auto trigger modal on load
+    document.addEventListener('DOMContentLoaded', function() {
+        showPublicModal({
+            regNo: '{{ $inspection->registration_no }}',
+            publicUrl: window.location.href,
+            title: 'Formulir Berhasil Disubmit!'
+        });
+    });
+</script>
 
 </body>
 </html>

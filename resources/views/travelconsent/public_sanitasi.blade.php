@@ -1766,11 +1766,12 @@
             });
 
             // Form Submit Check
-            document.getElementById('formSanitasiKapal').addEventListener('submit', (e) => {
+            document.getElementById('formSanitasiKapal').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const form = this;
                 const selects = document.querySelectorAll('.area-status-select');
                 for (const sel of selects) {
                     if (!sel.value) {
-                        e.preventDefault();
                         alert('Mohon lengkapi seluruh Status Pemeriksaan pada 32 Area Fasilitas terlebih dahulu.');
                         sel.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         sel.focus();
@@ -1779,15 +1780,55 @@
                 }
 
                 if (!inputSignature.value) {
-                    e.preventDefault();
                     alert('Mohon bubuhkan Tanda Tangan Petugas Pemeriksa pada kotak tanda tangan digital.');
                     canvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     return false;
                 }
 
                 realPhotoInput.files = photoTransfer.files;
+
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span>Menyimpan Formulir...</span>';
+                }
+
+                try {
+                    const formData = new FormData(form);
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            showPublicModal({
+                                regNo: result.registration_no,
+                                publicUrl: result.receipt_url,
+                                title: 'Formulir Berhasil Disubmit!'
+                            });
+                            if (submitBtn) {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = '<span>✓ Berhasil Terkirim</span>';
+                            }
+                            return;
+                        }
+                    }
+                    form.submit();
+                } catch (err) {
+                    console.error('AJAX submit fallback:', err);
+                    form.submit();
+                }
             });
         });
     </script>
+
+    @include('travelconsent.modal_public_link')
+
 </body>
 </html>

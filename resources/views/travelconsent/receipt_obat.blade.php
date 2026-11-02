@@ -65,24 +65,107 @@
             </div>
         </div>
 
+        <!-- Copyable Public Document Link Box -->
+        <div class="bg-rose-50/70 border border-rose-300 rounded-2xl p-4 text-left">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-rose-800 flex items-center gap-1.5">
+                    <span>🔗</span> Link Publik Hasil Dokumen
+                </span>
+                <span class="text-[10px] text-slate-500 font-medium">Bisa diakses publik tanpa login</span>
+            </div>
+            <div class="flex gap-2 items-center">
+                <input 
+                    type="text" 
+                    id="pageLinkInput" 
+                    readonly 
+                    value="{{ url()->current() }}" 
+                    class="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 select-all outline-none"
+                    onclick="this.select()"
+                >
+                <button 
+                    type="button" 
+                    id="btnPageCopy" 
+                    onclick="copyPageLink()" 
+                    class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs"
+                >
+                    Salin Link
+                </button>
+            </div>
+            <div id="pageCopyMsg" class="hidden text-[11px] font-semibold text-rose-600 mt-1.5">
+                ✓ Link berhasil disalin ke clipboard!
+            </div>
+        </div>
+
         <!-- Actions -->
         <div class="flex flex-col sm:flex-row gap-3 pt-2">
+            <button 
+                type="button" 
+                onclick="showPublicModal({ regNo: '{{ $inspection->registration_no }}', publicUrl: window.location.href, title: 'Formulir Berhasil Disubmit!' })" 
+                class="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-700 text-white transition-colors shadow-sm cursor-pointer"
+            >
+                Pop-up Link Dokumen
+            </button>
             <a
                 href="{{ route('travelconsent.public_obat') }}"
                 class="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
             >
-                Input Data Lain
+                Input Data Baru
             </a>
             <button
                 type="button"
                 onclick="window.print()"
-                class="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-rose-600 hover:bg-rose-500 text-white transition-colors shadow-sm"
+                class="flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white transition-colors shadow-sm cursor-pointer"
             >
-                Cetak Bukti Tanda Terima
+                Cetak Bukti
             </button>
         </div>
 
     </div>
+
+    @include('travelconsent.modal_public_link')
+
+    <script>
+        function copyPageLink() {
+            var input = document.getElementById('pageLinkInput');
+            if (!input) return;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(input.value).then(showPageCopyDone).catch(function() {
+                    input.select();
+                    document.execCommand('copy');
+                    showPageCopyDone();
+                });
+            } else {
+                input.select();
+                document.execCommand('copy');
+                showPageCopyDone();
+            }
+        }
+
+        function showPageCopyDone() {
+            var btn = document.getElementById('btnPageCopy');
+            var msg = document.getElementById('pageCopyMsg');
+            if (btn) {
+                btn.style.backgroundColor = '#16a34a';
+                btn.textContent = 'Tersalin! ✓';
+            }
+            if (msg) msg.classList.remove('hidden');
+            setTimeout(function() {
+                if (btn) {
+                    btn.style.backgroundColor = '#0f172a';
+                    btn.textContent = 'Salin Link';
+                }
+                if (msg) msg.classList.add('hidden');
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            showPublicModal({
+                regNo: '{{ $inspection->registration_no }}',
+                publicUrl: window.location.href,
+                title: 'Formulir Berhasil Disubmit!'
+            });
+        });
+    </script>
 
 </body>
 </html>

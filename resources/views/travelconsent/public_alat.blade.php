@@ -1699,10 +1699,53 @@
         }
 
         // Form Submit Hook
-        document.querySelector('form').addEventListener('submit', function(e) {
+        document.querySelector('form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = this;
             realPhotoInput.files = photoTransfer.files;
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Menyimpan Formulir...</span>';
+            }
+
+            try {
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        showPublicModal({
+                            regNo: result.registration_no,
+                            publicUrl: result.receipt_url,
+                            title: 'Formulir Berhasil Disubmit!'
+                        });
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = '<span>✓ Berhasil Terkirim</span>';
+                        }
+                        return;
+                    }
+                }
+                form.submit();
+            } catch (err) {
+                console.error('AJAX submit fallback:', err);
+                form.submit();
+            }
         });
     </script>
+
+    @include('travelconsent.modal_public_link')
+
 </body>
 </html>
 
