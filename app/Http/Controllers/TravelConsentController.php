@@ -365,7 +365,7 @@ class TravelConsentController extends Controller
             'nama_pemeriksa' => $validated['nama_pemeriksa'],
             'alamat_pemeriksa' => $alamatPemeriksa,
             'areas' => $validated['areas'],
-            'pejabat_penerbit' => $validated['pejabat_penerbit'] ?: 'Balai Kekarantinaan Kesehatan Kelas I Bandung',
+            'pejabat_penerbit' => ($validated['pejabat_penerbit'] ?? null) ?: 'Balai Kekarantinaan Kesehatan Kelas I Bandung',
             'keterangan' => $validated['keterangan'],
             'tanda_tangan' => $validated['tanda_tangan'],
             'foto_geotagging' => $photoPath,

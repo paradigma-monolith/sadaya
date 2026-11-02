@@ -702,25 +702,6 @@
                     </div>
                 </div>
 
-                <!-- Batch Action Pill Buttons -->
-                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/90 flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <span class="font-semibold text-slate-700">Aksi Cepat Status Semua Area:</span>
-                    <div class="flex flex-wrap items-center gap-1.5">
-                        <button type="button" onclick="setAllAreaStatus('Tidak Ditemukan Faktor Risiko')" class="px-3 py-1.5 rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs transition-all cursor-pointer">
-                            ✓ Tidak Ditemukan Faktor Risiko
-                        </button>
-                        <button type="button" onclick="setAllAreaStatus('Ditemukan Faktor Risiko')" class="px-3 py-1.5 rounded-lg font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-xs transition-all cursor-pointer">
-                            ⚠️ Ditemukan Faktor Risiko
-                        </button>
-                        <button type="button" onclick="setAllAreaStatus('Tidak Ada')" class="px-3 py-1.5 rounded-lg font-semibold bg-slate-200 hover:bg-slate-300 text-slate-800 transition-all cursor-pointer">
-                            — Tidak Ada
-                        </button>
-                        <button type="button" onclick="setAllAreaStatus('')" class="px-3 py-1.5 rounded-lg font-semibold text-slate-500 hover:text-slate-900 border border-slate-300 hover:bg-white transition-all cursor-pointer">
-                            Reset
-                        </button>
-                    </div>
-                </div>
-
                 <!-- 32 Area Interactive Matrix -->
                 <div class="overflow-x-auto rounded-xl border border-slate-200">
                     <table class="w-full text-left border-collapse text-xs">
@@ -799,13 +780,8 @@
                 </div>
 
                 <div class="space-y-5 text-xs">
-                    <!-- Pejabat Penerbit -->
-                    <div>
-                        <label for="pejabat_penerbit" class="block font-semibold text-slate-700 mb-1.5">
-                            Nama Pejabat dan Instansi yang Menerbitkan
-                        </label>
-                        <input type="text" id="pejabat_penerbit" name="pejabat_penerbit" value="Kepala Balai Kekarantinaan Kesehatan Kelas I Bandung" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 font-semibold text-slate-900 transition-all outline-none">
-                    </div>
+                    <!-- Pejabat Penerbit (otomatis / tersembunyi, penandatanganan didasarkan pada Petugas Pemeriksa BKK) -->
+                    <input type="hidden" id="pejabat_penerbit" name="pejabat_penerbit" value="Balai Kekarantinaan Kesehatan Kelas I Bandung">
 
                     <!-- Keterangan -->
                     <div>
