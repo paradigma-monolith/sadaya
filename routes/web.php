@@ -33,13 +33,19 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 });
 
-// --- Public Travel Consent & Aircraft Sanitation Inspection Routes ---
+// --- Public Travel Consent & Sanitation Inspection Routes ---
 Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
+    // Aircraft Sanitation
     Route::get('/public_aircraft', [TravelConsentController::class, 'publicAircraft'])->name('public_aircraft');
     Route::get('/aircraft', [TravelConsentController::class, 'publicAircraft'])->name('aircraft');
     Route::post('/submit_aircraft', [TravelConsentController::class, 'submitAircraft'])->name('submit_aircraft');
     Route::get('/receipt/{registration_no}', [TravelConsentController::class, 'receipt'])->name('receipt');
     Route::get('/pdf/{registration_no}', [TravelConsentController::class, 'downloadPdf'])->name('public_pdf');
+
+    // Ship Sanitation (SSCC / SSCEC - Sertifikat Pengendalian Sanitasi Kapal)
+    Route::get('/public_sanitasi', [TravelConsentController::class, 'publicSanitasi'])->name('public_sanitasi');
+    Route::post('/submit_sanitasi', [TravelConsentController::class, 'submitSanitasi'])->name('submit_sanitasi');
+    Route::get('/receipt_sanitasi/{registration_no}', [TravelConsentController::class, 'receiptSanitasi'])->name('receipt_sanitasi');
 });
 
 // --- Logout Route (GET & POST) ---
