@@ -117,8 +117,11 @@ class ShipSanitationInspection extends Model
                     'status' => !empty($it['status']) ? $it['status'] : (!empty($it['result']) ? $it['result'] : 'Tidak Ditemukan Faktor Risiko'),
                     'keterangan' => !empty($it['keterangan']) ? $it['keterangan'] : (!empty($it['finding']) ? $it['finding'] : (!empty($it['komentar']) ? $it['komentar'] : 'Nihil faktor risiko / memenuhi syarat')),
                     'sampel' => !empty($it['sampel']) ? $it['sampel'] : (!empty($it['sample']) ? $it['sample'] : 'Sesuai Baku Mutu'),
-                    'bukti' => $it['bukti'] ?? '-',
+                    'bukti' => !empty($it['bukti']) ? $it['bukti'] : (!empty($it['finding']) ? $it['finding'] : '-'),
+                    'dokumen' => $it['dokumen'] ?? '-',
                     'tindakan' => $it['tindakan'] ?? '-',
+                    'tanggal_ulang' => $it['tanggal_ulang'] ?? '-',
+                    'komentar' => !empty($it['komentar']) ? $it['komentar'] : (!empty($it['keterangan']) ? $it['keterangan'] : '-'),
                 ];
             }
             return $normalized;
@@ -160,8 +163,11 @@ class ShipSanitationInspection extends Model
                     'status' => !empty($matched['status']) ? $matched['status'] : (!empty($matched['result']) ? $matched['result'] : 'Tidak Ditemukan Faktor Risiko'),
                     'keterangan' => !empty($matched['keterangan']) ? $matched['keterangan'] : (!empty($matched['finding']) ? $matched['finding'] : (!empty($matched['komentar']) ? $matched['komentar'] : 'Nihil faktor risiko / memenuhi syarat')),
                     'sampel' => !empty($matched['sampel']) ? $matched['sampel'] : (!empty($matched['sample']) ? $matched['sample'] : 'Sesuai Baku Mutu'),
-                    'bukti' => $matched['bukti'] ?? '-',
+                    'bukti' => !empty($matched['bukti']) ? $matched['bukti'] : (!empty($matched['finding']) ? $matched['finding'] : '-'),
+                    'dokumen' => $matched['dokumen'] ?? '-',
                     'tindakan' => $matched['tindakan'] ?? '-',
+                    'tanggal_ulang' => $matched['tanggal_ulang'] ?? '-',
+                    'komentar' => !empty($matched['komentar']) ? $matched['komentar'] : (!empty($matched['keterangan']) ? $matched['keterangan'] : '-'),
                 ];
             } else {
                 $result[] = [
@@ -172,7 +178,10 @@ class ShipSanitationInspection extends Model
                     'keterangan' => 'Nihil faktor risiko / kondisi higienis',
                     'sampel' => 'Sesuai Baku Mutu',
                     'bukti' => '-',
+                    'dokumen' => '-',
                     'tindakan' => '-',
+                    'tanggal_ulang' => '-',
+                    'komentar' => '-',
                 ];
             }
         }

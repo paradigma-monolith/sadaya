@@ -344,6 +344,20 @@ class TravelConsentController extends Controller
     }
 
     /**
+     * Show ship sanitation certificate document (compatible with /travelconsent/doc_sanitasi/{id}).
+     */
+    public function docSanitasi($id)
+    {
+        $inspection = is_numeric($id)
+            ? ShipSanitationInspection::findOrFail($id)
+            : ShipSanitationInspection::where('registration_no', $id)->firstOrFail();
+
+        return view('travelconsent.receipt_sanitasi', [
+            'inspection' => $inspection,
+        ]);
+    }
+
+    /**
      * Show public form for Pemakaian Alat Kesehatan Kotak P3K & Emergensi.
      */
     public function publicAlat()

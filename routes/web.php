@@ -52,6 +52,7 @@ Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
     Route::get('/public_sanitasi', [TravelConsentController::class, 'publicSanitasi'])->name('public_sanitasi');
     Route::post('/submit_sanitasi', [TravelConsentController::class, 'submitSanitasi'])->name('submit_sanitasi');
     Route::get('/receipt_sanitasi/{registration_no}', [TravelConsentController::class, 'receiptSanitasi'])->name('receipt_sanitasi');
+    Route::get('/doc_sanitasi/{id}', [TravelConsentController::class, 'docSanitasi'])->name('doc_sanitasi');
 
     // Pemakaian Alat Kesehatan Kotak P3K & Emergensi Pesawat
     Route::get('/public_alat', [TravelConsentController::class, 'publicAlat'])->name('public_alat');
