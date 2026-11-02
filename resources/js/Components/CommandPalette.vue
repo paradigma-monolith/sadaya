@@ -77,8 +77,8 @@ const defaultActions = [
   },
   {
     id: 'nav-public-home',
-    title: 'Portal Publik Layanan & Formulir',
-    subtitle: 'Halaman beranda publik pengawasan alat angkut & pelacakan dokumen',
+    title: 'Portal Travel Consent (Publik)',
+    subtitle: 'Halaman beranda publik pengawasan alat angkut, formulir, & pelacakan dokumen',
     category: 'Pengawasan Alat Angkut & Barang',
     icon: Globe,
     action: () => window.open(getUrl('/travelconsent/home'), '_blank'),

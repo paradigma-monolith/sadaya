@@ -26,7 +26,8 @@ import {
   Ship,
   Anchor,
   BriefcaseMedical,
-  Pill
+  Pill,
+  ExternalLink
 } from 'lucide-vue-next';
 import { useSidebar } from '@/composables/useSidebar';
 
@@ -126,6 +127,16 @@ const navSections = computed(() => {
     {
       title: 'Tim Kerja Pengawasan Faktor Risiko Kesehatan Alat Angkut dan Barang',
       items: [
+        {
+          name: 'Portal Travel Consent',
+          path: '/travelconsent/home',
+          url: getUrl('/travelconsent/home'),
+          icon: Globe,
+          iconColor: 'text-sky-600',
+          external: true,
+          badge: 'Publik',
+          active: false,
+        },
         {
           name: 'Data Inspeksi Pesawat',
           path: '/aircraft-inspections',
@@ -266,6 +277,7 @@ const navSections = computed(() => {
             :key="iIndex"
             :href="item.url"
             :target="item.external ? '_blank' : '_self'"
+            :rel="item.external ? 'noopener noreferrer' : null"
             @click="handleNavClick(item.path, item.external, $event)"
             class="flex items-center rounded-lg text-xs transition-all group relative cursor-pointer"
             :class="[
@@ -283,8 +295,20 @@ const navSections = computed(() => {
             />
 
             <!-- Label -->
-            <div v-if="!isCollapsed" class="flex-1 flex items-center overflow-hidden">
+            <div v-if="!isCollapsed" class="flex-1 flex items-center justify-between overflow-hidden">
               <span class="truncate">{{ item.name }}</span>
+              <div v-if="item.badge || item.external" class="flex items-center gap-1.5 shrink-0 ml-1.5">
+                <span 
+                  v-if="item.badge" 
+                  class="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-sky-50 text-sky-700 border border-sky-200 uppercase tracking-wider"
+                >
+                  {{ item.badge }}
+                </span>
+                <ExternalLink 
+                  v-if="item.external" 
+                  class="w-3 h-3 text-slate-400 group-hover:text-slate-600" 
+                />
+              </div>
             </div>
 
             <!-- Tooltip Popup when collapsed -->
