@@ -767,12 +767,14 @@ const countUsed = (items) => {
         </div>
 
       </div>
-      <!-- Modal Link Publik Hasil Dokumen Alkes -->
-      <div 
-        v-if="showShareModal && shareTarget" 
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
-        @click.self="showShareModal = false"
-      >
+    </div>
+
+    <!-- Modal Link Publik Hasil Dokumen Alkes -->
+    <div 
+      v-if="showShareModal && shareTarget" 
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
+      @click.self="showShareModal = false"
+    >
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl p-6 relative">
           <div class="flex items-start justify-between mb-4">
             <div class="flex items-center gap-3">
@@ -859,8 +861,6 @@ const countUsed = (items) => {
           </div>
         </div>
       </div>
-
-    </div>
 
   </HybridNavbar>
 </template>
