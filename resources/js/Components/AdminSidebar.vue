@@ -145,15 +145,6 @@ const navSections = computed(() => {
           iconColor: 'text-teal-600',
           active: props.currentRoute === 'ship-inspections',
         },
-        {
-          name: 'Form Sanitasi Kapal (SSCC)',
-          path: '/travelconsent/public_sanitasi',
-          url: getUrl('/travelconsent/public_sanitasi'),
-          icon: Ship,
-          iconColor: 'text-emerald-600',
-          active: props.currentRoute === 'public-sanitasi',
-          external: true,
-        },
       ],
     },
     {
