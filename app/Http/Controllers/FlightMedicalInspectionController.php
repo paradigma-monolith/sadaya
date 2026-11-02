@@ -204,3 +204,4 @@ class FlightMedicalInspectionController extends Controller
         );
     }
 }
+

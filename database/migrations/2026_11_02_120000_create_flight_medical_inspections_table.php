@@ -56,3 +56,4 @@ return new class extends Migration
         Schema::dropIfExists('flight_medical_inspections');
     }
 };
+

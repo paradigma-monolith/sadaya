@@ -88,3 +88,4 @@ class FlightMedicalInspectionsExport implements FromCollection, WithHeadings, Sh
         ];
     }
 }
+

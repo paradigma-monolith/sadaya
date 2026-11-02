@@ -295,6 +295,8 @@ class TravelConsentController extends Controller
             'pejabat_penerbit' => ['nullable', 'string', 'max:255'],
             'keterangan' => ['required', 'string', 'max:2000'],
             'tanda_tangan' => ['required', 'string'],
+            'foto_dokumentasi' => ['nullable', 'array'],
+            'foto_dokumentasi.*' => ['nullable', 'file', 'image', 'max:12288'],
             'foto_geotagging' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,webp', 'max:12288'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
             'longitude' => ['nullable', 'numeric', 'between:-180,180'],
@@ -302,7 +304,14 @@ class TravelConsentController extends Controller
         ]);
 
         $photoPath = null;
-        if ($request->hasFile('foto_geotagging')) {
+        if ($request->hasFile('foto_dokumentasi')) {
+            $photos = $request->file('foto_dokumentasi');
+            if (is_array($photos) && isset($photos[0])) {
+                $photoPath = $photos[0]->store('inspections/ships', 'public');
+            } elseif ($photos instanceof \Illuminate\Http\UploadedFile) {
+                $photoPath = $photos->store('inspections/ships', 'public');
+            }
+        } elseif ($request->hasFile('foto_geotagging')) {
             $photoPath = $request->file('foto_geotagging')->store('inspections/ships', 'public');
         }
 
@@ -423,6 +432,8 @@ class TravelConsentController extends Controller
             'crew_ttd' => ['nullable', 'string'],
             'pelapor_nama' => ['required', 'string', 'max:255'],
             'pelapor_ttd' => ['nullable', 'string'],
+            'foto_dokumentasi' => ['nullable', 'array'],
+            'foto_dokumentasi.*' => ['nullable', 'file', 'image', 'max:12288'],
             'foto_geotagging' => ['nullable', 'image', 'max:10240'],
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],
@@ -430,7 +441,14 @@ class TravelConsentController extends Controller
         ]);
 
         $photoPath = null;
-        if ($request->hasFile('foto_geotagging')) {
+        if ($request->hasFile('foto_dokumentasi')) {
+            $photos = $request->file('foto_dokumentasi');
+            if (is_array($photos) && isset($photos[0])) {
+                $photoPath = $photos[0]->store('medical_kits/alat', 'public');
+            } elseif ($photos instanceof \Illuminate\Http\UploadedFile) {
+                $photoPath = $photos->store('medical_kits/alat', 'public');
+            }
+        } elseif ($request->hasFile('foto_geotagging')) {
             $photoPath = $request->file('foto_geotagging')->store('medical_kits/alat', 'public');
         }
 
@@ -532,6 +550,8 @@ class TravelConsentController extends Controller
             'crew_ttd' => ['nullable', 'string'],
             'pelapor_nama' => ['required', 'string', 'max:255'],
             'pelapor_ttd' => ['nullable', 'string'],
+            'foto_dokumentasi' => ['nullable', 'array'],
+            'foto_dokumentasi.*' => ['nullable', 'file', 'image', 'max:12288'],
             'foto_geotagging' => ['nullable', 'image', 'max:10240'],
             'latitude' => ['nullable', 'numeric'],
             'longitude' => ['nullable', 'numeric'],
@@ -539,7 +559,14 @@ class TravelConsentController extends Controller
         ]);
 
         $photoPath = null;
-        if ($request->hasFile('foto_geotagging')) {
+        if ($request->hasFile('foto_dokumentasi')) {
+            $photos = $request->file('foto_dokumentasi');
+            if (is_array($photos) && isset($photos[0])) {
+                $photoPath = $photos[0]->store('medical_kits/obat', 'public');
+            } elseif ($photos instanceof \Illuminate\Http\UploadedFile) {
+                $photoPath = $photos->store('medical_kits/obat', 'public');
+            }
+        } elseif ($request->hasFile('foto_geotagging')) {
             $photoPath = $request->file('foto_geotagging')->store('medical_kits/obat', 'public');
         }
 

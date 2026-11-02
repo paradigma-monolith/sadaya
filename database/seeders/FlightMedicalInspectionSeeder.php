@@ -318,3 +318,4 @@ class FlightMedicalInspectionSeeder extends Seeder
         }
     }
 }
+

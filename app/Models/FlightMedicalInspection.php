@@ -126,3 +126,4 @@ class FlightMedicalInspection extends Model
         return $query->where('status', $status);
     }
 }
+
