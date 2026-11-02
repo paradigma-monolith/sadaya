@@ -218,7 +218,7 @@ const navSections = computed(() => {
       class="fixed top-0 bottom-0 left-0 z-40 bg-white border-r border-slate-200/80 flex flex-col transition-all duration-300 font-sans shadow-xl lg:shadow-none"
       :class="[
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-        isCollapsed ? 'w-20' : 'w-72 max-w-[85vw]',
+        isCollapsed ? 'w-16' : 'w-64 max-w-[85vw]',
       ]"
     >
       <!-- Sidebar Header -->
