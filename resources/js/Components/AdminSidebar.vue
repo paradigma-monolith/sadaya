@@ -124,7 +124,7 @@ const navSections = computed(() => {
       ],
     },
     {
-      title: 'KARANTINA KESEHATAN UDARA',
+      title: 'Tim Kerja Pengawasan Faktor Risiko Kesehatan Alat Angkut dan Barang',
       items: [
         {
           name: 'Data Inspeksi Pesawat',
@@ -133,6 +133,14 @@ const navSections = computed(() => {
           icon: Plane,
           iconColor: 'text-indigo-600',
           active: props.currentRoute === 'aircraft-inspections',
+        },
+        {
+          name: 'Data Inspeksi Kapal',
+          path: '/ship-inspections',
+          url: getUrl('/ship-inspections'),
+          icon: Anchor,
+          iconColor: 'text-teal-600',
+          active: props.currentRoute === 'ship-inspections',
         },
         {
           name: 'Pemakaian Alkes P3K',
@@ -149,19 +157,6 @@ const navSections = computed(() => {
           icon: Pill,
           iconColor: 'text-rose-600',
           active: props.currentRoute === 'flight-medical-obat',
-        },
-      ],
-    },
-    {
-      title: 'KARANTINA KESEHATAN LAUT',
-      items: [
-        {
-          name: 'Data Inspeksi Kapal',
-          path: '/ship-inspections',
-          url: getUrl('/ship-inspections'),
-          icon: Anchor,
-          iconColor: 'text-teal-600',
-          active: props.currentRoute === 'ship-inspections',
         },
       ],
     },
@@ -259,7 +254,7 @@ const navSections = computed(() => {
           <!-- Section Title -->
           <div 
             v-if="!isCollapsed" 
-            class="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400"
+            class="px-2.5 pb-1 text-[10px] font-semibold uppercase tracking-wider text-slate-400 leading-snug"
           >
             {{ section.title }}
           </div>

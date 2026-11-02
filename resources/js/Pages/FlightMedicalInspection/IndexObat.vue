@@ -127,7 +127,7 @@ const countUsed = (items) => {
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-rose-50 text-rose-700 border border-rose-200 mb-2">
             <Plane class="w-3.5 h-3.5" />
-            <span>Karantina Kesehatan Udara &bull; Penerbangan Haji &amp; Pesawat</span>
+            <span>Pengawasan Faktor Risiko Alat Angkut &bull; Penerbangan Haji &amp; Pesawat</span>
           </div>
           <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
             Pemakaian Obat-obatan Kotak P3K &amp; Emergensi
