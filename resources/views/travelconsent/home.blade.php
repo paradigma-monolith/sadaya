@@ -51,12 +51,12 @@
 
     <div class="w-full max-w-5xl mx-auto my-auto py-6 flex flex-col items-center">
         
-        <!-- Official Logo Header -->
-        <div class="mb-6 flex justify-center items-center">
+        <!-- Official Kop Surat Header -->
+        <div class="w-full max-w-4xl mx-auto mb-6 flex justify-center items-center px-4">
             <img 
                 src="{{ asset('storage/images/Kop_BKK_bandung.png') }}" 
-                alt="Logo BKK Bandung" 
-                class="max-h-20 sm:max-h-24 w-auto object-contain"
+                alt="Kop Surat Balai Kekarantinaan Kesehatan Kelas I Bandung" 
+                class="w-full h-auto max-h-56 md:max-h-64 lg:max-h-72 object-contain drop-shadow-xs"
                 onerror="this.onerror=null;this.src='{{ asset('images/Kop_BKK_bandung.png') }}';"
             >
         </div>
