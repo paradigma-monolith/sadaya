@@ -239,40 +239,7 @@ class TravelConsentController extends Controller
             'Uni Emirat Arab', 'Lainnya'
         ];
 
-        $standardAreas = [
-            ['no' => 1, 'nama' => 'Dapur', 'kategori' => 'Pangan & Dapur'],
-            ['no' => 2, 'nama' => 'Ruang rakit makanan', 'kategori' => 'Pangan & Dapur'],
-            ['no' => 3, 'nama' => 'Gudang', 'kategori' => 'Pangan & Dapur'],
-            ['no' => 4, 'nama' => 'Palka', 'kategori' => 'Akomodasi & Palka'],
-            ['no' => 5, 'nama' => 'Ruang tidur', 'kategori' => 'Akomodasi & Palka'],
-            ['no' => 6, 'nama' => 'ABK', 'kategori' => 'Akomodasi & Palka'],
-            ['no' => 7, 'nama' => 'Perwira', 'kategori' => 'Akomodasi & Palka'],
-            ['no' => 8, 'nama' => 'Penumpang', 'kategori' => 'Akomodasi & Palka'],
-            ['no' => 9, 'nama' => 'Geladak', 'kategori' => 'Akomodasi & Palka'],
-            ['no' => 10, 'nama' => 'Air bersih', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 11, 'nama' => 'Limbah cair', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 12, 'nama' => 'Tangki air Ballast', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 13, 'nama' => 'Sampah medik dan sampah padat', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 14, 'nama' => 'Air permukaan', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 15, 'nama' => 'Kamar mesin', 'kategori' => 'Akomodasi & Palka'],
-            ['no' => 16, 'nama' => 'Fasilitas medik', 'kategori' => 'Medik & Keselamatan'],
-            ['no' => 17, 'nama' => 'Area lainnya', 'kategori' => 'Lainnya'],
-            ['no' => 18, 'nama' => 'Sumber Makanan', 'kategori' => 'Pangan & Dapur'],
-            ['no' => 19, 'nama' => 'Penyimpanan Makanan', 'kategori' => 'Pangan & Dapur'],
-            ['no' => 20, 'nama' => 'Penyiapan Makanan', 'kategori' => 'Pangan & Dapur'],
-            ['no' => 21, 'nama' => 'Penyajian Makanan', 'kategori' => 'Pangan & Dapur'],
-            ['no' => 22, 'nama' => 'Sumber Air', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 23, 'nama' => 'Penyimpanan Air', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 24, 'nama' => 'Distribusi Air', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 25, 'nama' => 'Penanganan Sampah', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 26, 'nama' => 'Perlakuan Sampah', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 27, 'nama' => 'Pembuangan Sampah', 'kategori' => 'Sistem Air & Sanitasi'],
-            ['no' => 28, 'nama' => 'Pengoperasian Kolam Renang', 'kategori' => 'Akomodasi & Palka'],
-            ['no' => 29, 'nama' => 'Perlengkapan dan alat-alat medis', 'kategori' => 'Medik & Keselamatan'],
-            ['no' => 30, 'nama' => 'Pengoperasian Fasilitas Medik', 'kategori' => 'Medik & Keselamatan'],
-            ['no' => 31, 'nama' => 'Obat-obatan', 'kategori' => 'Medik & Keselamatan'],
-            ['no' => 32, 'nama' => 'Bagian lainnya yang diperiksa', 'kategori' => 'Lainnya'],
-        ];
+        $standardAreas = ShipSanitationInspection::STANDARD_AREAS;
 
         return view('travelconsent.public_sanitasi', [
             'today' => now()->format('Y-m-d'),

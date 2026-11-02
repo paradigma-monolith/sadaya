@@ -698,14 +698,20 @@ const deleteInspection = (id, regNo, shipName) => {
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-100">
-                  <tr v-for="(area, aIdx) in activeInspection.areas || []" :key="aIdx" class="hover:bg-slate-50/60">
-                    <td class="px-4 py-2.5 text-slate-400 font-mono">{{ aIdx + 1 }}</td>
-                    <td class="px-4 py-2.5 font-semibold text-slate-800">{{ area.area_name }}</td>
-                    <td class="px-4 py-2.5 text-slate-600">{{ area.finding || 'Nihil tanda vektor' }}</td>
-                    <td class="px-4 py-2.5 text-slate-600">{{ area.sample || 'Sesuai Standar' }}</td>
+                  <tr v-for="(area, aIdx) in (activeInspection.formatted_areas || activeInspection.areas || [])" :key="aIdx" class="hover:bg-slate-50/60">
+                    <td class="px-4 py-2.5 text-slate-400 font-mono">{{ area.no || (aIdx + 1) }}</td>
+                    <td class="px-4 py-2.5 font-semibold text-slate-800">
+                      <div>{{ area.nama || area.area_name }}</div>
+                      <span v-if="area.kategori" class="text-[10px] text-slate-400 font-normal">{{ area.kategori }}</span>
+                    </td>
+                    <td class="px-4 py-2.5 text-slate-600">{{ area.finding || area.keterangan || area.bukti || 'Nihil tanda vektor / kondisi bersih' }}</td>
+                    <td class="px-4 py-2.5 text-slate-600">{{ area.sample || area.sampel || 'Sesuai Standar' }}</td>
                     <td class="px-4 py-2.5">
-                      <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                        {{ area.result || 'Memenuhi Syarat' }}
+                      <span 
+                        class="px-2 py-0.5 rounded text-[10px] font-semibold border"
+                        :class="(area.result || area.status || '').toLowerCase().includes('ditemukan') || (area.result || area.status || '').toLowerCase().includes('kendali') ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'"
+                      >
+                        {{ area.result || area.status || 'Memenuhi Syarat' }}
                       </span>
                     </td>
                   </tr>

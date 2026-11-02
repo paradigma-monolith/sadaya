@@ -177,21 +177,25 @@ class ShipSanitationInspectionSeeder extends Seeder
         ];
 
         // 32 standard WHO IHR 2005 areas
-        $standardAreas = [
-            'Dapur (Galley)', 'Ruang Penyimpanan Makanan (Pantry)', 'Palka Muatan (Cargo Holds)',
-            'Ruang Kru / ABK (Crew Quarters)', 'Kamar Mesin (Engine Room)', 'Fasilitas Air Minum (Potable Water)',
-            'Sistem Limbah Cair (Sewage)', 'Penanganan Sampah (Solid Waste)', 'Peralatan Medis (Medical Facilities)',
-            'Kolam Renang / Spa (Swimming Pools)', 'Air Bilga (Bilge Water)', 'Air Ballas (Ballast Water)',
-        ];
+        $standardAreas = ShipSanitationInspection::STANDARD_AREAS;
 
         foreach ($sampleVessels as $data) {
+            $isControlledShip = ($data['sertifikat_mencatat'] === 'Pengendalian');
             $areasData = [];
-            foreach ($standardAreas as $name) {
+            foreach ($standardAreas as $area) {
+                $isControlledArea = $isControlledShip && in_array($area['no'], [1, 2, 4]);
                 $areasData[] = [
-                    'area_name' => $name,
-                    'finding' => 'Nihil tanda vektor / kondisi bersih',
+                    'no' => $area['no'],
+                    'nama' => $area['nama'],
+                    'kategori' => $area['kategori'],
+                    'status' => $isControlledArea ? 'Ditemukan Faktor Risiko' : 'Tidak Ditemukan Faktor Risiko',
+                    'result' => $isControlledArea ? 'Dikendalikan' : 'Memenuhi Syarat',
+                    'finding' => $isControlledArea ? 'Ditemukan indikasi vektor; tindakan pengendalian & desinfeksi telah dilaksanakan' : 'Nihil tanda vektor / kondisi bersih',
                     'sample' => 'Sesuai Baku Mutu',
-                    'result' => 'Memenuhi Syarat',
+                    'keterangan' => $isControlledArea ? 'Telah dilakukan tindakan pengendalian' : 'Memenuhi syarat standar sanitasi',
+                    'sampel' => 'Sesuai Baku Mutu',
+                    'bukti' => '-',
+                    'tindakan' => $isControlledArea ? 'Disinseksi / Pengendalian Vektor' : '-',
                 ];
             }
             $data['areas'] = $areasData;

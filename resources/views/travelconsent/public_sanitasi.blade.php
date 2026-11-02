@@ -732,7 +732,9 @@
                                 <td class="py-3 px-4">
                                     <div class="font-bold text-slate-900 leading-tight">{{ $area['nama'] }}</div>
                                     <span class="text-[10px] text-slate-400 font-medium">{{ $area['kategori'] }}</span>
+                                    <input type="hidden" name="areas[{{ $area['no'] }}][no]" value="{{ $area['no'] }}">
                                     <input type="hidden" name="areas[{{ $area['no'] }}][nama]" value="{{ $area['nama'] }}">
+                                    <input type="hidden" name="areas[{{ $area['no'] }}][kategori]" value="{{ $area['kategori'] }}">
                                 </td>
                                 <td class="py-2.5 px-3">
                                     <select name="areas[{{ $area['no'] }}][status]" required onchange="handleAreaChange(this)" class="area-status-select w-full px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold transition-all outline-none">
