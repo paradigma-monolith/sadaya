@@ -22,7 +22,9 @@ import {
   ShieldCheck,
   FileSpreadsheet,
   Plane,
-  BarChart3
+  BarChart3,
+  Ship,
+  Anchor
 } from 'lucide-vue-next';
 import { useSidebar } from '@/composables/useSidebar';
 
@@ -89,7 +91,7 @@ const handleNavClick = (targetPath, isExternal, e) => {
   }
 
   // Case 2: In Inertia mode & clicking an Inertia/Hub link -> smooth Inertia visit
-  if (!isSpa.value && !targetPath.startsWith('/spa') && !targetPath.startsWith('/docs') && !targetPath.startsWith('/pulse')) {
+  if (!isSpa.value && !targetPath.startsWith('/spa') && !targetPath.startsWith('/docs') && !targetPath.startsWith('/pulse') && !targetPath.startsWith('/travelconsent')) {
     try {
       if (inertiaRouter && typeof inertiaRouter.visit === 'function') {
         if (e) e.preventDefault();
@@ -129,6 +131,20 @@ const navSections = computed(() => {
           icon: Plane,
           iconColor: 'text-indigo-600',
           active: props.currentRoute === 'aircraft-inspections',
+        },
+      ],
+    },
+    {
+      title: 'KARANTINA KESEHATAN LAUT',
+      items: [
+        {
+          name: 'Form Sanitasi Kapal (SSCC)',
+          path: '/travelconsent/public_sanitasi',
+          url: getUrl('/travelconsent/public_sanitasi'),
+          icon: Ship,
+          iconColor: 'text-emerald-600',
+          active: props.currentRoute === 'public-sanitasi',
+          external: true,
         },
       ],
     },

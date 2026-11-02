@@ -22,7 +22,8 @@ import {
   CornerDownLeft, 
   Loader2,
   Sparkles,
-  X
+  X,
+  Ship
 } from 'lucide-vue-next';
 import { router as inertiaRouter } from '@inertiajs/vue3';
 import { useRouter } from 'vue-router';
@@ -77,6 +78,14 @@ const defaultActions = [
     category: 'Karantina Udara',
     icon: Layers,
     action: () => navigateTo('/aircraft-inspections'),
+  },
+  {
+    id: 'nav-ship-sanitasi',
+    title: 'Form Sanitasi Kapal (SSCC / SSCEC)',
+    subtitle: 'Sertifikat Pengendalian & Pembebasan Sanitasi Kapal',
+    category: 'Karantina Laut',
+    icon: Ship,
+    action: () => window.open(getUrl('/travelconsent/public_sanitasi'), '_blank'),
   },
   {
     id: 'nav-audit',
