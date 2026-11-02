@@ -392,9 +392,12 @@ const handleLogout = () => {
 
               <!-- Mobile Brand (Hidden on lg+ because Sidebar already displays BKK Kelas I Bandung) -->
               <a :href="getUrl('/')" @click="handleNav('/', $event)" class="flex lg:hidden items-center gap-2 group cursor-pointer shrink-0">
-                <div class="w-7 h-7 rounded-lg bg-slate-900 text-white flex items-center justify-center font-black shadow-xs shrink-0">
-                  <span class="text-[10px] tracking-wider font-mono">BKK</span>
-                </div>
+                <img 
+                  :src="getUrl('/images/logokemenkes.png')" 
+                  alt="Logo Kemenkes" 
+                  class="h-7 w-auto max-w-[32px] object-contain shrink-0 drop-shadow-2xs"
+                  onerror="this.onerror=null;this.src='/storage/images/logokemenkes.png';"
+                />
                 <span class="text-sm font-bold text-slate-900 tracking-tight">
                   BKK Kelas I Bandung
                 </span>

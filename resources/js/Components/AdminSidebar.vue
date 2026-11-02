@@ -231,18 +231,21 @@ const navSections = computed(() => {
           @click="handleNavClick('/', false, $event)"
           class="flex items-center gap-2.5 overflow-hidden group cursor-pointer"
           :class="isCollapsed ? 'justify-center' : ''"
-          title="BKK Kelas I Bandung"
+          title="Kementerian Kesehatan RI &bull; BKK Kelas I Bandung"
         >
-          <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center font-black text-white bg-slate-900 shadow-xs">
-            <span class="text-[10px] font-mono tracking-wider">BKK</span>
-          </div>
+          <img 
+            :src="getUrl('/images/logokemenkes.png')" 
+            alt="Logo Kemenkes" 
+            class="h-8 w-auto max-w-[36px] object-contain flex-shrink-0 transition-transform group-hover:scale-105 drop-shadow-2xs"
+            onerror="this.onerror=null;this.src='/storage/images/logokemenkes.png';"
+          />
 
           <div v-if="!isCollapsed" class="transition-opacity duration-200 min-w-0">
             <span class="block text-sm font-bold text-slate-900 tracking-tight group-hover:text-emerald-600 transition-colors truncate">
               BKK Kelas I Bandung
             </span>
             <span class="block text-[10px] text-slate-500 font-medium truncate">
-              Induk &amp; 6 Wilayah Kerja
+              Kementerian Kesehatan RI
             </span>
           </div>
         </a>
