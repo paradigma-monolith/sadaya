@@ -861,24 +861,6 @@
                                         <label style="font-size: 11.5px; font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Keterangan / Lokasi Dermaga:</label>
                                         <input type="text" name="lokasi_geotag" id="input_lokasi_geotag" class="w-full text-xs rounded-lg border border-slate-300 p-2 focus:ring-2 focus:ring-emerald-500" placeholder="Contoh: Dermaga Muara Jati Pelabuhan Cirebon / Dermaga Patimban" value="{{ old('lokasi_geotag', 'Dermaga Muara Jati / Pelabuhan Cirebon, Kec. Lemahwungkuk, Kota Cirebon, Jawa Barat 45111') }}">
                                     </div>
-
-                                    <div style="margin-top: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                        <span style="font-size: 11px; color: #64748b; font-weight: 600;">Pilihan Cepat Wilker / Kantor:</span>
-                                        @if(isset($offices) && count($offices) > 0)
-                                            @foreach($offices as $office)
-                                                @php
-                                                    $oNama = is_array($office) ? $office['nama'] : $office->nama;
-                                                    $oShort = is_array($office) ? ($office['nama_pendek'] ?? $office['nama']) : ($office->nama_pendek ?: $office->nama);
-                                                    $oAlamat = is_array($office) ? $office['alamat'] : $office->alamat;
-                                                    $oLat = is_array($office) ? ($office['latitude'] ?? $office['lat'] ?? -6.8989) : ($office->latitude ?? -6.8989);
-                                                    $oLng = is_array($office) ? ($office['longitude'] ?? $office['lng'] ?? 107.6108) : ($office->longitude ?? 107.6108);
-                                                @endphp
-                                                <button type="button" class="preset-badge" onclick="selectOfficeOption('{{ addslashes($oNama) }}', '{{ addslashes($oAlamat) }}', {{ $oLat }}, {{ $oLng }})">
-                                                    {{ $oShort }}
-                                                </button>
-                                            @endforeach
-                                        @endif
-                                    </div>
                                 </div>
 
                                 <div style="margin-top: 10px; font-size: 11px; color: #64748b; display: flex; align-items: center; gap: 4px;">

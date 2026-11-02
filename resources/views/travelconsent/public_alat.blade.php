@@ -784,25 +784,6 @@
                                 <label style="font-size: 11.5px; font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Keterangan / Lokasi Bandara / Wilker:</label>
                                 <input type="text" name="lokasi_geotag" id="input_lokasi_geotag" class="w-full text-xs rounded-lg border border-slate-300 p-2 focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Apron Bandara Internasional Kertajati (BIJB)" value="{{ old('lokasi_geotag', 'Wilayah Kerja Kertajati, Kertajati, Majalengka Regency, West Java 45457') }}">
                             </div>
-
-                            <div style="margin-top: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                <span style="font-size: 11px; color: #64748b; font-weight: 600;">Pilihan Cepat Wilker:</span>
-                                @if(isset($offices) && count($offices) > 0)
-                                    @foreach($offices as $office)
-                                        @php
-                                            $oNama = is_array($office) ? $office['nama'] : $office->nama;
-                                            $oShort = is_array($office) ? ($office['nama_pendek'] ?? $office['nama']) : ($office->nama_pendek ?: $office->nama);
-                                            $oAlamat = is_array($office) ? $office['alamat'] : $office->alamat;
-                                            $oLat = is_array($office) ? ($office['latitude'] ?? $office['lat'] ?? -6.6561) : ($office->latitude ?? -6.6561);
-                                            $oLng = is_array($office) ? ($office['longitude'] ?? $office['lng'] ?? 108.1578) : ($office->longitude ?? 108.1578);
-                                        @endphp
-                                        <button type="button" class="preset-badge" onclick="selectAlatOfficePreset('{{ addslashes($oNama) }}', '{{ addslashes($oAlamat) }}', {{ $oLat }}, {{ $oLng }})">
-                                            {{ $oShort }}
-                                        </button>
-                                    @endforeach
-                                @endif
-                                <button type="button" class="preset-badge" onclick="selectAlatOfficePreset('Asrama Haji Embarkasi Jakarta-Bekasi (JKS)', 'UPT Asrama Haji Embarkasi Jakarta-Bekasi, Jl. Kemakmuran No. 72, Kota Bekasi 17141', -6.24150, 107.00120)">Asrama Haji Bekasi</button>
-                            </div>
                         </div>
 
                         <div style="margin-top: 10px; font-size: 11px; color: #64748b; display: flex; align-items: center; gap: 4px;">
