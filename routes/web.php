@@ -35,8 +35,8 @@ Route::middleware('guest')->group(function () {
 
 // --- Public Travel Consent & Aircraft Sanitation Inspection Routes ---
 Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
-    Route::redirect('/public_aircraft', '/dashboard');
-    Route::redirect('/aircraft', '/dashboard');
+    Route::get('/public_aircraft', [TravelConsentController::class, 'publicAircraft'])->name('public_aircraft');
+    Route::get('/aircraft', [TravelConsentController::class, 'publicAircraft'])->name('aircraft');
     Route::post('/submit_aircraft', [TravelConsentController::class, 'submitAircraft'])->name('submit_aircraft');
     Route::get('/receipt/{registration_no}', [TravelConsentController::class, 'receipt'])->name('receipt');
     Route::get('/pdf/{registration_no}', [TravelConsentController::class, 'downloadPdf'])->name('public_pdf');

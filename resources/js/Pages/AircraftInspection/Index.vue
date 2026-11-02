@@ -133,6 +133,15 @@ const deleteInspection = (id, regNo) => {
 
         <div class="flex flex-wrap items-center gap-2.5">
           <a
+            href="/travelconsent/public_aircraft"
+            target="_blank"
+            class="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+          >
+            <Plus class="w-4 h-4" />
+            <span>Form Publik Pesawat ↗</span>
+          </a>
+
+          <a
             :href="`/aircraft-inspections/export?format=xlsx${selectedKesimpulan ? '&kesimpulan=' + selectedKesimpulan : ''}${selectedStatus ? '&status=' + selectedStatus : ''}`"
             class="px-3.5 py-2.5 rounded-xl font-semibold text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 transition-colors flex items-center gap-1.5"
             title="Unduh Spreadsheet Excel"
