@@ -41,6 +41,15 @@ import {
   Eye,
   RotateCw,
   Navigation,
+  Crosshair,
+  Compass,
+  Wifi,
+  Zap,
+  Scan,
+  Terminal,
+  Shield,
+  Gauge,
+  Flame,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -155,7 +164,7 @@ watch(isCollapsed, () => {
 });
 
 // ---------------------------------------------------------------------------
-// Offices & Interactive Map (CENTERPIECE)
+// Offices & Interactive Map (CENTERPIECE HERO)
 // ---------------------------------------------------------------------------
 const officesList = computed(() => {
   if (props.offices && props.offices.length > 0) return props.offices;
@@ -166,6 +175,7 @@ const officesList = computed(() => {
 const selectedOffice = ref(null);
 const searchOffice = ref('');
 const activeOfficeFilter = ref('all'); // 'all' | 'udara' | 'laut'
+const activeMapLayer = ref('osm'); // 'osm' | 'hot' | 'osmde'
 
 onMounted(() => {
   if (officesList.value.length > 0) {
@@ -176,7 +186,7 @@ onMounted(() => {
 const mapComponentRef = ref(null);
 const mapCenter = ref([107.6108, -6.8989]);
 const mapZoom = ref(8.3);
-const mapPitch = ref(30);
+const mapPitch = ref(32);
 const mapBearing = ref(0);
 const isOrbiting = ref(false);
 const isNodeCardMinimized = ref(false);
@@ -205,8 +215,8 @@ const bkkMapMarkers = computed(() => {
       bearing: 0,
       popupRows: [
         { label: 'Tipe / Moda', value: `${o.type} (${o.moda})` },
-        { label: 'Total Inspeksi', value: `${totalOps} Dokumen`, color: '#059669' },
-        { label: 'Terakhir Aktif', value: o.last_human || 'Belum ada', color: '#0284c7' },
+        { label: 'Total Layanan', value: `${totalOps} Dokumen`, color: '#10b981' },
+        { label: 'Terakhir Aktif', value: o.last_human || 'Belum ada', color: '#38bdf8' },
       ],
     };
   });
@@ -224,10 +234,17 @@ const selectOffice = (office) => {
   if (target && mapComponentRef.value) {
     mapComponentRef.value.flyTo(
       [target.lng, target.lat],
-      target.zoom || 12.0,
+      target.zoom || 12.2,
       target.pitch || 45,
       target.bearing || 0
     );
+  }
+};
+
+const switchMapLayer = (layerKey) => {
+  activeMapLayer.value = layerKey;
+  if (mapComponentRef.value) {
+    mapComponentRef.value.setStyle(layerKey);
   }
 };
 
@@ -277,6 +294,12 @@ const filteredOffices = computed(() => {
   );
 });
 
+// Max office total for relative workload bar calculation
+const maxOfficeTotal = computed(() => {
+  const totals = officesList.value.map(o => o.total || 0);
+  return Math.max(...totals, 1);
+});
+
 // ---------------------------------------------------------------------------
 // Service Modules Quick Filter & Details
 // ---------------------------------------------------------------------------
@@ -313,40 +336,40 @@ const trendChartOption = computed(() => {
       name: 'Total',
       color: '#0f172a',
       data: props.trend?.total || [],
-      lineWidth: 2.2,
+      lineWidth: 2.4,
       area: true,
-      areaColor: ['rgba(15, 23, 42, 0.08)', 'rgba(15, 23, 42, 0.0)'],
+      areaColor: ['rgba(16, 185, 129, 0.22)', 'rgba(16, 185, 129, 0.0)'],
     },
     {
       key: 'aircraft',
       name: 'Pesawat',
       color: '#0284c7',
       data: props.trend?.aircraft || [],
-      lineWidth: 1.8,
+      lineWidth: 2.0,
       area: false,
     },
     {
       key: 'ship',
       name: 'Kapal',
-      color: '#059669',
+      color: '#10b981',
       data: props.trend?.ship || [],
-      lineWidth: 1.8,
+      lineWidth: 2.0,
       area: false,
     },
     {
       key: 'alat',
       name: 'Alkes',
-      color: '#d97706',
+      color: '#f59e0b',
       data: props.trend?.alat || [],
-      lineWidth: 1.6,
+      lineWidth: 1.8,
       area: false,
     },
     {
       key: 'obat',
       name: 'Obat',
-      color: '#e11d48',
+      color: '#f43f5e',
       data: props.trend?.obat || [],
-      lineWidth: 1.6,
+      lineWidth: 1.8,
       area: false,
     },
   ];
@@ -358,12 +381,12 @@ const trendChartOption = computed(() => {
     series.push({
       name: cfg.name,
       type: trendViewMode.value,
-      smooth: 0.25,
+      smooth: 0.3,
       symbol: 'circle',
-      symbolSize: 5,
+      symbolSize: 6,
       showSymbol: false,
       data: cfg.data,
-      itemStyle: { color: cfg.color, borderRadius: [3, 3, 0, 0] },
+      itemStyle: { color: cfg.color, borderRadius: [4, 4, 0, 0] },
       lineStyle: { width: cfg.lineWidth, color: cfg.color },
       areaStyle:
         trendViewMode.value === 'line' && cfg.area
@@ -388,22 +411,22 @@ const trendChartOption = computed(() => {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
-      backgroundColor: '#ffffff',
-      borderColor: '#e2e8f0',
+      backgroundColor: '#0f172a',
+      borderColor: '#334155',
       borderWidth: 1,
-      padding: [8, 12],
-      textStyle: { color: '#0f172a', fontSize: 11 },
-      extraCssText: 'box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.12); border-radius: 10px;',
+      padding: [10, 14],
+      textStyle: { color: '#f8fafc', fontSize: 11 },
+      extraCssText: 'box-shadow: 0 12px 25px -4px rgba(0, 0, 0, 0.4); border-radius: 10px;',
       axisPointer: {
         type: 'line',
-        lineStyle: { color: '#0f172a', width: 1, type: 'dashed' },
+        lineStyle: { color: '#10b981', width: 1.5, type: 'dashed' },
       },
     },
     grid: {
       top: 24,
-      right: 16,
+      right: 18,
       bottom: 22,
-      left: 30,
+      left: 32,
     },
     xAxis: {
       type: 'category',
@@ -411,13 +434,13 @@ const trendChartOption = computed(() => {
       boundaryGap: trendViewMode.value === 'bar',
       axisLine: { lineStyle: { color: '#e2e8f0' } },
       axisTick: { show: false },
-      axisLabel: { color: '#94a3b8', fontSize: 10 },
+      axisLabel: { color: '#64748b', fontSize: 10, fontWeight: 500 },
     },
     yAxis: {
       type: 'value',
       minInterval: 1,
       splitLine: { lineStyle: { color: '#f1f5f9', type: 'solid' } },
-      axisLabel: { color: '#94a3b8', fontSize: 10 },
+      axisLabel: { color: '#64748b', fontSize: 10 },
     },
     series,
   };
@@ -450,346 +473,438 @@ const filteredInspections = computed(() => {
 </script>
 
 <template>
-  <Head title="Pusat Komando Geospasial — BKK Kelas I Bandung" />
+  <Head title="Tactical Command Center — BKK Kelas I Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="dashboard">
-    <main class="w-full px-3 sm:px-5 lg:px-6 pt-3 pb-12 space-y-3.5 transition-all duration-300">
+    <main class="w-full px-3 sm:px-5 lg:px-6 pt-3 pb-16 space-y-3.5 transition-all duration-300">
       
       <!-- ========================================================================= -->
-      <!-- COMPACT COMMAND HEADER STRIP                                              -->
+      <!-- TOP COMMAND BAR: CYBER TACTICAL GLASSMORPHISM                             -->
       <!-- ========================================================================= -->
-      <div class="flex flex-wrap items-center justify-between gap-2.5 px-3.5 py-2 rounded-xl bg-slate-900 text-white shadow-xs border border-slate-800">
-        <div class="flex items-center gap-2.5 min-w-0">
-          <div class="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-400/30">
-            <Radio class="w-3.5 h-3.5 animate-pulse" />
-          </div>
-          <div class="min-w-0">
-            <div class="flex items-center gap-2">
-              <h1 class="text-sm font-bold tracking-tight text-white truncate">
-                Pusat Komando Geospasial BKK Kelas I Bandung
-              </h1>
-              <span class="hidden sm:inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                LIVE
-              </span>
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white p-3.5 sm:p-4 shadow-xl border border-slate-800/80 ring-1 ring-emerald-500/20">
+        <!-- Background Cyber Grid Accent -->
+        <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+        <div class="relative z-10 flex flex-wrap items-center justify-between gap-3">
+          <!-- Left: Identity & Live Telemetry -->
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-black text-slate-950 shrink-0 shadow-lg shadow-emerald-500/20 border border-emerald-300/40">
+              <Radio class="w-5 h-5 text-slate-950 animate-pulse" />
+              <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-950 animate-ping"></span>
             </div>
-            <p class="text-[11px] text-slate-400 truncate">
-              Monitoring 1 Kantor Induk &amp; 6 Wilayah Kerja Jawa Barat &bull; {{ generated_at }}
-            </p>
+
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <h1 class="text-sm sm:text-base font-black tracking-tight text-white flex items-center gap-2 truncate">
+                  <span>PUSAT KOMANDO GEOSPASIAL</span>
+                  <span class="text-emerald-400 font-mono text-xs font-semibold">BKK KELAS I BANDUNG</span>
+                </h1>
+                <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                  OPERASIONAL AKTIF
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-300 flex items-center gap-2 truncate mt-0.5">
+                <span>Jaringan 7 Wilker &bull; 4 Moda Karantina Terpadu</span>
+                <span class="text-slate-500">|</span>
+                <span class="font-mono text-emerald-300">{{ generated_at }}</span>
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div class="flex items-center gap-2 shrink-0 text-xs">
-          <button
-            type="button"
-            @click="refreshData"
-            :disabled="isRefreshing"
-            class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-all cursor-pointer disabled:opacity-50"
-            title="Segarkan data"
-          >
-            <RefreshCw class="w-3 h-3" :class="isRefreshing ? 'animate-spin text-emerald-400' : 'text-slate-300'" />
-            <span class="hidden sm:inline">{{ isRefreshing ? 'Sinkron...' : 'Segarkan' }}</span>
-          </button>
+          <!-- Right: Command Controls & Form Launchers -->
+          <div class="flex items-center gap-2 shrink-0 text-xs">
+            <button
+              type="button"
+              @click="refreshData"
+              :disabled="isRefreshing"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-emerald-500/20 text-white hover:text-emerald-300 border border-white/15 hover:border-emerald-400/30 transition-all cursor-pointer disabled:opacity-50"
+              title="Sinkronisasi data telemetri terkini"
+            >
+              <RefreshCw class="w-3.5 h-3.5" :class="isRefreshing ? 'animate-spin text-emerald-400' : 'text-emerald-400'" />
+              <span class="hidden sm:inline">{{ isRefreshing ? 'Menghubungkan...' : 'Sinkron' }}</span>
+            </button>
 
-          <div class="h-4 w-px bg-slate-700 hidden sm:block"></div>
+            <div class="h-5 w-px bg-slate-700/80 hidden sm:block"></div>
 
-          <div class="flex items-center gap-1">
-            <Link
-              :href="getUrl('/public_aircraft')"
-              target="_blank"
-              class="px-2 py-1 rounded-md text-[11px] font-semibold bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 transition-all"
-            >
-              + Pesawat
-            </Link>
-            <Link
-              :href="getUrl('/public_sanitasi')"
-              target="_blank"
-              class="px-2 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition-all"
-            >
-              + Kapal
-            </Link>
-            <Link
-              :href="getUrl('/public_alat')"
-              target="_blank"
-              class="px-2 py-1 rounded-md text-[11px] font-semibold bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 transition-all"
-            >
-              + Alkes
-            </Link>
-            <Link
-              :href="getUrl('/public_obat')"
-              target="_blank"
-              class="px-2 py-1 rounded-md text-[11px] font-semibold bg-rose-500/20 text-rose-300 hover:bg-rose-500/30 transition-all"
-            >
-              + Obat
-            </Link>
+            <div class="flex items-center gap-1">
+              <Link
+                :href="getUrl('/public_aircraft')"
+                target="_blank"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-400/30 transition-all flex items-center gap-1"
+                title="Input Inspeksi Pesawat Udara"
+              >
+                <Plane class="w-3.5 h-3.5" />
+                <span class="hidden md:inline">Pesawat</span>
+              </Link>
+              <Link
+                :href="getUrl('/public_sanitasi')"
+                target="_blank"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 transition-all flex items-center gap-1"
+                title="Input Karantina Sanitasi Kapal Laut"
+              >
+                <Ship class="w-3.5 h-3.5" />
+                <span class="hidden md:inline">Kapal</span>
+              </Link>
+              <Link
+                :href="getUrl('/public_alat')"
+                target="_blank"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 transition-all flex items-center gap-1"
+                title="Input Pemeriksaan Alat Kesehatan Haji"
+              >
+                <Stethoscope class="w-3.5 h-3.5" />
+                <span class="hidden md:inline">Alkes</span>
+              </Link>
+              <Link
+                :href="getUrl('/public_obat')"
+                target="_blank"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-400/30 transition-all flex items-center gap-1"
+                title="Input Pemakaian Obat P3K Pesawat"
+              >
+                <Pill class="w-3.5 h-3.5" />
+                <span class="hidden md:inline">Obat</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- ========================================================================= -->
-      <!-- COMPACT KPI CARDS STRIP (4 SERVICE TILES)                                 -->
+      <!-- 4 HIGH-TECH INTERACTIVE SERVICE TILES (NEON ACCENTS)                      -->
       <!-- ========================================================================= -->
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
         
-        <!-- Tile 1: Sanitasi Pesawat -->
+        <!-- Tile 1: Sanitasi Pesawat Udara -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'aircraft' ? 'all' : 'aircraft'"
-          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group"
+          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
           :class="selectedModuleKey === 'aircraft'
-            ? 'bg-slate-900 text-white border-slate-900 shadow-sm ring-2 ring-sky-500'
-            : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200/90 shadow-2xs'"
+            ? 'border-sky-500 ring-2 ring-sky-500/30 bg-gradient-to-br from-sky-50/50 to-white'
+            : 'border-slate-200 hover:border-sky-400'"
         >
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-bold flex items-center gap-1.5" :class="selectedModuleKey === 'aircraft' ? 'text-sky-300' : 'text-slate-700'">
-              <Plane class="w-3.5 h-3.5 text-sky-500" />
-              Sanitasi Pesawat
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 to-blue-600" :class="selectedModuleKey === 'aircraft' ? 'opacity-100' : 'opacity-70'"></div>
+          <div class="flex items-center justify-between text-xs mt-0.5">
+            <span class="font-bold flex items-center gap-1.5 text-slate-800">
+              <span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+                <Plane class="w-3.5 h-3.5" />
+              </span>
+              <span>Sanitasi Pesawat</span>
             </span>
-            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded" :class="selectedModuleKey === 'aircraft' ? 'bg-sky-400/20 text-sky-200' : 'bg-sky-50 text-sky-700'">
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-sky-50 text-sky-700 border border-sky-200">
               {{ kpi.compliance_rate }}% Laik
             </span>
           </div>
-          <div class="flex items-baseline justify-between mt-1">
-            <span class="text-xl font-black tracking-tight" :class="selectedModuleKey === 'aircraft' ? 'text-white' : 'text-slate-900'">
-              {{ aircraft_stats.total }} <span class="text-xs font-normal text-slate-400">dok</span>
-            </span>
-            <span class="text-[11px] font-semibold" :class="selectedModuleKey === 'aircraft' ? 'text-slate-300' : 'text-slate-500'">
-              {{ aircraft_stats.layak }} Layak &bull; {{ aircraft_stats.tidak_layak }} Tindakan
-            </span>
+
+          <div class="flex items-baseline justify-between mt-2">
+            <div>
+              <span class="text-xl font-black text-slate-900 tracking-tight font-mono">
+                {{ aircraft_stats.total }}
+              </span>
+              <span class="text-xs text-slate-400 ml-1">dok</span>
+            </div>
+            <div class="text-[11px] font-semibold text-slate-500">
+              <span class="text-emerald-600 font-bold">{{ aircraft_stats.layak }} Layak</span> &bull; 
+              <span :class="aircraft_stats.tidak_layak > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'">{{ aircraft_stats.tidak_layak }} Tindakan</span>
+            </div>
           </div>
         </div>
 
         <!-- Tile 2: Sanitasi Kapal Laut -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'ship' ? 'all' : 'ship'"
-          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group"
+          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
           :class="selectedModuleKey === 'ship'
-            ? 'bg-slate-900 text-white border-slate-900 shadow-sm ring-2 ring-emerald-500'
-            : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200/90 shadow-2xs'"
+            ? 'border-emerald-500 ring-2 ring-emerald-500/30 bg-gradient-to-br from-emerald-50/50 to-white'
+            : 'border-slate-200 hover:border-emerald-400'"
         >
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-bold flex items-center gap-1.5" :class="selectedModuleKey === 'ship' ? 'text-emerald-300' : 'text-slate-700'">
-              <Ship class="w-3.5 h-3.5 text-emerald-500" />
-              Sanitasi Kapal Laut
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600" :class="selectedModuleKey === 'ship' ? 'opacity-100' : 'opacity-70'"></div>
+          <div class="flex items-center justify-between text-xs mt-0.5">
+            <span class="font-bold flex items-center gap-1.5 text-slate-800">
+              <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                <Ship class="w-3.5 h-3.5" />
+              </span>
+              <span>Sanitasi Kapal</span>
             </span>
-            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded" :class="selectedModuleKey === 'ship' ? 'bg-emerald-400/20 text-emerald-200' : 'bg-emerald-50 text-emerald-700'">
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
               IHR 2005
             </span>
           </div>
-          <div class="flex items-baseline justify-between mt-1">
-            <span class="text-xl font-black tracking-tight" :class="selectedModuleKey === 'ship' ? 'text-white' : 'text-slate-900'">
-              {{ ship_stats.total }} <span class="text-xs font-normal text-slate-400">kapal</span>
-            </span>
-            <span class="text-[11px] font-semibold" :class="selectedModuleKey === 'ship' ? 'text-slate-300' : 'text-slate-500'">
-              {{ ship_stats.sscec }} SSCEC &bull; {{ ship_stats.sscc }} SSCC
-            </span>
+
+          <div class="flex items-baseline justify-between mt-2">
+            <div>
+              <span class="text-xl font-black text-slate-900 tracking-tight font-mono">
+                {{ ship_stats.total }}
+              </span>
+              <span class="text-xs text-slate-400 ml-1">kapal</span>
+            </div>
+            <div class="text-[11px] font-semibold text-slate-500">
+              <span class="text-emerald-700 font-bold">{{ ship_stats.sscec }} SSCEC</span> &bull; 
+              <span class="text-amber-700 font-bold">{{ ship_stats.sscc }} SSCC</span>
+            </div>
           </div>
         </div>
 
-        <!-- Tile 3: Alkes Haji -->
+        <!-- Tile 3: Alkes Haji & Emergensi -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'alat' ? 'all' : 'alat'"
-          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group"
+          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
           :class="selectedModuleKey === 'alat'
-            ? 'bg-slate-900 text-white border-slate-900 shadow-sm ring-2 ring-amber-500'
-            : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200/90 shadow-2xs'"
+            ? 'border-amber-500 ring-2 ring-amber-500/30 bg-gradient-to-br from-amber-50/50 to-white'
+            : 'border-slate-200 hover:border-amber-400'"
         >
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-bold flex items-center gap-1.5" :class="selectedModuleKey === 'alat' ? 'text-amber-300' : 'text-slate-700'">
-              <Stethoscope class="w-3.5 h-3.5 text-amber-500" />
-              Alkes Pesawat Haji
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-600" :class="selectedModuleKey === 'alat' ? 'opacity-100' : 'opacity-70'"></div>
+          <div class="flex items-center justify-between text-xs mt-0.5">
+            <span class="font-bold flex items-center gap-1.5 text-slate-800">
+              <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+                <Stethoscope class="w-3.5 h-3.5" />
+              </span>
+              <span>Alkes Haji Pesawat</span>
             </span>
-            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded" :class="selectedModuleKey === 'alat' ? 'bg-amber-400/20 text-amber-200' : 'bg-amber-50 text-amber-700'">
-              P3K &amp; Emergensi
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200">
+              Emergensi
             </span>
           </div>
-          <div class="flex items-baseline justify-between mt-1">
-            <span class="text-xl font-black tracking-tight" :class="selectedModuleKey === 'alat' ? 'text-white' : 'text-slate-900'">
-              {{ medical_stats.alat }} <span class="text-xs font-normal text-slate-400">dok</span>
-            </span>
-            <span class="text-[11px] font-semibold" :class="selectedModuleKey === 'alat' ? 'text-slate-300' : 'text-slate-500'">
-              {{ kpi.approved }} Selesai &bull; {{ kpi.pending }} Proses
-            </span>
+
+          <div class="flex items-baseline justify-between mt-2">
+            <div>
+              <span class="text-xl font-black text-slate-900 tracking-tight font-mono">
+                {{ medical_stats.alat }}
+              </span>
+              <span class="text-xs text-slate-400 ml-1">dok</span>
+            </div>
+            <div class="text-[11px] font-semibold text-slate-500">
+              <span class="text-emerald-600 font-bold">{{ kpi.approved }} Selesai</span> &bull; 
+              <span class="text-amber-600 font-bold">{{ kpi.pending }} Proses</span>
+            </div>
           </div>
         </div>
 
         <!-- Tile 4: Obat P3K Pesawat -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'obat' ? 'all' : 'obat'"
-          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group"
+          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
           :class="selectedModuleKey === 'obat'
-            ? 'bg-slate-900 text-white border-slate-900 shadow-sm ring-2 ring-rose-500'
-            : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-200/90 shadow-2xs'"
+            ? 'border-rose-500 ring-2 ring-rose-500/30 bg-gradient-to-br from-rose-50/50 to-white'
+            : 'border-slate-200 hover:border-rose-400'"
         >
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-bold flex items-center gap-1.5" :class="selectedModuleKey === 'obat' ? 'text-rose-300' : 'text-slate-700'">
-              <Pill class="w-3.5 h-3.5 text-rose-500" />
-              Obat-Obatan Pesawat
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-pink-600" :class="selectedModuleKey === 'obat' ? 'opacity-100' : 'opacity-70'"></div>
+          <div class="flex items-center justify-between text-xs mt-0.5">
+            <span class="font-bold flex items-center gap-1.5 text-slate-800">
+              <span class="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                <Pill class="w-3.5 h-3.5" />
+              </span>
+              <span>Obat P3K Pesawat</span>
             </span>
-            <span class="text-[10px] font-bold px-1.5 py-0.2 rounded" :class="selectedModuleKey === 'obat' ? 'bg-rose-400/20 text-rose-200' : 'bg-rose-50 text-rose-700'">
-              Total: {{ kpi.total }} Dokumen
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200">
+              Total {{ kpi.total }}
             </span>
           </div>
-          <div class="flex items-baseline justify-between mt-1">
-            <span class="text-xl font-black tracking-tight" :class="selectedModuleKey === 'obat' ? 'text-white' : 'text-slate-900'">
-              {{ medical_stats.obat }} <span class="text-xs font-normal text-slate-400">dok</span>
-            </span>
-            <span class="text-[11px] font-semibold" :class="selectedModuleKey === 'obat' ? 'text-slate-300' : 'text-slate-500'">
-              {{ kpi.today }} Hari Ini &bull; {{ kpi.completion_rate }}% Verifikasi
-            </span>
+
+          <div class="flex items-baseline justify-between mt-2">
+            <div>
+              <span class="text-xl font-black text-slate-900 tracking-tight font-mono">
+                {{ medical_stats.obat }}
+              </span>
+              <span class="text-xs text-slate-400 ml-1">dok</span>
+            </div>
+            <div class="text-[11px] font-semibold text-slate-500">
+              <span class="text-emerald-700 font-bold">{{ kpi.completion_rate }}% Verifikasi</span> &bull; 
+              <span class="text-slate-600 font-medium">{{ kpi.today }} Hari Ini</span>
+            </div>
           </div>
         </div>
 
       </div>
 
       <!-- ========================================================================= -->
-      <!-- CENTERPIECE: PETA GEOSPASIAL WILAYAH KERJA (COMMAND CENTER HERO)          -->
+      <!-- CENTERPIECE: TACTICAL GEOSPATIAL COMMAND CENTER (THE HERO VIEW)           -->
       <!-- ========================================================================= -->
-      <div class="bg-white rounded-2xl border-2 border-slate-300/80 shadow-md overflow-hidden ring-1 ring-slate-900/5">
+      <div class="bg-white rounded-2xl border-2 border-slate-900/90 shadow-2xl overflow-hidden ring-4 ring-emerald-500/10">
         
-        <!-- Centerpiece Top Control Bar -->
-        <div class="px-4 py-2.5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white flex flex-wrap items-center justify-between gap-2.5 border-b border-slate-700/80">
+        <!-- Centerpiece Top High-Tech Command Bar -->
+        <div class="px-4 py-2.5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
           <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-xs">
-              <MapPin class="w-4 h-4" />
+            <div class="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/30">
+              <Scan class="w-4 h-4" />
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h2 class="text-sm font-extrabold tracking-tight text-white">
-                  Pusat Kendali Geospasial Wilayah Kerja Jawa Barat
+                <h2 class="text-sm font-extrabold tracking-tight text-white flex items-center gap-1.5">
+                  <span>PETA GEOSPASIAL WILAYAH KERJA JAWA BARAT</span>
                 </h2>
-                <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-emerald-400 text-slate-950">
-                  OpenStreetMap WebGL
+                <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/40">
+                  7 NODE TERHUBUNG
                 </span>
               </div>
-              <p class="text-[11px] text-slate-300">
-                Visualisasi interaktif 1 Kantor Induk &amp; 6 Wilker/Pos Karantina Kesehatan
+              <p class="text-[11px] text-slate-400">
+                Vektor koneksi otomatis menghubungkan Kantor Induk Bandung dengan 6 Pos/Wilayah Kerja
               </p>
             </div>
           </div>
 
-          <!-- WebGL Camera Actions -->
-          <div class="flex items-center gap-1.5">
-            <button
-              type="button"
-              @click="resetGlobalView"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer"
-              title="Reset ke tampilan global Jawa Barat"
-            >
-              <Globe class="w-3 h-3 text-emerald-400" />
-              <span>Reset Posisi</span>
-            </button>
-            <button
-              type="button"
-              @click="toggle3DPitch"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold border transition-all cursor-pointer"
-              :class="mapPitch > 25
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs'
-                : 'bg-white/10 hover:bg-white/20 text-white border-white/20'"
-            >
-              <Box class="w-3 h-3" />
-              <span>3D</span>
-            </button>
-            <button
-              type="button"
-              @click="toggleOrbit"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold border transition-all cursor-pointer"
-              :class="isOrbiting
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs'
-                : 'bg-white/10 hover:bg-white/20 text-white border-white/20'"
-            >
-              <RotateCw class="w-3 h-3" :class="isOrbiting ? 'animate-spin' : ''" />
-              <span>Orbit</span>
-            </button>
+          <!-- Futuristic Controls: Map Layer Switcher & WebGL Actions -->
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <!-- Map Layer Switcher -->
+            <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-800/90 border border-slate-700/80 text-[10px] font-bold">
+              <button
+                type="button"
+                @click="switchMapLayer('osm')"
+                class="px-2 py-0.5 rounded transition-all cursor-pointer"
+                :class="activeMapLayer === 'osm' ? 'bg-emerald-500 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+              >
+                OSM Standar
+              </button>
+              <button
+                type="button"
+                @click="switchMapLayer('hot')"
+                class="px-2 py-0.5 rounded transition-all cursor-pointer"
+                :class="activeMapLayer === 'hot' ? 'bg-emerald-500 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+              >
+                Humanitarian
+              </button>
+              <button
+                type="button"
+                @click="switchMapLayer('osmde')"
+                class="px-2 py-0.5 rounded transition-all cursor-pointer"
+                :class="activeMapLayer === 'osmde' ? 'bg-emerald-500 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+              >
+                Topografi
+              </button>
+            </div>
+
+            <!-- WebGL Camera Actions -->
+            <div class="flex items-center gap-1">
+              <button
+                type="button"
+                @click="resetGlobalView"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer border border-white/10"
+                title="Reset tampilan seluruh Jawa Barat"
+              >
+                <Globe class="w-3 h-3 text-emerald-400" />
+                <span>Global</span>
+              </button>
+              <button
+                type="button"
+                @click="toggle3DPitch"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer"
+                :class="mapPitch > 25
+                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs'
+                  : 'bg-white/10 hover:bg-white/20 text-white border-white/10'"
+              >
+                <Box class="w-3 h-3" />
+                <span>3D</span>
+              </button>
+              <button
+                type="button"
+                @click="toggleOrbit"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer"
+                :class="isOrbiting
+                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs'
+                  : 'bg-white/10 hover:bg-white/20 text-white border-white/10'"
+              >
+                <RotateCw class="w-3 h-3" :class="isOrbiting ? 'animate-spin' : ''" />
+                <span>Orbit</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Fly to Node Bar (High Priority Quick Nav) -->
-        <div class="px-4 py-2 bg-slate-50 border-b border-slate-200/90 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <!-- Fly to Node Ribbon (Interactive Tactical Beacon Strip) -->
+        <div class="px-3.5 py-2 bg-slate-900 border-b border-slate-800 text-white flex flex-wrap items-center justify-between gap-2 text-xs">
           <div class="flex flex-wrap items-center gap-1.5">
-            <span class="text-[11px] font-bold text-slate-500 mr-1 flex items-center gap-1">
-              <Navigation class="w-3 h-3 text-emerald-600" />
-              Fly to:
+            <span class="text-[10px] font-mono font-bold tracking-wider uppercase text-emerald-400 mr-1 flex items-center gap-1">
+              <Crosshair class="w-3 h-3 text-emerald-400" />
+              TARGET:
             </span>
             <button
               v-for="node in bkkMapMarkers"
               :key="node.id"
               type="button"
               @click="selectOffice(node)"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs transition-all cursor-pointer border"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border"
               :class="selectedOffice?.no === node.no
-                ? 'bg-slate-900 text-white border-slate-900 font-bold shadow-xs'
-                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100 hover:text-slate-950'"
+                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold shadow-md shadow-emerald-500/30'
+                : 'bg-slate-800/90 text-slate-300 border-slate-700/80 hover:bg-slate-700 hover:text-white'"
             >
-              <span class="text-[9px] font-mono font-black" :class="selectedOffice?.no === node.no ? 'text-emerald-400' : 'text-slate-500'">
+              <span class="text-[9px] font-mono font-black" :class="selectedOffice?.no === node.no ? 'text-slate-950' : 'text-emerald-400'">
                 {{ node.shortCode }}
               </span>
               <span>{{ node.shortTitle.replace('Wilker ', '').replace('Induk ', '') }}</span>
               <span
                 v-if="node.total > 0"
-                class="text-[9px] font-bold px-1 rounded-full"
-                :class="selectedOffice?.no === node.no ? 'bg-emerald-400 text-slate-950' : 'bg-emerald-100 text-emerald-800'"
+                class="text-[9px] font-bold px-1 rounded-full font-mono"
+                :class="selectedOffice?.no === node.no ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'"
               >
                 {{ node.total }}
               </span>
             </button>
           </div>
 
-          <div class="text-[11px] text-slate-500 font-medium hidden md:block">
-            Klik node atau baris wilker untuk mengarahkan peta
+          <div class="text-[11px] font-mono text-slate-400 hidden xl:flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>KLIK NODE UNTUK INSPEKSI LOKASI PRESISI</span>
           </div>
         </div>
 
-        <!-- The Map + Side Cockpit Grid -->
+        <!-- Centerpiece Body: Map + Tactical Wilker Telemetry Dock -->
         <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
           
           <!-- Large WebGL Map Area (8 Cols) -->
-          <div class="lg:col-span-8 relative min-w-0 bg-slate-100">
+          <div class="lg:col-span-8 relative min-w-0 bg-slate-900">
             <BaseMap
               ref="mapComponentRef"
               :initialCenter="[107.55, -6.65]"
-              :initialZoom="8.1"
+              :initialZoom="8.2"
               :initialPitch="25"
               :initialBearing="0"
               styleType="osm"
               :markers="bkkMapMarkers"
-              height="500px"
+              height="530px"
               @selectMarker="selectOffice"
               @mapMove="onCameraMove"
             />
 
-            <!-- Top Left Floating HUD -->
-            <div class="absolute top-3 left-3 z-10 w-44 rounded-xl bg-white/95 backdrop-blur-md border border-slate-200/90 px-2.5 py-2 shadow-md pointer-events-none text-[10px] font-mono">
-              <div class="flex items-center gap-1.5 font-bold text-emerald-700 mb-1">
-                <Navigation class="w-3 h-3 text-emerald-600" />
-                <span>Posisi GPS Kamera</span>
+            <!-- Top Left Cyber HUD Overlay -->
+            <div class="absolute top-3 left-3 z-10 w-48 rounded-xl bg-slate-950/90 backdrop-blur-md border border-emerald-500/30 px-3 py-2.5 shadow-2xl text-[10px] font-mono text-emerald-300 pointer-events-none ring-1 ring-emerald-500/20">
+              <div class="flex items-center justify-between border-b border-emerald-500/30 pb-1 mb-1.5">
+                <div class="flex items-center gap-1.5 font-bold text-emerald-400">
+                  <Terminal class="w-3 h-3 text-emerald-400" />
+                  <span>TELEMETRI GPS</span>
+                </div>
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
               </div>
-              <div class="text-slate-500 space-y-0.5">
+              <div class="space-y-1 text-slate-300">
                 <div class="flex justify-between">
-                  <span>Koordinat:</span>
-                  <span class="text-slate-900 font-bold">{{ mapCenter[0].toFixed(2) }}, {{ mapCenter[1].toFixed(2) }}</span>
+                  <span class="text-slate-400">LAT / LNG:</span>
+                  <span class="text-white font-bold">{{ mapCenter[1].toFixed(4) }}, {{ mapCenter[0].toFixed(4) }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span>Zoom / Tilt:</span>
-                  <span class="text-slate-900 font-bold">{{ mapZoom.toFixed(1) }}x / {{ mapPitch }}°</span>
+                  <span class="text-slate-400">ZOOM / TILT:</span>
+                  <span class="text-white font-bold">{{ mapZoom.toFixed(1) }}x / {{ mapPitch }}°</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-400">STATUS LINK:</span>
+                  <span class="text-emerald-400 font-bold">TERKONEKSI (7)</span>
                 </div>
               </div>
             </div>
 
-            <!-- Bottom Right Selected Node Detail Card -->
+            <!-- Bottom Right Target Node Telemetry HUD -->
             <div
               v-if="activeMapNode"
-              class="absolute bottom-3 right-3 z-10 rounded-xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl transition-all duration-200"
-              :class="isNodeCardMinimized ? 'w-48 px-2.5 py-1.5' : 'w-64 sm:w-72 px-3.5 py-2.5'"
+              class="absolute bottom-3 right-3 z-10 rounded-xl bg-slate-950/92 backdrop-blur-md border border-slate-800 shadow-2xl transition-all duration-200 text-white ring-1 ring-emerald-500/30"
+              :class="isNodeCardMinimized ? 'w-52 px-3 py-2' : 'w-72 sm:w-80 px-4 py-3'"
             >
               <div class="flex items-center justify-between gap-1.5">
-                <div class="flex items-center gap-2 min-w-0">
-                  <div class="w-6 h-6 rounded bg-slate-900 text-white flex items-center justify-center text-[10px] font-mono font-black shrink-0">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <div class="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-mono font-black shrink-0 shadow-xs">
                     {{ activeMapNode.shortCode }}
                   </div>
                   <div class="min-w-0">
-                    <h4 class="text-xs font-bold text-slate-900 truncate">
+                    <h4 class="text-xs font-black text-white truncate">
                       {{ activeMapNode.title }}
                     </h4>
-                    <p v-if="!isNodeCardMinimized" class="text-[10px] text-slate-500 truncate">
+                    <p v-if="!isNodeCardMinimized" class="text-[10px] text-emerald-400 truncate font-mono">
                       {{ activeMapNode.type }} &bull; {{ activeMapNode.moda }}
                     </p>
                   </div>
@@ -797,34 +912,35 @@ const filteredInspections = computed(() => {
                 <button
                   type="button"
                   @click="isNodeCardMinimized = !isNodeCardMinimized"
-                  class="w-5 h-5 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-xs leading-none cursor-pointer"
+                  class="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs leading-none cursor-pointer"
                 >
                   {{ isNodeCardMinimized ? '+' : '−' }}
                 </button>
               </div>
 
               <template v-if="!isNodeCardMinimized">
-                <div class="grid grid-cols-2 gap-2 pt-2 mt-2 border-t border-slate-100 text-[10px]">
-                  <div>
-                    <span class="text-slate-400 block">Total Layanan:</span>
-                    <span class="font-bold text-emerald-700 text-xs">{{ activeMapNode.total || 0 }} Dokumen</span>
+                <div class="grid grid-cols-2 gap-2 pt-2.5 mt-2.5 border-t border-slate-800/80 text-[11px] font-mono">
+                  <div class="p-1.5 rounded bg-slate-900/80 border border-slate-800">
+                    <span class="text-[9px] text-slate-400 block uppercase">Total Dokumen</span>
+                    <span class="text-sm font-black text-emerald-400">{{ activeMapNode.total || 0 }}</span>
                   </div>
-                  <div class="border-l border-slate-100 pl-2">
-                    <span class="text-slate-400 block">Aktivitas Terakhir:</span>
-                    <span class="font-semibold text-slate-800 truncate block">{{ activeMapNode.last_human || 'Belum ada' }}</span>
+                  <div class="p-1.5 rounded bg-slate-900/80 border border-slate-800">
+                    <span class="text-[9px] text-slate-400 block uppercase">Terakhir Aktif</span>
+                    <span class="text-xs font-semibold text-slate-200 truncate block">{{ activeMapNode.last_human || 'Belum ada' }}</span>
                   </div>
                 </div>
-                <div class="mt-2 pt-1.5 border-t border-slate-100 text-[10px] text-slate-500 line-clamp-2 leading-tight">
-                  📍 {{ activeMapNode.address }}
+                <div class="mt-2 pt-2 border-t border-slate-800 text-[10px] text-slate-300 line-clamp-2 leading-tight flex items-start gap-1">
+                  <MapPin class="w-3 h-3 text-rose-400 shrink-0 mt-0.5" />
+                  <span>{{ activeMapNode.address }}</span>
                 </div>
               </template>
             </div>
           </div>
 
-          <!-- Side Cockpit: Wilker Interactive Directory (4 Cols) -->
-          <div class="lg:col-span-4 p-3.5 flex flex-col justify-between bg-slate-50/50">
+          <!-- Side Cockpit: Tactical Wilker Telemetry Dock (4 Cols) -->
+          <div class="lg:col-span-4 p-3.5 flex flex-col justify-between bg-slate-50">
             <div>
-              <!-- Search & Filter Tab Bar -->
+              <!-- Cockpit Header: Filter & Search -->
               <div class="space-y-2 pb-2.5 border-b border-slate-200">
                 <div class="flex items-center justify-between gap-1">
                   <div class="flex items-center gap-1">
@@ -854,68 +970,81 @@ const filteredInspections = computed(() => {
                     </button>
                   </div>
 
-                  <span class="text-[10px] font-mono text-slate-400">7 Node</span>
+                  <span class="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                    STATUS AKTIF
+                  </span>
                 </div>
 
                 <div class="relative w-full">
-                  <Search class="w-3 h-3 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                  <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                   <input
                     v-model="searchOffice"
                     type="text"
                     placeholder="Cari wilker / alamat..."
-                    class="w-full pl-7 pr-2 py-1 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-300"
+                    class="w-full pl-8 pr-2 py-1 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400"
                   />
                 </div>
               </div>
 
-              <!-- High-Density Wilker Telemetry List -->
-              <div class="divide-y divide-slate-100 overflow-y-auto max-h-[380px] mt-1 pr-1">
+              <!-- High-Density Telemetry Card List -->
+              <div class="divide-y divide-slate-100 overflow-y-auto max-h-[410px] mt-1 pr-1">
                 <div
                   v-for="office in filteredOffices"
                   :key="office.no"
                   @click="selectOffice(office)"
-                  class="py-2 px-2 rounded-xl transition-all cursor-pointer flex items-center justify-between gap-2"
+                  class="py-2.5 px-2.5 rounded-xl transition-all cursor-pointer flex flex-col gap-1.5 mb-1"
                   :class="selectedOffice?.no === office.no
-                    ? 'bg-emerald-50 border border-emerald-200 shadow-2xs font-bold'
-                    : 'hover:bg-white text-slate-700'"
+                    ? 'bg-white border-2 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
+                    : 'bg-white/70 hover:bg-white border border-slate-200/80'"
                 >
-                  <div class="flex items-center gap-2 min-w-0">
-                    <span class="w-5 h-5 rounded-md bg-slate-900 text-white text-[9px] font-mono font-black flex items-center justify-center shrink-0">
-                      {{ office.no }}
-                    </span>
-                    <div class="min-w-0">
-                      <div class="text-xs truncate font-bold text-slate-900" :title="office.name">
-                        {{ office.short_name || office.name }}
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                      <span class="w-5 h-5 rounded-md bg-slate-900 text-white text-[9px] font-mono font-black flex items-center justify-center shrink-0">
+                        {{ office.no }}
+                      </span>
+                      <div class="min-w-0">
+                        <div class="text-xs font-bold text-slate-900 truncate" :title="office.name">
+                          {{ office.short_name || office.name }}
+                        </div>
+                        <div class="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                          <span>{{ office.moda }}</span>
+                          <span>&bull;</span>
+                          <span class="text-slate-400">{{ office.zone }}</span>
+                        </div>
                       </div>
-                      <div class="text-[10px] text-slate-500 truncate">
-                        {{ office.moda }} &bull; {{ office.zone }}
+                    </div>
+
+                    <div class="flex items-center gap-2 shrink-0">
+                      <div class="text-right">
+                        <span class="text-xs font-black text-slate-900 font-mono">{{ office.total || 0 }}</span>
+                        <span class="text-[9px] text-slate-400 ml-0.5">dok</span>
                       </div>
+                      <button
+                        type="button"
+                        class="w-6 h-6 rounded-md bg-slate-100 hover:bg-emerald-500 hover:text-slate-950 text-slate-400 flex items-center justify-center transition-colors"
+                        title="Arahkan kamera peta ke wilker ini"
+                      >
+                        <Crosshair class="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
 
-                  <div class="flex items-center gap-2 shrink-0">
-                    <div class="text-right">
-                      <div class="text-xs font-black text-slate-900 leading-none">
-                        {{ office.total || 0 }}
-                      </div>
-                      <div class="text-[9px] text-slate-400">dokumen</div>
-                    </div>
-
-                    <button
-                      type="button"
-                      class="w-5 h-5 rounded bg-slate-100 hover:bg-emerald-100 text-slate-400 hover:text-emerald-700 flex items-center justify-center transition-colors"
-                      title="Fokus di peta"
-                    >
-                      <MapPin class="w-3 h-3" />
-                    </button>
+                  <!-- Relative workload bar indicator -->
+                  <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
+                    <div
+                      class="h-full rounded-full transition-all duration-500"
+                      :class="selectedOffice?.no === office.no ? 'bg-emerald-500' : 'bg-slate-400'"
+                      :style="{ width: `${Math.max(8, ((office.total || 0) / maxOfficeTotal) * 100)}%` }"
+                    ></div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="pt-2 mt-2 border-t border-slate-200 text-[10px] text-slate-500 flex items-center justify-between">
-              <span>Kantor Terpilih: <strong class="text-slate-800">{{ selectedOffice?.short_name || '-' }}</strong></span>
-              <span class="font-mono text-emerald-700 font-bold">{{ selectedOffice?.total || 0 }} Dok</span>
+            <!-- Cockpit Footer Summary -->
+            <div class="pt-2 mt-2 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between font-mono">
+              <span>Target: <strong class="text-slate-900 font-sans">{{ selectedOffice?.short_name || '-' }}</strong></span>
+              <span class="text-emerald-700 font-bold">{{ selectedOffice?.total || 0 }} Dok</span>
             </div>
           </div>
 
@@ -924,18 +1053,18 @@ const filteredInspections = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
-      <!-- COMPACT LOWER COCKPIT: TREND CHARTS + OPERATIONAL RISK FOCUS              -->
+      <!-- ANALYTICS COCKPIT: DYNAMIC TREND + OPERATIONAL RISK FOCUS                 -->
       <!-- ========================================================================= -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
         
-        <!-- 30-Day Trend Chart (7 cols) -->
+        <!-- 30-Day Trend Multi-Series ECharts (7 Cols) -->
         <div class="lg:col-span-7 rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
           <div>
             <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
               <div>
                 <h3 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
                   <ChartLine class="w-4 h-4 text-emerald-600" />
-                  Tren Pengawasan 30 Hari
+                  Tren Pengawasan 30 Hari Terakhir
                 </h3>
               </div>
 
@@ -946,7 +1075,7 @@ const filteredInspections = computed(() => {
                   @click="trendViewMode = 'line'"
                   class="p-1 rounded transition-all cursor-pointer"
                   :class="trendViewMode === 'line' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700'"
-                  title="Garis"
+                  title="Grafik Garis"
                 >
                   <ChartLine class="w-3.5 h-3.5" />
                 </button>
@@ -955,7 +1084,7 @@ const filteredInspections = computed(() => {
                   @click="trendViewMode = 'bar'"
                   class="p-1 rounded transition-all cursor-pointer"
                   :class="trendViewMode === 'bar' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700'"
-                  title="Batang"
+                  title="Grafik Batang"
                 >
                   <ChartColumn class="w-3.5 h-3.5" />
                 </button>
@@ -964,7 +1093,7 @@ const filteredInspections = computed(() => {
 
             <!-- ECharts Chart -->
             <div class="-mx-2">
-              <BaseChart :option="trendChartOption" height="210px" />
+              <BaseChart :option="trendChartOption" height="215px" />
             </div>
           </div>
 
@@ -1007,17 +1136,17 @@ const filteredInspections = computed(() => {
           </div>
         </div>
 
-        <!-- Operational Risk & Actions Focus (5 cols) -->
+        <!-- Operational Risk & Treatment Focus (5 Cols) -->
         <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
           
-          <!-- Card 1: Tindakan Pesawat -->
+          <!-- Card 1: Tindakan Karantina Pesawat -->
           <div class="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                 <Plane class="w-3.5 h-3.5 text-sky-600" />
                 Tindakan Sanitasi Pesawat
               </h4>
-              <span class="text-[11px] font-semibold text-slate-500">{{ aircraft_stats.layak }} Layak &bull; {{ aircraft_stats.tidak_layak }} Tindakan</span>
+              <span class="text-[11px] font-semibold text-slate-500 font-mono">{{ aircraft_stats.layak }} Layak &bull; {{ aircraft_stats.tidak_layak }} Tindakan</span>
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs">
@@ -1027,19 +1156,19 @@ const filteredInspections = computed(() => {
                 class="px-2.5 py-1.5 rounded-lg border border-slate-100 bg-slate-50 flex items-center justify-between"
               >
                 <span class="text-slate-600 text-[11px]">{{ act.label }}</span>
-                <span class="font-bold text-slate-900">{{ act.count }}</span>
+                <span class="font-bold text-slate-900 font-mono">{{ act.count }}</span>
               </div>
             </div>
           </div>
 
-          <!-- Card 2: Temuan Risiko Kapal (IHR 2005) -->
+          <!-- Card 2: Temuan Risiko Kapal (32 Area IHR 2005) -->
           <div class="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                 <Ship class="w-3.5 h-3.5 text-emerald-600" />
-                Temuan Faktor Risiko Kapal
+                Temuan Faktor Risiko Sanitasi Kapal
               </h4>
-              <span class="text-[11px] font-semibold text-amber-600">{{ ship_stats.ships_with_risk }} dari {{ ship_stats.total }} Kapal</span>
+              <span class="text-[11px] font-semibold text-amber-600 font-mono">{{ ship_stats.ships_with_risk }} / {{ ship_stats.total }} Kapal</span>
             </div>
 
             <div v-if="ship_stats.top_risk_areas && ship_stats.top_risk_areas.length > 0" class="space-y-1.5 text-xs">
@@ -1049,11 +1178,11 @@ const filteredInspections = computed(() => {
                 class="flex items-center justify-between px-2.5 py-1 rounded bg-amber-50/80 border border-amber-200/50 text-[11px]"
               >
                 <span class="font-medium text-slate-800 truncate">{{ area.name }}</span>
-                <span class="font-bold text-amber-700 shrink-0 ml-2">{{ area.count }} temuan</span>
+                <span class="font-bold text-amber-700 shrink-0 ml-2 font-mono">{{ area.count }} temuan</span>
               </div>
             </div>
             <p v-else class="text-[11px] text-slate-500 italic">
-              Nihil faktor risiko pada seluruh area sanitasi kapal.
+              Nihil faktor risiko pada seluruh 32 area sanitasi kapal.
             </p>
           </div>
 
@@ -1062,7 +1191,7 @@ const filteredInspections = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
-      <!-- COMPACT TABLE: DOKUMEN PEMERIKSAAN TERKINI (LIVE FEED)                    -->
+      <!-- COMPACT LIVE FEED & AUDIT TRAIL TABLE                                     -->
       <!-- ========================================================================= -->
       <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
         
@@ -1076,8 +1205,8 @@ const filteredInspections = computed(() => {
               :class="activeFeedTab === 'inspections' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 bg-slate-100'"
             >
               <ClipboardCheck class="w-3.5 h-3.5" />
-              <span>Dokumen Terkini</span>
-              <span class="px-1 py-0.2 rounded-full text-[9px] bg-emerald-400 text-slate-950 font-black">
+              <span>Dokumen Pemeriksaan Terkini</span>
+              <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-400 text-slate-950 font-black font-mono">
                 {{ recent_inspections.length }}
               </span>
             </button>
@@ -1183,14 +1312,14 @@ const filteredInspections = computed(() => {
                   </span>
                 </td>
 
-                <td class="py-2 px-3 whitespace-nowrap text-slate-500 text-[11px]">
+                <td class="py-2 px-3 whitespace-nowrap text-slate-500 text-[11px] font-mono">
                   {{ item.date }}
                 </td>
 
                 <td class="py-2 px-3 whitespace-nowrap">
                   <div class="flex items-center gap-1.5">
                     <span
-                      class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider"
+                      class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider font-mono"
                       :class="{
                         'bg-emerald-50 text-emerald-700 border border-emerald-200': item.status === 'approved',
                         'bg-amber-50 text-amber-700 border border-amber-200': item.status === 'submitted',
@@ -1237,7 +1366,7 @@ const filteredInspections = computed(() => {
             class="flex items-start justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs"
           >
             <div class="flex items-start gap-2">
-              <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0">
+              <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0 font-mono">
                 {{ act.causer_name.charAt(0) }}
               </div>
               <div>
@@ -1270,14 +1399,14 @@ const filteredInspections = computed(() => {
               </div>
               <div>
                 <div class="font-bold text-slate-900">{{ lh.user_name }} ({{ lh.email }})</div>
-                <div class="text-[10px] text-slate-500">IP: {{ lh.ip_address }} &bull; Perangkat: {{ lh.device }}</div>
+                <div class="text-[10px] text-slate-500 font-mono">IP: {{ lh.ip_address }} &bull; Perangkat: {{ lh.device }}</div>
               </div>
             </div>
             <div class="text-right">
-              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
                 {{ lh.status }}
               </span>
-              <div class="text-[10px] text-slate-400 mt-0.5">{{ lh.login_at }}</div>
+              <div class="text-[10px] text-slate-400 mt-0.5 font-mono">{{ lh.login_at }}</div>
             </div>
           </div>
         </div>

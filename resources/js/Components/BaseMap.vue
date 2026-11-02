@@ -235,17 +235,32 @@ const renderNetworkLines = (targetMap) => {
         features,
       },
     });
-    map.addLayer({
-      id: 'bkk-wilker-links-layer',
-      type: 'line',
-      source: 'bkk-wilker-links',
-      paint: {
-        'line-color': '#10b981',
-        'line-width': 2,
-        'line-dasharray': [3, 2],
-        'line-opacity': 0.85,
-      },
-    });
+    if (!map.getLayer('bkk-wilker-links-glow')) {
+      map.addLayer({
+        id: 'bkk-wilker-links-glow',
+        type: 'line',
+        source: 'bkk-wilker-links',
+        paint: {
+          'line-color': '#34d399',
+          'line-width': 6,
+          'line-opacity': 0.35,
+          'line-blur': 2,
+        },
+      });
+    }
+    if (!map.getLayer('bkk-wilker-links-layer')) {
+      map.addLayer({
+        id: 'bkk-wilker-links-layer',
+        type: 'line',
+        source: 'bkk-wilker-links',
+        paint: {
+          'line-color': '#059669',
+          'line-width': 2.2,
+          'line-dasharray': [3, 2],
+          'line-opacity': 0.95,
+        },
+      });
+    }
   }
 };
 
