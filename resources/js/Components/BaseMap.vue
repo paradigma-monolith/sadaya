@@ -189,6 +189,49 @@ const renderMarkers = () => {
   });
 };
 
+const renderNetworkLines = (targetMap) => {
+  const map = targetMap || mapInstance.value;
+  if (!map || !props.markers || props.markers.length < 2) return;
+  const hq = props.markers.find(m => m.is_hq || m.no === 1) || props.markers[0];
+  if (!hq || !hq.coordinates) return;
+
+  const features = props.markers
+    .filter(m => m.id !== hq.id && m.coordinates && m.coordinates.length >= 2)
+    .map(w => ({
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: [hq.coordinates, w.coordinates],
+      },
+    }));
+
+  if (map.getSource('bkk-wilker-links')) {
+    map.getSource('bkk-wilker-links').setData({
+      type: 'FeatureCollection',
+      features,
+    });
+  } else {
+    map.addSource('bkk-wilker-links', {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features,
+      },
+    });
+    map.addLayer({
+      id: 'bkk-wilker-links-layer',
+      type: 'line',
+      source: 'bkk-wilker-links',
+      paint: {
+        'line-color': '#10b981',
+        'line-width': 2,
+        'line-dasharray': [3, 2],
+        'line-opacity': 0.85,
+      },
+    });
+  }
+};
+
 const initMap = () => {
   if (!mapContainer.value) return;
 
@@ -214,49 +257,6 @@ const initMap = () => {
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-right');
   map.addControl(new maplibregl.FullscreenControl(), 'top-right');
   map.addControl(new maplibregl.ScaleControl({ unit: 'metric' }), 'bottom-left');
-
-  const renderNetworkLines = (targetMap) => {
-    const map = targetMap || mapInstance.value;
-    if (!map || !props.markers || props.markers.length < 2) return;
-    const hq = props.markers.find(m => m.is_hq || m.no === 1) || props.markers[0];
-    if (!hq || !hq.coordinates) return;
-
-    const features = props.markers
-      .filter(m => m.id !== hq.id && m.coordinates && m.coordinates.length >= 2)
-      .map(w => ({
-        type: 'Feature',
-        geometry: {
-          type: 'LineString',
-          coordinates: [hq.coordinates, w.coordinates],
-        },
-      }));
-
-    if (map.getSource('bkk-wilker-links')) {
-      map.getSource('bkk-wilker-links').setData({
-        type: 'FeatureCollection',
-        features,
-      });
-    } else {
-      map.addSource('bkk-wilker-links', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features,
-        },
-      });
-      map.addLayer({
-        id: 'bkk-wilker-links-layer',
-        type: 'line',
-        source: 'bkk-wilker-links',
-        paint: {
-          'line-color': '#10b981',
-          'line-width': 2,
-          'line-dasharray': [3, 2],
-          'line-opacity': 0.85,
-        },
-      });
-    }
-  };
 
   map.on('load', () => {
     mapInstance.value = map;
@@ -399,6 +399,7 @@ onMounted(() => {
 
 watch(() => props.markers, () => {
   renderMarkers();
+  renderNetworkLines(mapInstance.value);
 }, { deep: true });
 
 watch(() => props.styleType, (newVal) => {
