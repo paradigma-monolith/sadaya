@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Konfirmasi Submit &bull; {{ $inspection->registration_no }}</title>
+    <title>Sertifikat Sanitasi Kapal &bull; {{ $inspection->registration_no }}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -20,152 +20,286 @@
             }
         }
     </script>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: #ffffff !important; padding: 0 !important; }
+            .doc-sheet { box-shadow: none !important; border: none !important; max-width: 100% !important; padding: 0 !important; }
+            @page { size: A4 portrait; margin: 12mm 15mm; }
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans min-h-screen py-10 px-4 flex items-center justify-center">
+<body class="bg-slate-100 text-slate-900 font-sans min-h-screen py-8 px-4 sm:px-6">
 
-    <div class="max-w-xl w-full bg-white rounded-3xl p-8 sm:p-10 border border-slate-200/90 shadow-xl text-center space-y-6">
-        
-        <!-- Success Icon -->
-        <div class="w-20 h-20 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-200 mx-auto flex items-center justify-center text-3xl">
-            ✓
-        </div>
-
-        <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-emerald-600 block mb-1">Penerbitan Berhasil</span>
-            <h1 class="text-2xl font-black text-slate-900 tracking-tight">Sertifikat Sanitasi Kapal</h1>
-            <p class="text-xs text-slate-500 mt-1">Formulir pemeriksaan sanitasi kapal telah berhasil direkam secara resmi ke dalam sistem BKK Kelas I Bandung.</p>
-        </div>
-
-        <!-- Registration Code Badge -->
-        <div class="inline-block px-5 py-2.5 rounded-2xl bg-emerald-50 border border-emerald-300 font-mono text-base font-bold text-emerald-800 tracking-wider">
-            {{ $inspection->registration_no }}
-        </div>
-
-        <!-- Details Summary Card -->
-        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 text-left text-xs space-y-2.5">
-            <div class="flex justify-between items-center py-1 border-b border-slate-200/70">
-                <span class="text-slate-500">Nama Kapal:</span>
-                <span class="font-bold text-slate-900">{{ $inspection->nama_kapal }}</span>
-            </div>
-            <div class="flex justify-between items-center py-1 border-b border-slate-200/70">
-                <span class="text-slate-500">Nomor IMO / Registrasi:</span>
-                <span class="font-mono font-bold text-slate-900">{{ $inspection->imo_no }}</span>
-            </div>
-            <div class="flex justify-between items-center py-1 border-b border-slate-200/70">
-                <span class="text-slate-500">Pelabuhan / Wilker:</span>
-                <span class="font-semibold text-slate-800">{{ $inspection->pelabuhan }}</span>
-            </div>
-            <div class="flex justify-between items-center py-1 border-b border-slate-200/70">
-                <span class="text-slate-500">Sertifikat Mencatat:</span>
-                <span class="font-bold text-emerald-700 bg-emerald-100/70 px-2 py-0.5 rounded-md">
-                    {{ $inspection->sertifikat_mencatat === 'Pembebasan' ? 'Pembebasan (SSCEC)' : 'Pengendalian (SSCC)' }}
-                </span>
-            </div>
-            <div class="flex justify-between items-center py-1 border-b border-slate-200/70">
-                <span class="text-slate-500">Tanggal Pemeriksaan:</span>
-                <span class="font-medium text-slate-800">{{ $inspection->tanggal->format('d F Y') }}</span>
-            </div>
-            <div class="flex justify-between items-center py-1">
-                <span class="text-slate-500">Petugas Pemeriksa:</span>
-                <span class="font-semibold text-slate-900">{{ $inspection->nama_pemeriksa }}</span>
+    <!-- Top Action Bar (Floating Header) -->
+    <div class="no-print max-w-4xl mx-auto mb-6 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('travelconsent.home') }}" class="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors" title="Kembali ke Portal">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            </a>
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-teal-700 block">Sertifikat Sanitasi Resmi</span>
+                <span class="font-mono text-sm font-bold text-slate-900">{{ $inspection->registration_no }}</span>
             </div>
         </div>
 
-        <!-- Copyable Public Document Link Box -->
-        <div class="bg-emerald-50/70 border border-emerald-300 rounded-2xl p-4 text-left">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
-                    <span>🔗</span> Link Publik Hasil Dokumen
-                </span>
-                <span class="text-[10px] text-slate-500 font-medium">Bisa diakses publik tanpa login</span>
-            </div>
-            <div class="flex gap-2 items-center">
+        <div class="flex items-center gap-2 flex-wrap">
+            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+                <span class="text-xs text-slate-500">🔗 Link:</span>
                 <input 
                     type="text" 
                     id="pageLinkInput" 
                     readonly 
                     value="{{ url()->current() }}" 
-                    class="flex-1 bg-white border border-slate-300 rounded-xl px-3 py-2 text-xs font-mono text-slate-800 select-all outline-none"
+                    class="bg-transparent text-xs font-mono text-slate-800 w-44 sm:w-60 select-all outline-none"
                     onclick="this.select()"
                 >
                 <button 
                     type="button" 
                     id="btnPageCopy" 
                     onclick="copyPageLink()" 
-                    class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs"
+                    class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold transition-all shrink-0 cursor-pointer"
                 >
-                    Salin Link
+                    Salin
                 </button>
             </div>
-            <div id="pageCopyMsg" class="hidden text-[11px] font-semibold text-emerald-600 mt-1.5">
-                ✓ Link berhasil disalin ke clipboard!
+
+            <button 
+                type="button" 
+                onclick="window.print()" 
+                class="px-4 py-2 bg-teal-700 hover:bg-teal-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                <span>Cetak / Simpan PDF</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- The Official Document Sheet -->
+    <div class="doc-sheet max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/90 shadow-xl p-8 sm:p-12 text-slate-800 space-y-6">
+        
+        <!-- Official Kop Surat Header -->
+        <div class="border-b-2 border-slate-900 pb-4 text-center">
+            <img 
+                src="{{ asset('storage/images/Kop_BKK_bandung.png') }}" 
+                alt="Balai Kekarantinaan Kesehatan Kelas I Bandung" 
+                class="w-full max-h-36 sm:max-h-44 object-contain mx-auto"
+                onerror="this.onerror=null;this.src='{{ asset('images/Kop_BKK_bandung.png') }}';"
+            >
+        </div>
+
+        <!-- Document Title & Header Meta -->
+        <div class="text-center space-y-1.5 pt-2">
+            <h1 class="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight">
+                Sertifikat Pemeriksaan Sanitasi Kapal
+            </h1>
+            <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wider font-mono">
+                SHIP SANITATION CONTROL EXEMPTION CERTIFICATE / SHIP SANITATION CONTROL CERTIFICATE
+            </p>
+            <div class="pt-2 flex items-center justify-center gap-3">
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-mono font-bold bg-teal-50 text-teal-800 border border-teal-200">
+                    No. Registrasi: {{ $inspection->registration_no }}
+                </span>
+                <span class="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase {{ $inspection->sertifikat_mencatat === 'Pembebasan' ? 'bg-emerald-50 text-emerald-800 border border-emerald-300' : 'bg-amber-50 text-amber-800 border border-amber-300' }}">
+                    {{ $inspection->sertifikat_mencatat === 'Pembebasan' ? 'SSCEC (Pembebasan Sanitasi)' : 'SSCC (Pengendalian Sanitasi)' }}
+                </span>
             </div>
         </div>
 
-        <!-- Actions -->
-        <div class="pt-2 flex flex-col sm:flex-row items-center gap-3">
-            <button 
-                type="button" 
-                onclick="showPublicModal({ regNo: '{{ $inspection->registration_no }}', publicUrl: window.location.href, title: 'Formulir Berhasil Disubmit!' })" 
-                class="w-full sm:flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition-all shadow-sm"
-            >
-                Pop-up Link Dokumen
-            </button>
-            <a href="{{ route('travelconsent.public_sanitasi') }}" class="w-full sm:flex-1 py-3 px-4 rounded-xl font-bold text-xs bg-slate-900 hover:bg-slate-800 text-white transition-all shadow-sm">
-                + Input Formulir Baru
-            </a>
-            <a href="{{ route('home') }}" class="w-full sm:flex-1 py-3 px-4 rounded-xl font-semibold text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all border border-slate-200">
-                Dashboard
-            </a>
+        <!-- Identitas Kapal Table -->
+        <div class="bg-slate-50/80 rounded-2xl p-5 border border-slate-200/90 text-xs">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-1.5">
+                <span>⚓</span> Rincian Data Kapal &amp; Pelabuhan
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <span class="text-slate-500 block">Nama Kapal:</span>
+                    <span class="font-bold text-slate-900 text-sm">{{ $inspection->nama_kapal }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Nomor IMO:</span>
+                    <span class="font-mono font-bold text-slate-900 text-sm">{{ $inspection->imo_no }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Bendera / Kebangsaan:</span>
+                    <span class="font-semibold text-slate-900">{{ $inspection->bendera ?: 'Indonesia' }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Tonase Kotor (GT):</span>
+                    <span class="font-mono font-bold text-slate-900">{{ $inspection->berat_gt ? number_format($inspection->berat_gt) . ' GT' : '-' }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Jenis Kapal:</span>
+                    <span class="font-semibold text-slate-900">{{ $inspection->jenis_kapal }} ({{ $inspection->detail_jenis_kapal }})</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Pelabuhan / Wilker:</span>
+                    <span class="font-semibold text-slate-900">{{ $inspection->pelabuhan }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Tanggal Pemeriksaan:</span>
+                    <span class="font-mono font-medium text-slate-900">{{ $inspection->tanggal ? $inspection->tanggal->format('d F Y') : '-' }}</span>
+                </div>
+                <div>
+                    <span class="text-slate-500 block">Petugas Pemeriksa:</span>
+                    <span class="font-bold text-teal-800">{{ $inspection->nama_pemeriksa }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Checklist 32 Area Fasilitas Kapal -->
+        <div class="space-y-3 pt-2">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full bg-teal-600"></span>
+                    <span>Daftar Bukti Pemeriksaan 32 Area Fasilitas Kapal</span>
+                </h3>
+            </div>
+            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                <table class="w-full text-xs text-left">
+                    <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 font-bold uppercase text-[10px]">
+                        <tr>
+                            <th class="px-3 py-2.5 w-10 text-center">No</th>
+                            <th class="px-3 py-2.5">Area / Fasilitas Diperiksa</th>
+                            <th class="px-3 py-2.5 w-36">Kategori</th>
+                            <th class="px-3 py-2.5 w-32 text-center">Hasil Temuan</th>
+                            <th class="px-3 py-2.5">Keterangan / Rekomendasi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200/70">
+                        @if(!empty($inspection->areas) && is_array($inspection->areas))
+                            @foreach($inspection->areas as $it)
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="px-3 py-2 text-center text-slate-500">{{ $it['no'] ?? ($loop->iteration) }}</td>
+                                <td class="px-3 py-2 font-medium text-slate-900">{{ $it['nama'] ?? '-' }}</td>
+                                <td class="px-3 py-2 text-slate-500 text-[11px]">{{ $it['kategori'] ?? '-' }}</td>
+                                <td class="px-3 py-2 text-center">
+                                    @php $st = strtolower($it['status'] ?? ''); @endphp
+                                    @if(str_contains($st, 'bebas') || $st === 'layak')
+                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                            ✓ Bebas / Memenuhi
+                                        </span>
+                                    @elseif(str_contains($st, 'kendali') || str_contains($st, 'tindakan'))
+                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                            ⚠️ Dikendalikan
+                                        </span>
+                                    @else
+                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
+                                            {{ $it['status'] ?: 'Diperiksa' }}
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-2 text-slate-600 text-[11px]">{{ $it['keterangan'] ?: '-' }}</td>
+                            </tr>
+                            @endforeach
+                        @else
+                            <tr><td colspan="5" class="px-3 py-4 text-center text-slate-400">Tidak ada rincian checklist area tercatat.</td></tr>
+                        @endif
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Foto Geotagging & Lokasi Lapangan -->
+        @if($inspection->foto_geotagging)
+        <div class="pt-3 border-t border-slate-200">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
+                <span>📸</span> Dokumentasi Foto Inspeksi Lapangan &amp; Geotagging
+            </h3>
+            <div class="flex flex-col sm:flex-row gap-4 items-start bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <a href="{{ asset($inspection->foto_geotagging) }}" target="_blank" class="shrink-0 group">
+                    <img 
+                        src="{{ asset($inspection->foto_geotagging) }}" 
+                        alt="Foto Geotagging Kapal" 
+                        class="w-48 h-32 object-cover rounded-xl border border-slate-300 shadow-2xs group-hover:opacity-90 transition-opacity"
+                        onerror="this.onerror=null;this.src='/images/photo-placeholder.png';"
+                    >
+                </a>
+                <div class="text-xs space-y-1.5 flex-1">
+                    <div class="font-semibold text-slate-800">Bukti Verifikasi Fisik Sanitasi Kapal</div>
+                    <div class="text-slate-500 font-mono text-[11px]">
+                        📍 Koordinat: {{ $inspection->latitude ?? '-' }}, {{ $inspection->longitude ?? '-' }}
+                    </div>
+                    <div class="text-slate-600 text-[11px] leading-relaxed">
+                        Lokasi: {{ $inspection->lokasi_geotag ?? 'Wilayah Kerja Pelabuhan Laut / Dermaga' }}
+                    </div>
+                    @if($inspection->latitude && $inspection->longitude)
+                    <a 
+                        href="https://www.google.com/maps?q={{ $inspection->latitude }},{{ $inspection->longitude }}" 
+                        target="_blank" 
+                        class="inline-flex items-center gap-1 text-[11px] font-bold text-teal-700 hover:underline pt-1"
+                    >
+                        <span>Lihat Titik Peta Google Maps</span> ↗
+                    </a>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
+
+        <!-- Lembar Pengesahan & Tanda Tangan -->
+        <div class="pt-6 border-t border-slate-300 grid grid-cols-2 gap-8 text-center text-xs">
+            <div>
+                <p class="text-slate-500 mb-1">Pejabat Penerbit</p>
+                <div class="h-24 flex items-center justify-center my-1">
+                    <div class="w-20 h-20 rounded-full border-2 border-teal-600/40 text-teal-700 flex items-center justify-center font-bold text-[10px] text-center p-1 leading-tight">
+                        BALAI KEKARANTINAAN KESEHATAN BANDUNG
+                    </div>
+                </div>
+                <p class="font-bold text-slate-900 border-t border-slate-300 pt-1.5 mx-8">{{ $inspection->pejabat_penerbit ?: 'Balai Kekarantinaan Kesehatan Kelas I Bandung' }}</p>
+                <p class="text-[10px] text-slate-400">Kantor Induk &amp; Wilayah Kerja Pelabuhan</p>
+            </div>
+
+            <div>
+                <p class="text-slate-500 mb-1">Petugas Pemeriksa Sanitasi Kapal</p>
+                <div class="h-24 flex items-center justify-center my-1">
+                    @if($inspection->tanda_tangan)
+                        <img src="{{ $inspection->tanda_tangan }}" alt="Tanda Tangan Petugas" class="max-h-20 max-w-[180px] object-contain">
+                    @else
+                        <span class="text-slate-300 italic text-[11px]">[Tanda Tangan Tercatat]</span>
+                    @endif
+                </div>
+                <p class="font-bold text-slate-900 border-t border-slate-300 pt-1.5 mx-8">{{ $inspection->nama_pemeriksa }}</p>
+                <p class="text-[10px] text-slate-400">Tim Pengawasan Faktor Risiko Alat Angkut</p>
+            </div>
+        </div>
+
+        <!-- Official Institutional Footer -->
+        <div class="pt-4 border-t border-slate-200 text-center text-[11px] text-slate-400 space-y-1">
+            <p>Dokumen ini diterbitkan secara sah oleh <strong>Balai Kekarantinaan Kesehatan Kelas I Bandung</strong>, Kementerian Kesehatan Republik Indonesia.</p>
+            <p class="font-mono text-[10px] text-slate-400">Sistem Sadaya &bull; Keaslian berkas dapat divalidasi melalui nomor registrasi {{ $inspection->registration_no }}</p>
         </div>
 
     </div>
-
-    @include('travelconsent.modal_public_link')
 
     <script>
         function copyPageLink() {
             var input = document.getElementById('pageLinkInput');
             if (!input) return;
             if (navigator.clipboard && window.isSecureContext) {
-                navigator.clipboard.writeText(input.value).then(showPageCopyDone).catch(function() {
+                navigator.clipboard.writeText(input.value).then(showCopyFeedback).catch(function() {
                     input.select();
                     document.execCommand('copy');
-                    showPageCopyDone();
+                    showCopyFeedback();
                 });
             } else {
                 input.select();
                 document.execCommand('copy');
-                showPageCopyDone();
+                showCopyFeedback();
             }
         }
 
-        function showPageCopyDone() {
+        function showCopyFeedback() {
             var btn = document.getElementById('btnPageCopy');
-            var msg = document.getElementById('pageCopyMsg');
             if (btn) {
                 btn.style.backgroundColor = '#16a34a';
                 btn.textContent = 'Tersalin! ✓';
-            }
-            if (msg) msg.classList.remove('hidden');
-            setTimeout(function() {
-                if (btn) {
+                setTimeout(function() {
                     btn.style.backgroundColor = '#0f172a';
-                    btn.textContent = 'Salin Link';
-                }
-                if (msg) msg.classList.add('hidden');
-            }, 3000);
+                    btn.textContent = 'Salin';
+                }, 2500);
+            }
         }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            showPublicModal({
-                regNo: '{{ $inspection->registration_no }}',
-                publicUrl: window.location.href,
-                title: 'Formulir Berhasil Disubmit!'
-            });
-        });
     </script>
-
 </body>
 </html>
-

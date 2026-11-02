@@ -134,7 +134,7 @@ class TravelConsentController extends Controller
                 'success' => true,
                 'message' => 'Inspeksi sanitasi pesawat berhasil disimpan.',
                 'registration_no' => $inspection->registration_no,
-                'receipt_url' => route('travelconsent.receipt', $inspection->registration_no),
+                'receipt_url' => route('travelconsent.public_pdf', $inspection->registration_no),
                 'pdf_url' => route('travelconsent.public_pdf', $inspection->registration_no),
             ]);
         }
@@ -170,7 +170,7 @@ class TravelConsentController extends Controller
 
         $fileName = 'AIRCRAFT_SANITATION_' . str_replace('-', '_', $inspection->registration_no) . '.pdf';
 
-        return $pdf->download($fileName);
+        return $pdf->stream($fileName);
     }
 
     /**

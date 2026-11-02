@@ -76,8 +76,8 @@ const shareTarget = ref(null);
 const copied = ref(false);
 
 const getPublicUrl = (regNo) => {
-  if (typeof window === 'undefined') return `/travelconsent/receipt/${regNo}`;
-  return `${window.location.origin}/travelconsent/receipt/${regNo}`;
+  if (typeof window === 'undefined') return `/travelconsent/pdf/${regNo}`;
+  return `${window.location.origin}/travelconsent/pdf/${regNo}`;
 };
 
 const openShareModal = (item) => {
