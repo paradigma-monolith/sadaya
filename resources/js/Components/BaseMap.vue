@@ -170,6 +170,13 @@ const renderMarkers = () => {
           </span>
         </div>
         <div style="font-size: 9px; color: #475569; display: flex; flex-direction: column; gap: 2.5px;">
+          ${Array.isArray(node.popupRows) && node.popupRows.length
+            ? node.popupRows.map((row) => `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="color: #64748b;">${row.label}</span>
+            <span style="font-family: monospace; font-weight: 700; color: ${row.color || '#1e293b'};">${row.value}</span>
+          </div>`).join('')
+            : `
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="color: #64748b;">Peran: <strong style="color: #1e293b;">${node.type || 'Wilker'}</strong></span>
             <span style="font-weight: 700; color: #059669;">${node.ping || '4ms'}</span>
@@ -177,7 +184,7 @@ const renderMarkers = () => {
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="color: #64748b;">Throughput:</span>
             <span style="font-family: monospace; font-weight: 600; color: #4f46e5;">${node.connections ? Number(node.connections).toLocaleString() : '1420'} req/s</span>
-          </div>
+          </div>`}
           <div style="font-size: 8.5px; color: #475569; margin-top: 2px; line-height: 1.25; border-top: 1px dashed #e2e8f0; padding-top: 3px;">
             📍 ${node.address || node.location || ''}
           </div>
