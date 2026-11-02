@@ -56,7 +56,7 @@ const createRasterStyle = (subdomains, tileTemplate, attribution) => ({
       type: 'raster',
       tiles: subdomains.map(s => tileTemplate.replace('{s}', s)),
       tileSize: 256,
-      attribution: attribution || '&copy; OpenStreetMap contributors &copy; CARTO',
+      attribution: attribution || '&copy; OpenStreetMap contributors',
     },
   },
   layers: [
@@ -65,32 +65,42 @@ const createRasterStyle = (subdomains, tileTemplate, attribution) => ({
       type: 'raster',
       source: 'raster-tiles',
       minzoom: 0,
-      maxzoom: 19,
+      maxzoom: 20,
     },
   ],
 });
 
-// Style definitions using Carto and OpenStreetMap CDN raster tiles
+// Style definitions using genuine, watermark-free OpenStreetMap CDN raster tiles (No API key required)
 const STYLES = {
-  dark: createRasterStyle(
-    ['a', 'b', 'c', 'd'],
-    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap contributors &copy; CARTO'
+  osm: createRasterStyle(
+    ['a', 'b', 'c'],
+    'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors'
+  ),
+  osmde: createRasterStyle(
+    ['a', 'b', 'c'],
+    'https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors'
+  ),
+  hot: createRasterStyle(
+    ['a', 'b', 'c'],
+    'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors'
   ),
   light: createRasterStyle(
-    ['a', 'b', 'c', 'd'],
-    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap contributors &copy; CARTO'
+    ['a', 'b', 'c'],
+    'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors'
+  ),
+  dark: createRasterStyle(
+    ['a', 'b', 'c'],
+    'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors'
   ),
   voyager: createRasterStyle(
-    ['a', 'b', 'c', 'd'],
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap contributors &copy; CARTO'
-  ),
-  osm: createRasterStyle(
-    ['a', 'b', 'c', 'd'],
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap contributors &copy; CARTO'
+    ['a', 'b', 'c'],
+    'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors'
   ),
 };
 
