@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AircraftSanitationInspection;
+use App\Models\FlightMedicalInspection;
 use App\Models\ShipSanitationInspection;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -344,6 +345,241 @@ class TravelConsentController extends Controller
         $inspection = ShipSanitationInspection::where('registration_no', $registration_no)->firstOrFail();
 
         return view('travelconsent.receipt_sanitasi', [
+            'inspection' => $inspection,
+        ]);
+    }
+
+    /**
+     * Show public form for Pemakaian Alat Kesehatan Kotak P3K & Emergensi.
+     */
+    public function publicAlat()
+    {
+        $p3kItems = [
+            ['nama' => 'Adhesive bandage compresses, 1-inch', 'satuan' => 'Pcs', 'isi' => '16'],
+            ['nama' => 'Antiseptic swab', 'satuan' => 'Pcs', 'isi' => '20'],
+            ['nama' => 'Ammonia inhalants', 'satuan' => 'Pcs', 'isi' => '10'],
+            ['nama' => 'Bandage compresses, 4-inch', 'satuan' => 'Pcs', 'isi' => '8'],
+            ['nama' => 'Triangular bandage compresses, 40-inch', 'satuan' => 'Pcs', 'isi' => '5'],
+            ['nama' => 'Arm splint, noninflatable', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Leg splint, noninflatable', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Roller bandage, 4-inch', 'satuan' => 'Pcs', 'isi' => '4'],
+            ['nama' => 'Adhesive tape, 1-inch standard roll', 'satuan' => 'Pcs', 'isi' => '2'],
+            ['nama' => 'Bandage scissors', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Skin closure strips', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Disinfectant wipes', 'satuan' => 'Pcs', 'isi' => '20'],
+            ['nama' => 'Burn dressings', 'satuan' => 'Pcs', 'isi' => '2'],
+            ['nama' => 'Disposable gloves (several pairs)', 'satuan' => 'Pcs', 'isi' => '10'],
+            ['nama' => 'Thermometer (non-mercury)', 'satuan' => 'Pcs', 'isi' => '2'],
+            ['nama' => 'Resuscitation mask with one-way valve', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Gauze / eye protection pad', 'satuan' => 'Pcs', 'isi' => '2'],
+        ];
+
+        $emergensiItems = [
+            ['nama' => 'Stethoscope', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Sphygmomanometer (electronic preferred)', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Airways, oropharyngeal (three sizes)', 'satuan' => 'Pcs', 'isi' => '3'],
+            ['nama' => 'Syringes (appropriate range of sizes)', 'satuan' => 'Pcs', 'isi' => '6'],
+            ['nama' => 'Needles (appropriate range of sizes)', 'satuan' => 'Pcs', 'isi' => '6'],
+            ['nama' => 'Intravenous catheters (appropriate range of sizes)', 'satuan' => 'Pcs', 'isi' => '4'],
+            ['nama' => 'Antiseptic wipes', 'satuan' => 'Pcs', 'isi' => '10'],
+            ['nama' => 'Gloves (disposable)', 'satuan' => 'Pcs', 'isi' => '6'],
+            ['nama' => 'Needle disposal box', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Urinary catheter', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'System for delivering intravenous fluids', 'satuan' => 'Pcs', 'isi' => '2'],
+            ['nama' => 'Venous tourniquet', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Sponge gauze', 'satuan' => 'Pcs', 'isi' => '10'],
+            ['nama' => 'Tape-adhesive', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Surgical mask', 'satuan' => 'Pcs', 'isi' => '10'],
+            ['nama' => 'Emergency tracheal catheter (or large gauge intravenous cannula)', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Umbilical cord clamp', 'satuan' => 'Pcs', 'isi' => '2'],
+            ['nama' => 'Thermometers (non-mercury)', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Basic life support card', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Bag-valve mask', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Flashlight and batteries', 'satuan' => 'Pcs', 'isi' => '1'],
+        ];
+
+        return view('travelconsent.public_alat', [
+            'p3kItems' => $p3kItems,
+            'emergensiItems' => $emergensiItems,
+            'currentH' => '1447',
+            'currentM' => date('Y'),
+        ]);
+    }
+
+    /**
+     * Submit public form for Pemakaian Alat Kesehatan.
+     */
+    public function submitAlat(Request $request)
+    {
+        $validated = $request->validate([
+            'penerbangan_haji_h' => ['nullable', 'string', 'max:20'],
+            'penerbangan_haji_m' => ['nullable', 'string', 'max:20'],
+            'embarkasi' => ['required', 'string', 'max:100'],
+            'nomor_kloter' => ['required', 'string', 'max:100'],
+            'no_kontak' => ['nullable', 'string', 'max:50'],
+            'items_p3k' => ['required', 'array'],
+            'items_emergensi' => ['required', 'array'],
+            'crew_nama' => ['required', 'string', 'max:255'],
+            'crew_ttd' => ['nullable', 'string'],
+            'pelapor_nama' => ['required', 'string', 'max:255'],
+            'pelapor_ttd' => ['nullable', 'string'],
+            'foto_geotagging' => ['nullable', 'image', 'max:10240'],
+            'latitude' => ['nullable', 'numeric'],
+            'longitude' => ['nullable', 'numeric'],
+            'lokasi_geotag' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $photoPath = null;
+        if ($request->hasFile('foto_geotagging')) {
+            $photoPath = $request->file('foto_geotagging')->store('medical_kits/alat', 'public');
+        }
+
+        $regNo = 'ALKES-' . date('Ymd') . '-' . strtoupper(Str::random(5));
+
+        $inspection = FlightMedicalInspection::create([
+            'registration_no' => $regNo,
+            'type' => 'alat',
+            'penerbangan_haji_h' => $validated['penerbangan_haji_h'],
+            'penerbangan_haji_m' => $validated['penerbangan_haji_m'],
+            'embarkasi' => $validated['embarkasi'],
+            'nomor_kloter' => $validated['nomor_kloter'],
+            'no_kontak' => $validated['no_kontak'],
+            'items_p3k' => $validated['items_p3k'],
+            'items_emergensi' => $validated['items_emergensi'],
+            'crew_nama' => $validated['crew_nama'],
+            'crew_ttd' => $validated['crew_ttd'],
+            'pelapor_nama' => $validated['pelapor_nama'],
+            'pelapor_ttd' => $validated['pelapor_ttd'],
+            'foto_geotagging' => $photoPath,
+            'latitude' => $validated['latitude'] ?? null,
+            'longitude' => $validated['longitude'] ?? null,
+            'lokasi_geotag' => $validated['lokasi_geotag'] ?? null,
+            'status' => 'submitted',
+        ]);
+
+        return redirect()->route('travelconsent.receipt_alat', $inspection->registration_no)
+            ->with('success', 'Daftar pemakaian alat kesehatan kotak P3K & emergensi berhasil disubmit.');
+    }
+
+    /**
+     * Show receipt for Alat submission.
+     */
+    public function receiptAlat(string $registration_no)
+    {
+        $inspection = FlightMedicalInspection::where('registration_no', $registration_no)
+            ->where('type', 'alat')
+            ->firstOrFail();
+
+        return view('travelconsent.receipt_alat', [
+            'inspection' => $inspection,
+        ]);
+    }
+
+    /**
+     * Show public form for Pemakaian Obat Kotak P3K & Emergensi.
+     */
+    public function publicObat()
+    {
+        $p3kItems = [
+            ['nama' => 'Mild to moderate analgesic', 'satuan' => 'Tablet', 'isi' => '30'],
+            ['nama' => 'Antiemetic', 'satuan' => 'Ampul / Tablet', 'isi' => '12'],
+            ['nama' => 'Nasal decongestant', 'satuan' => 'Tablet / Spray', 'isi' => '10'],
+            ['nama' => 'Antacid (gastric)', 'satuan' => 'Tablet', 'isi' => '30'],
+            ['nama' => 'Antidiarrheal', 'satuan' => 'Tablet', 'isi' => '20'],
+            ['nama' => 'Antihistamine', 'satuan' => 'Tablet', 'isi' => '20'],
+        ];
+
+        $emergensiItems = [
+            ['nama' => 'Epinephrine 1:1000, 1 cc, injectable, (single dose ampule or equivalent)', 'satuan' => 'Ampul', 'isi' => '2'],
+            ['nama' => 'Antihistamine injectable, 50 mg, (single dose ampule or equivalent)', 'satuan' => 'Ampul', 'isi' => '2'],
+            ['nama' => 'Dextrose, 50%/50 cc injectable, (single dose ampule or equivalent)', 'satuan' => 'Ampul', 'isi' => '1'],
+            ['nama' => 'Nitroglycerin tablets, 0.4 mg, or spray', 'satuan' => 'Tablet / Spray', 'isi' => '1'],
+            ['nama' => 'Major analgesic', 'satuan' => 'Tablet', 'isi' => '10'],
+            ['nama' => 'Sedative Anticonvulsant', 'satuan' => 'Ampul', 'isi' => '2'],
+            ['nama' => 'Antiemetic injectable', 'satuan' => 'Ampul', 'isi' => '2'],
+            ['nama' => 'Bronchial dilator, inhaled (metered dose inhale or equivalent)', 'satuan' => 'Tabung', 'isi' => '1'],
+            ['nama' => 'Atropine, 0.5 mg, 5 cc(single dose ampule or equivalent)', 'satuan' => 'Ampul', 'isi' => '2'],
+            ['nama' => 'Adrenocortical steroid', 'satuan' => 'Ampul', 'isi' => '2'],
+            ['nama' => 'Diuretic', 'satuan' => 'Ampul', 'isi' => '2'],
+            ['nama' => 'Medication for postpartum bleeding', 'satuan' => 'Pcs', 'isi' => '1'],
+            ['nama' => 'Sodium Chloride 0.9% (minimum 250 ml)', 'satuan' => 'Pcs', 'isi' => '2'],
+            ['nama' => 'Acetyl salicylic acid (aspirin) for oral use', 'satuan' => 'Tablet', 'isi' => '10'],
+            ['nama' => 'Oral beta blocker', 'satuan' => 'Tablet', 'isi' => '10'],
+        ];
+
+        return view('travelconsent.public_obat', [
+            'p3kItems' => $p3kItems,
+            'emergensiItems' => $emergensiItems,
+            'currentH' => '1447',
+            'currentM' => date('Y'),
+        ]);
+    }
+
+    /**
+     * Submit public form for Pemakaian Obat.
+     */
+    public function submitObat(Request $request)
+    {
+        $validated = $request->validate([
+            'penerbangan_haji_h' => ['nullable', 'string', 'max:20'],
+            'penerbangan_haji_m' => ['nullable', 'string', 'max:20'],
+            'embarkasi' => ['required', 'string', 'max:100'],
+            'nomor_kloter' => ['required', 'string', 'max:100'],
+            'no_kontak' => ['nullable', 'string', 'max:50'],
+            'items_p3k' => ['required', 'array'],
+            'items_emergensi' => ['required', 'array'],
+            'crew_nama' => ['required', 'string', 'max:255'],
+            'crew_ttd' => ['nullable', 'string'],
+            'pelapor_nama' => ['required', 'string', 'max:255'],
+            'pelapor_ttd' => ['nullable', 'string'],
+            'foto_geotagging' => ['nullable', 'image', 'max:10240'],
+            'latitude' => ['nullable', 'numeric'],
+            'longitude' => ['nullable', 'numeric'],
+            'lokasi_geotag' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $photoPath = null;
+        if ($request->hasFile('foto_geotagging')) {
+            $photoPath = $request->file('foto_geotagging')->store('medical_kits/obat', 'public');
+        }
+
+        $regNo = 'OBAT-' . date('Ymd') . '-' . strtoupper(Str::random(5));
+
+        $inspection = FlightMedicalInspection::create([
+            'registration_no' => $regNo,
+            'type' => 'obat',
+            'penerbangan_haji_h' => $validated['penerbangan_haji_h'],
+            'penerbangan_haji_m' => $validated['penerbangan_haji_m'],
+            'embarkasi' => $validated['embarkasi'],
+            'nomor_kloter' => $validated['nomor_kloter'],
+            'no_kontak' => $validated['no_kontak'],
+            'items_p3k' => $validated['items_p3k'],
+            'items_emergensi' => $validated['items_emergensi'],
+            'crew_nama' => $validated['crew_nama'],
+            'crew_ttd' => $validated['crew_ttd'],
+            'pelapor_nama' => $validated['pelapor_nama'],
+            'pelapor_ttd' => $validated['pelapor_ttd'],
+            'foto_geotagging' => $photoPath,
+            'latitude' => $validated['latitude'] ?? null,
+            'longitude' => $validated['longitude'] ?? null,
+            'lokasi_geotag' => $validated['lokasi_geotag'] ?? null,
+            'status' => 'submitted',
+        ]);
+
+        return redirect()->route('travelconsent.receipt_obat', $inspection->registration_no)
+            ->with('success', 'Daftar pemakaian obat kotak P3K & emergensi berhasil disubmit.');
+    }
+
+    /**
+     * Show receipt for Obat submission.
+     */
+    public function receiptObat(string $registration_no)
+    {
+        $inspection = FlightMedicalInspection::where('registration_no', $registration_no)
+            ->where('type', 'obat')
+            ->firstOrFail();
+
+        return view('travelconsent.receipt_obat', [
             'inspection' => $inspection,
         ]);
     }

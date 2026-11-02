@@ -5,6 +5,7 @@ use App\Http\Controllers\AircraftInspectionController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\FlightMedicalInspectionController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
@@ -47,6 +48,16 @@ Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
     Route::get('/public_sanitasi', [TravelConsentController::class, 'publicSanitasi'])->name('public_sanitasi');
     Route::post('/submit_sanitasi', [TravelConsentController::class, 'submitSanitasi'])->name('submit_sanitasi');
     Route::get('/receipt_sanitasi/{registration_no}', [TravelConsentController::class, 'receiptSanitasi'])->name('receipt_sanitasi');
+
+    // Pemakaian Alat Kesehatan Kotak P3K & Emergensi Pesawat
+    Route::get('/public_alat', [TravelConsentController::class, 'publicAlat'])->name('public_alat');
+    Route::post('/submit_alat', [TravelConsentController::class, 'submitAlat'])->name('submit_alat');
+    Route::get('/receipt_alat/{registration_no}', [TravelConsentController::class, 'receiptAlat'])->name('receipt_alat');
+
+    // Pemakaian Obat-obatan Kotak P3K & Emergensi Pesawat
+    Route::get('/public_obat', [TravelConsentController::class, 'publicObat'])->name('public_obat');
+    Route::post('/submit_obat', [TravelConsentController::class, 'submitObat'])->name('submit_obat');
+    Route::get('/receipt_obat/{registration_no}', [TravelConsentController::class, 'receiptObat'])->name('receipt_obat');
 });
 
 // --- Logout Route (GET & POST) ---
@@ -80,6 +91,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [AircraftInspectionController::class, 'destroy'])->name('destroy');
         Route::get('/export', [AircraftInspectionController::class, 'export'])->name('export');
         Route::get('/{id}/pdf', [AircraftInspectionController::class, 'downloadPdf'])->name('pdf');
+    });
+
+    // Flight Medical Kit Inspection Management (Alkes & Obat P3K / Emergensi)
+    Route::prefix('flight-medical-inspections')->name('flight-medical-inspections.')->group(function () {
+        Route::get('/alat', [FlightMedicalInspectionController::class, 'indexAlat'])->name('alat.index');
+        Route::get('/obat', [FlightMedicalInspectionController::class, 'indexObat'])->name('obat.index');
+        Route::put('/{id}/status', [FlightMedicalInspectionController::class, 'updateStatus'])->name('updateStatus');
+        Route::delete('/{id}', [FlightMedicalInspectionController::class, 'destroy'])->name('destroy');
+        Route::get('/export', [FlightMedicalInspectionController::class, 'export'])->name('export');
     });
 
     // Ship Sanitation Inspection Management (Karantina Kesehatan Laut - SSCC / SSCEC)

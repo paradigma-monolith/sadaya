@@ -24,7 +24,9 @@ import {
   Plane,
   BarChart3,
   Ship,
-  Anchor
+  Anchor,
+  BriefcaseMedical,
+  Pill
 } from 'lucide-vue-next';
 import { useSidebar } from '@/composables/useSidebar';
 
@@ -131,6 +133,22 @@ const navSections = computed(() => {
           icon: Plane,
           iconColor: 'text-indigo-600',
           active: props.currentRoute === 'aircraft-inspections',
+        },
+        {
+          name: 'Pemakaian Alkes P3K',
+          path: '/flight-medical-inspections/alat',
+          url: getUrl('/flight-medical-inspections/alat'),
+          icon: BriefcaseMedical,
+          iconColor: 'text-blue-600',
+          active: props.currentRoute === 'flight-medical-alat',
+        },
+        {
+          name: 'Pemakaian Obat P3K',
+          path: '/flight-medical-inspections/obat',
+          url: getUrl('/flight-medical-inspections/obat'),
+          icon: Pill,
+          iconColor: 'text-rose-600',
+          active: props.currentRoute === 'flight-medical-obat',
         },
       ],
     },

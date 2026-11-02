@@ -24,7 +24,9 @@ import {
   Sparkles,
   X,
   Ship,
-  Anchor
+  Anchor,
+  BriefcaseMedical,
+  Pill
 } from 'lucide-vue-next';
 import { router as inertiaRouter } from '@inertiajs/vue3';
 import { useRouter } from 'vue-router';
@@ -79,6 +81,22 @@ const defaultActions = [
     category: 'Karantina Udara',
     icon: Layers,
     action: () => navigateTo('/aircraft-inspections'),
+  },
+  {
+    id: 'nav-medical-alat',
+    title: 'Pemakaian Alkes P3K Pesawat',
+    subtitle: 'Kelola rekam alat kesehatan P3K & emergensi kloter haji',
+    category: 'Karantina Udara',
+    icon: BriefcaseMedical,
+    action: () => navigateTo('/flight-medical-inspections/alat'),
+  },
+  {
+    id: 'nav-medical-obat',
+    title: 'Pemakaian Obat P3K Pesawat',
+    subtitle: 'Kelola rekam obat-obatan P3K & emergensi kloter haji',
+    category: 'Karantina Udara',
+    icon: Pill,
+    action: () => navigateTo('/flight-medical-inspections/obat'),
   },
   {
     id: 'nav-ship-inspections',
