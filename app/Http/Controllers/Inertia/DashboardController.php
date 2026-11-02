@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Inertia;
 
 use App\Http\Controllers\Controller;
 use App\Models\AircraftSanitationInspection;
+use App\Models\KantorWilker;
 use App\Models\LoginHistory;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -21,6 +22,36 @@ class DashboardController extends Controller
      */
     public static function getBkkOffices(): array
     {
+        try {
+            if (Schema::hasTable('kantor_wilkers')) {
+                $dbOffices = KantorWilker::orderBy('no')->get();
+                if ($dbOffices->isNotEmpty()) {
+                    return $dbOffices->map(function ($o) {
+                        return [
+                            'no' => $o->no,
+                            'code' => $o->kode,
+                            'name' => $o->nama,
+                            'short_name' => $o->nama_pendek ?: $o->nama,
+                            'zone' => $o->zona ?: 'Jawa Barat',
+                            'type' => $o->tipe,
+                            'moda' => $o->moda ?: 'Operasional',
+                            'address' => $o->alamat,
+                            'lat' => (float) $o->latitude,
+                            'lng' => (float) $o->longitude,
+                            'is_hq' => (bool) $o->is_induk,
+                            'highlight' => $o->is_induk ? 'orange' : 'white',
+                            'status' => $o->is_active ? 'ACTIVE' : 'INACTIVE',
+                            'personnel' => $o->is_induk ? 68 : 24,
+                            'readiness' => 97,
+                            'daily_ops' => $o->is_induk ? 42 : 28,
+                        ];
+                    })->toArray();
+                }
+            }
+        } catch (\Throwable $e) {
+            // fallback below
+        }
+
         return [
             [
                 'no' => 1,

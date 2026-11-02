@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ShipInspectionsExport;
+use App\Models\KantorWilker;
 use App\Models\ShipSanitationInspection;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -51,20 +52,19 @@ class ShipInspectionController extends Controller
         $pendingCount = ShipSanitationInspection::whereIn('status', ['submitted', 'verified'])->count();
         $todayCount = ShipSanitationInspection::whereDate('tanggal', now()->toDateString())->count();
 
-        // Available Ports for Filter
-        $ports = ShipSanitationInspection::whereNotNull('pelabuhan')
+        // Available Ports / Wilker for Filter (standardized from KantorWilker master data)
+        try {
+            $officialPorts = KantorWilker::orderBy('no')->pluck('nama')->toArray();
+        } catch (\Throwable $e) {
+            $officialPorts = collect(KantorWilker::DEFAULT_OFFICES)->pluck('nama')->toArray();
+        }
+
+        $dbPorts = ShipSanitationInspection::whereNotNull('pelabuhan')
             ->distinct()
             ->pluck('pelabuhan')
             ->toArray();
 
-        if (empty($ports)) {
-            $ports = [
-                'Pelabuhan Cirebon',
-                'Pelabuhan Patimban',
-                'Pelabuhan Indramayu',
-                'Pelabuhan Pelabuhan Ratu',
-            ];
-        }
+        $ports = array_values(array_unique(array_filter(array_merge($officialPorts, $dbPorts))));
 
         return Inertia::render('ShipInspection/Index', [
             'inspections' => $inspections,

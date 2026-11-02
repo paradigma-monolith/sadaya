@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\FlightMedicalInspectionsExport;
 use App\Models\FlightMedicalInspection;
+use App\Models\KantorWilker;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
@@ -58,10 +59,12 @@ class FlightMedicalInspectionController extends Controller
             }
         }
 
-        $embarkasiList = FlightMedicalInspection::alat()
+        $officialEmbarkasi = KantorWilker::orderBy('no')->pluck('nama')->toArray();
+        $dbEmbarkasi = FlightMedicalInspection::alat()
             ->distinct()
             ->pluck('embarkasi')
             ->toArray();
+        $embarkasiList = array_values(array_unique(array_filter(array_merge($officialEmbarkasi, $dbEmbarkasi))));
 
         return Inertia::render('FlightMedicalInspection/IndexAlat', [
             'inspections' => $inspections,
@@ -129,10 +132,12 @@ class FlightMedicalInspectionController extends Controller
             }
         }
 
-        $embarkasiList = FlightMedicalInspection::obat()
+        $officialEmbarkasi = KantorWilker::orderBy('no')->pluck('nama')->toArray();
+        $dbEmbarkasi = FlightMedicalInspection::obat()
             ->distinct()
             ->pluck('embarkasi')
             ->toArray();
+        $embarkasiList = array_values(array_unique(array_filter(array_merge($officialEmbarkasi, $dbEmbarkasi))));
 
         return Inertia::render('FlightMedicalInspection/IndexObat', [
             'inspections' => $inspections,

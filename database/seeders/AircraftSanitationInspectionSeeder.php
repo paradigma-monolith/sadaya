@@ -32,9 +32,9 @@ class AircraftSanitationInspectionSeeder extends Seeder
                 'catatan_rekomendasi' => 'Sanitasi pesawat memenuhi standar karantina kesehatan.',
                 'petugas_kabin_nama' => 'Capt. Budi Santoso',
                 'petugas_bkk_nama' => 'dr. Hendra Setiawan',
-                'latitude' => -6.903892,
-                'longitude' => 107.618615,
-                'lokasi_geotag' => 'Apron Barat Bandara Internasional Husein Sastranegara (BDO)',
+                'latitude' => -6.900600,
+                'longitude' => 107.576300,
+                'lokasi_geotag' => 'POS Bandara Husen Sastranegara, Jl. Pajajaran Dalam, Bandung 40174',
                 'foto_dokumentasi' => [
                     [
                         'path' => 'aircraft_inspections/sample_kabin.jpg',

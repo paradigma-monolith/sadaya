@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AircraftSanitationInspection;
 use App\Models\FlightMedicalInspection;
+use App\Models\KantorWilker;
 use App\Models\ShipSanitationInspection;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -13,6 +14,23 @@ use Illuminate\Support\Str;
 
 class TravelConsentController extends Controller
 {
+    /**
+     * Helper to get standardized list of 1 Induk & 6 Wilayah Kerja.
+     */
+    protected function getKantorWilkers()
+    {
+        try {
+            $offices = KantorWilker::orderBy('no')->get();
+            if ($offices->isNotEmpty()) {
+                return $offices;
+            }
+        } catch (\Throwable $e) {
+            // fallback
+        }
+
+        return collect(KantorWilker::DEFAULT_OFFICES)->map(fn ($o) => (object) $o);
+    }
+
     /**
      * Show public landing page / home for travel consent & inspection services.
      */
@@ -29,6 +47,7 @@ class TravelConsentController extends Controller
         return view('travelconsent.public_aircraft', [
             'today' => now()->format('Y-m-d'),
             'nowTime' => now()->format('H:i'),
+            'offices' => $this->getKantorWilkers(),
         ]);
     }
 
@@ -220,16 +239,8 @@ class TravelConsentController extends Controller
      */
     public function publicSanitasi(Request $request)
     {
-        $ports = [
-            'Pelabuhan Cirebon',
-            'Pelabuhan Patimban',
-            'Pelabuhan Indramayu',
-            'Pelabuhan Pelabuharatu',
-            'Pelabuhan Sunda Kelapa',
-            'Pelabuhan Tanjung Priok',
-            'Pelabuhan Banten (Merak)',
-            'Pelabuhan Lainnya',
-        ];
+        $offices = $this->getKantorWilkers();
+        $ports = $offices->pluck('nama')->toArray();
 
         $countries = [
             'Indonesia', 'Singapura', 'Malaysia', 'Panama', 'Liberia', 'Kepulauan Marshall',
@@ -244,6 +255,7 @@ class TravelConsentController extends Controller
         return view('travelconsent.public_sanitasi', [
             'today' => now()->format('Y-m-d'),
             'ports' => $ports,
+            'offices' => $offices,
             'countries' => $countries,
             'standardAreas' => $standardAreas,
         ]);
@@ -411,6 +423,7 @@ class TravelConsentController extends Controller
             'emergensiItems' => $emergensiItems,
             'currentH' => '1447',
             'currentM' => date('Y'),
+            'offices' => $this->getKantorWilkers(),
         ]);
     }
 
@@ -538,6 +551,7 @@ class TravelConsentController extends Controller
             'emergensiItems' => $emergensiItems,
             'currentH' => '1447',
             'currentM' => date('Y'),
+            'offices' => $this->getKantorWilkers(),
         ]);
     }
 

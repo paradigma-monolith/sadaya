@@ -515,19 +515,35 @@
                         </div>
                     </div>
 
-                    <!-- Embarkasi -->
+                    <!-- Embarkasi / Wilayah Kerja -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                            Embarkasi <span class="text-rose-500">*</span>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 flex items-center justify-between">
+                            <span>Embarkasi / Wilker <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">7 Lokasi Resmi</span>
                         </label>
-                        <input
-                            type="text"
+                        <select
                             name="embarkasi"
-                            value="{{ old('embarkasi', 'Kertajati (KJT)') }}"
-                            placeholder="Contoh: Kertajati (KJT) / JKS"
-                            class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-rose-500 font-medium"
+                            id="embarkasi_select"
+                            onchange="onObatEmbarkasiChange(this)"
+                            class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 bg-white focus:bg-white focus:ring-2 focus:ring-rose-500 font-semibold text-slate-800"
                             required
-                        />
+                        >
+                            <option value="">-- Pilih Wilayah Kerja / Embarkasi --</option>
+                            @if(isset($offices) && count($offices) > 0)
+                                @foreach($offices as $office)
+                                    @php
+                                        $oNama = is_array($office) ? $office['nama'] : $office->nama;
+                                        $oAlamat = is_array($office) ? $office['alamat'] : $office->alamat;
+                                        $oLat = is_array($office) ? ($office['latitude'] ?? $office['lat'] ?? null) : ($office->latitude ?? null);
+                                        $oLng = is_array($office) ? ($office['longitude'] ?? $office['lng'] ?? null) : ($office->longitude ?? null);
+                                    @endphp
+                                    <option value="{{ $oNama }}" data-alamat="{{ $oAlamat }}" data-lat="{{ $oLat }}" data-lng="{{ $oLng }}" {{ old('embarkasi', 'Wilayah Kerja Kertajati') == $oNama ? 'selected' : '' }}>
+                                        {{ $oNama }}
+                                    </option>
+                                @endforeach
+                            @endif
+                            <option value="Asrama Haji Embarkasi Jakarta-Bekasi (JKS)" data-alamat="UPT Asrama Haji Embarkasi Jakarta-Bekasi, Kota Bekasi" data-lat="-6.24150" data-lng="107.00120" {{ old('embarkasi') == 'Asrama Haji Embarkasi Jakarta-Bekasi (JKS)' ? 'selected' : '' }}>Asrama Haji Embarkasi Jakarta-Bekasi (JKS)</option>
+                        </select>
                     </div>
 
                     <!-- Nomor Kloter -->
@@ -765,15 +781,27 @@
                             </div>
 
                             <div style="margin-top: 8px;">
-                                <label style="font-size: 11.5px; font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Keterangan / Lokasi Bandara:</label>
-                                <input type="text" name="lokasi_geotag" id="input_lokasi_geotag" class="w-full text-xs rounded-lg border border-slate-300 p-2 focus:ring-2 focus:ring-rose-500" placeholder="Contoh: Apron Bandara Internasional Kertajati (BIJB)" value="{{ old('lokasi_geotag', 'Bandara Internasional Kertajati (BIJB), Jl. Raya Kertajati - Majalengka, Kab. Majalengka 45457') }}">
+                                <label style="font-size: 11.5px; font-weight: 600; color: #475569; display: block; margin-bottom: 3px;">Keterangan / Lokasi Bandara / Wilker:</label>
+                                <input type="text" name="lokasi_geotag" id="input_lokasi_geotag" class="w-full text-xs rounded-lg border border-slate-300 p-2 focus:ring-2 focus:ring-rose-500" placeholder="Contoh: Apron Bandara Internasional Kertajati (BIJB)" value="{{ old('lokasi_geotag', 'Wilayah Kerja Kertajati, Kertajati, Majalengka Regency, West Java 45457') }}">
                             </div>
 
                             <div style="margin-top: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                <span style="font-size: 11px; color: #64748b;">Pilihan Cepat:</span>
-                                <button type="button" class="preset-badge" onclick="setPresetLocation(-6.65750, 108.19667, 'Bandara Internasional Kertajati (BIJB) - Majalengka', 'Bandara Internasional Kertajati (BIJB), Jl. Raya Kertajati - Majalengka, Kertajati, Kab. Majalengka, Jawa Barat 45457')">Bandara KJT (BIJB)</button>
-                                <button type="button" class="preset-badge" onclick="setPresetLocation(-6.90389, 107.61861, 'Bandara Husein Sastranegara (BDO) - Bandung', 'Bandara Husein Sastranegara, Jl. Pajajaran No. 156, Husen Sastranegara, Kec. Cicendo, Kota Bandung, Jawa Barat 40174')">Bandara BDO (Bandung)</button>
-                                <button type="button" class="preset-badge" onclick="setPresetLocation(-6.24150, 107.00120, 'Asrama Haji Embarkasi Jakarta-Bekasi (JKS)', 'UPT Asrama Haji Embarkasi Jakarta-Bekasi, Jl. Kemakmuran No. 72, Marga Jaya, Kec. Bekasi Selatan, Kota Bekasi 17141')">Asrama Haji Bekasi</button>
+                                <span style="font-size: 11px; color: #64748b; font-weight: 600;">Pilihan Cepat Wilker:</span>
+                                @if(isset($offices) && count($offices) > 0)
+                                    @foreach($offices as $office)
+                                        @php
+                                            $oNama = is_array($office) ? $office['nama'] : $office->nama;
+                                            $oShort = is_array($office) ? ($office['nama_pendek'] ?? $office['nama']) : ($office->nama_pendek ?: $office->nama);
+                                            $oAlamat = is_array($office) ? $office['alamat'] : $office->alamat;
+                                            $oLat = is_array($office) ? ($office['latitude'] ?? $office['lat'] ?? -6.6561) : ($office->latitude ?? -6.6561);
+                                            $oLng = is_array($office) ? ($office['longitude'] ?? $office['lng'] ?? 108.1578) : ($office->longitude ?? 108.1578);
+                                        @endphp
+                                        <button type="button" class="preset-badge" onclick="selectObatOfficePreset('{{ addslashes($oNama) }}', '{{ addslashes($oAlamat) }}', {{ $oLat }}, {{ $oLng }})">
+                                            {{ $oShort }}
+                                        </button>
+                                    @endforeach
+                                @endif
+                                <button type="button" class="preset-badge" onclick="selectObatOfficePreset('Asrama Haji Embarkasi Jakarta-Bekasi (JKS)', 'UPT Asrama Haji Embarkasi Jakarta-Bekasi, Jl. Kemakmuran No. 72, Kota Bekasi 17141', -6.24150, 107.00120)">Asrama Haji Bekasi</button>
                             </div>
                         </div>
 
@@ -1123,6 +1151,30 @@
                 );
             } else {
                 updateGpsUI(currentLatitude, currentLongitude, 50);
+            }
+        }
+
+        function onObatEmbarkasiChange(selectEl) {
+            if (!selectEl) return;
+            var opt = selectEl.options[selectEl.selectedIndex];
+            if (!opt || !opt.value) return;
+
+            var alamat = opt.getAttribute('data-alamat');
+            var lat = parseFloat(opt.getAttribute('data-lat'));
+            var lng = parseFloat(opt.getAttribute('data-lng'));
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setPresetLocation(lat, lng, opt.value, opt.value + ' - ' + (alamat || ''));
+            }
+        }
+
+        function selectObatOfficePreset(nama, alamat, lat, lng) {
+            var sel = document.getElementById('embarkasi_select');
+            if (sel) {
+                sel.value = nama;
+            }
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setPresetLocation(lat, lng, nama, nama + ' - ' + (alamat || ''));
             }
         }
 

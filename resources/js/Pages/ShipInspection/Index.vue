@@ -177,7 +177,7 @@ const deleteInspection = (id, regNo, shipName) => {
             Data Inspeksi Sanitasi Kapal (SSCC / SSCEC)
           </h1>
           <p class="text-xs sm:text-sm text-slate-500 mt-1 max-w-3xl leading-relaxed">
-            Pusat manajemen dan penerbitan Sertifikat Sanitasi Kapal (<em class="text-slate-700 font-medium">Ship Sanitation Control / Exemption Certificate</em>) standar WHO IHR 2005 di Wilayah Kerja Patimban, Cirebon, Indramayu, dan Pelabuhan Ratu.
+            Pusat manajemen dan penerbitan Sertifikat Sanitasi Kapal (<em class="text-slate-700 font-medium">Ship Sanitation Control / Exemption Certificate</em>) standar WHO IHR 2005 di Kantor Induk dan 6 Wilayah Kerja BKK Kelas I Bandung.
           </p>
         </div>
 

@@ -528,16 +528,35 @@
                         <input type="text" value="BKK Kelas I Bandung" readonly class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 font-medium cursor-not-allowed">
                     </div>
 
-                    <!-- Pelabuhan -->
+                    <!-- Pelabuhan / Wilayah Kerja -->
                     <div>
-                        <label for="pelabuhan" class="block font-semibold text-slate-700 mb-1.5">
-                            Nama Pelabuhan / Wilker <span class="text-rose-500">*</span>
+                        <label for="pelabuhan" class="block font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Nama Pelabuhan / Wilker <span class="text-rose-500">*</span></span>
+                            <span class="text-[10px] text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">7 Lokasi Resmi</span>
                         </label>
-                        <select id="pelabuhan" name="pelabuhan" required class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 font-medium text-slate-800 transition-all outline-none">
-                            <option value="">-- Pilih Pelabuhan / Wilker --</option>
-                            @foreach($ports as $port)
-                                <option value="{{ $port }}">{{ $port }}</option>
-                            @endforeach
+                        <select id="pelabuhan" name="pelabuhan" required onchange="onSanitasiOfficeChange(this)" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 font-semibold text-slate-800 transition-all outline-none">
+                            <option value="">-- Pilih Pelabuhan / Wilker / Kantor --</option>
+                            @if(isset($offices) && count($offices) > 0)
+                                @foreach($offices as $office)
+                                    @php
+                                        $oNama = is_array($office) ? $office['nama'] : $office->nama;
+                                        $oAlamat = is_array($office) ? $office['alamat'] : $office->alamat;
+                                        $oLat = is_array($office) ? ($office['latitude'] ?? $office['lat'] ?? null) : ($office->latitude ?? null);
+                                        $oLng = is_array($office) ? ($office['longitude'] ?? $office['lng'] ?? null) : ($office->longitude ?? null);
+                                    @endphp
+                                    <option value="{{ $oNama }}" 
+                                        data-alamat="{{ $oAlamat }}" 
+                                        data-lat="{{ $oLat }}" 
+                                        data-lng="{{ $oLng }}" 
+                                        {{ old('pelabuhan', 'Wilayah Kerja Patimban') == $oNama ? 'selected' : '' }}>
+                                        {{ $oNama }}
+                                    </option>
+                                @endforeach
+                            @else
+                                @foreach($ports as $port)
+                                    <option value="{{ $port }}" {{ old('pelabuhan') == $port ? 'selected' : '' }}>{{ $port }}</option>
+                                @endforeach
+                            @endif
                         </select>
                     </div>
 
@@ -660,10 +679,11 @@
 
                     <!-- Alamat Pemeriksa -->
                     <div class="sm:col-span-2 lg:col-span-3">
-                        <label for="alamat_pemeriksa" class="block font-semibold text-slate-700 mb-1.5">
-                            Alamat Kantor Pemeriksa BKK <span class="text-rose-500">*</span>
+                        <label for="alamat_pemeriksa" class="block font-semibold text-slate-700 mb-1.5 flex items-center justify-between">
+                            <span>Alamat Kantor Pemeriksa BKK <span class="text-rose-500">*</span></span>
+                            <span class="text-[11px] font-normal text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">Sinkron otomatis dengan pilihan kantor</span>
                         </label>
-                        <textarea id="alamat_pemeriksa" name="alamat_pemeriksa" rows="2" required class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 font-medium text-slate-800 transition-all outline-none">Balai Kekarantinaan Kesehatan Kelas I Bandung, Jl. Cikapayang No.5, Bandung, Jawa Barat</textarea>
+                        <textarea id="alamat_pemeriksa" name="alamat_pemeriksa" rows="2" required class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100 font-medium text-slate-800 transition-all outline-none">{{ old('alamat_pemeriksa', 'Pelabuhan Patimban, Pusakanagara, Subang, Jawa Barat 41255') }}</textarea>
                     </div>
                 </div>
             </section>
@@ -849,11 +869,21 @@
                                     </div>
 
                                     <div style="margin-top: 10px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                                        <span style="font-size: 11px; color: #64748b;">Pilihan Cepat Pelabuhan:</span>
-                                        <button type="button" class="preset-badge" onclick="setPresetLocation(-6.719823, 108.572145, 'Pelabuhan Cirebon', 'Dermaga Muara Jati / Pelabuhan Cirebon, Kec. Lemahwungkuk, Kota Cirebon, Jawa Barat 45111')">Pelabuhan Cirebon</button>
-                                        <button type="button" class="preset-badge" onclick="setPresetLocation(-6.248312, 107.902341, 'Pelabuhan Patimban - Subang', 'Dermaga Petikemas Pelabuhan Patimban, Kec. Pusakanagara, Kab. Subang, Jawa Barat')">Pelabuhan Patimban</button>
-                                        <button type="button" class="preset-badge" onclick="setPresetLocation(-6.326712, 108.324567, 'Pelabuhan Indramayu', 'Pelabuhan Perikanan Karangsong / Indramayu, Kab. Indramayu, Jawa Barat')">Pelabuhan Indramayu</button>
-                                        <button type="button" class="preset-badge" onclick="setPresetLocation(-6.985412, 106.543219, 'Pelabuhan Pelabuhan Ratu', 'Dermaga Nusantara Pelabuhan Ratu, Kec. Pelabuhanratu, Kab. Sukabumi, Jawa Barat')">Pelabuhan Ratu</button>
+                                        <span style="font-size: 11px; color: #64748b; font-weight: 600;">Pilihan Cepat Wilker / Kantor:</span>
+                                        @if(isset($offices) && count($offices) > 0)
+                                            @foreach($offices as $office)
+                                                @php
+                                                    $oNama = is_array($office) ? $office['nama'] : $office->nama;
+                                                    $oShort = is_array($office) ? ($office['nama_pendek'] ?? $office['nama']) : ($office->nama_pendek ?: $office->nama);
+                                                    $oAlamat = is_array($office) ? $office['alamat'] : $office->alamat;
+                                                    $oLat = is_array($office) ? ($office['latitude'] ?? $office['lat'] ?? -6.8989) : ($office->latitude ?? -6.8989);
+                                                    $oLng = is_array($office) ? ($office['longitude'] ?? $office['lng'] ?? 107.6108) : ($office->longitude ?? 107.6108);
+                                                @endphp
+                                                <button type="button" class="preset-badge" onclick="selectOfficeOption('{{ addslashes($oNama) }}', '{{ addslashes($oAlamat) }}', {{ $oLat }}, {{ $oLng }})">
+                                                    {{ $oShort }}
+                                                </button>
+                                            @endforeach
+                                        @endif
                                     </div>
                                 </div>
 
@@ -1207,6 +1237,49 @@
                 );
             } else {
                 updateGpsUI(currentLatitude, currentLongitude, 50);
+            }
+        }
+
+        function onSanitasiOfficeChange(selectEl) {
+            if (!selectEl) return;
+            var opt = selectEl.options[selectEl.selectedIndex];
+            if (!opt || !opt.value) return;
+
+            var alamat = opt.getAttribute('data-alamat');
+            var lat = parseFloat(opt.getAttribute('data-lat'));
+            var lng = parseFloat(opt.getAttribute('data-lng'));
+
+            if (alamat) {
+                var addrField = document.getElementById('alamat_pemeriksa');
+                if (addrField) {
+                    addrField.value = alamat;
+                    addrField.classList.add('bg-emerald-50', 'border-emerald-500');
+                    setTimeout(function() {
+                        addrField.classList.remove('bg-emerald-50', 'border-emerald-500');
+                    }, 1200);
+                }
+            }
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setPresetLocation(lat, lng, opt.value, opt.value + ' - ' + (alamat || ''));
+            }
+        }
+
+        function selectOfficeOption(nama, alamat, lat, lng) {
+            var sel = document.getElementById('pelabuhan');
+            if (sel) {
+                sel.value = nama;
+            }
+            var addrField = document.getElementById('alamat_pemeriksa');
+            if (addrField && alamat) {
+                addrField.value = alamat;
+                addrField.classList.add('bg-emerald-50', 'border-emerald-500');
+                setTimeout(function() {
+                    addrField.classList.remove('bg-emerald-50', 'border-emerald-500');
+                }, 1200);
+            }
+            if (!isNaN(lat) && !isNaN(lng)) {
+                setPresetLocation(lat, lng, nama, nama + ' - ' + (alamat || ''));
             }
         }
 
@@ -1695,6 +1768,16 @@
 
         // Signature Canvas & Page Initialization
         document.addEventListener('DOMContentLoaded', () => {
+            // Synchronize selected office address if needed
+            var pelabuhanEl = document.getElementById('pelabuhan');
+            var addrEl = document.getElementById('alamat_pemeriksa');
+            if (pelabuhanEl && addrEl && (!addrEl.value || addrEl.value.includes('Jl. Cikapayang No.5, Bandung, Jawa Barat'))) {
+                var curOpt = pelabuhanEl.options[pelabuhanEl.selectedIndex];
+                if (curOpt && curOpt.getAttribute('data-alamat')) {
+                    addrEl.value = curOpt.getAttribute('data-alamat');
+                }
+            }
+
             // Apply initial styles to selects
             document.querySelectorAll('.area-status-select').forEach(sel => styleSelect(sel));
             updateProgress();
