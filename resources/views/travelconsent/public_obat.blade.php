@@ -460,9 +460,14 @@
             </div>
 
             <div class="text-right flex md:flex-col items-center md:items-end gap-2 text-xs">
-                <span class="px-3 py-1 rounded-full font-mono font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-                    FORMULIR OBAT-OBATAN
-                </span>
+                <div class="flex items-center gap-2">
+                    <span class="px-3 py-1 rounded-full font-mono font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+                        FORMULIR OBAT-OBATAN
+                    </span>
+                    <a href="{{ route('travelconsent.home') }}" class="px-3 py-1 rounded-lg text-slate-500 hover:text-slate-900 border border-slate-200 hover:bg-slate-50 transition-colors font-semibold">
+                        ← Portal Layanan
+                    </a>
+                </div>
                 <span class="text-slate-400 font-mono text-[11px]">
                     Standar ICAO / Kemenkes RI
                 </span>

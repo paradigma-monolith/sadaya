@@ -607,9 +607,14 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
             Sistem Informasi Pengawasan Kekarantinaan Kesehatan Udara
         </span>
-        <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748b;">
-            Form Standard IHR 2005 &bull; Permenkes No. 7 Tahun 2024
-        </span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <a href="{{ route('travelconsent.home') }}" style="font-size: 11px; font-weight: 600; color: #475569; text-decoration: none; padding: 4px 10px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff;">
+                ← Portal Layanan
+            </a>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748b;">
+                Form Standard IHR 2005 &bull; Permenkes No. 7 Tahun 2024
+            </span>
+        </div>
     </div>
 
     <div class="doc-title">AIRCRAFT SANITATION INSPECTION CHECK LIST</div>

@@ -37,6 +37,10 @@ Route::middleware('guest')->group(function () {
 
 // --- Public Travel Consent & Sanitation Inspection Routes ---
 Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
+    // Public Landing Page / Hub Pelayanan
+    Route::get('/home', [TravelConsentController::class, 'publicHome'])->name('home');
+    Route::get('/', [TravelConsentController::class, 'publicHome'])->name('index');
+
     // Aircraft Sanitation
     Route::get('/public_aircraft', [TravelConsentController::class, 'publicAircraft'])->name('public_aircraft');
     Route::get('/aircraft', [TravelConsentController::class, 'publicAircraft'])->name('aircraft');

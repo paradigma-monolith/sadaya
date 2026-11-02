@@ -14,6 +14,102 @@ use Illuminate\Support\Str;
 class TravelConsentController extends Controller
 {
     /**
+     * Show public landing page / home for travel consent & inspection services.
+     */
+    public function publicHome(Request $request)
+    {
+        $searchResult = null;
+        $searchQuery = trim($request->query('reg', ''));
+
+        if (!empty($searchQuery)) {
+            // 1. Check Aircraft
+            $aircraft = AircraftSanitationInspection::where('registration_no', $searchQuery)->first();
+            if ($aircraft) {
+                $searchResult = [
+                    'type' => 'aircraft',
+                    'title' => 'Inspeksi Sanitasi Pesawat Udara',
+                    'badge' => 'Karantina Udara',
+                    'badge_color' => 'indigo',
+                    'registration_no' => $aircraft->registration_no,
+                    'subject' => ($aircraft->tanda_kebangsaan ?: 'Pesawat') . ' • ' . $aircraft->pemilik,
+                    'date' => $aircraft->tanggal ? $aircraft->tanggal->format('d M Y') : '-',
+                    'inspector' => $aircraft->petugas_bkk_nama ?: 'Petugas BKK',
+                    'status' => $aircraft->status ?: 'submitted',
+                    'status_label' => ucfirst($aircraft->status ?: 'submitted'),
+                    'conclusion' => $aircraft->kesimpulan === 'layak' ? 'Layak (Qualified)' : 'Tidak Layak (Unqualified)',
+                    'receipt_url' => route('travelconsent.receipt', $aircraft->registration_no),
+                    'pdf_url' => route('travelconsent.public_pdf', $aircraft->registration_no),
+                ];
+            } else {
+                // 2. Check Ship
+                $ship = ShipSanitationInspection::where('registration_no', $searchQuery)->first();
+                if ($ship) {
+                    $searchResult = [
+                        'type' => 'ship',
+                        'title' => 'Sertifikat Sanitasi Kapal (SSCC / SSCEC)',
+                        'badge' => 'Karantina Laut',
+                        'badge_color' => 'emerald',
+                        'registration_no' => $ship->registration_no,
+                        'subject' => $ship->nama_kapal . ' (IMO: ' . ($ship->imo_no ?: '-') . ')',
+                        'date' => $ship->tanggal ? $ship->tanggal->format('d M Y') : '-',
+                        'inspector' => $ship->nama_pemeriksa ?: 'Petugas BKK',
+                        'status' => $ship->status ?: 'submitted',
+                        'status_label' => ucfirst($ship->status ?: 'submitted'),
+                        'conclusion' => $ship->sertifikat_mencatat === 'Pembebasan' ? 'Pembebasan (SSCEC)' : 'Pengendalian (SSCC)',
+                        'receipt_url' => route('travelconsent.receipt_sanitasi', $ship->registration_no),
+                        'pdf_url' => null,
+                    ];
+                } else {
+                    // 3. Check Medical (Alat / Obat)
+                    $medical = FlightMedicalInspection::where('registration_no', $searchQuery)->first();
+                    if ($medical) {
+                        $isAlat = $medical->type === 'alat';
+                        $searchResult = [
+                            'type' => $medical->type,
+                            'title' => $isAlat ? 'Daftar Pemakaian Alkes Kotak P3K' : 'Daftar Pemakaian Obat Kotak P3K',
+                            'badge' => $isAlat ? 'Alat Kesehatan' : 'Obat-obatan',
+                            'badge_color' => $isAlat ? 'blue' : 'rose',
+                            'registration_no' => $medical->registration_no,
+                            'subject' => 'Kloter ' . $medical->nomor_kloter . ' (' . $medical->embarkasi . ')',
+                            'date' => $medical->created_at ? $medical->created_at->format('d M Y') : '-',
+                            'inspector' => $medical->pelapor_nama ?: 'Petugas / Kru',
+                            'status' => $medical->status ?: 'submitted',
+                            'status_label' => ucfirst($medical->status ?: 'submitted'),
+                            'conclusion' => 'Terverifikasi Tim Medis',
+                            'receipt_url' => $isAlat
+                                ? route('travelconsent.receipt_alat', $medical->registration_no)
+                                : route('travelconsent.receipt_obat', $medical->registration_no),
+                            'pdf_url' => null,
+                        ];
+                    } else {
+                        $searchResult = [
+                            'not_found' => true,
+                            'query' => $searchQuery,
+                        ];
+                    }
+                }
+            }
+
+            if ($request->wantsJson()) {
+                return response()->json($searchResult);
+            }
+        }
+
+        $stats = [
+            'aircraft' => AircraftSanitationInspection::count(),
+            'ship' => ShipSanitationInspection::count(),
+            'medical' => FlightMedicalInspection::count(),
+            'wilker' => 6,
+        ];
+
+        return view('travelconsent.home', [
+            'stats' => $stats,
+            'searchResult' => $searchResult,
+            'searchQuery' => $searchQuery,
+        ]);
+    }
+
+    /**
      * Show the public aircraft sanitation inspection form.
      */
     public function publicAircraft(Request $request)

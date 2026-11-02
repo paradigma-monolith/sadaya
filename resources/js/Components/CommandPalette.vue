@@ -26,7 +26,8 @@ import {
   Ship,
   Anchor,
   BriefcaseMedical,
-  Pill
+  Pill,
+  Globe
 } from 'lucide-vue-next';
 import { router as inertiaRouter } from '@inertiajs/vue3';
 import { useRouter } from 'vue-router';
@@ -73,6 +74,14 @@ const defaultActions = [
     category: 'Navigasi',
     icon: LayoutDashboard,
     action: () => navigateTo('/inertia/dashboard'),
+  },
+  {
+    id: 'nav-public-home',
+    title: 'Portal Publik Layanan & Formulir',
+    subtitle: 'Halaman beranda publik pengawasan alat angkut & pelacakan dokumen',
+    category: 'Pengawasan Alat Angkut & Barang',
+    icon: Globe,
+    action: () => window.open(getUrl('/travelconsent/home'), '_blank'),
   },
   {
     id: 'nav-aircraft',

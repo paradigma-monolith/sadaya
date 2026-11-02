@@ -461,8 +461,8 @@
                         <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5 animate-pulse"></span>
                         IHR (2005) Compliant
                     </span>
-                    <a href="{{ route('home') }}" class="text-xs font-semibold text-slate-500 hover:text-slate-900 px-3 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
-                        ← Dashboard
+                    <a href="{{ route('travelconsent.home') }}" class="text-xs font-semibold text-slate-500 hover:text-slate-900 px-3 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
+                        ← Portal Layanan
                     </a>
                 </div>
             </div>
