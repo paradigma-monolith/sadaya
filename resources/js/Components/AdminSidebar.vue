@@ -134,7 +134,6 @@ const navSections = computed(() => {
           icon: Globe,
           iconColor: 'text-sky-600',
           external: true,
-          badge: 'Publik',
           active: false,
         },
         {
