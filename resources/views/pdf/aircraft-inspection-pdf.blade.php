@@ -3,6 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <title>Check List Sanitasi Pesawat - {{ $inspection->registration_no }}</title>
+@php
+    $kopPath = null;
+    $possibleKopPaths = [
+        public_path('images/Kop_BKK_bandung.png'),
+        public_path('dist/img/Kop_BKK_bandung.png'),
+        public_path('storage/images/Kop_BKK_bandung.png'),
+        storage_path('app/public/images/Kop_BKK_bandung.png'),
+    ];
+    foreach ($possibleKopPaths as $kp) {
+        if (file_exists($kp)) {
+            $kopPath = $kp;
+            break;
+        }
+    }
+    $kopBase64 = ($kopPath && file_exists($kopPath)) 
+        ? 'data:image/png;base64,' . base64_encode(file_get_contents($kopPath)) 
+        : null;
+@endphp
     <style>
         @page {
             margin: 15mm 15mm 15mm 15mm;
@@ -134,14 +152,8 @@
 <body>
 
     <div class="kop-surat">
-        @if(file_exists(public_path('storage/images/Kop_BKK_bandung.png')))
-            <img src="{{ public_path('storage/images/Kop_BKK_bandung.png') }}" alt="Kop Balai Kekarantinaan Kesehatan Bandung">
-        @elseif(file_exists(public_path('images/Kop_BKK_bandung.png')))
-            <img src="{{ public_path('images/Kop_BKK_bandung.png') }}" alt="Kop Balai Kekarantinaan Kesehatan Bandung">
-        @elseif(file_exists(storage_path('app/public/images/Kop_BKK_bandung.png')))
-            <img src="{{ storage_path('app/public/images/Kop_BKK_bandung.png') }}" alt="Kop Balai Kekarantinaan Kesehatan Bandung">
-        @elseif(file_exists(public_path('dist/img/Kop_BKK_bandung.png')))
-            <img src="{{ public_path('dist/img/Kop_BKK_bandung.png') }}" alt="Kop Balai Kekarantinaan Kesehatan Bandung">
+        @if($kopBase64)
+            <img src="{{ $kopBase64 }}" alt="Kop Balai Kekarantinaan Kesehatan Bandung">
         @else
             <h3 style="margin: 0; text-transform: uppercase;">KEMENTERIAN KESEHATAN REPUBLIK INDONESIA</h3>
             <h4 style="margin: 2px 0;">DIREKTORAT JENDERAL PENCEGAHAN DAN PENGENDALIAN PENYAKIT</h4>
@@ -451,49 +463,159 @@
     </div>
 
     @if(!empty($inspection->foto_dokumentasi) && count($inspection->foto_dokumentasi) > 0)
-    <div style="page-break-before: always; margin-top: 10px;">
+    <div style="page-break-before: always; margin-top: 5px;">
         <div class="kop-surat">
-            <img src="{{ public_path('storage/images/Kop_BKK_bandung.png') }}" onerror="this.onerror=null;this.src='{{ public_path('images/Kop_BKK_bandung.png') }}';" style="width: 100%; height: auto;">
+            @if($kopBase64)
+                <img src="{{ $kopBase64 }}" alt="Kop Balai Kekarantinaan Kesehatan Bandung">
+            @endif
         </div>
-        <div style="text-align: center; font-weight: bold; font-size: 12px; margin-bottom: 3px; text-decoration: underline;">
-            LAMPIRAN DOKUMENTASI FOTO GEOTAGGING INSPEKSI SANITASI PESAWAT
-        </div>
-        <div style="text-align: center; font-size: 9.5px; color: #475569; margin-bottom: 12px;">
-            Nomor Registrasi: <strong>{{ $inspection->registration_no }}</strong> &bull; Pesawat: <strong>{{ $inspection->tanda_kebangsaan }}</strong> ({{ $inspection->pemilik }})
+        <div style="text-align: center; margin-bottom: 15px;">
+            <div style="font-weight: bold; font-size: 13px; text-decoration: underline; letter-spacing: 0.5px; margin-bottom: 3px;">
+                LAMPIRAN DOKUMENTASI FOTO GEOTAGGING
+            </div>
+            <div style="font-size: 10px; font-style: italic; color: #475569; margin-bottom: 6px;">
+                Pemeriksaan Sanitasi Pesawat Udara (Aircraft Sanitation Inspection)
+            </div>
+            <div style="font-size: 9.5px; color: #0369a1; font-family: monospace; font-weight: bold;">
+                Nomor Registrasi: {{ $inspection->registration_no }} &bull; Pesawat: {{ $inspection->tanda_kebangsaan }} ({{ $inspection->pemilik }})
+            </div>
         </div>
 
-        <table style="width: 100%; border-collapse: collapse;">
-            @foreach(array_chunk($inspection->foto_dokumentasi, 2) as $row)
-            <tr>
-                @foreach($row as $p)
-                <td style="width: 50%; padding: 6px; vertical-align: top; border: 1px solid #cbd5e1; background: #ffffff;">
-                    <div style="height: 180px; text-align: center; background: #0f172a; overflow: hidden; margin-bottom: 4px;">
-                        @php
-                            $fullImgPath = public_path($p['path'] ?? '');
-                            if (!file_exists($fullImgPath)) {
-                                $fullImgPath = storage_path('app/public/' . ($p['path'] ?? ''));
-                            }
-                        @endphp
-                        @if(file_exists($fullImgPath))
-                            <img src="{{ $fullImgPath }}" style="max-width: 100%; max-height: 175px; object-fit: contain;">
-                        @else
-                            <div style="padding-top: 60px; color: #94a3b8; font-size: 10px;">[ Foto: {{ $p['category'] ?? 'Dokumentasi' }} ]</div>
-                        @endif
-                    </div>
-                    <div style="font-size: 10px; font-weight: bold; color: #0f172a;">{{ $p['category'] ?? 'Dokumentasi Lapangan' }}</div>
-                    @if(!empty($p['latitude']) && !empty($p['longitude']))
-                    <div style="font-size: 8.5px; color: #0284c7; font-family: monospace; margin-top: 2px;">
-                        📍 Lat: {{ number_format($p['latitude'], 6) }}, Lng: {{ number_format($p['longitude'], 6) }}
-                    </div>
+        @php
+            $photoCount = count($inspection->foto_dokumentasi);
+        @endphp
+
+        @if($photoCount === 1)
+            @php
+                $p = $inspection->foto_dokumentasi[0];
+                $fullImgPath = null;
+                $possibleImgPaths = [
+                    public_path($p['path'] ?? ''),
+                    storage_path('app/public/' . ($p['path'] ?? '')),
+                    public_path('storage/' . ($p['path'] ?? '')),
+                ];
+                foreach ($possibleImgPaths as $ip) {
+                    if (!empty($p['path']) && file_exists($ip)) {
+                        $fullImgPath = $ip;
+                        break;
+                    }
+                }
+                $photoSrc = null;
+                if ($fullImgPath && file_exists($fullImgPath)) {
+                    $mime = mime_content_type($fullImgPath) ?: 'image/jpeg';
+                    $photoSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($fullImgPath));
+                }
+            @endphp
+            <div style="width: 80%; margin: 0 auto; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px; background: #ffffff;">
+                <div style="text-align: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px; margin-bottom: 12px;">
+                    @if($photoSrc)
+                        <img src="{{ $photoSrc }}" style="max-width: 100%; max-height: 380px; object-fit: contain; border-radius: 4px; display: block; margin: 0 auto;">
+                    @else
+                        <div style="padding: 60px 0; color: #94a3b8; font-size: 11px;">[ Foto: {{ $p['category'] ?? 'Dokumentasi' }} ]</div>
                     @endif
-                </td>
+                </div>
+                <div style="border-top: 1px dashed #cbd5e1; padding-top: 8px;">
+                    <table style="width: 100%; font-size: 10px; border-collapse: collapse;">
+                        <tr>
+                            <td width="28%" style="color: #64748b; padding: 3px 0;"><strong>Area / Kategori</strong></td>
+                            <td width="3%" style="color: #64748b;">:</td>
+                            <td width="69%" style="font-weight: bold; color: #0f172a;">
+                                <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; display: inline-block;">
+                                    {{ $p['category'] ?? 'Kabin Penumpang' }}
+                                </span>
+                            </td>
+                        </tr>
+                        @if(!empty($p['latitude']) && !empty($p['longitude']))
+                        <tr>
+                            <td style="color: #64748b; padding: 3px 0;"><strong>Koordinat GPS</strong></td>
+                            <td style="color: #64748b;">:</td>
+                            <td style="font-family: monospace; color: #0369a1; font-weight: bold;">
+                                Lat: {{ number_format($p['latitude'], 6) }}, Lng: {{ number_format($p['longitude'], 6) }}
+                                @if(!empty($p['accuracy']))
+                                    <span style="font-size: 8.5px; color: #64748b; font-weight: normal;">(Akurasi &plusmn;{{ round($p['accuracy']) }}m)</span>
+                                @endif
+                            </td>
+                        </tr>
+                        @endif
+                        @if(!empty($inspection->lokasi_geotag))
+                        <tr>
+                            <td style="color: #64748b; padding: 3px 0;"><strong>Lokasi Lapangan</strong></td>
+                            <td style="color: #64748b;">:</td>
+                            <td style="color: #334155;">{{ $inspection->lokasi_geotag }}</td>
+                        </tr>
+                        @endif
+                        @if(!empty($p['captured_at']))
+                        <tr>
+                            <td style="color: #64748b; padding: 3px 0;"><strong>Waktu Rekam</strong></td>
+                            <td style="color: #64748b;">:</td>
+                            <td style="color: #334155;">{{ \Carbon\Carbon::parse($p['captured_at'])->format('d/m/Y H:i:s') }} WIB</td>
+                        </tr>
+                        @endif
+                    </table>
+                </div>
+            </div>
+        @else
+            <table style="width: 100%; border-collapse: separate; border-spacing: 10px;">
+                @foreach(array_chunk($inspection->foto_dokumentasi, 2) as $row)
+                <tr>
+                    @foreach($row as $p)
+                    @php
+                        $fullImgPath = null;
+                        $possibleImgPaths = [
+                            public_path($p['path'] ?? ''),
+                            storage_path('app/public/' . ($p['path'] ?? '')),
+                            public_path('storage/' . ($p['path'] ?? '')),
+                        ];
+                        foreach ($possibleImgPaths as $ip) {
+                            if (!empty($p['path']) && file_exists($ip)) {
+                                $fullImgPath = $ip;
+                                break;
+                            }
+                        }
+                        $photoSrc = null;
+                        if ($fullImgPath && file_exists($fullImgPath)) {
+                            $mime = mime_content_type($fullImgPath) ?: 'image/jpeg';
+                            $photoSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($fullImgPath));
+                        }
+                    @endphp
+                    <td style="width: 50%; padding: 8px; vertical-align: top; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff;">
+                        <div style="height: 190px; text-align: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; overflow: hidden; margin-bottom: 6px; display: table; width: 100%;">
+                            <div style="display: table-cell; vertical-align: middle; text-align: center;">
+                                @if($photoSrc)
+                                    <img src="{{ $photoSrc }}" style="max-width: 100%; max-height: 185px; object-fit: contain; border-radius: 4px; display: inline-block;">
+                                @else
+                                    <div style="color: #94a3b8; font-size: 10px;">[ Foto: {{ $p['category'] ?? 'Dokumentasi' }} ]</div>
+                                @endif
+                            </div>
+                        </div>
+                        <div style="font-size: 10px; font-weight: bold; color: #0f172a; margin-bottom: 2px;">
+                            <span style="background: #f1f5f9; border: 1px solid #e2e8f0; padding: 1px 6px; border-radius: 3px; display: inline-block;">
+                                {{ $p['category'] ?? 'Dokumentasi Lapangan' }}
+                            </span>
+                        </div>
+                        @if(!empty($p['latitude']) && !empty($p['longitude']))
+                        <div style="font-size: 8.5px; color: #0369a1; font-family: monospace; margin-top: 2px;">
+                            Koordinat: {{ number_format($p['latitude'], 6) }}, {{ number_format($p['longitude'], 6) }}
+                        </div>
+                        @endif
+                        @if(!empty($p['captured_at']))
+                        <div style="font-size: 8px; color: #64748b; margin-top: 1px;">
+                            Waktu: {{ \Carbon\Carbon::parse($p['captured_at'])->format('d/m/Y H:i') }} WIB
+                        </div>
+                        @endif
+                    </td>
+                    @endforeach
+                    @if(count($row) === 1)
+                    <td style="width: 50%; border: none;"></td>
+                    @endif
+                </tr>
                 @endforeach
-                @if(count($row) === 1)
-                <td style="width: 50%; border: none;"></td>
-                @endif
-            </tr>
-            @endforeach
-        </table>
+            </table>
+        @endif
+
+        <div class="footer-note" style="margin-top: 25px;">
+            Dokumen lampiran resmi ini merupakan bagian tidak terpisahkan dari Formulir Pemeriksaan Sanitasi Pesawat No. <strong>{{ $inspection->registration_no }}</strong>
+        </div>
     </div>
     @endif
 </body>
