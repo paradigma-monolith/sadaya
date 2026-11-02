@@ -138,6 +138,14 @@ const navSections = computed(() => {
       title: 'KARANTINA KESEHATAN LAUT',
       items: [
         {
+          name: 'Data Inspeksi Kapal',
+          path: '/ship-inspections',
+          url: getUrl('/ship-inspections'),
+          icon: Anchor,
+          iconColor: 'text-teal-600',
+          active: props.currentRoute === 'ship-inspections',
+        },
+        {
           name: 'Form Sanitasi Kapal (SSCC)',
           path: '/travelconsent/public_sanitasi',
           url: getUrl('/travelconsent/public_sanitasi'),

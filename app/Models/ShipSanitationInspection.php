@@ -70,5 +70,60 @@ class ShipSanitationInspection extends Model
     {
         return $this->belongsTo(User::class, 'verified_by');
     }
+
+    /**
+     * Scope a query to search by ship name, IMO, registration number, port, or inspector.
+     */
+    public function scopeSearch($query, ?string $term)
+    {
+        if (empty($term)) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($term) {
+            $q->where('nama_kapal', 'like', "%{$term}%")
+              ->orWhere('registration_no', 'like', "%{$term}%")
+              ->orWhere('imo_no', 'like', "%{$term}%")
+              ->orWhere('pelabuhan', 'like', "%{$term}%")
+              ->orWhere('bendera', 'like', "%{$term}%")
+              ->orWhere('nama_pemeriksa', 'like', "%{$term}%");
+        });
+    }
+
+    /**
+     * Scope a query to filter by port/wilker.
+     */
+    public function scopeFilterPelabuhan($query, ?string $pelabuhan)
+    {
+        if (empty($pelabuhan)) {
+            return $query;
+        }
+
+        return $query->where('pelabuhan', $pelabuhan);
+    }
+
+    /**
+     * Scope a query to filter by certificate type (Pembebasan vs Pengendalian).
+     */
+    public function scopeFilterSertifikat($query, ?string $type)
+    {
+        if (empty($type)) {
+            return $query;
+        }
+
+        return $query->where('sertifikat_mencatat', $type);
+    }
+
+    /**
+     * Scope a query to filter by verification status.
+     */
+    public function scopeFilterStatus($query, ?string $status)
+    {
+        if (empty($status)) {
+            return $query;
+        }
+
+        return $query->where('status', $status);
+    }
 }
 

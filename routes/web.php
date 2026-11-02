@@ -8,6 +8,7 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ShipInspectionController;
 use App\Http\Controllers\TravelConsentController;
 use Illuminate\Support\Facades\Route;
 
@@ -79,6 +80,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [AircraftInspectionController::class, 'destroy'])->name('destroy');
         Route::get('/export', [AircraftInspectionController::class, 'export'])->name('export');
         Route::get('/{id}/pdf', [AircraftInspectionController::class, 'downloadPdf'])->name('pdf');
+    });
+
+    // Ship Sanitation Inspection Management (Karantina Kesehatan Laut - SSCC / SSCEC)
+    Route::prefix('ship-inspections')->name('ship-inspections.')->group(function () {
+        Route::get('/', [ShipInspectionController::class, 'index'])->name('index');
+        Route::put('/{id}/status', [ShipInspectionController::class, 'updateStatus'])->name('updateStatus');
+        Route::delete('/{id}', [ShipInspectionController::class, 'destroy'])->name('destroy');
+        Route::get('/export', [ShipInspectionController::class, 'export'])->name('export');
+        Route::get('/{id}/pdf', [ShipInspectionController::class, 'downloadPdf'])->name('pdf');
     });
 
     // System Data Exports (Excel, CSV, PDF)

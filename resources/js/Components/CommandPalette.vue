@@ -23,7 +23,8 @@ import {
   Loader2,
   Sparkles,
   X,
-  Ship
+  Ship,
+  Anchor
 } from 'lucide-vue-next';
 import { router as inertiaRouter } from '@inertiajs/vue3';
 import { useRouter } from 'vue-router';
@@ -78,6 +79,14 @@ const defaultActions = [
     category: 'Karantina Udara',
     icon: Layers,
     action: () => navigateTo('/aircraft-inspections'),
+  },
+  {
+    id: 'nav-ship-inspections',
+    title: 'Data Inspeksi Kapal (SSCC / SSCEC)',
+    subtitle: 'Kelola sertifikat & verifikasi sanitasi kapal laut',
+    category: 'Karantina Laut',
+    icon: Anchor,
+    action: () => navigateTo('/ship-inspections'),
   },
   {
     id: 'nav-ship-sanitasi',
