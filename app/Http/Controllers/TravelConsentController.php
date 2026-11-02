@@ -15,6 +15,44 @@ use Illuminate\Support\Str;
 class TravelConsentController extends Controller
 {
     /**
+     * Helper to get maritime / sea offices for Ship Sanitation (Patimban, Cirebon, Indramayu, Pelabuharatu, Induk).
+     */
+    protected function getKantorWilkersLaut()
+    {
+        try {
+            $offices = KantorWilker::laut()->get();
+            if ($offices->isNotEmpty()) {
+                return $offices;
+            }
+        } catch (\Throwable $e) {
+            // fallback
+        }
+
+        return collect(KantorWilker::DEFAULT_OFFICES)
+            ->filter(fn ($o) => in_array($o['kode'], ['WLK-PTB-06', 'WLK-CBN-03', 'WLK-IDM-04', 'WLK-PLR-07', 'BKK-BDG-01']))
+            ->map(fn ($o) => (object) $o);
+    }
+
+    /**
+     * Helper to get aviation / airport offices for Aircraft, Alkes & Obat (Husen Sastranegara, Kertajati BIJB, Induk).
+     */
+    protected function getKantorWilkersUdara()
+    {
+        try {
+            $offices = KantorWilker::udara()->get();
+            if ($offices->isNotEmpty()) {
+                return $offices;
+            }
+        } catch (\Throwable $e) {
+            // fallback
+        }
+
+        return collect(KantorWilker::DEFAULT_OFFICES)
+            ->filter(fn ($o) => in_array($o['kode'], ['POS-BDO-02', 'WLK-KJT-05', 'BKK-BDG-01']))
+            ->map(fn ($o) => (object) $o);
+    }
+
+    /**
      * Helper to get standardized list of 1 Induk & 6 Wilayah Kerja.
      */
     protected function getKantorWilkers()
@@ -47,7 +85,7 @@ class TravelConsentController extends Controller
         return view('travelconsent.public_aircraft', [
             'today' => now()->format('Y-m-d'),
             'nowTime' => now()->format('H:i'),
-            'offices' => $this->getKantorWilkers(),
+            'offices' => $this->getKantorWilkersUdara(),
         ]);
     }
 
@@ -239,7 +277,7 @@ class TravelConsentController extends Controller
      */
     public function publicSanitasi(Request $request)
     {
-        $offices = $this->getKantorWilkers();
+        $offices = $this->getKantorWilkersLaut();
         $ports = $offices->pluck('nama')->toArray();
 
         $countries = [
@@ -278,7 +316,7 @@ class TravelConsentController extends Controller
             'berat_gt' => ['required', 'numeric', 'min:0'],
             'kondisi_palka' => ['required', 'string', 'max:100'],
             'nama_pemeriksa' => ['required', 'string', 'max:255'],
-            'alamat_pemeriksa' => ['required', 'string', 'max:1000'],
+            'alamat_pemeriksa' => ['nullable', 'string', 'max:1000'],
             'areas' => ['required', 'array', 'min:1'],
             'pejabat_penerbit' => ['nullable', 'string', 'max:255'],
             'keterangan' => ['required', 'string', 'max:2000'],
@@ -305,6 +343,13 @@ class TravelConsentController extends Controller
 
         $regNo = 'SSCC-' . date('Ymd') . '-' . strtoupper(Str::random(5));
 
+        // Auto-resolve official address based on selected port/wilker if not provided
+        $alamatPemeriksa = $validated['alamat_pemeriksa'] ?? null;
+        if (empty($alamatPemeriksa)) {
+            $office = KantorWilker::where('nama', $validated['pelabuhan'])->first();
+            $alamatPemeriksa = $office?->alamat ?? 'Balai Kekarantinaan Kesehatan Kelas I Bandung, Jl. Cikapayang No.5, Tamansari, Kec. Bandung Wetan, Kota Bandung, Jawa Barat 40116';
+        }
+
         $inspection = ShipSanitationInspection::create([
             'registration_no' => $regNo,
             'pelabuhan' => $validated['pelabuhan'],
@@ -318,7 +363,7 @@ class TravelConsentController extends Controller
             'berat_gt' => (int) $validated['berat_gt'],
             'kondisi_palka' => $validated['kondisi_palka'],
             'nama_pemeriksa' => $validated['nama_pemeriksa'],
-            'alamat_pemeriksa' => $validated['alamat_pemeriksa'],
+            'alamat_pemeriksa' => $alamatPemeriksa,
             'areas' => $validated['areas'],
             'pejabat_penerbit' => $validated['pejabat_penerbit'] ?: 'Balai Kekarantinaan Kesehatan Kelas I Bandung',
             'keterangan' => $validated['keterangan'],
@@ -423,7 +468,7 @@ class TravelConsentController extends Controller
             'emergensiItems' => $emergensiItems,
             'currentH' => '1447',
             'currentM' => date('Y'),
-            'offices' => $this->getKantorWilkers(),
+            'offices' => $this->getKantorWilkersUdara(),
         ]);
     }
 
@@ -551,7 +596,7 @@ class TravelConsentController extends Controller
             'emergensiItems' => $emergensiItems,
             'currentH' => '1447',
             'currentM' => date('Y'),
-            'offices' => $this->getKantorWilkers(),
+            'offices' => $this->getKantorWilkersUdara(),
         ]);
     }
 

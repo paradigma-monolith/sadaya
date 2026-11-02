@@ -665,7 +665,7 @@
                 <td align="center">:</td>
                 <td colspan="4">
                     <select id="wilker_select" class="underline-input" style="cursor: pointer; font-weight: 600;" onchange="onAircraftWilkerSelected(this)">
-                        <option value="">-- Pilih Kantor Induk / Wilayah Kerja / Pos --</option>
+                        <option value="">-- Pilih Pos Bandara / Wilker --</option>
                         @if(isset($offices) && count($offices) > 0)
                             @foreach($offices as $office)
                                 @php
@@ -675,7 +675,7 @@
                                     $oLng = is_array($office) ? ($office['longitude'] ?? $office['lng'] ?? null) : ($office->longitude ?? null);
                                 @endphp
                                 <option value="{{ $oNama }}" data-alamat="{{ $oAlamat }}" data-lat="{{ $oLat }}" data-lng="{{ $oLng }}" {{ (old('wilker', 'POS Bandara Husen Sastranegara') == $oNama) ? 'selected' : '' }}>
-                                    {{ $oNama }} &bull; {{ $oAlamat }}
+                                    {{ $oNama }}
                                 </option>
                             @endforeach
                         @else

@@ -147,6 +147,40 @@ class KantorWilker extends Model
     }
 
     /**
+     * Offices for Maritime / Pelabuhan / Laut (Patimban, Cirebon, Indramayu, Pelabuharatu, Induk).
+     */
+    public function scopeLaut($query)
+    {
+        return $query->where('is_active', true)
+            ->where(function ($q) {
+                $q->where('is_induk', true)
+                  ->orWhere('kode', 'like', '%CBN%')
+                  ->orWhere('kode', 'like', '%IDM%')
+                  ->orWhere('kode', 'like', '%PTB%')
+                  ->orWhere('kode', 'like', '%PLR%')
+                  ->orWhere('moda', 'like', '%Laut%')
+                  ->orWhere('moda', 'like', '%Pelabuhan%');
+            })
+            ->orderByRaw('is_induk ASC, `no` ASC');
+    }
+
+    /**
+     * Offices for Aviation / Bandara / Udara (Husen Sastranegara, Kertajati BIJB, Induk).
+     */
+    public function scopeUdara($query)
+    {
+        return $query->where('is_active', true)
+            ->where(function ($q) {
+                $q->where('is_induk', true)
+                  ->orWhere('kode', 'like', '%BDO%')
+                  ->orWhere('kode', 'like', '%KJT%')
+                  ->orWhere('moda', 'like', '%Udara%')
+                  ->orWhere('tipe', 'like', '%Bandara%');
+            })
+            ->orderByRaw('is_induk ASC, `no` ASC');
+    }
+
+    /**
      * Scope to find by name or short name.
      */
     public function scopeFindByName($query, string $name)
@@ -156,3 +190,4 @@ class KantorWilker extends Model
             ->orWhere('kode', $name);
     }
 }
+

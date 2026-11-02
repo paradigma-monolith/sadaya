@@ -59,7 +59,7 @@ class FlightMedicalInspectionController extends Controller
             }
         }
 
-        $officialEmbarkasi = KantorWilker::orderBy('no')->pluck('nama')->toArray();
+        $officialEmbarkasi = KantorWilker::udara()->pluck('nama')->toArray();
         $dbEmbarkasi = FlightMedicalInspection::alat()
             ->distinct()
             ->pluck('embarkasi')
@@ -132,7 +132,7 @@ class FlightMedicalInspectionController extends Controller
             }
         }
 
-        $officialEmbarkasi = KantorWilker::orderBy('no')->pluck('nama')->toArray();
+        $officialEmbarkasi = KantorWilker::udara()->pluck('nama')->toArray();
         $dbEmbarkasi = FlightMedicalInspection::obat()
             ->distinct()
             ->pluck('embarkasi')

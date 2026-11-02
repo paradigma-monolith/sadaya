@@ -52,11 +52,13 @@ class ShipInspectionController extends Controller
         $pendingCount = ShipSanitationInspection::whereIn('status', ['submitted', 'verified'])->count();
         $todayCount = ShipSanitationInspection::whereDate('tanggal', now()->toDateString())->count();
 
-        // Available Ports / Wilker for Filter (standardized from KantorWilker master data)
+        // Available Ports / Wilker Laut for Filter (standardized from KantorWilker master data)
         try {
-            $officialPorts = KantorWilker::orderBy('no')->pluck('nama')->toArray();
+            $officialPorts = KantorWilker::laut()->pluck('nama')->toArray();
         } catch (\Throwable $e) {
-            $officialPorts = collect(KantorWilker::DEFAULT_OFFICES)->pluck('nama')->toArray();
+            $officialPorts = collect(KantorWilker::DEFAULT_OFFICES)
+                ->filter(fn ($o) => in_array($o['kode'], ['WLK-PTB-06', 'WLK-CBN-03', 'WLK-IDM-04', 'WLK-PLR-07', 'BKK-BDG-01']))
+                ->pluck('nama')->toArray();
         }
 
         $dbPorts = ShipSanitationInspection::whereNotNull('pelabuhan')
