@@ -169,27 +169,33 @@
                     <tbody class="divide-y divide-slate-200/70">
                         @if(!empty($inspection->areas) && is_array($inspection->areas))
                             @foreach($inspection->areas as $it)
+                            @php
+                                $areaName = !empty($it['nama']) ? $it['nama'] : (!empty($it['area_name']) ? $it['area_name'] : '-');
+                                $katOrSample = !empty($it['kategori']) ? $it['kategori'] : (!empty($it['category']) ? $it['category'] : (!empty($it['sample']) ? $it['sample'] : (!empty($it['sampel']) ? $it['sampel'] : '-')));
+                                $rawStatus = !empty($it['status']) ? $it['status'] : (!empty($it['result']) ? $it['result'] : '');
+                                $st = strtolower($rawStatus);
+                                $keterangan = !empty($it['keterangan']) ? $it['keterangan'] : (!empty($it['finding']) ? $it['finding'] : (!empty($it['komentar']) ? $it['komentar'] : (!empty($it['bukti']) ? $it['bukti'] : '-')));
+                            @endphp
                             <tr class="hover:bg-slate-50/50">
                                 <td class="px-3 py-2 text-center text-slate-500">{{ $it['no'] ?? ($loop->iteration) }}</td>
-                                <td class="px-3 py-2 font-medium text-slate-900">{{ $it['nama'] ?? '-' }}</td>
-                                <td class="px-3 py-2 text-slate-500 text-[11px]">{{ $it['kategori'] ?? '-' }}</td>
+                                <td class="px-3 py-2 font-medium text-slate-900">{{ $areaName }}</td>
+                                <td class="px-3 py-2 text-slate-500 text-[11px]">{{ $katOrSample }}</td>
                                 <td class="px-3 py-2 text-center">
-                                    @php $st = strtolower($it['status'] ?? ''); @endphp
-                                    @if(str_contains($st, 'bebas') || $st === 'layak')
+                                    @if(str_contains($st, 'bebas') || str_contains($st, 'memenuhi') || $st === 'layak')
                                         <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                            ✓ Bebas / Memenuhi
+                                            ✓ {{ $rawStatus ?: 'Memenuhi Syarat' }}
                                         </span>
-                                    @elseif(str_contains($st, 'kendali') || str_contains($st, 'tindakan'))
+                                    @elseif(str_contains($st, 'kendali') || str_contains($st, 'tindakan') || str_contains($st, 'tidak'))
                                         <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                            ⚠️ Dikendalikan
+                                            ⚠️ {{ $rawStatus ?: 'Dikendalikan' }}
                                         </span>
                                     @else
                                         <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">
-                                            {{ $it['status'] ?: 'Diperiksa' }}
+                                            {{ $rawStatus ?: 'Diperiksa' }}
                                         </span>
                                     @endif
                                 </td>
-                                <td class="px-3 py-2 text-slate-600 text-[11px]">{{ $it['keterangan'] ?: '-' }}</td>
+                                <td class="px-3 py-2 text-slate-600 text-[11px]">{{ $keterangan }}</td>
                             </tr>
                             @endforeach
                         @else
