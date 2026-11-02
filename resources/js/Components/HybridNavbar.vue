@@ -433,17 +433,6 @@ const handleLogout = () => {
               </a>
 
               <a
-                :href="getUrl('/aircraft-inspections/dashboard')" 
-                @click="handleNav('/aircraft-inspections/dashboard', $event)"
-                class="h-full inline-flex items-center px-1 border-b-2 transition-all cursor-pointer"
-                :class="(!isSpa && activeNav === 'aircraft-dashboard')
-                  ? 'border-slate-900 text-slate-900 font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-slate-900 font-medium'"
-              >
-                Analitik Sanitasi
-              </a>
-
-              <a
                 :href="getUrl('/audit-logs')" 
                 @click="handleNav('/audit-logs', $event)"
                 class="h-full inline-flex items-center px-1 border-b-2 transition-all cursor-pointer"

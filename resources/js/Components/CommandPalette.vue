@@ -79,14 +79,6 @@ const defaultActions = [
     action: () => navigateTo('/aircraft-inspections'),
   },
   {
-    id: 'nav-aircraft-analytics',
-    title: 'Analitik Sanitasi Pesawat',
-    subtitle: 'Grafik tren kelaikan sanitasi & tindakan vektor',
-    category: 'Karantina Udara',
-    icon: Activity,
-    action: () => navigateTo('/aircraft-inspections/dashboard'),
-  },
-  {
     id: 'nav-audit',
     title: 'Audit Trail Logs',
     subtitle: 'Lihat riwayat aktivitas sistem & keamanan akun',

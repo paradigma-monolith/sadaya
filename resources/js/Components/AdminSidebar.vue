@@ -130,22 +130,6 @@ const navSections = computed(() => {
           iconColor: 'text-indigo-600',
           active: props.currentRoute === 'aircraft-inspections',
         },
-        {
-          name: 'Analitik Sanitasi',
-          path: '/aircraft-inspections/dashboard',
-          url: getUrl('/aircraft-inspections/dashboard'),
-          icon: BarChart3,
-          iconColor: 'text-emerald-600',
-          active: props.currentRoute === 'aircraft-dashboard',
-        },
-        {
-          name: 'Form Publik Pesawat',
-          path: '/travelconsent/public_aircraft',
-          url: getUrl('/travelconsent/public_aircraft'),
-          icon: Globe,
-          iconColor: 'text-amber-600',
-          external: true,
-        },
       ],
     },
     {
@@ -284,17 +268,6 @@ const navSections = computed(() => {
             </div>
           </a>
         </div>
-      </div>
-
-      <!-- Quick Action Button (+ New Inspection Form like "+ New Project" in Reference Image 2) -->
-      <div v-if="!isCollapsed" class="px-3 pb-2.5">
-        <a
-          :href="getUrl('/travelconsent/public_aircraft')"
-          target="_blank"
-          class="w-full py-2 px-3 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200/90 text-slate-700 hover:text-slate-900 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-        >
-          <span>+ Input Inspeksi Pesawat</span>
-        </a>
       </div>
 
       <!-- Sidebar Footer: User Profile & Quick Logout -->

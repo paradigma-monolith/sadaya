@@ -132,23 +132,6 @@ const deleteInspection = (id, regNo) => {
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-          <Link
-            href="/aircraft-inspections/dashboard"
-            class="px-4 py-2.5 rounded-xl font-semibold text-xs text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-[#1a202c] hover:bg-slate-200 dark:hover:bg-[#232b3a] border border-slate-200 dark:border-[#2d3748] transition-colors flex items-center gap-1.5"
-          >
-            <BarChart3 class="w-4 h-4 text-orange-500" />
-            <span>Dashboard Grafik</span>
-          </Link>
-
-          <a
-            href="/travelconsent/public_aircraft"
-            target="_blank"
-            class="px-4 py-2.5 rounded-xl font-bold text-xs text-slate-950 bg-orange-500 hover:bg-orange-400 transition-all shadow-md shadow-orange-500/30 flex items-center gap-1.5"
-          >
-            <Plus class="w-4 h-4" />
-            <span>Buka Form Publik ↗</span>
-          </a>
-
           <a
             :href="`/aircraft-inspections/export?format=xlsx${selectedKesimpulan ? '&kesimpulan=' + selectedKesimpulan : ''}${selectedStatus ? '&status=' + selectedStatus : ''}`"
             class="px-3.5 py-2.5 rounded-xl font-semibold text-xs text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 transition-colors flex items-center gap-1.5"

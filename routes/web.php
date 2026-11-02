@@ -35,8 +35,8 @@ Route::middleware('guest')->group(function () {
 
 // --- Public Travel Consent & Aircraft Sanitation Inspection Routes ---
 Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
-    Route::get('/public_aircraft', [TravelConsentController::class, 'publicAircraft'])->name('public_aircraft');
-    Route::get('/aircraft', [TravelConsentController::class, 'publicAircraft'])->name('aircraft');
+    Route::redirect('/public_aircraft', '/dashboard');
+    Route::redirect('/aircraft', '/dashboard');
     Route::post('/submit_aircraft', [TravelConsentController::class, 'submitAircraft'])->name('submit_aircraft');
     Route::get('/receipt/{registration_no}', [TravelConsentController::class, 'receipt'])->name('receipt');
     Route::get('/pdf/{registration_no}', [TravelConsentController::class, 'downloadPdf'])->name('public_pdf');
@@ -65,10 +65,10 @@ Route::middleware('auth')->group(function () {
     // System Activity & Audit Trail
     Route::get('/audit-logs', [ActivityLogController::class, 'index'])->name('audit.index');
 
-    // Aircraft Sanitation Inspection Management & Dashboard
+    // Aircraft Sanitation Inspection Management
     Route::prefix('aircraft-inspections')->name('aircraft-inspections.')->group(function () {
         Route::get('/', [AircraftInspectionController::class, 'index'])->name('index');
-        Route::get('/dashboard', [AircraftInspectionController::class, 'dashboard'])->name('dashboard');
+        Route::redirect('/dashboard', '/dashboard');
         Route::put('/{id}/status', [AircraftInspectionController::class, 'updateStatus'])->name('updateStatus');
         Route::delete('/{id}', [AircraftInspectionController::class, 'destroy'])->name('destroy');
         Route::get('/export', [AircraftInspectionController::class, 'export'])->name('export');
