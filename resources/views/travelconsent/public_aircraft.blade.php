@@ -1623,7 +1623,13 @@
     function openLiveCamera() {
         var modal = document.getElementById('liveCameraModal');
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert('Browser Anda tidak mendukung akses live kamera WebRTC. Membuka dialog pemilih berkas...');
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                if (confirm('Akses live kamera WebRTC mewajibkan koneksi aman (HTTPS).\n\nBeralih ke koneksi aman (HTTPS) sekarang agar live kamera dapat aktif?')) {
+                    location.href = 'https://' + location.host + location.pathname + location.search;
+                    return;
+                }
+            }
+            alert('Browser Anda tidak mendukung akses live kamera WebRTC atau izin kamera belum aktif. Membuka dialog pemilih berkas...');
             document.getElementById('cameraInput').click();
             return;
         }
