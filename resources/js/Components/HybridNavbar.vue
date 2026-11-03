@@ -411,15 +411,15 @@ const handleLogout = () => {
               </div>
             </div>
 
-            <!-- Center Navigation Links (Clean Minimalist Tab Links matching Reference Image 1) -->
-            <nav class="hidden lg:flex items-center gap-6 text-xs h-14 shrink-0">
+            <!-- Center Navigation Links (Harmonized with Kemenkes Turquoise & Dark Teal) -->
+            <nav class="hidden lg:flex items-center gap-6 text-xs h-14 shrink-0 font-sans">
               <a
                 :href="getUrl('/inertia/dashboard')" 
                 @click="handleNav('/inertia/dashboard', $event)"
                 class="h-full inline-flex items-center px-1 border-b-2 transition-all cursor-pointer"
                 :class="(!isSpa && (activeNav === 'dashboard' || activeNav === 'home'))
-                  ? 'border-slate-900 text-slate-900 font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-slate-900 font-medium'"
+                  ? 'border-[#00A99D] text-[#005851] font-bold'
+                  : 'border-transparent text-slate-500 hover:text-[#00A99D] hover:border-[#99DFD6] font-medium'"
               >
                 Dashboard
               </a>
@@ -429,8 +429,8 @@ const handleLogout = () => {
                 @click="handleNav('/audit-logs', $event)"
                 class="h-full inline-flex items-center px-1 border-b-2 transition-all cursor-pointer"
                 :class="(!isSpa && activeNav === 'audit')
-                  ? 'border-slate-900 text-slate-900 font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-slate-900 font-medium'"
+                  ? 'border-[#00A99D] text-[#005851] font-bold'
+                  : 'border-transparent text-slate-500 hover:text-[#00A99D] hover:border-[#99DFD6] font-medium'"
               >
                 Audit Trail
               </a>
@@ -443,7 +443,7 @@ const handleLogout = () => {
               <button
                 type="button"
                 @click="openCommandPalette"
-                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-500 text-xs border border-slate-200/90 transition-all cursor-pointer"
+                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-[#E6F7F5] hover:text-[#005851] text-slate-500 text-xs border border-slate-200/90 transition-all cursor-pointer"
                 title="Buka Pencarian Cepat (Ctrl+K)"
               >
                 <Search class="w-3.5 h-3.5 text-slate-400" />
@@ -451,10 +451,10 @@ const handleLogout = () => {
                 <kbd class="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono bg-white border border-slate-200 rounded text-slate-400">⌘K</kbd>
               </button>
 
-              <!-- Generate Report Button (Matches Reference Image 1 Top-Right Button) -->
+              <!-- Generate Report Button (Official Kemenkes Turquoise Action Button) -->
               <a
                 :href="getUrl('/exports/audit-logs/pdf')"
-                class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-semibold shadow-2xs transition-colors"
+                class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00A99D] hover:bg-[#009388] text-white border border-[#00A99D] text-xs font-semibold shadow-xs hover:shadow transition-all"
               >
                 <span>Generate Report</span>
               </a>
@@ -464,11 +464,11 @@ const handleLogout = () => {
                 <button
                   type="button"
                   @click="toggleNotifications"
-                  class="relative p-1.5 rounded-lg text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200 transition-all cursor-pointer"
+                  class="relative p-1.5 rounded-lg text-slate-500 hover:text-[#005851] bg-white hover:bg-[#E6F7F5] border border-slate-200 transition-all cursor-pointer"
                   title="Notifikasi Real-Time"
                 >
                   <Bell class="w-4 h-4" />
-                  <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-white rounded-full text-[9px] font-bold flex items-center justify-center">
+                  <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-[#00A99D] text-white rounded-full text-[9px] font-bold flex items-center justify-center ring-1 ring-white">
                     {{ unreadCount > 9 ? '9+' : unreadCount }}
                   </span>
                 </button>
@@ -493,11 +493,11 @@ const handleLogout = () => {
                   >
                     <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 text-xs shrink-0">
                       <div class="flex items-center gap-2">
-                        <span class="font-bold text-slate-900 flex items-center gap-1.5">
-                          <Radio class="w-3.5 h-3.5 text-emerald-500" />
+                        <span class="font-bold text-[#005851] flex items-center gap-1.5">
+                          <Radio class="w-3.5 h-3.5 text-[#00A99D]" />
                           <span>Notifikasi Sistem</span>
                         </span>
-                        <span v-if="unreadCount > 0" class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                        <span v-if="unreadCount > 0" class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
                           {{ unreadCount }} Baru
                         </span>
                       </div>
@@ -506,9 +506,9 @@ const handleLogout = () => {
                         <button
                           type="button"
                           @click="markAllRead"
-                          class="text-[11px] text-slate-500 hover:text-emerald-600 flex items-center gap-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-slate-50 transition-colors"
+                          class="text-[11px] text-slate-500 hover:text-[#00A99D] flex items-center gap-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-[#E6F7F5] transition-colors"
                         >
-                          <CheckCheck class="w-3.5 h-3.5 text-emerald-500" />
+                          <CheckCheck class="w-3.5 h-3.5 text-[#00A99D]" />
                           <span class="hidden min-[380px]:inline">Tandai Dibaca</span>
                         </button>
                         <button
@@ -526,14 +526,14 @@ const handleLogout = () => {
                         v-for="n in notifications" 
                         :key="n.id" 
                         @click="markSingleRead(n)"
-                        class="p-2.5 rounded-xl text-xs transition-colors cursor-pointer hover:border-emerald-300 border" 
-                        :class="n.read_at ? 'bg-slate-50 border-slate-100 text-slate-500' : 'bg-emerald-50/50 border-emerald-200 text-slate-800'"
+                        class="p-2.5 rounded-xl text-xs transition-colors cursor-pointer hover:border-[#99DFD6] border" 
+                        :class="n.read_at ? 'bg-slate-50 border-slate-100 text-slate-500' : 'bg-[#E6F7F5]/50 border-[#99DFD6] text-slate-800'"
                       >
                         <div class="flex items-start justify-between gap-1.5">
-                          <div class="font-semibold text-slate-900 text-xs leading-tight">
+                          <div class="font-semibold text-[#005851] text-xs leading-tight">
                             {{ n.data?.title || 'Pemberitahuan Sistem' }}
                           </div>
-                          <span v-if="!n.read_at" class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0 mt-1"></span>
+                          <span v-if="!n.read_at" class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0 mt-1"></span>
                         </div>
                         <div class="text-[11px] text-slate-600 mt-1 leading-relaxed">
                           {{ n.data?.message }}

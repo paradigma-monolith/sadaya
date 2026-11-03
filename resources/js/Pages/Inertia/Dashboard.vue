@@ -215,8 +215,8 @@ const bkkMapMarkers = computed(() => {
       bearing: 0,
       popupRows: [
         { label: 'Tipe / Moda', value: `${o.type} (${o.moda})` },
-        { label: 'Total Layanan', value: `${totalOps} Dokumen`, color: '#10b981' },
-        { label: 'Terakhir Aktif', value: o.last_human || 'Belum ada', color: '#38bdf8' },
+        { label: 'Total Layanan', value: `${totalOps} Dokumen`, color: '#00A99D' },
+        { label: 'Terakhir Aktif', value: o.last_human || 'Belum ada', color: '#005851' },
       ],
     };
   });
@@ -334,16 +334,16 @@ const trendChartOption = computed(() => {
     {
       key: 'total',
       name: 'Total',
-      color: '#0f172a',
+      color: '#005851', // Kemenkes Turquoise Tua / Deep Teal
       data: props.trend?.total || [],
-      lineWidth: 2.4,
+      lineWidth: 2.5,
       area: true,
-      areaColor: ['rgba(16, 185, 129, 0.22)', 'rgba(16, 185, 129, 0.0)'],
+      areaColor: ['rgba(0, 169, 157, 0.25)', 'rgba(0, 169, 157, 0.0)'],
     },
     {
       key: 'aircraft',
       name: 'Pesawat',
-      color: '#0284c7',
+      color: '#00A99D', // Kemenkes Turquoise Utama
       data: props.trend?.aircraft || [],
       lineWidth: 2.0,
       area: false,
@@ -351,7 +351,7 @@ const trendChartOption = computed(() => {
     {
       key: 'ship',
       name: 'Kapal',
-      color: '#10b981',
+      color: '#007D74', // Kemenkes Medium Teal
       data: props.trend?.ship || [],
       lineWidth: 2.0,
       area: false,
@@ -359,7 +359,7 @@ const trendChartOption = computed(() => {
     {
       key: 'alat',
       name: 'Alkes',
-      color: '#f59e0b',
+      color: '#7CA622', // Kemenkes Hijau Kuning / Lime Dark
       data: props.trend?.alat || [],
       lineWidth: 1.8,
       area: false,
@@ -367,7 +367,7 @@ const trendChartOption = computed(() => {
     {
       key: 'obat',
       name: 'Obat',
-      color: '#f43f5e',
+      color: '#E11D48', // Harmonized Alert/Rose Accent
       data: props.trend?.obat || [],
       lineWidth: 1.8,
       area: false,
@@ -411,15 +411,15 @@ const trendChartOption = computed(() => {
     backgroundColor: 'transparent',
     tooltip: {
       trigger: 'axis',
-      backgroundColor: '#0f172a',
-      borderColor: '#334155',
+      backgroundColor: '#003B36',
+      borderColor: '#00A99D',
       borderWidth: 1,
       padding: [10, 14],
-      textStyle: { color: '#f8fafc', fontSize: 11 },
+      textStyle: { color: '#f8fafc', fontSize: 11, fontFamily: 'Segoe UI, sans-serif' },
       extraCssText: 'box-shadow: 0 12px 25px -4px rgba(0, 0, 0, 0.4); border-radius: 10px;',
       axisPointer: {
         type: 'line',
-        lineStyle: { color: '#10b981', width: 1.5, type: 'dashed' },
+        lineStyle: { color: '#00A99D', width: 1.5, type: 'dashed' },
       },
     },
     grid: {
@@ -479,35 +479,35 @@ const filteredInspections = computed(() => {
     <main class="w-full px-3 sm:px-5 lg:px-6 pt-3 pb-16 space-y-3.5 transition-all duration-300">
       
       <!-- ========================================================================= -->
-      <!-- TOP COMMAND BAR: CYBER TACTICAL GLASSMORPHISM                             -->
+      <!-- TOP COMMAND BAR: HARMONISASI IDENTITAS KEMENKES RI (TURQUOISE & DARK TEAL)-->
       <!-- ========================================================================= -->
-      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white p-3.5 sm:p-4 shadow-xl border border-slate-800/80 ring-1 ring-emerald-500/20">
-        <!-- Background Cyber Grid Accent -->
-        <div class="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px]"></div>
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] text-white p-3.5 sm:p-4 shadow-xl border border-[#005851]/80 ring-1 ring-[#00A99D]/30 font-sans">
+        <!-- Background Subtle Brand Grid Accent -->
+        <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00A99D_1px,transparent_1px)] [background-size:16px_16px]"></div>
 
         <div class="relative z-10 flex flex-wrap items-center justify-between gap-3">
           <!-- Left: Identity & Live Telemetry -->
           <div class="flex items-center gap-3 min-w-0">
-            <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center font-black text-slate-950 shrink-0 shadow-lg shadow-emerald-500/20 border border-emerald-300/40">
-              <Radio class="w-5 h-5 text-slate-950 animate-pulse" />
-              <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-400 border-2 border-slate-950 animate-ping"></span>
+            <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[#00A99D] to-[#005851] flex items-center justify-center font-black text-white shrink-0 shadow-lg shadow-black/20 border border-[#99DFD6]/40">
+              <Radio class="w-5 h-5 text-white animate-pulse" />
+              <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#99CC33] border-2 border-[#003B36] animate-ping"></span>
             </div>
 
             <div class="min-w-0">
               <div class="flex items-center gap-2">
-                <h1 class="text-sm sm:text-base font-black tracking-tight text-white flex items-center gap-2 truncate">
+                <h1 class="text-sm sm:text-base font-extrabold font-heading tracking-tight text-white flex items-center gap-2 truncate">
                   <span>PUSAT KOMANDO GEOSPASIAL</span>
-                  <span class="text-emerald-400 font-mono text-xs font-semibold">BKK KELAS I BANDUNG</span>
+                  <span class="text-[#99CC33] font-mono text-xs font-bold">BKK KELAS I BANDUNG</span>
                 </h1>
-                <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#00A99D]/20 text-[#E6F7F5] border border-[#00A99D]/40">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#99CC33] animate-pulse"></span>
                   OPERASIONAL AKTIF
                 </span>
               </div>
-              <p class="text-[11px] text-slate-300 flex items-center gap-2 truncate mt-0.5">
+              <p class="text-[11px] text-slate-200 flex items-center gap-2 truncate mt-0.5">
                 <span>Jaringan 7 Wilker &bull; 4 Moda Karantina Terpadu</span>
-                <span class="text-slate-500">|</span>
-                <span class="font-mono text-emerald-300">{{ generated_at }}</span>
+                <span class="text-slate-400">|</span>
+                <span class="font-mono text-[#99DFD6]">{{ generated_at }}</span>
               </p>
             </div>
           </div>
@@ -518,20 +518,20 @@ const filteredInspections = computed(() => {
               type="button"
               @click="refreshData"
               :disabled="isRefreshing"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-emerald-500/20 text-white hover:text-emerald-300 border border-white/15 hover:border-emerald-400/30 transition-all cursor-pointer disabled:opacity-50"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-[#00A99D]/25 text-white hover:text-[#E6F7F5] border border-white/15 hover:border-[#00A99D]/40 transition-all cursor-pointer disabled:opacity-50"
               title="Sinkronisasi data telemetri terkini"
             >
-              <RefreshCw class="w-3.5 h-3.5" :class="isRefreshing ? 'animate-spin text-emerald-400' : 'text-emerald-400'" />
+              <RefreshCw class="w-3.5 h-3.5" :class="isRefreshing ? 'animate-spin text-[#99CC33]' : 'text-[#99DFD6]'" />
               <span class="hidden sm:inline">{{ isRefreshing ? 'Menghubungkan...' : 'Sinkron' }}</span>
             </button>
 
-            <div class="h-5 w-px bg-slate-700/80 hidden sm:block"></div>
+            <div class="h-5 w-px bg-white/20 hidden sm:block"></div>
 
             <div class="flex items-center gap-1">
               <Link
                 :href="getUrl('/public_aircraft')"
                 target="_blank"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 border border-sky-400/30 transition-all flex items-center gap-1"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#00A99D]/20 hover:bg-[#00A99D]/35 text-[#E6F7F5] border border-[#00A99D]/40 transition-all flex items-center gap-1"
                 title="Input Inspeksi Pesawat Udara"
               >
                 <Plane class="w-3.5 h-3.5" />
@@ -540,7 +540,7 @@ const filteredInspections = computed(() => {
               <Link
                 :href="getUrl('/public_sanitasi')"
                 target="_blank"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 transition-all flex items-center gap-1"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#005851]/40 hover:bg-[#005851]/60 text-white border border-[#99DFD6]/35 transition-all flex items-center gap-1"
                 title="Input Karantina Sanitasi Kapal Laut"
               >
                 <Ship class="w-3.5 h-3.5" />
@@ -549,7 +549,7 @@ const filteredInspections = computed(() => {
               <Link
                 :href="getUrl('/public_alat')"
                 target="_blank"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 transition-all flex items-center gap-1"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#99CC33]/20 hover:bg-[#99CC33]/35 text-[#F7FCE8] border border-[#99CC33]/40 transition-all flex items-center gap-1"
                 title="Input Pemeriksaan Alat Kesehatan Haji"
               >
                 <Stethoscope class="w-3.5 h-3.5" />
@@ -558,7 +558,7 @@ const filteredInspections = computed(() => {
               <Link
                 :href="getUrl('/public_obat')"
                 target="_blank"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-400/30 transition-all flex items-center gap-1"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#00A99D]/25 hover:bg-[#00A99D]/40 text-[#E6F7F5] border border-[#00A99D]/45 transition-all flex items-center gap-1"
                 title="Input Pemakaian Obat P3K Pesawat"
               >
                 <Pill class="w-3.5 h-3.5" />
@@ -570,145 +570,145 @@ const filteredInspections = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
-      <!-- 4 HIGH-TECH INTERACTIVE SERVICE TILES (NEON ACCENTS)                      -->
+      <!-- 4 HARMONIZED SERVICE TILES (KEMENKES BRAND IDENTITY)                       -->
       <!-- ========================================================================= -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 font-sans">
         
-        <!-- Tile 1: Sanitasi Pesawat Udara -->
+        <!-- Tile 1: Sanitasi Pesawat Udara (Turquoise Accent) -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'aircraft' ? 'all' : 'aircraft'"
           class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
           :class="selectedModuleKey === 'aircraft'
-            ? 'border-sky-500 ring-2 ring-sky-500/30 bg-gradient-to-br from-sky-50/50 to-white'
-            : 'border-slate-200 hover:border-sky-400'"
+            ? 'border-[#00A99D] ring-2 ring-[#00A99D]/25 bg-gradient-to-br from-[#E6F7F5]/50 to-white'
+            : 'border-slate-200 hover:border-[#00A99D]'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-500 to-blue-600" :class="selectedModuleKey === 'aircraft' ? 'opacity-100' : 'opacity-70'"></div>
+          <div class="absolute top-0 left-0 right-0 h-1 bg-[#00A99D]" :class="selectedModuleKey === 'aircraft' ? 'opacity-100' : 'opacity-80'"></div>
           <div class="flex items-center justify-between text-xs mt-0.5">
             <span class="font-bold flex items-center gap-1.5 text-slate-800">
-              <span class="w-6 h-6 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center shrink-0">
+              <span class="w-6 h-6 rounded-lg bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0">
                 <Plane class="w-3.5 h-3.5" />
               </span>
               <span>Sanitasi Pesawat</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-sky-50 text-sky-700 border border-sky-200">
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
               {{ kpi.compliance_rate }}% Laik
             </span>
           </div>
 
           <div class="flex items-baseline justify-between mt-2">
             <div>
-              <span class="text-xl font-black text-slate-900 tracking-tight font-mono">
+              <span class="text-xl font-black text-[#005851] tracking-tight font-mono">
                 {{ aircraft_stats.total }}
               </span>
               <span class="text-xs text-slate-400 ml-1">dok</span>
             </div>
             <div class="text-[11px] font-semibold text-slate-500">
-              <span class="text-emerald-600 font-bold">{{ aircraft_stats.layak }} Layak</span> &bull; 
+              <span class="text-[#00A99D] font-bold">{{ aircraft_stats.layak }} Layak</span> &bull; 
               <span :class="aircraft_stats.tidak_layak > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'">{{ aircraft_stats.tidak_layak }} Tindakan</span>
             </div>
           </div>
         </div>
 
-        <!-- Tile 2: Sanitasi Kapal Laut -->
+        <!-- Tile 2: Sanitasi Kapal Laut (Dark Teal Accent) -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'ship' ? 'all' : 'ship'"
           class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
           :class="selectedModuleKey === 'ship'
-            ? 'border-emerald-500 ring-2 ring-emerald-500/30 bg-gradient-to-br from-emerald-50/50 to-white'
-            : 'border-slate-200 hover:border-emerald-400'"
+            ? 'border-[#005851] ring-2 ring-[#005851]/25 bg-gradient-to-br from-[#E0EFEF]/50 to-white'
+            : 'border-slate-200 hover:border-[#005851]'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-600" :class="selectedModuleKey === 'ship' ? 'opacity-100' : 'opacity-70'"></div>
+          <div class="absolute top-0 left-0 right-0 h-1 bg-[#005851]" :class="selectedModuleKey === 'ship' ? 'opacity-100' : 'opacity-80'"></div>
           <div class="flex items-center justify-between text-xs mt-0.5">
             <span class="font-bold flex items-center gap-1.5 text-slate-800">
-              <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <span class="w-6 h-6 rounded-lg bg-[#E0EFEF] text-[#005851] flex items-center justify-center shrink-0">
                 <Ship class="w-3.5 h-3.5" />
               </span>
               <span>Sanitasi Kapal</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#E0EFEF] text-[#005851] border border-[#99DFD6]">
               IHR 2005
             </span>
           </div>
 
           <div class="flex items-baseline justify-between mt-2">
             <div>
-              <span class="text-xl font-black text-slate-900 tracking-tight font-mono">
+              <span class="text-xl font-black text-[#005851] tracking-tight font-mono">
                 {{ ship_stats.total }}
               </span>
               <span class="text-xs text-slate-400 ml-1">kapal</span>
             </div>
             <div class="text-[11px] font-semibold text-slate-500">
-              <span class="text-emerald-700 font-bold">{{ ship_stats.sscec }} SSCEC</span> &bull; 
+              <span class="text-[#005851] font-bold">{{ ship_stats.sscec }} SSCEC</span> &bull; 
               <span class="text-amber-700 font-bold">{{ ship_stats.sscc }} SSCC</span>
             </div>
           </div>
         </div>
 
-        <!-- Tile 3: Alkes Haji & Emergensi -->
+        <!-- Tile 3: Alkes Haji & Emergensi (Lime Accent) -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'alat' ? 'all' : 'alat'"
           class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
           :class="selectedModuleKey === 'alat'
-            ? 'border-amber-500 ring-2 ring-amber-500/30 bg-gradient-to-br from-amber-50/50 to-white'
-            : 'border-slate-200 hover:border-amber-400'"
+            ? 'border-[#99CC33] ring-2 ring-[#99CC33]/30 bg-gradient-to-br from-[#F7FCE8]/60 to-white'
+            : 'border-slate-200 hover:border-[#99CC33]'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-600" :class="selectedModuleKey === 'alat' ? 'opacity-100' : 'opacity-70'"></div>
+          <div class="absolute top-0 left-0 right-0 h-1 bg-[#99CC33]" :class="selectedModuleKey === 'alat' ? 'opacity-100' : 'opacity-80'"></div>
           <div class="flex items-center justify-between text-xs mt-0.5">
             <span class="font-bold flex items-center gap-1.5 text-slate-800">
-              <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center shrink-0">
+              <span class="w-6 h-6 rounded-lg bg-[#F7FCE8] text-[#557A18] flex items-center justify-center shrink-0">
                 <Stethoscope class="w-3.5 h-3.5" />
               </span>
               <span>Alkes Haji Pesawat</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-800 border border-amber-200">
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#F7FCE8] text-[#557A18] border border-[#D6EC8E]">
               Emergensi
             </span>
           </div>
 
           <div class="flex items-baseline justify-between mt-2">
             <div>
-              <span class="text-xl font-black text-slate-900 tracking-tight font-mono">
+              <span class="text-xl font-black text-[#005851] tracking-tight font-mono">
                 {{ medical_stats.alat }}
               </span>
               <span class="text-xs text-slate-400 ml-1">dok</span>
             </div>
             <div class="text-[11px] font-semibold text-slate-500">
-              <span class="text-emerald-600 font-bold">{{ kpi.approved }} Selesai</span> &bull; 
-              <span class="text-amber-600 font-bold">{{ kpi.pending }} Proses</span>
+              <span class="text-[#557A18] font-bold">{{ kpi.approved }} Selesai</span> &bull; 
+              <span class="text-amber-700 font-bold">{{ kpi.pending }} Proses</span>
             </div>
           </div>
         </div>
 
-        <!-- Tile 4: Obat P3K Pesawat -->
+        <!-- Tile 4: Obat P3K Pesawat (Turquoise-Lime Blend) -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'obat' ? 'all' : 'obat'"
           class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
           :class="selectedModuleKey === 'obat'
-            ? 'border-rose-500 ring-2 ring-rose-500/30 bg-gradient-to-br from-rose-50/50 to-white'
-            : 'border-slate-200 hover:border-rose-400'"
+            ? 'border-[#00A99D] ring-2 ring-[#00A99D]/25 bg-gradient-to-br from-[#E6F7F5]/50 to-white'
+            : 'border-slate-200 hover:border-[#00A99D]'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-rose-500 to-pink-600" :class="selectedModuleKey === 'obat' ? 'opacity-100' : 'opacity-70'"></div>
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00A99D] to-[#99CC33]" :class="selectedModuleKey === 'obat' ? 'opacity-100' : 'opacity-80'"></div>
           <div class="flex items-center justify-between text-xs mt-0.5">
             <span class="font-bold flex items-center gap-1.5 text-slate-800">
-              <span class="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+              <span class="w-6 h-6 rounded-lg bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0">
                 <Pill class="w-3.5 h-3.5" />
               </span>
               <span>Obat P3K Pesawat</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200">
+            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
               Total {{ kpi.total }}
             </span>
           </div>
 
           <div class="flex items-baseline justify-between mt-2">
             <div>
-              <span class="text-xl font-black text-slate-900 tracking-tight font-mono">
+              <span class="text-xl font-black text-[#005851] tracking-tight font-mono">
                 {{ medical_stats.obat }}
               </span>
               <span class="text-xs text-slate-400 ml-1">dok</span>
             </div>
             <div class="text-[11px] font-semibold text-slate-500">
-              <span class="text-emerald-700 font-bold">{{ kpi.completion_rate }}% Verifikasi</span> &bull; 
+              <span class="text-[#00A99D] font-bold">{{ kpi.completion_rate }}% Verifikasi</span> &bull; 
               <span class="text-slate-600 font-medium">{{ kpi.today }} Hari Ini</span>
             </div>
           </div>
@@ -717,40 +717,40 @@ const filteredInspections = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
-      <!-- CENTERPIECE: TACTICAL GEOSPATIAL COMMAND CENTER (THE HERO VIEW)           -->
+      <!-- CENTERPIECE: TACTICAL GEOSPATIAL COMMAND CENTER (HARMONISASI KEMENKES)     -->
       <!-- ========================================================================= -->
-      <div class="bg-white rounded-2xl border-2 border-slate-900/90 shadow-2xl overflow-hidden ring-4 ring-emerald-500/10">
+      <div class="bg-white rounded-2xl border-2 border-[#003B36] shadow-2xl overflow-hidden ring-4 ring-[#00A99D]/15 font-sans">
         
-        <!-- Centerpiece Top High-Tech Command Bar -->
-        <div class="px-4 py-2.5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
+        <!-- Centerpiece Top Command Bar (Dark Teal Gradient) -->
+        <div class="px-4 py-2.5 bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] text-white flex flex-wrap items-center justify-between gap-3 border-b border-[#003B36]">
           <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center font-black text-xs shadow-md shadow-emerald-500/30">
+            <div class="w-7 h-7 rounded-lg bg-[#00A99D] text-white flex items-center justify-center font-black text-xs shadow-md shadow-[#00A99D]/30 border border-[#99DFD6]/40">
               <Scan class="w-4 h-4" />
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h2 class="text-sm font-extrabold tracking-tight text-white flex items-center gap-1.5">
+                <h2 class="text-sm font-extrabold font-heading tracking-tight text-white flex items-center gap-1.5">
                   <span>PETA GEOSPASIAL WILAYAH KERJA JAWA BARAT</span>
                 </h2>
-                <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-emerald-400/20 text-emerald-300 border border-emerald-400/40">
+                <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#00A99D]/20 text-[#E6F7F5] border border-[#00A99D]/40">
                   7 NODE TERHUBUNG
                 </span>
               </div>
-              <p class="text-[11px] text-slate-400">
+              <p class="text-[11px] text-slate-200">
                 Vektor koneksi otomatis menghubungkan Kantor Induk Bandung dengan 6 Pos/Wilayah Kerja
               </p>
             </div>
           </div>
 
-          <!-- Futuristic Controls: Map Layer Switcher & WebGL Actions -->
+          <!-- Controls: Map Layer Switcher & WebGL Actions -->
           <div class="flex flex-wrap items-center gap-2 text-xs">
             <!-- Map Layer Switcher -->
-            <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-800/90 border border-slate-700/80 text-[10px] font-bold">
+            <div class="inline-flex items-center p-0.5 rounded-lg bg-[#00312D] border border-[#005851] text-[10px] font-bold">
               <button
                 type="button"
                 @click="switchMapLayer('osm')"
                 class="px-2 py-0.5 rounded transition-all cursor-pointer"
-                :class="activeMapLayer === 'osm' ? 'bg-emerald-500 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+                :class="activeMapLayer === 'osm' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
               >
                 OSM Standar
               </button>
@@ -758,7 +758,7 @@ const filteredInspections = computed(() => {
                 type="button"
                 @click="switchMapLayer('hot')"
                 class="px-2 py-0.5 rounded transition-all cursor-pointer"
-                :class="activeMapLayer === 'hot' ? 'bg-emerald-500 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+                :class="activeMapLayer === 'hot' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
               >
                 Humanitarian
               </button>
@@ -766,7 +766,7 @@ const filteredInspections = computed(() => {
                 type="button"
                 @click="switchMapLayer('osmde')"
                 class="px-2 py-0.5 rounded transition-all cursor-pointer"
-                :class="activeMapLayer === 'osmde' ? 'bg-emerald-500 text-slate-950 shadow-xs' : 'text-slate-300 hover:text-white'"
+                :class="activeMapLayer === 'osmde' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
               >
                 Topografi
               </button>
@@ -777,10 +777,10 @@ const filteredInspections = computed(() => {
               <button
                 type="button"
                 @click="resetGlobalView"
-                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer border border-white/10"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/10 hover:bg-[#00A99D]/25 text-white transition-all cursor-pointer border border-white/10"
                 title="Reset tampilan seluruh Jawa Barat"
               >
-                <Globe class="w-3 h-3 text-emerald-400" />
+                <Globe class="w-3 h-3 text-[#99CC33]" />
                 <span>Global</span>
               </button>
               <button
@@ -788,8 +788,8 @@ const filteredInspections = computed(() => {
                 @click="toggle3DPitch"
                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer"
                 :class="mapPitch > 25
-                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs'
-                  : 'bg-white/10 hover:bg-white/20 text-white border-white/10'"
+                  ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-xs'
+                  : 'bg-white/10 hover:bg-[#00A99D]/20 text-white border-white/10'"
               >
                 <Box class="w-3 h-3" />
                 <span>3D</span>
@@ -799,8 +799,8 @@ const filteredInspections = computed(() => {
                 @click="toggleOrbit"
                 class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer"
                 :class="isOrbiting
-                  ? 'bg-emerald-500 text-slate-950 border-emerald-400 shadow-xs'
-                  : 'bg-white/10 hover:bg-white/20 text-white border-white/10'"
+                  ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-xs'
+                  : 'bg-white/10 hover:bg-[#00A99D]/20 text-white border-white/10'"
               >
                 <RotateCw class="w-3 h-3" :class="isOrbiting ? 'animate-spin' : ''" />
                 <span>Orbit</span>
@@ -810,10 +810,10 @@ const filteredInspections = computed(() => {
         </div>
 
         <!-- Fly to Node Ribbon (Interactive Tactical Beacon Strip) -->
-        <div class="px-3.5 py-2 bg-slate-900 border-b border-slate-800 text-white flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div class="px-3.5 py-2 bg-[#002D29] border-b border-[#003B36] text-white flex flex-wrap items-center justify-between gap-2 text-xs">
           <div class="flex flex-wrap items-center gap-1.5">
-            <span class="text-[10px] font-mono font-bold tracking-wider uppercase text-emerald-400 mr-1 flex items-center gap-1">
-              <Crosshair class="w-3 h-3 text-emerald-400" />
+            <span class="text-[10px] font-mono font-bold tracking-wider uppercase text-[#99CC33] mr-1 flex items-center gap-1">
+              <Crosshair class="w-3 h-3 text-[#99CC33]" />
               TARGET:
             </span>
             <button
@@ -823,25 +823,25 @@ const filteredInspections = computed(() => {
               @click="selectOffice(node)"
               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border"
               :class="selectedOffice?.no === node.no
-                ? 'bg-emerald-500 text-slate-950 border-emerald-400 font-extrabold shadow-md shadow-emerald-500/30'
-                : 'bg-slate-800/90 text-slate-300 border-slate-700/80 hover:bg-slate-700 hover:text-white'"
+                ? 'bg-[#00A99D] text-white border-[#00A99D] font-extrabold shadow-md shadow-[#00A99D]/30'
+                : 'bg-[#003B36]/90 text-slate-200 border-[#004D44] hover:bg-[#005851] hover:text-white'"
             >
-              <span class="text-[9px] font-mono font-black" :class="selectedOffice?.no === node.no ? 'text-slate-950' : 'text-emerald-400'">
+              <span class="text-[9px] font-mono font-black" :class="selectedOffice?.no === node.no ? 'text-white' : 'text-[#99CC33]'">
                 {{ node.shortCode }}
               </span>
               <span>{{ node.shortTitle.replace('Wilker ', '').replace('Induk ', '') }}</span>
               <span
                 v-if="node.total > 0"
                 class="text-[9px] font-bold px-1 rounded-full font-mono"
-                :class="selectedOffice?.no === node.no ? 'bg-slate-950 text-emerald-400' : 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'"
+                :class="selectedOffice?.no === node.no ? 'bg-[#003B36] text-[#99CC33]' : 'bg-[#00A99D]/20 text-[#E6F7F5] border border-[#00A99D]/30'"
               >
                 {{ node.total }}
               </span>
             </button>
           </div>
 
-          <div class="text-[11px] font-mono text-slate-400 hidden xl:flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <div class="text-[11px] font-mono text-slate-300 hidden xl:flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-pulse"></span>
             <span>KLIK NODE UNTUK INSPEKSI LOKASI PRESISI</span>
           </div>
         </div>
@@ -850,7 +850,7 @@ const filteredInspections = computed(() => {
         <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
           
           <!-- Large WebGL Map Area (8 Cols) -->
-          <div class="lg:col-span-8 relative min-w-0 bg-slate-900">
+          <div class="lg:col-span-8 relative min-w-0 bg-[#002D29]">
             <BaseMap
               ref="mapComponentRef"
               :initialCenter="[107.55, -6.65]"
@@ -865,15 +865,15 @@ const filteredInspections = computed(() => {
             />
 
             <!-- Top Left Cyber HUD Overlay -->
-            <div class="absolute top-3 left-3 z-10 w-48 rounded-xl bg-slate-950/90 backdrop-blur-md border border-emerald-500/30 px-3 py-2.5 shadow-2xl text-[10px] font-mono text-emerald-300 pointer-events-none ring-1 ring-emerald-500/20">
-              <div class="flex items-center justify-between border-b border-emerald-500/30 pb-1 mb-1.5">
-                <div class="flex items-center gap-1.5 font-bold text-emerald-400">
-                  <Terminal class="w-3 h-3 text-emerald-400" />
+            <div class="absolute top-3 left-3 z-10 w-48 rounded-xl bg-[#002D29]/92 backdrop-blur-md border border-[#00A99D]/30 px-3 py-2.5 shadow-2xl text-[10px] font-mono text-[#99DFD6] pointer-events-none ring-1 ring-[#00A99D]/20">
+              <div class="flex items-center justify-between border-b border-[#00A99D]/30 pb-1 mb-1.5">
+                <div class="flex items-center gap-1.5 font-bold text-[#99CC33]">
+                  <Terminal class="w-3 h-3 text-[#99CC33]" />
                   <span>TELEMETRI GPS</span>
                 </div>
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-[#99CC33] animate-ping"></span>
               </div>
-              <div class="space-y-1 text-slate-300">
+              <div class="space-y-1 text-slate-200">
                 <div class="flex justify-between">
                   <span class="text-slate-400">LAT / LNG:</span>
                   <span class="text-white font-bold">{{ mapCenter[1].toFixed(4) }}, {{ mapCenter[0].toFixed(4) }}</span>
@@ -884,7 +884,7 @@ const filteredInspections = computed(() => {
                 </div>
                 <div class="flex justify-between">
                   <span class="text-slate-400">STATUS LINK:</span>
-                  <span class="text-emerald-400 font-bold">TERKONEKSI (7)</span>
+                  <span class="text-[#99CC33] font-bold">TERKONEKSI (7)</span>
                 </div>
               </div>
             </div>
@@ -892,19 +892,19 @@ const filteredInspections = computed(() => {
             <!-- Bottom Right Target Node Telemetry HUD -->
             <div
               v-if="activeMapNode"
-              class="absolute bottom-3 right-3 z-10 rounded-xl bg-slate-950/92 backdrop-blur-md border border-slate-800 shadow-2xl transition-all duration-200 text-white ring-1 ring-emerald-500/30"
+              class="absolute bottom-3 right-3 z-10 rounded-xl bg-[#002D29]/94 backdrop-blur-md border border-[#005851] shadow-2xl transition-all duration-200 text-white ring-1 ring-[#00A99D]/30"
               :class="isNodeCardMinimized ? 'w-52 px-3 py-2' : 'w-72 sm:w-80 px-4 py-3'"
             >
               <div class="flex items-center justify-between gap-1.5">
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-7 h-7 rounded-lg bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-mono font-black shrink-0 shadow-xs">
+                  <div class="w-7 h-7 rounded-lg bg-[#00A99D] text-white flex items-center justify-center text-xs font-mono font-black shrink-0 shadow-xs border border-[#99DFD6]/40">
                     {{ activeMapNode.shortCode }}
                   </div>
                   <div class="min-w-0">
                     <h4 class="text-xs font-black text-white truncate">
                       {{ activeMapNode.title }}
                     </h4>
-                    <p v-if="!isNodeCardMinimized" class="text-[10px] text-emerald-400 truncate font-mono">
+                    <p v-if="!isNodeCardMinimized" class="text-[10px] text-[#99CC33] truncate font-mono">
                       {{ activeMapNode.type }} &bull; {{ activeMapNode.moda }}
                     </p>
                   </div>
@@ -912,25 +912,25 @@ const filteredInspections = computed(() => {
                 <button
                   type="button"
                   @click="isNodeCardMinimized = !isNodeCardMinimized"
-                  class="w-5 h-5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs leading-none cursor-pointer"
+                  class="w-5 h-5 rounded bg-[#003B36] hover:bg-[#005851] text-slate-300 flex items-center justify-center text-xs leading-none cursor-pointer"
                 >
                   {{ isNodeCardMinimized ? '+' : '−' }}
                 </button>
               </div>
 
               <template v-if="!isNodeCardMinimized">
-                <div class="grid grid-cols-2 gap-2 pt-2.5 mt-2.5 border-t border-slate-800/80 text-[11px] font-mono">
-                  <div class="p-1.5 rounded bg-slate-900/80 border border-slate-800">
+                <div class="grid grid-cols-2 gap-2 pt-2.5 mt-2.5 border-t border-[#003B36] text-[11px] font-mono">
+                  <div class="p-1.5 rounded bg-[#003B36]/80 border border-[#004D44]">
                     <span class="text-[9px] text-slate-400 block uppercase">Total Dokumen</span>
-                    <span class="text-sm font-black text-emerald-400">{{ activeMapNode.total || 0 }}</span>
+                    <span class="text-sm font-black text-[#99CC33]">{{ activeMapNode.total || 0 }}</span>
                   </div>
-                  <div class="p-1.5 rounded bg-slate-900/80 border border-slate-800">
+                  <div class="p-1.5 rounded bg-[#003B36]/80 border border-[#004D44]">
                     <span class="text-[9px] text-slate-400 block uppercase">Terakhir Aktif</span>
-                    <span class="text-xs font-semibold text-slate-200 truncate block">{{ activeMapNode.last_human || 'Belum ada' }}</span>
+                    <span class="text-xs font-semibold text-[#E6F7F5] truncate block">{{ activeMapNode.last_human || 'Belum ada' }}</span>
                   </div>
                 </div>
-                <div class="mt-2 pt-2 border-t border-slate-800 text-[10px] text-slate-300 line-clamp-2 leading-tight flex items-start gap-1">
-                  <MapPin class="w-3 h-3 text-rose-400 shrink-0 mt-0.5" />
+                <div class="mt-2 pt-2 border-t border-[#003B36] text-[10px] text-slate-300 line-clamp-2 leading-tight flex items-start gap-1">
+                  <MapPin class="w-3 h-3 text-[#99CC33] shrink-0 mt-0.5" />
                   <span>{{ activeMapNode.address }}</span>
                 </div>
               </template>
@@ -948,7 +948,7 @@ const filteredInspections = computed(() => {
                       type="button"
                       @click="activeOfficeFilter = 'all'"
                       class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
-                      :class="activeOfficeFilter === 'all' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'"
+                      :class="activeOfficeFilter === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
                     >
                       Semua (7)
                     </button>
@@ -956,7 +956,7 @@ const filteredInspections = computed(() => {
                       type="button"
                       @click="activeOfficeFilter = 'udara'"
                       class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
-                      :class="activeOfficeFilter === 'udara' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'"
+                      :class="activeOfficeFilter === 'udara' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
                     >
                       Udara (3)
                     </button>
@@ -964,13 +964,13 @@ const filteredInspections = computed(() => {
                       type="button"
                       @click="activeOfficeFilter = 'laut'"
                       class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
-                      :class="activeOfficeFilter === 'laut' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900'"
+                      :class="activeOfficeFilter === 'laut' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
                     >
                       Laut (4)
                     </button>
                   </div>
 
-                  <span class="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                  <span class="text-[10px] font-mono font-bold text-[#005851] bg-[#E6F7F5] px-1.5 py-0.2 rounded border border-[#99DFD6]">
                     STATUS AKTIF
                   </span>
                 </div>
@@ -981,7 +981,7 @@ const filteredInspections = computed(() => {
                     v-model="searchOffice"
                     type="text"
                     placeholder="Cari wilker / alamat..."
-                    class="w-full pl-8 pr-2 py-1 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400"
+                    class="w-full pl-8 pr-2 py-1 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#00A99D]"
                   />
                 </div>
               </div>
@@ -994,12 +994,12 @@ const filteredInspections = computed(() => {
                   @click="selectOffice(office)"
                   class="py-2.5 px-2.5 rounded-xl transition-all cursor-pointer flex flex-col gap-1.5 mb-1"
                   :class="selectedOffice?.no === office.no
-                    ? 'bg-white border-2 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
+                    ? 'bg-white border-2 border-[#00A99D] shadow-md ring-2 ring-[#00A99D]/20'
                     : 'bg-white/70 hover:bg-white border border-slate-200/80'"
                 >
                   <div class="flex items-center justify-between gap-2">
                     <div class="flex items-center gap-2 min-w-0">
-                      <span class="w-5 h-5 rounded-md bg-slate-900 text-white text-[9px] font-mono font-black flex items-center justify-center shrink-0">
+                      <span class="w-5 h-5 rounded-md bg-[#005851] text-white text-[9px] font-mono font-black flex items-center justify-center shrink-0">
                         {{ office.no }}
                       </span>
                       <div class="min-w-0">
@@ -1016,12 +1016,12 @@ const filteredInspections = computed(() => {
 
                     <div class="flex items-center gap-2 shrink-0">
                       <div class="text-right">
-                        <span class="text-xs font-black text-slate-900 font-mono">{{ office.total || 0 }}</span>
+                        <span class="text-xs font-black text-[#005851] font-mono">{{ office.total || 0 }}</span>
                         <span class="text-[9px] text-slate-400 ml-0.5">dok</span>
                       </div>
                       <button
                         type="button"
-                        class="w-6 h-6 rounded-md bg-slate-100 hover:bg-emerald-500 hover:text-slate-950 text-slate-400 flex items-center justify-center transition-colors"
+                        class="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#00A99D] hover:text-white text-slate-400 flex items-center justify-center transition-colors"
                         title="Arahkan kamera peta ke wilker ini"
                       >
                         <Crosshair class="w-3.5 h-3.5" />
@@ -1033,7 +1033,7 @@ const filteredInspections = computed(() => {
                   <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
                     <div
                       class="h-full rounded-full transition-all duration-500"
-                      :class="selectedOffice?.no === office.no ? 'bg-emerald-500' : 'bg-slate-400'"
+                      :class="selectedOffice?.no === office.no ? 'bg-[#00A99D]' : 'bg-[#99CC33]/70'"
                       :style="{ width: `${Math.max(8, ((office.total || 0) / maxOfficeTotal) * 100)}%` }"
                     ></div>
                   </div>
@@ -1043,8 +1043,8 @@ const filteredInspections = computed(() => {
 
             <!-- Cockpit Footer Summary -->
             <div class="pt-2 mt-2 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between font-mono">
-              <span>Target: <strong class="text-slate-900 font-sans">{{ selectedOffice?.short_name || '-' }}</strong></span>
-              <span class="text-emerald-700 font-bold">{{ selectedOffice?.total || 0 }} Dok</span>
+              <span>Target: <strong class="text-[#005851] font-sans">{{ selectedOffice?.short_name || '-' }}</strong></span>
+              <span class="text-[#005851] font-bold">{{ selectedOffice?.total || 0 }} Dok</span>
             </div>
           </div>
 
@@ -1055,7 +1055,7 @@ const filteredInspections = computed(() => {
       <!-- ========================================================================= -->
       <!-- ANALYTICS COCKPIT: DYNAMIC TREND + OPERATIONAL RISK FOCUS                 -->
       <!-- ========================================================================= -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 font-sans">
         
         <!-- 30-Day Trend Multi-Series ECharts (7 Cols) -->
         <div class="lg:col-span-7 rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
@@ -1063,7 +1063,7 @@ const filteredInspections = computed(() => {
             <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
               <div>
                 <h3 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
-                  <ChartLine class="w-4 h-4 text-emerald-600" />
+                  <ChartLine class="w-4 h-4 text-[#00A99D]" />
                   Tren Pengawasan 30 Hari Terakhir
                 </h3>
               </div>
@@ -1074,7 +1074,7 @@ const filteredInspections = computed(() => {
                   type="button"
                   @click="trendViewMode = 'line'"
                   class="p-1 rounded transition-all cursor-pointer"
-                  :class="trendViewMode === 'line' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700'"
+                  :class="trendViewMode === 'line' ? 'bg-[#005851] text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700'"
                   title="Grafik Garis"
                 >
                   <ChartLine class="w-3.5 h-3.5" />
@@ -1083,7 +1083,7 @@ const filteredInspections = computed(() => {
                   type="button"
                   @click="trendViewMode = 'bar'"
                   class="p-1 rounded transition-all cursor-pointer"
-                  :class="trendViewMode === 'bar' ? 'bg-white text-slate-900 shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700'"
+                  :class="trendViewMode === 'bar' ? 'bg-[#005851] text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700'"
                   title="Grafik Batang"
                 >
                   <ChartColumn class="w-3.5 h-3.5" />
@@ -1100,38 +1100,38 @@ const filteredInspections = computed(() => {
           <!-- Series Checklist -->
           <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-3 text-[11px]">
             <button type="button" @click="toggleSeries('total')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.total ? 'bg-slate-900' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.total ? 'bg-[#005851]' : 'bg-slate-200'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.total ? 'font-bold text-slate-900' : 'text-slate-400'">Total ({{ kpi.total }})</span>
+              <span :class="seriesVisibility.total ? 'font-bold text-[#005851]' : 'text-slate-400'">Total ({{ kpi.total }})</span>
             </button>
 
             <button type="button" @click="toggleSeries('aircraft')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.aircraft ? 'bg-sky-600' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.aircraft ? 'bg-[#00A99D]' : 'bg-slate-200'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.aircraft ? 'font-bold text-slate-900' : 'text-slate-400'">Pesawat ({{ aircraft_stats.total }})</span>
+              <span :class="seriesVisibility.aircraft ? 'font-bold text-[#005851]' : 'text-slate-400'">Pesawat ({{ aircraft_stats.total }})</span>
             </button>
 
             <button type="button" @click="toggleSeries('ship')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.ship ? 'bg-emerald-600' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.ship ? 'bg-[#007D74]' : 'bg-slate-200'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.ship ? 'font-bold text-slate-900' : 'text-slate-400'">Kapal ({{ ship_stats.total }})</span>
+              <span :class="seriesVisibility.ship ? 'font-bold text-[#005851]' : 'text-slate-400'">Kapal ({{ ship_stats.total }})</span>
             </button>
 
             <button type="button" @click="toggleSeries('alat')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.alat ? 'bg-amber-600' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.alat ? 'bg-[#7CA622]' : 'bg-slate-200'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.alat ? 'font-bold text-slate-900' : 'text-slate-400'">Alkes ({{ medical_stats.alat }})</span>
+              <span :class="seriesVisibility.alat ? 'font-bold text-[#557A18]' : 'text-slate-400'">Alkes ({{ medical_stats.alat }})</span>
             </button>
 
             <button type="button" @click="toggleSeries('obat')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.obat ? 'bg-rose-600' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.obat ? 'bg-[#E11D48]' : 'bg-slate-200'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.obat ? 'font-bold text-slate-900' : 'text-slate-400'">Obat ({{ medical_stats.obat }})</span>
+              <span :class="seriesVisibility.obat ? 'font-bold text-slate-800' : 'text-slate-400'">Obat ({{ medical_stats.obat }})</span>
             </button>
           </div>
         </div>
@@ -1143,20 +1143,20 @@ const filteredInspections = computed(() => {
           <div class="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <Plane class="w-3.5 h-3.5 text-sky-600" />
+                <Plane class="w-3.5 h-3.5 text-[#00A99D]" />
                 Tindakan Sanitasi Pesawat
               </h4>
-              <span class="text-[11px] font-semibold text-slate-500 font-mono">{{ aircraft_stats.layak }} Layak &bull; {{ aircraft_stats.tidak_layak }} Tindakan</span>
+              <span class="text-[11px] font-semibold text-[#005851] font-mono">{{ aircraft_stats.layak }} Layak &bull; {{ aircraft_stats.tidak_layak }} Tindakan</span>
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div
                 v-for="act in aircraft_stats.tindakan"
                 :key="act.key"
-                class="px-2.5 py-1.5 rounded-lg border border-slate-100 bg-slate-50 flex items-center justify-between"
+                class="px-2.5 py-1.5 rounded-lg border border-[#E6F7F5] bg-[#E6F7F5]/40 flex items-center justify-between"
               >
                 <span class="text-slate-600 text-[11px]">{{ act.label }}</span>
-                <span class="font-bold text-slate-900 font-mono">{{ act.count }}</span>
+                <span class="font-bold text-[#005851] font-mono">{{ act.count }}</span>
               </div>
             </div>
           </div>
@@ -1165,10 +1165,10 @@ const filteredInspections = computed(() => {
           <div class="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <Ship class="w-3.5 h-3.5 text-emerald-600" />
+                <Ship class="w-3.5 h-3.5 text-[#005851]" />
                 Temuan Faktor Risiko Sanitasi Kapal
               </h4>
-              <span class="text-[11px] font-semibold text-amber-600 font-mono">{{ ship_stats.ships_with_risk }} / {{ ship_stats.total }} Kapal</span>
+              <span class="text-[11px] font-semibold text-amber-700 font-mono">{{ ship_stats.ships_with_risk }} / {{ ship_stats.total }} Kapal</span>
             </div>
 
             <div v-if="ship_stats.top_risk_areas && ship_stats.top_risk_areas.length > 0" class="space-y-1.5 text-xs">
@@ -1193,7 +1193,7 @@ const filteredInspections = computed(() => {
       <!-- ========================================================================= -->
       <!-- COMPACT LIVE FEED & AUDIT TRAIL TABLE                                     -->
       <!-- ========================================================================= -->
-      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden font-sans">
         
         <!-- Header & Tabs -->
         <div class="px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5 text-xs">
@@ -1202,11 +1202,11 @@ const filteredInspections = computed(() => {
               type="button"
               @click="activeFeedTab = 'inspections'"
               class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5"
-              :class="activeFeedTab === 'inspections' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 bg-slate-100'"
+              :class="activeFeedTab === 'inspections' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 hover:text-[#005851] bg-slate-100'"
             >
               <ClipboardCheck class="w-3.5 h-3.5" />
               <span>Dokumen Pemeriksaan Terkini</span>
-              <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-400 text-slate-950 font-black font-mono">
+              <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-[#99CC33] text-[#003B36] font-black font-mono">
                 {{ recent_inspections.length }}
               </span>
             </button>
@@ -1215,7 +1215,7 @@ const filteredInspections = computed(() => {
               type="button"
               @click="activeFeedTab = 'activities'"
               class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5"
-              :class="activeFeedTab === 'activities' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 bg-slate-100'"
+              :class="activeFeedTab === 'activities' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 hover:text-[#005851] bg-slate-100'"
             >
               <Activity class="w-3.5 h-3.5" />
               <span>Audit Log ({{ recent_activities.length }})</span>
@@ -1225,7 +1225,7 @@ const filteredInspections = computed(() => {
               type="button"
               @click="activeFeedTab = 'logins'"
               class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5"
-              :class="activeFeedTab === 'logins' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:text-slate-900 bg-slate-100'"
+              :class="activeFeedTab === 'logins' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 hover:text-[#005851] bg-slate-100'"
             >
               <LogIn class="w-3.5 h-3.5" />
               <span>Sesi Login ({{ recent_logins.length }})</span>
@@ -1236,7 +1236,7 @@ const filteredInspections = computed(() => {
           <div v-if="activeFeedTab === 'inspections'" class="flex items-center gap-2">
             <select
               v-model="statusFilterFeed"
-              class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 font-medium focus:outline-none"
+              class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 font-medium focus:outline-none focus:border-[#00A99D]"
             >
               <option value="all">Semua Status</option>
               <option value="submitted">Diajukan</option>
@@ -1250,7 +1250,7 @@ const filteredInspections = computed(() => {
                 v-model="searchFeed"
                 type="text"
                 placeholder="Cari no reg / armada..."
-                class="w-full pl-6 pr-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white"
+                class="w-full pl-6 pr-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00A99D]"
               />
             </div>
           </div>
@@ -1275,17 +1275,17 @@ const filteredInspections = computed(() => {
               <tr
                 v-for="item in filteredInspections"
                 :key="item.registration_no"
-                class="hover:bg-slate-50/70 transition-colors"
+                class="hover:bg-[#E6F7F5]/30 transition-colors"
               >
-                <!-- Layanan Badge -->
+                <!-- Layanan Badge (Harmonized to Kemenkes Brand) -->
                 <td class="py-2 px-3 whitespace-nowrap">
                   <span
                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold"
                     :class="{
-                      'bg-sky-50 text-sky-700 border border-sky-200': item.module === 'aircraft',
-                      'bg-emerald-50 text-emerald-700 border border-emerald-200': item.module === 'ship',
-                      'bg-amber-50 text-amber-700 border border-amber-200': item.module === 'alat',
-                      'bg-rose-50 text-rose-700 border border-rose-200': item.module === 'obat',
+                      'bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]': item.module === 'aircraft',
+                      'bg-[#E0EFEF] text-[#005851] border border-[#99DFD6]': item.module === 'ship',
+                      'bg-[#F7FCE8] text-[#557A18] border border-[#D6EC8E]': item.module === 'alat',
+                      'bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]': item.module === 'obat',
                     }"
                   >
                     <component :is="moduleIconMap[item.module] || Layers" class="w-3 h-3" />
@@ -1293,7 +1293,7 @@ const filteredInspections = computed(() => {
                   </span>
                 </td>
 
-                <td class="py-2 px-3 whitespace-nowrap font-mono font-bold text-slate-900">
+                <td class="py-2 px-3 whitespace-nowrap font-mono font-bold text-[#005851]">
                   {{ item.registration_no }}
                 </td>
 
@@ -1307,7 +1307,7 @@ const filteredInspections = computed(() => {
 
                 <td class="py-2 px-3 whitespace-nowrap text-slate-600">
                   <span class="inline-flex items-center gap-1">
-                    <MapPin class="w-3 h-3 text-slate-400" />
+                    <MapPin class="w-3 h-3 text-[#00A99D]" />
                     {{ item.office }}
                   </span>
                 </td>
@@ -1321,9 +1321,9 @@ const filteredInspections = computed(() => {
                     <span
                       class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider font-mono"
                       :class="{
-                        'bg-emerald-50 text-emerald-700 border border-emerald-200': item.status === 'approved',
+                        'bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]': item.status === 'approved',
                         'bg-amber-50 text-amber-700 border border-amber-200': item.status === 'submitted',
-                        'bg-sky-50 text-sky-700 border border-sky-200': item.status === 'verified',
+                        'bg-[#F7FCE8] text-[#557A18] border border-[#D6EC8E]': item.status === 'verified',
                         'bg-rose-50 text-rose-700 border border-rose-200': item.status === 'rejected',
                       }"
                     >
@@ -1331,7 +1331,7 @@ const filteredInspections = computed(() => {
                     </span>
                     <span
                       class="text-[11px] font-semibold"
-                      :class="item.result_ok ? 'text-emerald-700' : 'text-rose-600'"
+                      :class="item.result_ok ? 'text-[#00A99D] font-bold' : 'text-rose-600 font-bold'"
                     >
                       {{ item.result }}
                     </span>
@@ -1341,7 +1341,7 @@ const filteredInspections = computed(() => {
                 <td class="py-2 px-3 whitespace-nowrap text-right">
                   <Link
                     :href="getUrl(item.url)"
-                    class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 transition-colors"
+                    class="inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#E6F7F5] hover:bg-[#00A99D] text-[#005851] hover:text-white transition-all border border-[#99DFD6]/60"
                   >
                     <span>Buka</span>
                     <ChevronRight class="w-3 h-3" />
@@ -1366,14 +1366,14 @@ const filteredInspections = computed(() => {
             class="flex items-start justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs"
           >
             <div class="flex items-start gap-2">
-              <div class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-[10px] shrink-0 font-mono">
+              <div class="w-6 h-6 rounded-full bg-[#E6F7F5] text-[#005851] flex items-center justify-center font-bold text-[10px] shrink-0 font-mono">
                 {{ act.causer_name.charAt(0) }}
               </div>
               <div>
                 <div class="font-bold text-slate-900">
                   {{ act.causer_name }}
                   <span class="font-normal text-slate-500">melakukan</span>
-                  <span class="font-semibold text-emerald-700">{{ act.event || 'aktivitas' }}</span>
+                  <span class="font-semibold text-[#005851]">{{ act.event || 'aktivitas' }}</span>
                 </div>
                 <div class="text-slate-600 text-[11px]">
                   {{ act.description }}
@@ -1394,7 +1394,7 @@ const filteredInspections = computed(() => {
             class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs"
           >
             <div class="flex items-center gap-2">
-              <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+              <div class="w-6 h-6 rounded-full bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0">
                 <LogIn class="w-3 h-3" />
               </div>
               <div>
@@ -1403,7 +1403,7 @@ const filteredInspections = computed(() => {
               </div>
             </div>
             <div class="text-right">
-              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono">
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6] font-mono">
                 {{ lh.status }}
               </span>
               <div class="text-[10px] text-slate-400 mt-0.5 font-mono">{{ lh.login_at }}</div>

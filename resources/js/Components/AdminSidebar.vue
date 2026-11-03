@@ -119,7 +119,7 @@ const navSections = computed(() => {
           path: '/inertia/dashboard',
           url: getUrl('/inertia/dashboard'),
           icon: LayoutDashboard,
-          iconColor: 'text-emerald-600',
+          iconColor: 'text-[#00A99D]',
           active: !isSpa.value && (props.currentRoute === 'dashboard' || props.currentRoute === 'home'),
         },
       ],
@@ -132,7 +132,7 @@ const navSections = computed(() => {
           path: '/travelconsent/home',
           url: getUrl('/travelconsent/home'),
           icon: Globe,
-          iconColor: 'text-sky-600',
+          iconColor: 'text-[#005851]',
           external: true,
           active: false,
         },
@@ -141,7 +141,7 @@ const navSections = computed(() => {
           path: '/aircraft-inspections',
           url: getUrl('/aircraft-inspections'),
           icon: Plane,
-          iconColor: 'text-indigo-600',
+          iconColor: 'text-[#00A99D]',
           active: props.currentRoute === 'aircraft-inspections',
         },
         {
@@ -149,7 +149,7 @@ const navSections = computed(() => {
           path: '/ship-inspections',
           url: getUrl('/ship-inspections'),
           icon: Anchor,
-          iconColor: 'text-teal-600',
+          iconColor: 'text-[#005851]',
           active: props.currentRoute === 'ship-inspections',
         },
         {
@@ -157,7 +157,7 @@ const navSections = computed(() => {
           path: '/flight-medical-inspections/alat',
           url: getUrl('/flight-medical-inspections/alat'),
           icon: BriefcaseMedical,
-          iconColor: 'text-blue-600',
+          iconColor: 'text-[#7CA622]',
           active: props.currentRoute === 'flight-medical-alat',
         },
         {
@@ -165,7 +165,7 @@ const navSections = computed(() => {
           path: '/flight-medical-inspections/obat',
           url: getUrl('/flight-medical-inspections/obat'),
           icon: Pill,
-          iconColor: 'text-rose-600',
+          iconColor: 'text-[#00A99D]',
           active: props.currentRoute === 'flight-medical-obat',
         },
       ],
@@ -178,7 +178,7 @@ const navSections = computed(() => {
           path: '/audit-logs',
           url: getUrl('/audit-logs'),
           icon: History,
-          iconColor: 'text-rose-500',
+          iconColor: 'text-slate-600',
           active: props.currentRoute === 'audit',
         },
         {
@@ -241,7 +241,7 @@ const navSections = computed(() => {
           />
 
           <div v-if="!isCollapsed" class="transition-opacity duration-200 min-w-0">
-            <span class="block text-sm font-bold text-slate-900 tracking-tight group-hover:text-emerald-600 transition-colors truncate">
+            <span class="block text-sm font-bold text-slate-900 tracking-tight group-hover:text-[#00A99D] transition-colors truncate">
               BKK Kelas I Bandung
             </span>
             <span class="block text-[10px] text-slate-500 font-medium truncate">
@@ -285,11 +285,14 @@ const navSections = computed(() => {
             :class="[
               isCollapsed ? 'justify-center py-2.5 px-2' : 'gap-3 px-3 py-2',
               item.active 
-                ? 'bg-slate-100 text-slate-900 font-semibold border border-slate-200/80 shadow-2xs'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium border border-transparent'
+                ? 'bg-[#E6F7F5] text-[#005851] font-bold border border-[#99DFD6] shadow-2xs'
+                : 'text-slate-600 hover:text-[#005851] hover:bg-[#F0FDFB] font-medium border border-transparent'
             ]"
             :title="isCollapsed ? item.name : ''"
           >
+            <!-- Left Active Indicator Bar -->
+            <span v-if="item.active" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#00A99D] rounded-r-full"></span>
+
             <component 
               :is="item.icon" 
               class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105"
@@ -302,7 +305,7 @@ const navSections = computed(() => {
               <div v-if="item.badge || item.external" class="flex items-center gap-1.5 shrink-0 ml-1.5">
                 <span 
                   v-if="item.badge" 
-                  class="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-sky-50 text-sky-700 border border-sky-200 uppercase tracking-wider"
+                  class="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6] uppercase tracking-wider"
                 >
                   {{ item.badge }}
                 </span>

@@ -144,8 +144,8 @@ const renderMarkers = () => {
 
     el.innerHTML = `
       <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
-        <span style="position: absolute; width: 100%; height: 100%; border-radius: 9999px; opacity: 0.75; animation: maplibre-pulse-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; background-color: ${isPrimary ? '#334155' : '#10b981'};"></span>
-        <div style="position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.35); border: 2px solid #ffffff; background-color: ${isPrimary ? '#0f172a' : '#059669'}; color: #ffffff; font-size: ${badgeLabel.length > 2 ? '10px' : '12px'}; font-family: monospace; font-weight: 800; cursor: pointer; transition: transform 0.2s;">
+        <span style="position: absolute; width: 100%; height: 100%; border-radius: 9999px; opacity: 0.75; animation: maplibre-pulse-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; background-color: ${isPrimary ? '#005851' : '#99CC33'};"></span>
+        <div style="position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.35); border: 2px solid ${isPrimary ? '#99DFD6' : '#ffffff'}; background-color: ${isPrimary ? '#005851' : '#00A99D'}; color: #ffffff; font-size: ${badgeLabel.length > 2 ? '10px' : '12px'}; font-family: monospace; font-weight: 800; cursor: pointer; transition: transform 0.2s;">
           ${badgeLabel}
         </div>
       </div>
@@ -159,13 +159,13 @@ const renderMarkers = () => {
       maxWidth: '205px',
       className: 'custom-maplibre-popup',
     }).setHTML(`
-      <div style="padding: 7px 9px; font-family: sans-serif; color: #0f172a; min-width: 155px; max-width: 195px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 5px; padding-right: 12px;">
-          <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 10px; color: #0f172a; line-height: 1.2;">
-            <span style="font-family: monospace; background: #e2e8f0; padding: 1px 4px; border-radius: 3px; font-size: 8.5px;">${badgeLabel}</span>
+      <div style="padding: 7px 9px; font-family: 'Segoe UI', sans-serif; color: #005851; min-width: 155px; max-width: 195px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-bottom: 1px solid #E6F7F5; padding-bottom: 4px; margin-bottom: 5px; padding-right: 12px;">
+          <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 10px; color: #005851; line-height: 1.2;">
+            <span style="font-family: monospace; background: #E6F7F5; color: #005851; border: 1px solid #99DFD6; padding: 1px 4px; border-radius: 3px; font-size: 8.5px;">${badgeLabel}</span>
             <span>${node.short_name || node.name}</span>
           </div>
-          <span style="padding: 1px 4px; border-radius: 9999px; font-size: 8px; font-weight: 700; text-transform: uppercase; background-color: #d1fae5; color: #065f46; flex-shrink: 0;">
+          <span style="padding: 1px 4px; border-radius: 9999px; font-size: 8px; font-weight: 700; text-transform: uppercase; background-color: #E6F7F5; color: #005851; border: 1px solid #99DFD6; flex-shrink: 0;">
             ${node.status || 'ONLINE'}
           </span>
         </div>
@@ -174,18 +174,18 @@ const renderMarkers = () => {
             ? node.popupRows.map((row) => `
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="color: #64748b;">${row.label}</span>
-            <span style="font-family: monospace; font-weight: 700; color: ${row.color || '#1e293b'};">${row.value}</span>
+            <span style="font-family: monospace; font-weight: 700; color: ${row.color || '#005851'};">${row.value}</span>
           </div>`).join('')
             : `
           <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #64748b;">Peran: <strong style="color: #1e293b;">${node.type || 'Wilker'}</strong></span>
-            <span style="font-weight: 700; color: #059669;">${node.ping || '4ms'}</span>
+            <span style="color: #64748b;">Peran: <strong style="color: #005851;">${node.type || 'Wilker'}</strong></span>
+            <span style="font-weight: 700; color: #00A99D;">${node.ping || '4ms'}</span>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="color: #64748b;">Throughput:</span>
-            <span style="font-family: monospace; font-weight: 600; color: #4f46e5;">${node.connections ? Number(node.connections).toLocaleString() : '1420'} req/s</span>
+            <span style="font-family: monospace; font-weight: 600; color: #005851;">${node.connections ? Number(node.connections).toLocaleString() : '1420'} req/s</span>
           </div>`}
-          <div style="font-size: 8.5px; color: #475569; margin-top: 2px; line-height: 1.25; border-top: 1px dashed #e2e8f0; padding-top: 3px;">
+          <div style="font-size: 8.5px; color: #475569; margin-top: 2px; line-height: 1.25; border-top: 1px dashed #E6F7F5; padding-top: 3px;">
             📍 ${node.address || node.location || ''}
           </div>
         </div>
@@ -241,9 +241,9 @@ const renderNetworkLines = (targetMap) => {
         type: 'line',
         source: 'bkk-wilker-links',
         paint: {
-          'line-color': '#34d399',
+          'line-color': '#99CC33',
           'line-width': 6,
-          'line-opacity': 0.35,
+          'line-opacity': 0.45,
           'line-blur': 2,
         },
       });
@@ -254,7 +254,7 @@ const renderNetworkLines = (targetMap) => {
         type: 'line',
         source: 'bkk-wilker-links',
         paint: {
-          'line-color': '#059669',
+          'line-color': '#00A99D',
           'line-width': 2.2,
           'line-dasharray': [3, 2],
           'line-opacity': 0.95,

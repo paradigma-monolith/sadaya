@@ -289,27 +289,27 @@ onUnmounted(() => {
         :class="isExpanded ? 'w-[calc(100vw-2rem)] sm:w-[460px] max-w-[460px] h-[min(600px,calc(100vh-100px))]' : 'w-[calc(100vw-2rem)] sm:w-[370px] max-w-[370px] h-[min(510px,calc(100vh-100px))]'"
       >
         <!-- Chat Header -->
-        <div class="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between">
+        <div class="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between font-sans">
           <div class="flex items-center gap-2.5">
             <div class="relative">
-              <div class="w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-white shadow-xs">
+              <div class="w-8 h-8 rounded-full bg-[#005851] flex items-center justify-center text-white shadow-xs">
                 <MessageSquare class="w-4 h-4" />
               </div>
               <span 
                 class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white"
-                :class="wsConnected ? 'bg-emerald-500' : 'bg-blue-500'"
+                :class="wsConnected ? 'bg-[#99CC33]' : 'bg-[#00A99D]'"
                 :title="wsConnected ? 'Reverb WebSocket Aktif' : 'Polling Synced'"
               ></span>
             </div>
             <div>
               <div class="flex items-center gap-1.5">
-                <span class="text-xs font-bold text-slate-900 tracking-tight">Komunikasi Wilker BKK</span>
-                <span v-if="currentUser" class="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200/70">
+                <span class="text-xs font-bold text-[#005851] tracking-tight font-heading">Komunikasi Wilker BKK</span>
+                <span v-if="currentUser" class="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
                   {{ currentUser.name }}
                 </span>
               </div>
               <div class="text-[10px] text-slate-400 flex items-center gap-1">
-                <Radio class="w-2.5 h-2.5 text-emerald-500" />
+                <Radio class="w-2.5 h-2.5 text-[#00A99D]" />
                 <span>Channel: <strong class="text-slate-600">chat-channel</strong></span>
               </div>
             </div>
@@ -367,11 +367,11 @@ onUnmounted(() => {
           class="flex-1 overflow-y-auto p-4 space-y-3 text-xs bg-white scroll-smooth"
         >
           <!-- Intro Beacon Card -->
-          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] text-slate-600">
+          <div class="p-3 rounded-xl bg-[#E6F7F5]/50 border border-[#99DFD6]/60 text-[11px] text-slate-600 font-sans">
             <div class="flex items-start gap-2">
-              <Sparkles class="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+              <Sparkles class="w-4 h-4 text-[#00A99D] flex-shrink-0 mt-0.5" />
               <div>
-                <p class="font-semibold text-slate-900">Koordinasi Induk & 6 Wilker BKK</p>
+                <p class="font-bold text-[#005851]">Koordinasi Induk & 6 Wilker BKK</p>
                 <p class="text-slate-500 text-[10px] mt-0.5 leading-relaxed">
                   Pesan disiarkan instan ke seluruh petugas BKK Kelas I Bandung melalui <strong>Laravel Reverb</strong>.
                 </p>
@@ -403,9 +403,9 @@ onUnmounted(() => {
 
             <!-- Message Bubble -->
             <div 
-              class="max-w-[78%] rounded-2xl px-3.5 py-2 transition-all"
+              class="max-w-[78%] rounded-2xl px-3.5 py-2 transition-all font-sans"
               :class="msg.user_id === currentUser?.id 
-                ? 'bg-[#2b7fff] text-white rounded-br-xs shadow-xs' 
+                ? 'bg-[#00A99D] text-white rounded-br-xs shadow-xs' 
                 : 'bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200/60'"
             >
               <!-- Sender Name (if not current user) -->
@@ -424,7 +424,7 @@ onUnmounted(() => {
               <!-- Timestamp & Status -->
               <div 
                 class="flex items-center justify-end gap-1 mt-1 text-[9px] font-mono"
-                :class="msg.user_id === currentUser?.id ? 'text-blue-100' : 'text-slate-400'"
+                :class="msg.user_id === currentUser?.id ? 'text-[#E6F7F5]' : 'text-slate-400'"
               >
                 <span>{{ msg.created_at || 'now' }}</span>
                 <CheckCheck v-if="msg.user_id === currentUser?.id" class="w-3 h-3 text-white" />
@@ -454,14 +454,14 @@ onUnmounted(() => {
         <!-- Chat Input Footer -->
         <form 
           @submit.prevent="sendMessage()" 
-          class="p-2.5 bg-white border-t border-slate-100 flex items-center gap-2"
+          class="p-2.5 bg-white border-t border-slate-100 flex items-center gap-2 font-sans"
         >
           <input
             v-model="inputMessage"
             type="text"
             maxlength="1000"
-            placeholder="Write a message..."
-            class="flex-1 bg-slate-50 border border-slate-200 focus:border-slate-400 focus:bg-white rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-all"
+            placeholder="Ketik pesan koordinasi..."
+            class="flex-1 bg-slate-50 border border-slate-200 focus:border-[#00A99D] focus:bg-white rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-all"
             :disabled="isSending"
             @keydown.enter.exact.prevent="sendMessage()"
           />
@@ -469,7 +469,7 @@ onUnmounted(() => {
           <button
             type="submit"
             :disabled="!inputMessage.trim() || isSending"
-            class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            class="px-3.5 py-2 rounded-xl bg-[#005851] hover:bg-[#003B36] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
           >
             <span v-if="isSending" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
             <Send v-else class="w-3.5 h-3.5" />
@@ -480,20 +480,20 @@ onUnmounted(() => {
     </transition>
 
     <!-- Floating Toggle Pill (Clean White Pill at Bottom-Right) -->
-    <div class="flex justify-end">
+    <div class="flex justify-end font-sans">
       <button
         type="button"
         @click="toggleChat"
-        class="group relative flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-white hover:bg-slate-50 text-slate-900 border border-slate-200/90 hover:border-slate-300 shadow-lg shadow-slate-900/10 transition-all duration-200 transform hover:scale-102 active:scale-98 cursor-pointer"
-        :class="isOpen ? 'ring-2 ring-slate-900 ring-offset-2' : ''"
+        class="group relative flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-white hover:bg-[#E6F7F5] text-slate-900 border border-slate-200/90 hover:border-[#99DFD6] shadow-lg shadow-[#005851]/10 transition-all duration-200 transform hover:scale-102 active:scale-98 cursor-pointer"
+        :class="isOpen ? 'ring-2 ring-[#005851] ring-offset-2' : ''"
         title="Buka Live Chat Reverb (Kanan Bawah)"
       >
         <!-- Chat Icon -->
-        <div class="relative flex items-center justify-center w-7 h-7 rounded-full bg-slate-900 text-white shadow-xs transition-all">
+        <div class="relative flex items-center justify-center w-7 h-7 rounded-full bg-[#005851] text-white shadow-xs transition-all">
           <MessageSquare class="w-3.5 h-3.5" />
           <span 
             class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white"
-            :class="wsConnected ? 'bg-emerald-500' : 'bg-blue-500'"
+            :class="wsConnected ? 'bg-[#99CC33]' : 'bg-[#00A99D]'"
           ></span>
         </div>
 

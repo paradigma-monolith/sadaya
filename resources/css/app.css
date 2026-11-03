@@ -10,8 +10,33 @@
 @source '../**/*.vue';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Century Gothic', 'VAG Rounded BT', Roboto, system-ui, sans-serif;
+    --font-heading: 'VAG Rounded BT', 'VAG Rounded Bold', 'VAG Rounded', 'Segoe UI', 'Century Gothic', sans-serif;
+    --font-accent: 'Freestyle Script', cursive, sans-serif;
+
+    /* Standar Identitas Warna Kementerian Kesehatan RI */
+    /* 1. Turquoise Utama (CMYK: C 75, M 0, Y 45, K 0 | RGB: 0, 169, 157) */
+    --color-kemenkes-turquoise: #00A99D;
+    --color-kemenkes-turquoise-hover: #009388;
+    --color-kemenkes-turquoise-light: #E6F7F5;
+    --color-kemenkes-turquoise-border: #99DFD6;
+
+    /* 2. Hijau Kuning / Lime (CMYK: C 20, M 0, Y 100, K 0 | RGB: 205, 220, 41) */
+    --color-kemenkes-lime: #99CC33;
+    --color-kemenkes-lime-hover: #82B027;
+    --color-kemenkes-lime-light: #F7FCE8;
+    --color-kemenkes-lime-border: #D6EC8E;
+
+    /* 3. Turquoise Medium / Tua (CMYK: C 74, M 0, Y 21, K 50 / Deep Teal) */
+    --color-kemenkes-darkteal: #005851;
+    --color-kemenkes-darkteal-deep: #064E48;
+    --color-kemenkes-darkteal-light: #E0EFEF;
+}
+
+/* Global Selection Style with Kemenkes Brand Harmonization */
+::selection {
+    background-color: #00A99D;
+    color: #ffffff;
 }
 
 /* Global Mobile Viewport Stabilization without breaking position: sticky */
