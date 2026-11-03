@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\SinkarkesExport;
 use App\Models\KantorWilker;
 use App\Models\SinkarkesReport;
+use App\Services\SinkarkesImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -160,6 +161,53 @@ class SinkarkesController extends Controller
         $filename = "SINKARKES_{$safeWilker}_{$year}" . ($month ? "_M{$month}" : '') . ".xlsx";
 
         return Excel::download(new SinkarkesExport($wilker, $year, $month), $filename);
+    }
+
+    /**
+     * Import SINKARKES data from official Excel spreadsheet.
+     */
+    public function importExcel(Request $request, SinkarkesImportService $service): JsonResponse|RedirectResponse
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls|max:30720', // max 30MB
+            'year' => 'nullable|integer|min:2020|max:2050',
+            'wilker' => 'nullable|string',
+            'overwrite' => 'nullable',
+        ]);
+
+        $year = $request->input('year') ? (int) $request->input('year') : null;
+        $wilker = $request->input('wilker') ?: null;
+        $overwrite = filter_var($request->input('overwrite', true), FILTER_VALIDATE_BOOLEAN);
+
+        try {
+            $result = $service->import(
+                $request->file('file'),
+                $year,
+                $wilker,
+                $overwrite
+            );
+
+            $msg = "Import data SINKARKES berhasil! Total {$result['cells_imported']} nilai data diimpor untuk {$result['sheets_processed']} wilayah kerja (Tahun {$result['year']}).";
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $msg,
+                    'result' => $result,
+                ]);
+            }
+
+            return back()->with('success', $msg);
+        } catch (\Throwable $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengimpor file Excel: ' . $e->getMessage(),
+                ], 422);
+            }
+
+            return back()->withErrors(['file' => 'Gagal mengimpor file Excel: ' . $e->getMessage()]);
+        }
     }
 }
 

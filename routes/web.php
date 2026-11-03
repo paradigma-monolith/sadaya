@@ -133,6 +133,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [SinkarkesController::class, 'index'])->name('index');
         Route::post('/', [SinkarkesController::class, 'store'])->name('store');
         Route::get('/export', [SinkarkesController::class, 'exportExcel'])->name('export');
+        Route::post('/import', [SinkarkesController::class, 'importExcel'])->name('import');
     });
 
     // System Data Exports (Excel, CSV, PDF)
