@@ -425,17 +425,6 @@ const handleLogout = () => {
               </a>
 
               <a
-                :href="getUrl('/aircraft-inspections')" 
-                @click="handleNav('/aircraft-inspections', $event)"
-                class="h-full inline-flex items-center px-1 border-b-2 transition-all cursor-pointer"
-                :class="(!isSpa && activeNav === 'aircraft-index')
-                  ? 'border-slate-900 text-slate-900 font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-slate-900 font-medium'"
-              >
-                Inspeksi Pesawat
-              </a>
-
-              <a
                 :href="getUrl('/audit-logs')" 
                 @click="handleNav('/audit-logs', $event)"
                 class="h-full inline-flex items-center px-1 border-b-2 transition-all cursor-pointer"
