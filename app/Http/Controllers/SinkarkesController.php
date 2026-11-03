@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exports\SinkarkesExport;
 use App\Models\KantorWilker;
 use App\Models\SinkarkesReport;
+use App\Services\SinkarkesDashboardService;
 use App\Services\SinkarkesImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,19 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class SinkarkesController extends Controller
 {
+    /**
+     * Display the Executive Summary & Analytics Dashboard for SINKARKES.
+     */
+    public function dashboard(Request $request, SinkarkesDashboardService $service): Response
+    {
+        $year = (int) $request->query('year', 2026);
+        $wilker = $request->query('wilker', 'all');
+
+        $data = $service->getDashboardData($year, $wilker);
+
+        return Inertia::render('Sinkarkes/Dashboard', $data);
+    }
+
     /**
      * Display the Sinkarkes Form page.
      */

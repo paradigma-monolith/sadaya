@@ -1,6 +1,6 @@
 {
-  "__plugin-vue_export-helper--OeDjs3D.js": {
-    "file": "assets/_plugin-vue_export-helper--OeDjs3D.js",
+  "__plugin-vue_export-helper-B2_Y0X5b.js": {
+    "file": "assets/_plugin-vue_export-helper-B2_Y0X5b.js",
     "name": "_plugin-vue_export-helper",
     "css": [
       "assets/_plugin-vue_export-helper-CKTAcyAX.css"
@@ -11,7 +11,7 @@
     "src": "__plugin-vue_export-helper-CKTAcyAX.css"
   },
   "resources/css/app.css": {
-    "file": "assets/app-B1JTUWr3.css",
+    "file": "assets/app-hVbZQoZN.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -20,24 +20,24 @@
     ]
   },
   "resources/js/inertia.js": {
-    "file": "assets/inertia-BDTIH28s.js",
+    "file": "assets/inertia-Crdh5CFe.js",
     "name": "inertia",
     "src": "resources/js/inertia.js",
     "isEntry": true,
     "imports": [
-      "__plugin-vue_export-helper--OeDjs3D.js"
+      "__plugin-vue_export-helper-B2_Y0X5b.js"
     ],
     "css": [
-      "assets/inertia-Bif0syA5.css"
+      "assets/inertia-BRBXwJVV.css"
     ]
   },
   "resources/js/spa.js": {
-    "file": "assets/spa-BXZdyYUn.js",
+    "file": "assets/spa-DYA31pIT.js",
     "name": "spa",
     "src": "resources/js/spa.js",
     "isEntry": true,
     "imports": [
-      "__plugin-vue_export-helper--OeDjs3D.js"
+      "__plugin-vue_export-helper-B2_Y0X5b.js"
     ],
     "css": [
       "assets/spa-BoUyjSLR.css"

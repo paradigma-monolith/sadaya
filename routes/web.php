@@ -130,6 +130,7 @@ Route::middleware('auth')->group(function () {
 
     // SINKARKES - Laporan Karantina Kesehatan Terpadu BKK Kelas I Bandung
     Route::prefix('sinkarkes')->name('sinkarkes.')->group(function () {
+        Route::get('/dashboard', [SinkarkesController::class, 'dashboard'])->name('dashboard');
         Route::get('/', [SinkarkesController::class, 'index'])->name('index');
         Route::post('/', [SinkarkesController::class, 'store'])->name('store');
         Route::get('/export', [SinkarkesController::class, 'exportExcel'])->name('export');

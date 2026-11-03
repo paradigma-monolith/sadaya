@@ -28,6 +28,7 @@ import {
   BriefcaseMedical,
   Pill,
   FileSpreadsheet,
+  BarChart3,
   Globe
 } from 'lucide-vue-next';
 import { router as inertiaRouter } from '@inertiajs/vue3';
@@ -115,6 +116,14 @@ const defaultActions = [
     category: 'Pengawasan Alat Angkut & Barang',
     icon: Pill,
     action: () => navigateTo('/flight-medical-inspections/obat'),
+  },
+  {
+    id: 'nav-sinkarkes-dashboard',
+    title: 'Dashboard & Analitik SINKARKES',
+    subtitle: 'Executive summary, diagram grafis bulanan & komparasi lintas wilker',
+    category: 'Laporan & Dokumen',
+    icon: BarChart3,
+    action: () => navigateTo('/sinkarkes/dashboard'),
   },
   {
     id: 'nav-sinkarkes',
