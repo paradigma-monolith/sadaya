@@ -139,3 +139,4 @@ class SinkarkesController extends Controller
         return Excel::download(new SinkarkesExport($wilker, $year, $month), $filename);
     }
 }
+

@@ -57,3 +57,4 @@ class SinkarkesReport extends Model
         return $query;
     }
 }
+
