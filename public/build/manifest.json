@@ -1,0 +1,43 @@
+{
+  "_BaseMap-CKTAcyAX.css": {
+    "file": "assets/BaseMap-CKTAcyAX.css",
+    "src": "_BaseMap-CKTAcyAX.css"
+  },
+  "_BaseMap-CTRd32wS.js": {
+    "file": "assets/BaseMap-CTRd32wS.js",
+    "name": "BaseMap",
+    "css": [
+      "assets/BaseMap-CKTAcyAX.css"
+    ]
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-DpaThROa.css",
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "name": "app",
+    "names": [
+      "app.css"
+    ]
+  },
+  "resources/js/inertia.js": {
+    "file": "assets/inertia-CAjI-JEK.js",
+    "name": "inertia",
+    "src": "resources/js/inertia.js",
+    "isEntry": true,
+    "imports": [
+      "_BaseMap-CTRd32wS.js"
+    ]
+  },
+  "resources/js/spa.js": {
+    "file": "assets/spa-DeUx4NCV.js",
+    "name": "spa",
+    "src": "resources/js/spa.js",
+    "isEntry": true,
+    "imports": [
+      "_BaseMap-CTRd32wS.js"
+    ],
+    "css": [
+      "assets/spa-BoUyjSLR.css"
+    ]
+  }
+}
