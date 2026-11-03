@@ -366,7 +366,7 @@ class SinkarkesDashboardService
             ['code' => 'KSE.15', 'label' => 'Pemberian Sailing Permit', 'unit' => 'Kpl', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 107],
 
             // UKP Section
-            ['code' => 'UKP.1', 'label' => 'Kunjungan Poliklinik KKP', 'unit' => 'Pasien', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 160],
+            ['code' => 'UKP.1', 'label' => 'Kunjungan Poliklinik BKK', 'unit' => 'Pasien', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 160],
             ['code' => 'UKP.2', 'label' => 'Surat Keterangan Berbadan Sehat', 'unit' => 'Org', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 184],
             ['code' => 'UKP.3', 'label' => 'Pemeriksaan Obat & P3K Kapal/Pesawat', 'unit' => 'Unit', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 185],
             ['code' => 'UKP.4', 'label' => 'Pemeriksaan Lab Klinik Dasar', 'unit' => 'Sampel', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 188],

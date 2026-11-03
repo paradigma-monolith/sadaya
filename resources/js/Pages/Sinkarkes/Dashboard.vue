@@ -356,7 +356,7 @@ const healthOption = computed(() => {
       textStyle: { color: '#f8fafc', fontSize: 11 },
     },
     legend: {
-      data: ['Kunjungan Poliklinik KKP', 'Surat Berbadan Sehat', 'Vaksinasi ICV'],
+      data: ['Kunjungan Poliklinik BKK', 'Surat Berbadan Sehat', 'Vaksinasi ICV'],
       bottom: 0,
       textStyle: { color: '#64748b', fontSize: 11 },
     },
@@ -380,7 +380,7 @@ const healthOption = computed(() => {
     },
     series: [
       {
-        name: 'Kunjungan Poliklinik KKP',
+        name: 'Kunjungan Poliklinik BKK',
         type: 'bar',
         data: props.health_chart.poliklinik || [],
         itemStyle: { color: '#0284c7', borderRadius: [4, 4, 0, 0] },
@@ -545,7 +545,7 @@ const openMonthForm = (targetWilker, targetMonth) => {
             {{ kpi.total_layanan_kesehatan?.toLocaleString('id-ID') || 0 }}
           </div>
           <div class="text-[10px] text-slate-400 mt-1 truncate">
-            Poliklinik KKP &amp; Uji Laik
+            Poliklinik BKK &amp; Uji Laik
           </div>
         </div>
 
@@ -666,7 +666,7 @@ const openMonthForm = (targetWilker, targetMonth) => {
               <span class="text-xs text-slate-400 font-mono">UKP</span>
             </div>
             <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              Kunjungan poliklinik KKP, penerbitan surat keterangan sehat, dan vaksinasi haji/umrah/internasional.
+              Kunjungan poliklinik BKK, penerbitan surat keterangan sehat, dan vaksinasi haji/umrah/internasional.
             </p>
           </div>
 

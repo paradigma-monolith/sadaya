@@ -203,9 +203,9 @@
     "157": { "code": "KSE.22.A", "section": "KSE", "label": "Pemantauan Kedatangan Orang Sakit - Daerah Terjangkit", "unit": "Org", "type": "int" },
     "158": { "code": "KSE.22.B", "section": "KSE", "label": "Pemantauan Kedatangan Orang Sakit - Daerah Tidak Terjangkit", "unit": "Org", "type": "int" },
 
-    "161": { "code": "UKP.1.1.A", "section": "UKP", "label": "Kunjungan Poliklinik KKP - Karyawan Pelabuhan", "unit": "Org", "type": "int" },
-    "162": { "code": "UKP.1.1.B", "section": "UKP", "label": "Kunjungan Poliklinik KKP - ABK/Crew/Penumpang", "unit": "Org", "type": "int" },
-    "163": { "code": "UKP.1.1.C", "section": "UKP", "label": "Kunjungan Poliklinik KKP - Bukan Karyawan", "unit": "Org", "type": "int" },
+    "161": { "code": "UKP.1.1.A", "section": "UKP", "label": "Kunjungan Poliklinik BKK - Karyawan Pelabuhan", "unit": "Org", "type": "int" },
+    "162": { "code": "UKP.1.1.B", "section": "UKP", "label": "Kunjungan Poliklinik BKK - ABK/Crew/Penumpang", "unit": "Org", "type": "int" },
+    "163": { "code": "UKP.1.1.C", "section": "UKP", "label": "Kunjungan Poliklinik BKK - Bukan Karyawan", "unit": "Org", "type": "int" },
     "166": { "code": "UKP.1.2.A1", "section": "UKP", "label": "Penyakit Menular KKP - Karantina, potensial wabah", "unit": "Org", "type": "int" },
     "167": { "code": "UKP.1.2.A2", "section": "UKP", "label": "Penyakit Menular KKP - Malaria", "unit": "Org", "type": "int" },
     "168": { "code": "UKP.1.2.A3", "section": "UKP", "label": "Penyakit Menular KKP - Demam Berdarah", "unit": "Org", "type": "int" },
