@@ -1,0 +1,3753 @@
+{
+  "form_metadata": {
+    "title": "SINKARKES BKK KELAS I BANDUNG",
+    "default_year": 2026,
+    "default_wilker": "BANDARA HUSEIN",
+    "months": [
+      {
+        "id": 1,
+        "key": "jan",
+        "label": "JAN",
+        "excel_col": "G"
+      },
+      {
+        "id": 2,
+        "key": "feb",
+        "label": "FEB",
+        "excel_col": "H"
+      },
+      {
+        "id": 3,
+        "key": "mar",
+        "label": "MART",
+        "excel_col": "I"
+      },
+      {
+        "id": 4,
+        "key": "apr",
+        "label": "APRL",
+        "excel_col": "J"
+      },
+      {
+        "id": 5,
+        "key": "mei",
+        "label": "MEI",
+        "excel_col": "K"
+      },
+      {
+        "id": 6,
+        "key": "jun",
+        "label": "JUN",
+        "excel_col": "L"
+      },
+      {
+        "id": 7,
+        "key": "jul",
+        "label": "JULI",
+        "excel_col": "M"
+      },
+      {
+        "id": 8,
+        "key": "agu",
+        "label": "AGUST",
+        "excel_col": "N"
+      },
+      {
+        "id": 9,
+        "key": "sep",
+        "label": "SEPT",
+        "excel_col": "O"
+      },
+      {
+        "id": 10,
+        "key": "okt",
+        "label": "OKT",
+        "excel_col": "P"
+      },
+      {
+        "id": 11,
+        "key": "nov",
+        "label": "NOV",
+        "excel_col": "Q"
+      },
+      {
+        "id": 12,
+        "key": "des",
+        "label": "DES",
+        "excel_col": "R"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "section_code": "KSE",
+      "section_title": "KARANTINA & SURVEILANS EPIDEMIOLOGI",
+      "excel_row_header": 6,
+      "items": [
+        {
+          "excel_row": 7,
+          "code": "KSE.1",
+          "no": "1",
+          "label": "KEDATANGAN KAPAL ( 1 = 1,A + 1,B )",
+          "unit": "Kpl",
+          "type": "summary",
+          "formula_rows": [
+            8,
+            11
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 8,
+          "code": "KSE.1.A",
+          "no": "1,A",
+          "label": "Dari Luar Negeri ( 1,A = 1,A1 + 1,A3 )",
+          "unit": "Kpl",
+          "type": "summary",
+          "formula_rows": [
+            9,
+            10
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 9,
+          "code": "KSE.1.A.1a",
+          "no": "1,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 10,
+          "code": "KSE.1.A.1b",
+          "no": "1,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 11,
+          "code": "KSE.1.B",
+          "no": "1,B",
+          "label": "Dari Dalam Negeri ( 1,B = 1,B1 + 1,B3 )",
+          "unit": "Kpl",
+          "type": "summary",
+          "formula_rows": [
+            12,
+            13
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 12,
+          "code": "KSE.1.B.1a",
+          "no": "1,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 13,
+          "code": "KSE.1.B.1b",
+          "no": "1,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 14,
+          "code": "KSE.2",
+          "no": "2",
+          "label": "KEBERANGKATAN KAPAL ( PHC ) : ( 2 = 2,A + 2,B )",
+          "unit": "Kpl",
+          "type": "summary",
+          "formula_rows": [
+            15,
+            18
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 15,
+          "code": "KSE.2.A",
+          "no": "2,A",
+          "label": "Ke Luar Negeri ( 2,A = 2,A1 + 2,A3 )",
+          "unit": "Kpl",
+          "type": "summary",
+          "formula_rows": [
+            16,
+            17
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 16,
+          "code": "KSE.2.A.1a",
+          "no": "2,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 17,
+          "code": "KSE.2.A.1b",
+          "no": "2,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 18,
+          "code": "KSE.2.B",
+          "no": "2,B",
+          "label": "Ke Dalam Negeri ( 2,B = 2,B1 + 2,B3 )",
+          "unit": "Kpl",
+          "type": "summary",
+          "formula_rows": [
+            19,
+            20
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 19,
+          "code": "KSE.2.B.1a",
+          "no": "2,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 20,
+          "code": "KSE.2.B.1b",
+          "no": "2,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 21,
+          "code": "KSE.3",
+          "no": "3",
+          "label": "KEDATANGAN PESAWAT ( 3 = 3,A + 3,B )",
+          "unit": "Pswt",
+          "type": "summary",
+          "formula_rows": [
+            22,
+            27
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 22,
+          "code": "KSE.3.A",
+          "no": "3,A",
+          "label": "Dari Luar Negeri ( 3,A = 3,A1 + 3,A3 )",
+          "unit": "Pswt",
+          "type": "summary",
+          "formula_rows": [
+            23,
+            24
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 23,
+          "code": "KSE.3.A.1a",
+          "no": "3,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 24,
+          "code": "KSE.3.A.1b",
+          "no": "3,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 25,
+          "code": "KSE.3.A4",
+          "no": "3,A4",
+          "label": "Pemeriksaan GENDEC",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 26,
+          "code": "KSE.3.A5",
+          "no": "3,A5",
+          "label": "Tindakan Karantina",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 27,
+          "code": "KSE.3.B",
+          "no": "3,B",
+          "label": "Dari Dalam Negeri ( 3,B = 3,B1 + 3,B3 )",
+          "unit": "Pswt",
+          "type": "summary",
+          "formula_rows": [
+            28,
+            29
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 28,
+          "code": "KSE.3.B.1a",
+          "no": "3,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 29,
+          "code": "KSE.3.B.1b",
+          "no": "3,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 30,
+          "code": "KSE.4",
+          "no": "4",
+          "label": "KEBERANGKATAN PESAWAT ( 4 = 4,A + 4,B )",
+          "unit": "Pswt",
+          "type": "summary",
+          "formula_rows": [
+            31,
+            34
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 31,
+          "code": "KSE.4.A",
+          "no": "4,A",
+          "label": "Ke Luar Negeri ( 4,A = 4,A1 + 4,A3 )",
+          "unit": "Pswt",
+          "type": "summary",
+          "formula_rows": [
+            32,
+            33
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 32,
+          "code": "KSE.4.A.1a",
+          "no": "4,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 33,
+          "code": "KSE.4.A.1b",
+          "no": "4,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 34,
+          "code": "KSE.4.B",
+          "no": "4,B",
+          "label": "Ke Dalam Negeri ( 4,B = 4,B1 + 4,B3 )",
+          "unit": "Pswt",
+          "type": "summary",
+          "formula_rows": [
+            35,
+            36
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 35,
+          "code": "KSE.4.B.1a",
+          "no": "4,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 36,
+          "code": "KSE.4.B.1b",
+          "no": "4,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 37,
+          "code": "KSE.5.1",
+          "no": "5.1",
+          "label": "PENUMPANG KAPAL DATANG ( 5 = 5.1.A + 5.1.B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            38,
+            41
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 38,
+          "code": "KSE.5.1.A",
+          "no": "1,A",
+          "label": "Dari Luar Negeri ( 1,A = 1,A1 + 1,A3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            39,
+            40
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 39,
+          "code": "KSE.5.1.A.1a",
+          "no": "1,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 40,
+          "code": "KSE.5.1.A.1b",
+          "no": "1,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 41,
+          "code": "KSE.5.1.B",
+          "no": "1,B",
+          "label": "Dari Dalam Negeri ( 1,B = 1,B1 + 1,B3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            42,
+            43
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 42,
+          "code": "KSE.5.1.B.1a",
+          "no": "1,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 43,
+          "code": "KSE.5.1.B.1b",
+          "no": "1,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 44,
+          "code": "KSE.5.2",
+          "no": "5.2",
+          "label": "PENUMPANG KAPAL BERANGKAT ( 5 = 5.1.A + 5.1.B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            45,
+            48
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 45,
+          "code": "KSE.5.2.A",
+          "no": "1,A",
+          "label": "Ke Luar Negeri ( 1,A = 1,A1 + 1,A3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            46,
+            47
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 46,
+          "code": "KSE.5.2.A.1a",
+          "no": "1,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 47,
+          "code": "KSE.5.2.A.1b",
+          "no": "1,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 48,
+          "code": "KSE.5.2.B",
+          "no": "1,B",
+          "label": "Ke Dalam Negeri ( 1,B = 1,B1 + 1,B3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            49,
+            50
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 49,
+          "code": "KSE.5.2.B.1a",
+          "no": "1,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 50,
+          "code": "KSE.5.2.B.1b",
+          "no": "1,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 51,
+          "code": "KSE.6.1",
+          "no": "6.1",
+          "label": "PENUMPANG PESAWAT YANG DATANG ( 6.1 = 6.1.A + 6.1.B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            52,
+            55
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 52,
+          "code": "KSE.6.1.A",
+          "no": "1,A",
+          "label": "Dari Luar Negeri ( 1,A = 1,A1 + 1,A3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            53,
+            54
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 53,
+          "code": "KSE.6.1.A.1a",
+          "no": "1,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 54,
+          "code": "KSE.6.1.A.1b",
+          "no": "1,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 55,
+          "code": "KSE.6.1.B",
+          "no": "1,B",
+          "label": "Dari Dalam Negeri ( 1,B = 1,B1 + 1,B3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            56,
+            57
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 56,
+          "code": "KSE.6.1.B.1a",
+          "no": "1,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 57,
+          "code": "KSE.6.1.B.1b",
+          "no": "1,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 58,
+          "code": "KSE.6.2",
+          "no": "6.2",
+          "label": "PENUMPANG PESAWAT YANG BERANGKAT ( 6.2 = 6.2.A + 6.2.B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            59,
+            62
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 59,
+          "code": "KSE.6.2.A",
+          "no": "1,A",
+          "label": "Ke Luar Negeri ( 1,A = 1,A1 + 1,A3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            60,
+            61
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 60,
+          "code": "KSE.6.2.A.1a",
+          "no": "1,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 61,
+          "code": "KSE.6.2.A.1b",
+          "no": "1,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 62,
+          "code": "KSE.6.2.B",
+          "no": "1,B",
+          "label": "Ke Dalam Negeri ( 1,B = 1,B1 + 1,B3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            63,
+            64
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 63,
+          "code": "KSE.6.2.B.1a",
+          "no": "1,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 64,
+          "code": "KSE.6.2.B.1b",
+          "no": "1,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 65,
+          "code": "KSE.7.1",
+          "no": "7.1",
+          "label": "ABK DATANG ( 7.1 = 7.1.A + 7.1.B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            66,
+            69
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 66,
+          "code": "KSE.7.1.A",
+          "no": "1,A",
+          "label": "Dari Luar Negeri ( 1,A = 1,A1 + 1,A3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            67,
+            68
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 67,
+          "code": "KSE.7.1.A.1a",
+          "no": "1,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 68,
+          "code": "KSE.7.1.A.1b",
+          "no": "1,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 69,
+          "code": "KSE.7.1.B",
+          "no": "1,B",
+          "label": "Dari Dalam Negeri ( 1,B = 1,B1 + 1,B3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            70,
+            71
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 70,
+          "code": "KSE.7.1.B.1a",
+          "no": "1,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 71,
+          "code": "KSE.7.1.B.1b",
+          "no": "1,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 72,
+          "code": "KSE.7.2",
+          "no": "7.2",
+          "label": "ABK BERANGKAT ( 7.2 = 7.2.A + 7.2.B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            73,
+            76
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 73,
+          "code": "KSE.7.2.A",
+          "no": "1,A",
+          "label": "Ke Luar Negeri ( 1,A = 1,A1 + 1,A3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            74,
+            75
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 74,
+          "code": "KSE.7.2.A.1a",
+          "no": "1,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 75,
+          "code": "KSE.7.2.A.1b",
+          "no": "1,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 76,
+          "code": "KSE.7.2.B",
+          "no": "1,B",
+          "label": "Ke Dalam Negeri ( 1,B = 1,B1 + 1,B3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            77,
+            78
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 77,
+          "code": "KSE.7.2.B.1a",
+          "no": "1,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 78,
+          "code": "KSE.7.2.B.1b",
+          "no": "1,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 79,
+          "code": "KSE.8.1",
+          "no": "8.1",
+          "label": "CREW PESAWAT YANG DATANG ( 8.1 = 8.1.A + 8.1.B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            80,
+            83
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 80,
+          "code": "KSE.8.1.A",
+          "no": "1,A",
+          "label": "Dari Luar Negeri ( 1,A = 1,A1 + 1,A3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            81,
+            82
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 81,
+          "code": "KSE.8.1.A.1a",
+          "no": "1,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 82,
+          "code": "KSE.8.1.A.1b",
+          "no": "1,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 83,
+          "code": "KSE.8.1.B",
+          "no": "1,B",
+          "label": "Dari Dalam Negeri ( 1,B = 1,B1 + 1,B3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            84,
+            85
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 84,
+          "code": "KSE.8.1.B.1a",
+          "no": "1,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 85,
+          "code": "KSE.8.1.B.1b",
+          "no": "1,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 86,
+          "code": "KSE.8.2",
+          "no": "8.2",
+          "label": "CREW PESAWAT YANG BERANGKAT ( 8.2 = 8.2.A + 8.2.B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            87,
+            90
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 87,
+          "code": "KSE.8.2.A",
+          "no": "1,A",
+          "label": "Ke Luar Negeri ( 1,A = 1,A1 + 1,A3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            88,
+            89
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 88,
+          "code": "KSE.8.2.A.1a",
+          "no": "1,A1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 89,
+          "code": "KSE.8.2.A.1b",
+          "no": "1,A1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 90,
+          "code": "KSE.8.2.B",
+          "no": "1,B",
+          "label": "Ke Dalam Negeri ( 1,B = 1,B1 + 1,B3 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            91,
+            92
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 91,
+          "code": "KSE.8.2.B.1a",
+          "no": "1,B1,a",
+          "label": "Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 92,
+          "code": "KSE.8.2.B.1b",
+          "no": "1,B1,b",
+          "label": "Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 93,
+          "code": "KSE.8.SSCEC",
+          "no": "8",
+          "label": "PEMBERIAN SSCEC",
+          "unit": "Sertifikat",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 94,
+          "code": "KSE.9.SSCC",
+          "no": "9",
+          "label": "PEMBERIAN SSCC",
+          "unit": "Sertifikat",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 95,
+          "code": "KSE.9.P3K",
+          "no": "9",
+          "label": "PEMBERIAN P3K KAPAL",
+          "unit": "Sertifikat",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 96,
+          "code": "KSE.10",
+          "no": "10",
+          "label": "PEMBERIAN HEALTH ALERT CARD ( 10 = 10.A + 10.B )",
+          "unit": "Lembar",
+          "type": "summary",
+          "formula_rows": [
+            97,
+            98
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 97,
+          "code": "KSE.10.A",
+          "no": "10,A",
+          "label": "Pesawat",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 98,
+          "code": "KSE.10.B",
+          "no": "10,B",
+          "label": "Kapal Laut",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 99,
+          "code": "KSE.11",
+          "no": "11",
+          "label": "PEMBERIAN SERTIFIKAT DESINSEKSI ( 11 = 11,A + 11,B )",
+          "unit": "Lembar",
+          "type": "summary",
+          "formula_rows": [
+            100,
+            101
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 100,
+          "code": "KSE.11.A",
+          "no": "11,A",
+          "label": "Pesawat",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 101,
+          "code": "KSE.11.B",
+          "no": "11,B",
+          "label": "Kapal Laut",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 102,
+          "code": "KSE.12",
+          "no": "12",
+          "label": "PEMBERIAN SERTIFIKAT DESINFEKSI ( 12 = 12,A + 12,B )",
+          "unit": "Lembar",
+          "type": "summary",
+          "formula_rows": [
+            103,
+            104
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 103,
+          "code": "KSE.12.A",
+          "no": "12,A",
+          "label": "Pesawat",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 104,
+          "code": "KSE.12.B",
+          "no": "12,B",
+          "label": "Kapal Laut",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 105,
+          "code": "KSE.13",
+          "no": "13",
+          "label": "PEMBERIAN SERTIFIKAT FUMIGASI ( lain-2 )",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 106,
+          "code": "KSE.14",
+          "no": "14",
+          "label": "PEMBERIAN ONE MONTH EXTENTION DC/DEC",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 107,
+          "code": "KSE.15",
+          "no": "15",
+          "label": "PEMBERIAN SAILING PERMIT",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 108,
+          "code": "KSE.16",
+          "no": "16",
+          "label": "PEMBERIAN BUKU KESEHATAN KAPAL",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 109,
+          "code": "KSE.17",
+          "no": "17",
+          "label": "PEMERIKSAAN OMKA : ( 17 = 17,A + 17,B + 17,C + 17,D )",
+          "unit": "Jenis",
+          "type": "summary",
+          "formula_rows": [
+            110,
+            113,
+            116,
+            119
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 110,
+          "code": "KSE.17.A",
+          "no": "17,A",
+          "label": "Obat - obatan ( 17,A = 17,A,1 + 17,A,2 )",
+          "unit": "Jenis",
+          "type": "summary",
+          "formula_rows": [
+            111,
+            112
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 111,
+          "code": "KSE.17.A.1",
+          "no": "17,A,1",
+          "label": "Tdk Kadaluwarsa",
+          "unit": "Jenis",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 112,
+          "code": "KSE.17.A.2",
+          "no": "17,A,2",
+          "label": "Kadaluwarsa",
+          "unit": "Jenis",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 113,
+          "code": "KSE.17.B",
+          "no": "17,B",
+          "label": "Makanan / Minuman ( 17,B = 17,B,1 + 17,B,2 )",
+          "unit": "Jenis",
+          "type": "summary",
+          "formula_rows": [
+            114,
+            115
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 114,
+          "code": "KSE.17.B.1",
+          "no": "17,B,1",
+          "label": "Tdk Kadaluwarsa",
+          "unit": "Jenis",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 115,
+          "code": "KSE.17.B.2",
+          "no": "17,B,2",
+          "label": "Kadaluwarsa",
+          "unit": "Jenis",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 116,
+          "code": "KSE.17.C",
+          "no": "17,C",
+          "label": "Kosmetika ( 17,C = 17,C,1 + 17,C,2 )",
+          "unit": "Jenis",
+          "type": "summary",
+          "formula_rows": [
+            117,
+            118
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 117,
+          "code": "KSE.17.C.1",
+          "no": "17,C,1",
+          "label": "Tdk Kadaluwarsa",
+          "unit": "Jenis",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 118,
+          "code": "KSE.17.C.2",
+          "no": "17,C,2",
+          "label": "Kadaluwarsa",
+          "unit": "Jenis",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 119,
+          "code": "KSE.17.D",
+          "no": "17,D",
+          "label": "Alat - Alat Kesehatan ( 17,D = 17,D,1 + 17,D,2 )",
+          "unit": "Jenis",
+          "type": "summary",
+          "formula_rows": [
+            120,
+            121
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 120,
+          "code": "KSE.17.D.1",
+          "no": "17,D,1",
+          "label": "Tdk Kadaluwarsa",
+          "unit": "Jenis",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 121,
+          "code": "KSE.17.D.2",
+          "no": "17,D,2",
+          "label": "Kadaluwarsa",
+          "unit": "Jenis",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 122,
+          "code": "KSE.18",
+          "no": "18",
+          "label": "PEMBERIAN SERTIFIKAT LAIK OMKA ( 18 = 18,A + 18,B )",
+          "unit": "Lbr",
+          "type": "summary",
+          "formula_rows": [
+            123,
+            126
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 123,
+          "code": "KSE.18.A",
+          "no": "18,A",
+          "label": "OMKA Eksport / Data KKP ( 18,A = 18,A1 + 18,A2 )",
+          "unit": "Lbr",
+          "type": "summary",
+          "formula_rows": [
+            124,
+            125
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 124,
+          "code": "KSE.18.A1",
+          "no": "18,A1",
+          "label": "Sesuai syarat kesehatan",
+          "unit": "Lbr",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 125,
+          "code": "KSE.18.A2",
+          "no": "18,A2",
+          "label": "Tdk Sesuai syarat kesehatan",
+          "unit": "Lbr",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 126,
+          "code": "KSE.18.B",
+          "no": "18,B",
+          "label": "OMKA Import / Data KKP ( 18,B = 18,B1 + 18,B2 )",
+          "unit": "Lbr",
+          "type": "summary",
+          "formula_rows": [
+            127,
+            128
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 127,
+          "code": "KSE.18.B1",
+          "no": "18,B1",
+          "label": "Sesuai syarat kesehatan",
+          "unit": "Lbr",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 128,
+          "code": "KSE.18.B2",
+          "no": "19,B2",
+          "label": "Di Re-eksport / dimusnahkan",
+          "unit": "Lbr",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 129,
+          "code": "KSE.19",
+          "no": "19",
+          "label": "KUNJUNGAN POLIKLINIK NON KKP : ( 19 = 19,A + 19,B + 19,C )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            130,
+            131,
+            132
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 130,
+          "code": "KSE.19.A",
+          "no": "19,A",
+          "label": "Karyawan Pelabuhan (PNS, Swasta, Buruh Pelabuhan)",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 131,
+          "code": "KSE.19.B",
+          "no": "19,B",
+          "label": "ABK/Crew / Penumpang",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 132,
+          "code": "KSE.19.C",
+          "no": "19,C",
+          "label": "Bukan Karyawan Pelabuhan/Bandara (Pengantar/Penjemput)",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 133,
+          "code": "KSE.20",
+          "no": "20",
+          "label": "JENIS PENYAKIT KUNJUNGAN POLIKLINIK NON KKP ( 20 = 20,A + 20,B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            134,
+            148
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 134,
+          "code": "KSE.20.A",
+          "no": "20,A",
+          "label": "Penyakit Menular ( 20,A = 20,A1 s/d 20,A13 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            135,
+            136,
+            137,
+            138,
+            139,
+            140,
+            141,
+            142,
+            143,
+            144,
+            145,
+            146,
+            147
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 135,
+          "code": "KSE.20.A1",
+          "no": "20,A1",
+          "label": "Karantina, potensial wabah",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 136,
+          "code": "KSE.20.A2",
+          "no": "20,A2",
+          "label": "Malaria",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 137,
+          "code": "KSE.20.A3",
+          "no": "20,A3",
+          "label": "Demam Berdarah",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 138,
+          "code": "KSE.20.A4",
+          "no": "20,A4",
+          "label": "TBC",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 139,
+          "code": "KSE.20.A5",
+          "no": "20,A5",
+          "label": "Diare",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 140,
+          "code": "KSE.20.A6",
+          "no": "20,A6",
+          "label": "ISPA",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 141,
+          "code": "KSE.20.A7",
+          "no": "20,A7",
+          "label": "HIV/AIDS",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 142,
+          "code": "KSE.20.A8",
+          "no": "20,A8",
+          "label": "Campak",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 143,
+          "code": "KSE.20.A9",
+          "no": "20,A9",
+          "label": "Polio",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 144,
+          "code": "KSE.20.A10",
+          "no": "20,A22",
+          "label": "Difteri",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 145,
+          "code": "KSE.20.A11",
+          "no": "20,A11",
+          "label": "Pertusis",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 146,
+          "code": "KSE.20.A12",
+          "no": "20,A12",
+          "label": "Tetanus",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 147,
+          "code": "KSE.20.A13",
+          "no": "20,A13",
+          "label": "Hepatitis",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 148,
+          "code": "KSE.20.B",
+          "no": "20,B",
+          "label": "Penyakit tdk menular ( 20,B = 20,B1 + 20,B2 + 20,B3 + 20,B4 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            149,
+            150,
+            151,
+            152
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 149,
+          "code": "KSE.20.B1",
+          "no": "20,B1",
+          "label": "Jantung",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 150,
+          "code": "KSE.20.B2",
+          "no": "20,B2",
+          "label": "Hypertensi",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 151,
+          "code": "KSE.20.B3",
+          "no": "20,B3",
+          "label": "Akibat kecelakaan kerja",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 152,
+          "code": "KSE.20.B4",
+          "no": "20,B4",
+          "label": "Lain-lain",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 153,
+          "code": "KSE.21",
+          "no": "21",
+          "label": "SISTEM KEWASPADAAN DINI KLB ( 21 = 21,A + 21,B )",
+          "unit": "Kasus",
+          "type": "summary",
+          "formula_rows": [
+            154,
+            155
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 154,
+          "code": "KSE.21.A",
+          "no": "21,A",
+          "label": "Penyakit Karantina",
+          "unit": "Kasus",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 155,
+          "code": "KSE.21.B",
+          "no": "21,B",
+          "label": "Penyakit Potensial Wabah",
+          "unit": "Kasus",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 156,
+          "code": "KSE.22",
+          "no": "22",
+          "label": "PEMANTAUAN KEDATANGAN ORANG SAKIT ( 22 = 22,A + 22,B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            157,
+            158
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 157,
+          "code": "KSE.22.A",
+          "no": "22,A",
+          "label": "Dari Daerah Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 158,
+          "code": "KSE.22.B",
+          "no": "22,B",
+          "label": "Dari Daerah Tidak Terjangkit",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        }
+      ]
+    },
+    {
+      "section_code": "UKP",
+      "section_title": "UPAYA KESEHATAN PELABUHAN (INDUK)",
+      "excel_row_header": 159,
+      "items": [
+        {
+          "excel_row": 160,
+          "code": "UKP.1.1",
+          "no": "1.1",
+          "label": "KUNJUNGAN POLIKLINIK KKP ( 1 = 1,A + 1,B + 1,C )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            161,
+            162,
+            163
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 161,
+          "code": "UKP.1.1.A",
+          "no": "1,A",
+          "label": "Karyawan Pelabuhan (PNS, Swasta, Buruh Pelabuhan)",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 162,
+          "code": "UKP.1.1.B",
+          "no": "1,B",
+          "label": "ABK/Crew / Penumpang",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 163,
+          "code": "UKP.1.1.C",
+          "no": "1,C",
+          "label": "Bukan Karyawan Pelabuhan/Bandara (Pengantar/Penjemput)",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 164,
+          "code": "UKP.1.2",
+          "no": "1.2",
+          "label": "JENIS PENYAKIT KUNJUNGAN POLIKLINIK KKP",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            165,
+            179
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 165,
+          "code": "UKP.1.2.A",
+          "no": "1.2.A",
+          "label": "Penyakit Menular ( 1,A = 1,A1 s/d 1,A13 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            166,
+            167,
+            168,
+            169,
+            170,
+            171,
+            172,
+            173,
+            174,
+            175,
+            176,
+            177,
+            178
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 166,
+          "code": "UKP.1.2.A1",
+          "no": "1,A1",
+          "label": "Karantina, potensial wabah",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 167,
+          "code": "UKP.1.2.A2",
+          "no": "1,A2",
+          "label": "Malaria",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 168,
+          "code": "UKP.1.2.A3",
+          "no": "1,A3",
+          "label": "Demam Berdarah",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 169,
+          "code": "UKP.1.2.A4",
+          "no": "1,A4",
+          "label": "TBC",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 170,
+          "code": "UKP.1.2.A5",
+          "no": "1,A5",
+          "label": "Diare",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 171,
+          "code": "UKP.1.2.A6",
+          "no": "1,A6",
+          "label": "ISPA",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 172,
+          "code": "UKP.1.2.A7",
+          "no": "1,A7",
+          "label": "HIV/AIDS",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 173,
+          "code": "UKP.1.2.A8",
+          "no": "1,A8",
+          "label": "Campak",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 174,
+          "code": "UKP.1.2.A9",
+          "no": "1,A9",
+          "label": "Polio",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 175,
+          "code": "UKP.1.2.A10",
+          "no": "1,A22",
+          "label": "Difteri",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 176,
+          "code": "UKP.1.2.A11",
+          "no": "1,A11",
+          "label": "Pertusis",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 177,
+          "code": "UKP.1.2.A12",
+          "no": "1,A12",
+          "label": "Tetanus",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 178,
+          "code": "UKP.1.2.A13",
+          "no": "1,A13",
+          "label": "Hepatitis",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 179,
+          "code": "UKP.1.2.B",
+          "no": "1.2.b",
+          "label": "Penyakit tdk menular ( 1,B = 1,B1 + 1,B2 + 1,B3 + 1,B4 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            180,
+            181,
+            182,
+            183
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 180,
+          "code": "UKP.1.2.B1",
+          "no": "1,B1",
+          "label": "Jantung",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 181,
+          "code": "UKP.1.2.B2",
+          "no": "1,B2",
+          "label": "Hypertensi",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 182,
+          "code": "UKP.1.2.B3",
+          "no": "1,B3",
+          "label": "Akibat kecelakaan kerja",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 183,
+          "code": "UKP.1.2.B4",
+          "no": "1,B4",
+          "label": "Lain-lain",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 184,
+          "code": "UKP.2",
+          "no": "2",
+          "label": "SURAT KETERANGAN BERBADAN SEHAT",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 185,
+          "code": "UKP.3",
+          "no": "3",
+          "label": "PEMERIKSAAN OBAT & PERALATAN P3K DI KAPAL/PESAWAT ( 3 = 3,A + 3,B )",
+          "unit": "Kpl/Pswt",
+          "type": "summary",
+          "formula_rows": [
+            186,
+            187
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 186,
+          "code": "UKP.3.A",
+          "no": "3,A",
+          "label": "Pemeriksaan Obat & Peralatan P3K di Kapal",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 187,
+          "code": "UKP.3.B",
+          "no": "3,B",
+          "label": "Pemeriksaan Obat & Peralatan P3K di Pesawat",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 188,
+          "code": "UKP.4",
+          "no": "4",
+          "label": "PEMERIKSAAN LABORATORIUM KLINIK DASAR ( 4 = 4,A + 4,B + 4,C + 4,D )",
+          "unit": "Sample",
+          "type": "summary",
+          "formula_rows": [
+            189,
+            190,
+            191,
+            192
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 189,
+          "code": "UKP.4.A",
+          "no": "4,A",
+          "label": "Darah",
+          "unit": "Sample",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 190,
+          "code": "UKP.4.B",
+          "no": "4,B",
+          "label": "Urine",
+          "unit": "Sample",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 191,
+          "code": "UKP.4.C",
+          "no": "4,C",
+          "label": "Sputum",
+          "unit": "Sample",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 192,
+          "code": "UKP.4.D",
+          "no": "4,D",
+          "label": "Rectal Swab",
+          "unit": "Sample",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 193,
+          "code": "UKP.5",
+          "no": "5",
+          "label": "PENANGGULANGAN GAWAT DARURAT MEDIK",
+          "unit": "Kasus",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 194,
+          "code": "UKP.6",
+          "no": "6",
+          "label": "PEMBERIAN IJIN ANGKUT ORANG SAKIT (Header/Total)",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 195,
+          "code": "UKP.6.A",
+          "no": "6,A",
+          "label": "IJIN ANGKUT ORANG SAKIT",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 196,
+          "code": "UKP.6.B",
+          "no": "6,B",
+          "label": "PEMBERIAN SERTIFIKAT KETERANGAN LAIK TERBANG",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 197,
+          "code": "UKP.6.C",
+          "no": "6,C",
+          "label": "PEMBERIAN SERTIFIKAT KETERANGAN TIDAK LAIK TERBANG",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 198,
+          "code": "UKP.7",
+          "no": "7",
+          "label": "SURAT IJIN ANGKUT JENAZAH/ABU JENAZAH/KERANGKA ( 7 = 7,A + 7,B )",
+          "unit": "Lembar",
+          "type": "summary",
+          "formula_rows": [
+            199,
+            200
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 199,
+          "code": "UKP.7.A",
+          "no": "7,A",
+          "label": "Ke Dalam Negeri",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 200,
+          "code": "UKP.7.B",
+          "no": "7,B",
+          "label": "Ke Luar Negeri",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 201,
+          "code": "UKP.8",
+          "no": "8",
+          "label": "SURAT IJIN MASUK JENAZAH/ABU JENAZAH/KERANGKA ( 8 = 8,A + 8,B )",
+          "unit": "Lembar",
+          "type": "summary",
+          "formula_rows": [
+            202,
+            203
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 202,
+          "code": "UKP.8.A",
+          "no": "8,A",
+          "label": "Dari Dalam Negeri",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 203,
+          "code": "UKP.8.B",
+          "no": "8,B",
+          "label": "Dari Luar Negeri : ( 8,B = 8,B1 + 8,B2 )",
+          "unit": "Lembar",
+          "type": "summary",
+          "formula_rows": [
+            204,
+            205
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 204,
+          "code": "UKP.8.B1",
+          "no": "8,B1",
+          "label": "Dari Daerah Terjangkit",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 205,
+          "code": "UKP.8.B2",
+          "no": "8,B2",
+          "label": "Dari Daerah Tidak Terjangkit",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 206,
+          "code": "UKP.9",
+          "no": "9",
+          "label": "PEMAKAIAN AMBULANS DILUAR TINDAKAN KARANTINA",
+          "unit": "Kali",
+          "type": "input",
+          "data_type": "integer",
+          "level": 0
+        },
+        {
+          "excel_row": 207,
+          "code": "UKP.10",
+          "no": "10",
+          "label": "PEMBERIAN VAKSINASI ( 10 = 10,A + 10,B )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            209,
+            214
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 208,
+          "code": "UKP.10a",
+          "no": "10a",
+          "label": "Penerbitan Buku ICV ( 10a = 10,A + 10,C )",
+          "unit": "Buku",
+          "type": "summary",
+          "formula_rows": [
+            209,
+            219
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 209,
+          "code": "UKP.10.A",
+          "no": "10,A",
+          "label": "Dengan Buku ICV : ( 10,A = 10,A1 + 10,A2 + 10,A3 + 10,A4 )",
+          "unit": "Buku",
+          "type": "summary",
+          "formula_rows": [
+            210,
+            211,
+            212,
+            213
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 210,
+          "code": "UKP.10.A1",
+          "no": "10,A1",
+          "label": "Yellow Fever",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 211,
+          "code": "UKP.10.A2",
+          "no": "10,A2",
+          "label": "Cholera / Chotypa",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 212,
+          "code": "UKP.10.A3",
+          "no": "10,A3",
+          "label": "Meningitis",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 213,
+          "code": "UKP.10.A4",
+          "no": "10,A4",
+          "label": "Typhoid",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 214,
+          "code": "UKP.10.B",
+          "no": "10,B",
+          "label": "Tanpa Buku ICV ( 10,B = 10,B1 + 10,B2 + 10,B3 + 10,B4 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            215,
+            216,
+            217,
+            218
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 215,
+          "code": "UKP.10.B1",
+          "no": "10,B1",
+          "label": "Yellow Fever",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 216,
+          "code": "UKP.10.B2",
+          "no": "10,B2",
+          "label": "Cholera / Chotypa",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 217,
+          "code": "UKP.10.B3",
+          "no": "10,B3",
+          "label": "Meningitis",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 218,
+          "code": "UKP.10.B4",
+          "no": "10,B4",
+          "label": "Typhoid",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 219,
+          "code": "UKP.10.C",
+          "no": "10,C",
+          "label": "Penerbitan ICV legalisasi Vaksin ( 10,C = 10,C1 + 10,C2 + 10,C3 + 10,C4 )",
+          "unit": "Org",
+          "type": "summary",
+          "formula_rows": [
+            220,
+            221,
+            222,
+            223
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 220,
+          "code": "UKP.10.C1",
+          "no": "10,C1",
+          "label": "Yellow Fever",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 221,
+          "code": "UKP.10.C2",
+          "no": "10,C2",
+          "label": "Cholera / Chotypa",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 222,
+          "code": "UKP.10.C3",
+          "no": "10,C3",
+          "label": "Meningitis",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 223,
+          "code": "UKP.10.C4",
+          "no": "10,C4",
+          "label": "Typhoid",
+          "unit": "Org",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        }
+      ]
+    },
+    {
+      "section_code": "PRL",
+      "section_title": "PENGENDALIAN RISIKO LINGKUNGAN",
+      "excel_row_header": 224,
+      "items": [
+        {
+          "excel_row": 225,
+          "code": "PRL.1",
+          "no": "1",
+          "label": "PENGAMATAN DAN PEMBERANTASAN NYAMUK",
+          "unit": null,
+          "type": "header",
+          "level": 0
+        },
+        {
+          "excel_row": 226,
+          "code": "PRL.1.A",
+          "no": "1.A",
+          "label": "Nyamuk Aedes Aegypti",
+          "unit": null,
+          "type": "header",
+          "level": 1
+        },
+        {
+          "excel_row": 227,
+          "code": "PRL.1.A1",
+          "no": "1.A1",
+          "label": "Bangunan diperiksa",
+          "unit": "Rmh",
+          "type": "summary",
+          "formula_rows": [
+            228,
+            229
+          ],
+          "level": 2
+        },
+        {
+          "excel_row": 228,
+          "code": "PRL.1.A1.1",
+          "no": "1.A1.1",
+          "label": "a. Perimeter Area",
+          "unit": "Rmh",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 229,
+          "code": "PRL.1.A1.2",
+          "no": "1.A1.2",
+          "label": "b. Buffer Area",
+          "unit": "Rmh",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 230,
+          "code": "PRL.1.A2",
+          "no": "1.A2",
+          "label": "Cont. diperiksa",
+          "unit": "Cont",
+          "type": "summary",
+          "formula_rows": [
+            231,
+            232
+          ],
+          "level": 2
+        },
+        {
+          "excel_row": 231,
+          "code": "PRL.1.A2.1",
+          "no": "1.A2.1",
+          "label": "a. Perimeter Area",
+          "unit": "Cont",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 232,
+          "code": "PRL.1.A2.2",
+          "no": "1.A2.2",
+          "label": "b. Buffer Area",
+          "unit": "Cont",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 233,
+          "code": "PRL.1.A3",
+          "no": "1.A3",
+          "label": "House Indek ( HI ):",
+          "unit": null,
+          "type": "header",
+          "level": 2
+        },
+        {
+          "excel_row": 234,
+          "code": "PRL.1.A3.1",
+          "no": "1.A3.1",
+          "label": "Perimeter",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 235,
+          "code": "PRL.1.A3.2",
+          "no": "1.A3.2",
+          "label": "Buffer",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 236,
+          "code": "PRL.1.A4",
+          "no": "1.A4",
+          "label": "Container Indek ( CI ):",
+          "unit": null,
+          "type": "header",
+          "level": 2
+        },
+        {
+          "excel_row": 237,
+          "code": "PRL.1.A4.1",
+          "no": "1.A4.1",
+          "label": "Perimeter",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 238,
+          "code": "PRL.1.A4.2",
+          "no": "1.A4.2",
+          "label": "Buffer",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 239,
+          "code": "PRL.1.A5",
+          "no": "1.A5",
+          "label": "Breteau Indek (BI)",
+          "unit": null,
+          "type": "header",
+          "level": 2
+        },
+        {
+          "excel_row": 240,
+          "code": "PRL.1.A5.1",
+          "no": "1.A5.1",
+          "label": "a. Perimeter Area",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 241,
+          "code": "PRL.1.A5.2",
+          "no": "1.A5.2",
+          "label": "b. Buffer Area",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 242,
+          "code": "PRL.1.B",
+          "no": "1.B",
+          "label": "Nyamuk Anopheles",
+          "unit": null,
+          "type": "header",
+          "level": 1
+        },
+        {
+          "excel_row": 243,
+          "code": "PRL.1.B1",
+          "no": "1.B1",
+          "label": "Survei Larva: Dipper Indeks",
+          "unit": null,
+          "type": "header",
+          "level": 2
+        },
+        {
+          "excel_row": 244,
+          "code": "PRL.1.B1.1",
+          "no": "1.B1.1",
+          "label": "Perimeter",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 245,
+          "code": "PRL.1.B1.2",
+          "no": "1.B1.2",
+          "label": "Buffer",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 246,
+          "code": "PRL.1.B2",
+          "no": "1.B2",
+          "label": "Man Hour Density (MHD)",
+          "unit": null,
+          "type": "header",
+          "level": 2
+        },
+        {
+          "excel_row": 247,
+          "code": "PRL.1.B2.1",
+          "no": "1.B2.1",
+          "label": "Perimeter",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 248,
+          "code": "PRL.1.B2.2",
+          "no": "1.B2.2",
+          "label": "Buffer",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 249,
+          "code": "PRL.1.B3",
+          "no": "1.B3",
+          "label": "Man Bitting Rate (MBR)",
+          "unit": null,
+          "type": "header",
+          "level": 2
+        },
+        {
+          "excel_row": 250,
+          "code": "PRL.1.B3.1",
+          "no": "1.B3.1",
+          "label": "Perimeter",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 251,
+          "code": "PRL.1.B3.2",
+          "no": "1.B3.2",
+          "label": "Buffer",
+          "unit": "%",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 3
+        },
+        {
+          "excel_row": 252,
+          "code": "PRL.1.C",
+          "no": "1.C",
+          "label": "Pemakaian Insektisida",
+          "unit": "Ltr",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 253,
+          "code": "PRL.1.D",
+          "no": "1.D",
+          "label": "Pemakaian Larvasida",
+          "unit": "Kg",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 254,
+          "code": "PRL.1.E",
+          "no": "1.E",
+          "label": "Tindakan Fogging",
+          "unit": "Ha",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 255,
+          "code": "PRL.2",
+          "no": "2",
+          "label": "PEMBERANTASAN TIKUS PINJAL",
+          "unit": null,
+          "type": "header",
+          "level": 0
+        },
+        {
+          "excel_row": 256,
+          "code": "PRL.2.A",
+          "no": "2,A",
+          "label": "Jumlah Pemasangan Perangkap x Freq di Bangunan / Kpl / Pswt",
+          "unit": "Prkp",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 257,
+          "code": "PRL.2.B",
+          "no": "2,B",
+          "label": "Tikus tertangkap",
+          "unit": "Ekor",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 258,
+          "code": "PRL.2.C",
+          "no": "2,C",
+          "label": "Pemasangan rat guard",
+          "unit": "Bh",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 259,
+          "code": "PRL.2.D",
+          "no": "2,D",
+          "label": "Index Pinjal",
+          "unit": "Ratio",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 260,
+          "code": "PRL.2.E",
+          "no": "2,E",
+          "label": "Pemakaian Insektisida",
+          "unit": "Ltr/Kg",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 261,
+          "code": "PRL.2.F",
+          "no": "2,F",
+          "label": "Pemakaian Rodentisida",
+          "unit": "Kg",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 262,
+          "code": "PRL.3",
+          "no": "3",
+          "label": "PENGENDALIAN LALAT",
+          "unit": null,
+          "type": "header",
+          "level": 0
+        },
+        {
+          "excel_row": 263,
+          "code": "PRL.3.A",
+          "no": "3,A",
+          "label": "Tingkat kepadatan lalat",
+          "unit": "Ekor",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 264,
+          "code": "PRL.3.B",
+          "no": "3,B",
+          "label": "Tindakan Penyemprotan",
+          "unit": "M2",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 265,
+          "code": "PRL.3.C",
+          "no": "3,C",
+          "label": "Pemakaian Insektisida",
+          "unit": "Ltr/Kg",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 266,
+          "code": "PRL.4",
+          "no": "4",
+          "label": "PENGENDALIAN KECOA",
+          "unit": null,
+          "type": "header",
+          "level": 0
+        },
+        {
+          "excel_row": 267,
+          "code": "PRL.4.A",
+          "no": "4,A",
+          "label": "Survei kehidupan kecoa",
+          "unit": "Ekor",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 268,
+          "code": "PRL.4.B",
+          "no": "4,B",
+          "label": "Tindakan Penyemprotan",
+          "unit": "M2",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 269,
+          "code": "PRL.4.C",
+          "no": "4,C",
+          "label": "Pemakaian Insektisida",
+          "unit": "Ltr/Kg",
+          "type": "input",
+          "data_type": "decimal",
+          "level": 1
+        },
+        {
+          "excel_row": 270,
+          "code": "PRL.5",
+          "no": "5",
+          "label": "PENGAWASAN PENYEDIAAN AIR",
+          "unit": null,
+          "type": "header",
+          "level": 0
+        },
+        {
+          "excel_row": 271,
+          "code": "PRL.5.A",
+          "no": "5,A",
+          "label": "Sarana PAB yang diinspeksi ( 5.A = 5.A1 + 5.A2 )",
+          "unit": "Lokasi",
+          "type": "summary",
+          "formula_rows": [
+            272,
+            273
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 272,
+          "code": "PRL.5.A1",
+          "no": "5.A1",
+          "label": "Sarana PAB yang tingkat resiko pencemarannya rendah",
+          "unit": "Lokasi",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 273,
+          "code": "PRL.5.A2",
+          "no": "5.A2",
+          "label": "Sarana PAB yang tingkat resiko pencemarannya tinggi",
+          "unit": "Lokasi",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 274,
+          "code": "PRL.5.B",
+          "no": "5,B",
+          "label": "Pemeriksaan Fisik Air Bersih ( 5.B = 5.B1 + 5.B2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            275,
+            276
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 275,
+          "code": "PRL.5.B1",
+          "no": "5.B1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 276,
+          "code": "PRL.5.B2",
+          "no": "5.B2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 277,
+          "code": "PRL.5.C",
+          "no": "5,C",
+          "label": "Pemeriksaan Chemis Air Bersih (Laboratorium) ( 5.C = 5.C1 + 5.C2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            278,
+            279
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 278,
+          "code": "PRL.5.C1",
+          "no": "5.C1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 279,
+          "code": "PRL.5.C2",
+          "no": "5.C2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 280,
+          "code": "PRL.5.D",
+          "no": "5,D",
+          "label": "Pemeriksaan Bakteriologis Air Bersih (Laboratorium) ( 5.D = 5.D1 + 5.D2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            281,
+            282
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 281,
+          "code": "PRL.5.D1",
+          "no": "5.D1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 282,
+          "code": "PRL.5.D2",
+          "no": "5.D2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 283,
+          "code": "PRL.5.E",
+          "no": "5,E",
+          "label": "Pemberian Sertifikat Laik Kesehatan Air",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 284,
+          "code": "PRL.6",
+          "no": "6",
+          "label": "PENGAMANAN MAKANAN & MINUMAN",
+          "unit": null,
+          "type": "header",
+          "level": 0
+        },
+        {
+          "excel_row": 285,
+          "code": "PRL.6.A",
+          "no": "6,A",
+          "label": "TPM yang diinspeksi ( 6.A = 6.A1 + 6.A2 )",
+          "unit": "TPM",
+          "type": "summary",
+          "formula_rows": [
+            286,
+            287
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 286,
+          "code": "PRL.6.A1",
+          "no": "6.A1",
+          "label": "TPM yang sehat",
+          "unit": "TPM",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 287,
+          "code": "PRL.6.A2",
+          "no": "6.A2",
+          "label": "TPM yang tidak sehat",
+          "unit": "TPM",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 288,
+          "code": "PRL.6.B",
+          "no": "6,B",
+          "label": "Sample Makanan / Minuman diperiksa : ( 6.B = 6.B1 + 6.B2 + 6.B3 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            289,
+            292,
+            295
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 289,
+          "code": "PRL.6.B1",
+          "no": "6.B1",
+          "label": "Pemeriksaan Organoleptik ( 6.B1 = 6.B1.1 + 6.B1.2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            290,
+            291
+          ],
+          "level": 2
+        },
+        {
+          "excel_row": 290,
+          "code": "PRL.6.B1.1",
+          "no": "6.B1.1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 291,
+          "code": "PRL.6.B1.2",
+          "no": "6.B1.2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 292,
+          "code": "PRL.6.B2",
+          "no": "6.B2",
+          "label": "Pemeriksaan Chemis ( 6.B2 = 6.B2.1 + 6.B2.2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            293,
+            294
+          ],
+          "level": 2
+        },
+        {
+          "excel_row": 293,
+          "code": "PRL.6.B2.1",
+          "no": "6.B2.1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 294,
+          "code": "PRL.6.B2.2",
+          "no": "6.B2.2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 295,
+          "code": "PRL.6.B3",
+          "no": "6.B3",
+          "label": "Pemeriksaan Bakteriologis makanan, usap alat & usap tangan ( 6.B3 = 6.B3.1 + 6.B3.2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            296,
+            297
+          ],
+          "level": 2
+        },
+        {
+          "excel_row": 296,
+          "code": "PRL.6.B3.1",
+          "no": "6.B3.1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 297,
+          "code": "PRL.6.B3.2",
+          "no": "6.B3.2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 3
+        },
+        {
+          "excel_row": 298,
+          "code": "PRL.6.C",
+          "no": "6,C",
+          "label": "Pemberian Sertifikat Laik Bahan Makanan",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 299,
+          "code": "PRL.6.D",
+          "no": "6,D",
+          "label": "Grading (Tingkat Mutu)",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        },
+        {
+          "excel_row": 300,
+          "code": "PRL.6.D1",
+          "no": "6.D1",
+          "label": "Penilaian Tingkat mutu",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 301,
+          "code": "PRL.6.D2",
+          "no": "6.D2",
+          "label": "Pemberian Plakat Tingkat Mutu Kesehatan",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 302,
+          "code": "PRL.6.D3",
+          "no": "6.D3",
+          "label": "Pemberian Izin Laik Sehat Jasa Boga/Catering",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 303,
+          "code": "PRL.6.D4",
+          "no": "6.D4",
+          "label": "Pemberian Izin Laik Sehat Restorant/Rumah Makan",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 304,
+          "code": "PRL.7",
+          "no": "7",
+          "label": "HYGIENE & SANITASI GEDUNG/BANGUNAN, PERUSAHAAN DAN LINGKUNGAN (GBPL)",
+          "unit": null,
+          "type": "header",
+          "level": 0
+        },
+        {
+          "excel_row": 305,
+          "code": "PRL.7.A",
+          "no": "7,A",
+          "label": "Inspeksi sanitasi gedung / bangunan dan perusahaan ( 7.A = 7.A1 + 7.A2 )",
+          "unit": "Lokasi",
+          "type": "summary",
+          "formula_rows": [
+            306,
+            307
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 306,
+          "code": "PRL.7.A1",
+          "no": "7.A1",
+          "label": "Hasil Baik",
+          "unit": "Lokasi",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 307,
+          "code": "PRL.7.A2",
+          "no": "7.A2",
+          "label": "Hasil tdk Baik",
+          "unit": "Lokasi",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 308,
+          "code": "PRL.7.B",
+          "no": "7,B",
+          "label": "Pemeriksaan sampel lingkungan (Air / tanah / ...) ( 7.B = 7.B1 + 7.B2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            309,
+            310
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 309,
+          "code": "PRL.7.B1",
+          "no": "7.B1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 310,
+          "code": "PRL.7.B2",
+          "no": "7.B2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 311,
+          "code": "PRL.7.C",
+          "no": "7,C",
+          "label": "Pemberian Sertifikat Laik Tempat Usaha",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            312,
+            313
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 312,
+          "code": "PRL.7.C1",
+          "no": "7.C1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 313,
+          "code": "PRL.7.C2",
+          "no": "7.C2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 314,
+          "code": "PRL.8",
+          "no": "8",
+          "label": "PENGAWASAN PENCEMARAN UDARA, AIR DAN TANAH",
+          "unit": null,
+          "type": "header",
+          "level": 0
+        },
+        {
+          "excel_row": 315,
+          "code": "PRL.8.A",
+          "no": "8,A",
+          "label": "Pemeriksaan pd Titik Sample (Udara) ( 8.A = 8.A1 + 8.A2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            316,
+            317
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 316,
+          "code": "PRL.8.A1",
+          "no": "8.A1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 317,
+          "code": "PRL.8.A2",
+          "no": "8.A2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 318,
+          "code": "PRL.8.B",
+          "no": "8,B",
+          "label": "Pemeriksaan pd Titik Sample (Air) : ( 8.B = 8.B1 + 8.B2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            319,
+            320
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 319,
+          "code": "PRL.8.B1",
+          "no": "8.B1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 320,
+          "code": "PRL.8.B2",
+          "no": "8.B2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 321,
+          "code": "PRL.8.C",
+          "no": "8,C",
+          "label": "Pemeriksaan pd Titik Sample (Tanah) : ( 8.C = 8.C1 + 8.C2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            322,
+            323
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 322,
+          "code": "PRL.8.C1",
+          "no": "8.C1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 323,
+          "code": "PRL.8.C2",
+          "no": "8.C2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 324,
+          "code": "PRL.9",
+          "no": "9",
+          "label": "HYGIENE SANITASI ALAT ANGKUT ( 9 = 9.A + 9.B )",
+          "unit": "Kpl/Pswt",
+          "type": "summary",
+          "formula_rows": [
+            325,
+            331
+          ],
+          "level": 0
+        },
+        {
+          "excel_row": 325,
+          "code": "PRL.9.A",
+          "no": "9,A",
+          "label": "Kapal diperiksa ( 9.A = 9.A1 + 9.A2 )",
+          "unit": "Kpl",
+          "type": "summary",
+          "formula_rows": [
+            326,
+            327
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 326,
+          "code": "PRL.9.A1",
+          "no": "9.A1",
+          "label": "Hasil Baik",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 327,
+          "code": "PRL.9.A2",
+          "no": "9.A2",
+          "label": "Hasil tdk Baik",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 328,
+          "code": "PRL.9.A3",
+          "no": "9.A3",
+          "label": "Pelaksanaan dan Pengawasan Disinseksi kapal",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 329,
+          "code": "PRL.9.A4",
+          "no": "9.A4",
+          "label": "Pelaksanaan dan Pengawasan Disinfeksi kapal",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 330,
+          "code": "PRL.9.A5",
+          "no": "9.A5",
+          "label": "Pelaksanaan dan Pengawasan Fumigasi Kapal",
+          "unit": "Kpl",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 331,
+          "code": "PRL.9.B",
+          "no": "9,B",
+          "label": "Pesawat diperiksa ( 9.B = 9.B1 + 9.B2 )",
+          "unit": "Pswt",
+          "type": "summary",
+          "formula_rows": [
+            332,
+            333
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 332,
+          "code": "PRL.9.B1",
+          "no": "9.B1",
+          "label": "Hasil Baik",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 333,
+          "code": "PRL.9.B2",
+          "no": "9.B2",
+          "label": "Hasil tdk Baik",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 334,
+          "code": "PRL.9.B3",
+          "no": "9.B3",
+          "label": "Pelaksanaan dan Pengawasan Disinseksi Pesawat",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 335,
+          "code": "PRL.9.B4",
+          "no": "9.B4",
+          "label": "Pelaksanaan dan Pengawasan Disinfeksi Pesawat",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 336,
+          "code": "PRL.9.B5",
+          "no": "9.B5",
+          "label": "Pelaksanaan dan Pengawasan Fumigasi Pesawat",
+          "unit": "Pswt",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 337,
+          "code": "PRL.10",
+          "no": "10",
+          "label": "PENGAMANAN PESTISIDA",
+          "unit": null,
+          "type": "header",
+          "level": 0
+        },
+        {
+          "excel_row": 338,
+          "code": "PRL.10.A",
+          "no": "10,A",
+          "label": "Inspeksi Sanitasi TP3 ( 10.A = 10.A1 + 10.A2 )",
+          "unit": "Lokasi",
+          "type": "summary",
+          "formula_rows": [
+            339,
+            340
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 339,
+          "code": "PRL.10.A1",
+          "no": "10.A1",
+          "label": "Hasil Baik",
+          "unit": "Lokasi",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 340,
+          "code": "PRL.10.A2",
+          "no": "10.A2",
+          "label": "Hasil tdk Baik",
+          "unit": "Lokasi",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 341,
+          "code": "PRL.10.B",
+          "no": "10,B",
+          "label": "Pemeriksaan sampel lingkungan TP3 (Air / tanah / ...) ( 10.B = 10.B1 + 10.B2 )",
+          "unit": "Sampel",
+          "type": "summary",
+          "formula_rows": [
+            342,
+            343
+          ],
+          "level": 1
+        },
+        {
+          "excel_row": 342,
+          "code": "PRL.10.B1",
+          "no": "10.B1",
+          "label": "Hasil Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 343,
+          "code": "PRL.10.B2",
+          "no": "10.B2",
+          "label": "Hasil tdk Baik",
+          "unit": "Sampel",
+          "type": "input",
+          "data_type": "integer",
+          "level": 2
+        },
+        {
+          "excel_row": 344,
+          "code": "PRL.10.C",
+          "no": "10,C",
+          "label": "Pemberian Rekomendasi Pest Control, DK1 & DK2",
+          "unit": "Lembar",
+          "type": "input",
+          "data_type": "integer",
+          "level": 1
+        }
+      ]
+    }
+  ]
+}

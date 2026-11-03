@@ -10,6 +10,7 @@ use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShipInspectionController;
+use App\Http\Controllers\SinkarkesController;
 use App\Http\Controllers\TravelConsentController;
 use Illuminate\Support\Facades\Route;
 
@@ -125,6 +126,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [ShipInspectionController::class, 'destroy'])->name('destroy');
         Route::get('/export', [ShipInspectionController::class, 'export'])->name('export');
         Route::get('/{id}/pdf', [ShipInspectionController::class, 'downloadPdf'])->name('pdf');
+    });
+
+    // SINKARKES - Laporan Karantina Kesehatan Terpadu BKK Kelas I Bandung
+    Route::prefix('sinkarkes')->name('sinkarkes.')->group(function () {
+        Route::get('/', [SinkarkesController::class, 'index'])->name('index');
+        Route::post('/', [SinkarkesController::class, 'store'])->name('store');
+        Route::get('/export', [SinkarkesController::class, 'exportExcel'])->name('export');
     });
 
     // System Data Exports (Excel, CSV, PDF)

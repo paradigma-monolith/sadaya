@@ -168,6 +168,14 @@ const navSections = computed(() => {
           iconColor: 'text-[#00A99D]',
           active: props.currentRoute === 'flight-medical-obat',
         },
+        {
+          name: 'Laporan SINKARKES',
+          path: '/sinkarkes',
+          url: getUrl('/sinkarkes'),
+          icon: FileSpreadsheet,
+          iconColor: 'text-[#00A99D]',
+          active: props.currentRoute === 'sinkarkes',
+        },
       ],
     },
     {

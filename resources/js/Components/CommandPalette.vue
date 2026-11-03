@@ -27,6 +27,7 @@ import {
   Anchor,
   BriefcaseMedical,
   Pill,
+  FileSpreadsheet,
   Globe
 } from 'lucide-vue-next';
 import { router as inertiaRouter } from '@inertiajs/vue3';
@@ -114,6 +115,14 @@ const defaultActions = [
     category: 'Pengawasan Alat Angkut & Barang',
     icon: Pill,
     action: () => navigateTo('/flight-medical-inspections/obat'),
+  },
+  {
+    id: 'nav-sinkarkes',
+    title: 'Form Input SINKARKES',
+    subtitle: 'Laporan Karantina Kesehatan Terpadu (KSE, UKP, PRL) BKK Kelas I Bandung',
+    category: 'Laporan & Dokumen',
+    icon: FileSpreadsheet,
+    action: () => navigateTo('/sinkarkes'),
   },
   {
     id: 'nav-ship-sanitasi',
