@@ -20,39 +20,62 @@ class SinkarkesController extends Controller
      */
     public function index(Request $request): Response
     {
-        $defaultWilker = 'BANDARA HUSEIN';
+        // Available 7 official Wilayah Kerja options from KantorWilker table
+        try {
+            $dbWilkers = KantorWilker::where('is_active', true)->orderBy('no')->pluck('nama_pendek')->toArray();
+        } catch (\Throwable $e) {
+            $dbWilkers = [];
+        }
+
+        if (!empty($dbWilkers)) {
+            $wilkerOptions = array_values($dbWilkers);
+        } else {
+            $wilkerOptions = [
+                'Induk BKK Bandung',
+                'POS Bandara Husen',
+                'Wilker Cirebon',
+                'Wilker Indramayu',
+                'Wilker Kertajati',
+                'Wilker Patimban',
+                'Wilker Pelabuharatu',
+            ];
+        }
+
+        $defaultWilker = $wilkerOptions[0] ?? 'Induk BKK Bandung';
         $defaultYear = 2026;
         $defaultMonth = (int) date('n');
 
-        $wilker = $request->query('wilker', $defaultWilker);
+        $requestedWilker = $request->query('wilker');
+        if ($requestedWilker) {
+            // Case-insensitive match & alias matching (e.g. BANDARA HUSEIN -> POS Bandara Husen)
+            $matched = collect($wilkerOptions)->first(function ($opt) use ($requestedWilker) {
+                if (strcasecmp($opt, $requestedWilker) === 0) return true;
+                if ((stripos($opt, 'Husen') !== false || stripos($opt, 'Husein') !== false) &&
+                    (stripos($requestedWilker, 'Husen') !== false || stripos($requestedWilker, 'Husein') !== false)) {
+                    return true;
+                }
+                return false;
+            });
+            $wilker = $matched ?? $requestedWilker;
+        } else {
+            $wilker = $defaultWilker;
+        }
+
         $year = (int) $request->query('year', $defaultYear);
         $month = (int) $request->query('month', $defaultMonth);
         if ($month < 1 || $month > 12) {
             $month = 1;
         }
 
-        // Available Wilayah Kerja options
-        $wilkerOptions = [
-            'BANDARA HUSEIN',
-            'WILKER KERTAJATI',
-            'WILKER CIREBON',
-            'WILKER PATIMBAN',
-            'WILKER INDRAMAYU',
-            'WILKER PELABUHARATU',
-            'INDUK BKK BANDUNG',
-        ];
-
-        try {
-            $dbWilkers = KantorWilker::where('is_active', true)->pluck('nama_pendek')->toArray();
-            if (!empty($dbWilkers)) {
-                $wilkerOptions = array_values(array_unique(array_merge($wilkerOptions, $dbWilkers)));
-            }
-        } catch (\Throwable $e) {
-            // Fallback to static list
-        }
-
-        // Load all 12 reports for this Wilker and Year
-        $reports = SinkarkesReport::where('wilker', $wilker)
+        // Load all 12 reports for this Wilker and Year (with alias fallback)
+        $reports = SinkarkesReport::where(function ($q) use ($wilker) {
+                $q->where('wilker', $wilker);
+                if (stripos($wilker, 'Husen') !== false || stripos($wilker, 'Husein') !== false) {
+                    $q->orWhere('wilker', 'BANDARA HUSEIN')
+                      ->orWhere('wilker', 'Bandara Husein')
+                      ->orWhere('wilker', 'POS Bandara Husen');
+                }
+            })
             ->where('year', $year)
             ->get()
             ->keyBy('month');

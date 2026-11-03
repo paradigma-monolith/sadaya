@@ -33,7 +33,7 @@ import {
 const props = defineProps({
   wilker: {
     type: String,
-    default: 'BANDARA HUSEIN',
+    default: 'Induk BKK Bandung',
   },
   year: {
     type: Number,
@@ -46,13 +46,13 @@ const props = defineProps({
   wilkerOptions: {
     type: Array,
     default: () => [
-      'BANDARA HUSEIN',
-      'WILKER KERTAJATI',
-      'WILKER CIREBON',
-      'WILKER PATIMBAN',
-      'WILKER INDRAMAYU',
-      'WILKER PELABUHARATU',
-      'INDUK BKK BANDUNG',
+      'Induk BKK Bandung',
+      'POS Bandara Husen',
+      'Wilker Cirebon',
+      'Wilker Indramayu',
+      'Wilker Kertajati',
+      'Wilker Patimban',
+      'Wilker Pelabuharatu',
     ],
   },
   monthlyData: {

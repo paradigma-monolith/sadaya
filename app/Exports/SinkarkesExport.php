@@ -41,7 +41,14 @@ class SinkarkesExport implements FromArray, WithHeadings, ShouldAutoSize, WithSt
      */
     protected function loadMonthlyData(): void
     {
-        $query = SinkarkesReport::where('wilker', $this->wilker)
+        $query = SinkarkesReport::where(function ($q) {
+                $q->where('wilker', $this->wilker);
+                if (stripos($this->wilker, 'Husen') !== false || stripos($this->wilker, 'Husein') !== false) {
+                    $q->orWhere('wilker', 'BANDARA HUSEIN')
+                      ->orWhere('wilker', 'Bandara Husein')
+                      ->orWhere('wilker', 'POS Bandara Husen');
+                }
+            })
             ->where('year', $this->year);
 
         if ($this->month) {

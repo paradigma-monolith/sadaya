@@ -11,7 +11,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-C0-taCWg.css",
+    "file": "assets/app-Dl5vpowc.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -20,7 +20,7 @@
     ]
   },
   "resources/js/inertia.js": {
-    "file": "assets/inertia-DK_g5Rjn.js",
+    "file": "assets/inertia-oqY5ipbj.js",
     "name": "inertia",
     "src": "resources/js/inertia.js",
     "isEntry": true,
@@ -28,7 +28,7 @@
       "__plugin-vue_export-helper-ONNX4yH3.js"
     ],
     "css": [
-      "assets/inertia-BOXTZ1rM.css"
+      "assets/inertia-BvioPHnM.css"
     ]
   },
   "resources/js/spa.js": {
