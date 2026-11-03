@@ -29,29 +29,29 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900 font-sans min-h-screen py-8 px-4 sm:px-6">
+<body class="bg-slate-100 text-slate-900 font-sans min-h-screen py-4 sm:py-8 px-2.5 sm:px-6">
 
     <!-- Top Action Bar (Floating Header) -->
-    <div class="no-print max-w-4xl mx-auto mb-6 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('travelconsent.home') }}" class="p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors" title="Kembali ke Portal">
+    <div class="no-print max-w-4xl mx-auto mb-4 sm:mb-6 bg-white border border-slate-200/90 rounded-2xl p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        <div class="flex items-center gap-2.5 sm:gap-3">
+            <a href="{{ route('travelconsent.home') }}" class="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors shrink-0" title="Kembali ke Portal">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
             </a>
-            <div>
+            <div class="min-w-0">
                 <span class="text-[10px] font-bold uppercase tracking-wider text-blue-600 block">Dokumen Resmi Publik</span>
-                <span class="font-mono text-sm font-bold text-slate-900">{{ $inspection->registration_no }}</span>
+                <span class="font-mono text-xs sm:text-sm font-bold text-slate-900 truncate block">{{ $inspection->registration_no }}</span>
             </div>
         </div>
 
-        <div class="flex items-center gap-2 flex-wrap">
-            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
-                <span class="text-xs text-slate-500">🔗 Link:</span>
+        <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <div class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 flex-1 sm:flex-initial">
+                <span class="text-[11px] text-slate-500 shrink-0">🔗 Link:</span>
                 <input 
                     type="text" 
                     id="pageLinkInput" 
                     readonly 
                     value="{{ url()->current() }}" 
-                    class="bg-transparent text-xs font-mono text-slate-800 w-44 sm:w-60 select-all outline-none"
+                    class="bg-transparent text-[11px] sm:text-xs font-mono text-slate-800 w-full sm:w-60 select-all outline-none"
                     onclick="this.select()"
                 >
                 <button 
@@ -67,36 +67,36 @@
             <button 
                 type="button" 
                 onclick="window.print()" 
-                class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                class="w-full sm:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm cursor-pointer"
             >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
-                <span>Cetak / Simpan PDF</span>
+                <span>Cetak / PDF</span>
             </button>
         </div>
     </div>
 
     <!-- The Official Document Sheet -->
-    <div class="doc-sheet max-w-4xl mx-auto bg-white rounded-3xl border border-slate-200/90 shadow-xl p-8 sm:p-12 text-slate-800 space-y-6">
+    <div class="doc-sheet max-w-4xl mx-auto bg-white rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-md sm:shadow-xl p-4 sm:p-8 md:p-12 text-slate-800 space-y-4 sm:space-y-6">
         
         <!-- Official Kop Surat Header -->
-        <div class="border-b-2 border-slate-900 pb-4 text-center">
+        <div class="border-b-2 border-slate-900 pb-3 sm:pb-4 text-center">
             <img 
                 src="{{ asset('storage/images/Kop_BKK_bandung.png') }}" 
                 alt="Balai Kekarantinaan Kesehatan Kelas I Bandung" 
-                class="w-full max-h-36 sm:max-h-44 object-contain mx-auto"
+                class="w-full max-h-24 sm:max-h-36 md:max-h-44 object-contain mx-auto"
                 onerror="this.onerror=null;this.src='{{ asset('images/Kop_BKK_bandung.png') }}';"
             >
         </div>
 
         <!-- Document Title & Header Meta -->
-        <div class="text-center space-y-1.5 pt-2">
-            <h1 class="text-lg sm:text-xl font-black text-slate-900 uppercase tracking-tight">
+        <div class="text-center space-y-1 pt-1 sm:pt-2">
+            <h1 class="text-sm sm:text-lg md:text-xl font-black text-slate-900 uppercase tracking-tight leading-snug">
                 Berita Acara &amp; Daftar Pemakaian Alat Kesehatan
             </h1>
-            <p class="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wider">
+            <p class="text-[11px] sm:text-xs font-bold text-slate-600 uppercase tracking-wider">
                 Kotak Pertolongan Pertama Pada Kecelakaan (P3K) &amp; Kotak Emergensi Pada Pesawat Udara
             </p>
-            <div class="pt-2 flex items-center justify-center gap-3">
+            <div class="pt-2 flex items-center justify-center flex-wrap gap-2 sm:gap-3">
                 <span class="inline-block px-3 py-1 rounded-full text-xs font-mono font-bold bg-blue-50 text-blue-700 border border-blue-200">
                     No. Registrasi: {{ $inspection->registration_no }}
                 </span>
@@ -140,15 +140,16 @@
         </div>
 
         <!-- Tabel 1: Pemakaian Alkes Kotak P3K -->
-        <div class="space-y-3 pt-2">
+        <div class="space-y-2 pt-2">
             <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-blue-600"></span>
                     <span>1. Daftar Pemakaian Alat Kesehatan Kotak P3K (First Aid Kit)</span>
                 </h3>
             </div>
-            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-                <table class="w-full text-xs text-left">
+            <p class="text-[10px] text-slate-400 sm:hidden">👉 Geser tabel ke kanan untuk melihat rincian isi & pemakaian</p>
+            <div class="border border-slate-200 rounded-xl overflow-x-auto shadow-2xs">
+                <table class="w-full text-xs text-left min-w-[500px]">
                     <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 font-bold uppercase text-[10.5px]">
                         <tr>
                             <th class="px-3 py-2.5 w-10 text-center">No</th>
@@ -182,15 +183,16 @@
         </div>
 
         <!-- Tabel 2: Pemakaian Alkes Kotak Emergensi -->
-        <div class="space-y-3 pt-3">
+        <div class="space-y-2 pt-2 sm:pt-3">
             <div class="flex items-center justify-between">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
                     <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
                     <span>2. Daftar Pemakaian Alat Kesehatan Kotak Emergensi (Medical Emergency Kit)</span>
                 </h3>
             </div>
-            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
-                <table class="w-full text-xs text-left">
+            <p class="text-[10px] text-slate-400 sm:hidden">👉 Geser tabel ke kanan untuk melihat rincian isi & pemakaian</p>
+            <div class="border border-slate-200 rounded-xl overflow-x-auto shadow-2xs">
+                <table class="w-full text-xs text-left min-w-[500px]">
                     <thead class="bg-slate-100 text-slate-700 border-b border-slate-200 font-bold uppercase text-[10.5px]">
                         <tr>
                             <th class="px-3 py-2.5 w-10 text-center">No</th>
@@ -229,12 +231,12 @@
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
                 <span>📸</span> Dokumentasi Foto Lapangan &amp; Geotagging
             </h3>
-            <div class="flex flex-col sm:flex-row gap-4 items-start bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                <a href="{{ asset($inspection->foto_geotagging) }}" target="_blank" class="shrink-0 group">
+            <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start bg-slate-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200">
+                <a href="{{ asset($inspection->foto_geotagging) }}" target="_blank" class="w-full sm:w-auto shrink-0 group">
                     <img 
                         src="{{ asset($inspection->foto_geotagging) }}" 
                         alt="Foto Geotagging" 
-                        class="w-48 h-32 object-cover rounded-xl border border-slate-300 shadow-2xs group-hover:opacity-90 transition-opacity"
+                        class="w-full sm:w-48 h-40 sm:h-32 object-cover rounded-xl border border-slate-300 shadow-2xs group-hover:opacity-90 transition-opacity"
                         onerror="this.onerror=null;this.src='/images/photo-placeholder.png';"
                     >
                 </a>
@@ -261,7 +263,7 @@
         @endif
 
         <!-- Lembar Pengesahan & Tanda Tangan -->
-        <div class="pt-6 border-t border-slate-300 grid grid-cols-2 gap-8 text-center text-xs">
+        <div class="pt-6 border-t border-slate-300 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 text-center text-xs">
             <div>
                 <p class="text-slate-500 mb-1">Awak Kabin (Crew) Penerbangan</p>
                 <div class="h-24 flex items-center justify-center my-1">
@@ -271,7 +273,7 @@
                         <span class="text-slate-300 italic text-[11px]">[Tanda Tangan Tercatat]</span>
                     @endif
                 </div>
-                <p class="font-bold text-slate-900 border-t border-slate-300 pt-1.5 mx-8">{{ $inspection->crew_nama }}</p>
+                <p class="font-bold text-slate-900 border-t border-slate-300 pt-1.5 mx-auto max-w-[200px]">{{ $inspection->crew_nama }}</p>
                 <p class="text-[10px] text-slate-400">Crew on Duty</p>
             </div>
 
@@ -284,7 +286,7 @@
                         <span class="text-slate-300 italic text-[11px]">[Tanda Tangan Tercatat]</span>
                     @endif
                 </div>
-                <p class="font-bold text-slate-900 border-t border-slate-300 pt-1.5 mx-8">{{ $inspection->pelapor_nama }}</p>
+                <p class="font-bold text-slate-900 border-t border-slate-300 pt-1.5 mx-auto max-w-[200px]">{{ $inspection->pelapor_nama }}</p>
                 <p class="text-[10px] text-slate-400">Tim Pengawasan Faktor Risiko Alat Angkut</p>
             </div>
         </div>

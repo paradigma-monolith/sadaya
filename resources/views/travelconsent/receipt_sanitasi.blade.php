@@ -85,27 +85,34 @@
         
         /* Responsive Mobile Styles for Document View */
         @media screen and (max-width: 767.98px) {
-            body { font-size: 12px; }
-            .main-container { padding: 15px; margin: 10px; border-radius: 8px; }
-            .kop-surat { margin-top: 8px !important; margin-bottom: 10px !important; }
-            .kop-surat img { max-height: 70px; }
-            .kop-surat h4 { font-size: 14px; margin-top: 6px; margin-bottom: 2px; }
+            body { font-size: 12px; padding-top: 8px !important; padding-bottom: 20px !important; }
+            .main-container { padding: 12px; margin: 8px; border-radius: 8px; }
+            .top-action-bar { flex-direction: column; align-items: stretch !important; gap: 8px; }
+            .top-action-bar .input-group { width: 100% !important; }
+            .top-action-bar #pageLinkInput { width: 100% !important; flex: 1; }
+            .top-action-bar .btn { font-size: 12px; }
+            .kop-surat { margin-top: 4px !important; margin-bottom: 10px !important; }
+            .kop-surat img { max-height: 60px; }
+            .kop-surat h4 { font-size: 13.5px; margin-top: 6px; margin-bottom: 2px; }
+            .kop-surat p { font-size: 10px !important; }
             .table-info-umum, .table-info-umum tbody { display: block; width: 100%; border: none; }
             .table-info-umum tr { display: flex; flex-wrap: wrap; width: 100%; }
             .table-info-umum td {
                 box-sizing: border-box;
-                font-size: 11.5px;
+                font-size: 11px;
                 padding: 4px 6px;
-                border: 1px solid #000;
+                border: 1px solid #ced4da !important;
                 margin-top: -1px;
                 word-break: break-word;
             }
-            .table-info-umum td:nth-child(odd) {
-                width: 42% !important;
-                background-color: #f8f9fa;
+            .table-info-umum tr td:nth-child(odd) {
+                width: 40% !important;
+                background-color: #f8f9fa !important;
+                font-weight: 600;
+                color: #495057;
             }
-            .table-info-umum td:nth-child(even) {
-                width: 58% !important;
+            .table-info-umum tr td:nth-child(even) {
+                width: 60% !important;
                 margin-left: -1px;
             }
             .table-area-scroll {
@@ -113,13 +120,13 @@
                 overflow-x: auto;
                 -webkit-overflow-scrolling: touch;
                 margin-bottom: 12px;
-                border: 1px solid #000;
+                border: 1px solid #ced4da;
+                border-radius: 6px;
             }
             .table-area-print {
-                min-width: 780px;
+                min-width: 760px;
                 margin-bottom: 0;
-                font-size: 11px;
-                border: none;
+                font-size: 10.5px;
             }
             .table-area-print th, .table-area-print td {
                 padding: 4px 5px;
@@ -137,9 +144,9 @@
                 display: block;
                 width: 100% !important;
                 padding-top: 0 !important;
-                padding-bottom: 10px !important;
-                margin-bottom: 10px;
-                border-bottom: 1px dashed #ccc !important;
+                padding-bottom: 8px !important;
+                margin-bottom: 8px;
+                border-bottom: 1px dashed #ced4da !important;
             }
             .table-ket-ttd td:nth-child(3) {
                 display: block;

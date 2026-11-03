@@ -122,6 +122,31 @@
                 grid-template-columns: 1fr;
             }
         }
+        @media (max-width: 640px) {
+            .geotag-section {
+                padding: 14px 10px;
+                border-radius: 14px;
+            }
+            .upload-buttons-bar {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            .btn-camera-action, .btn-gallery-action {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            .geo-coords-display {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+            .photo-gallery-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+            .signature-canvas {
+                height: 130px !important;
+            }
+        }
         .geo-info-box {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -701,6 +726,12 @@
                         <span id="progressText">0 / 32 Area Terisi</span>
                     </div>
                 </div>
+
+                <!-- Mobile Swipe Hint -->
+                <p class="text-[11px] text-slate-500 md:hidden flex items-center justify-between bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg">
+                    <span>👉 Geser tabel ke samping untuk mengisi Bukti &amp; Tindakan</span>
+                    <span class="font-bold text-emerald-700">32 Area</span>
+                </p>
 
                 <!-- 32 Area Interactive Matrix -->
                 <div class="overflow-x-auto rounded-xl border border-slate-200">

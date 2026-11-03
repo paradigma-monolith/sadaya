@@ -1,6 +1,26 @@
 <!-- Modal Pop-up Link Publik Hasil Dokumen -->
+<style>
+    @media (max-width: 480px) {
+        .modal-public-card {
+            padding: 20px 14px !important;
+            border-radius: 16px !important;
+        }
+        .modal-public-input-row {
+            flex-direction: column !important;
+        }
+        .modal-public-input-row input, .modal-public-input-row button {
+            width: 100% !important;
+        }
+        .modal-public-btn-group {
+            flex-direction: column !important;
+        }
+        .modal-public-btn-group a, .modal-public-btn-group button {
+            width: 100% !important;
+        }
+    }
+</style>
 <div id="modalPublicLink" style="display: none; position: fixed; inset: 0; z-index: 99999; align-items: center; justify-content: center; padding: 16px; background-color: rgba(15, 23, 42, 0.75); backdrop-filter: blur(4px);">
-    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; text-align: center; padding: 28px 24px; position: relative;">
+    <div class="modal-public-card" style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 20px; width: 100%; max-width: 520px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; text-align: center; padding: 28px 24px; position: relative;">
         
         <!-- Close Button -->
         <button type="button" onclick="closePublicModal()" style="position: absolute; top: 16px; right: 16px; background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px 8px; border-radius: 8px; line-height: 1;" title="Tutup">
@@ -33,7 +53,7 @@
             <label style="display: block; font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;">
                 🔗 Tautan Publik Hasil Dokumen:
             </label>
-            <div style="display: flex; gap: 8px; align-items: center;">
+            <div class="modal-public-input-row" style="display: flex; gap: 8px; align-items: center;">
                 <input 
                     type="text" 
                     id="modalPublicUrlInput" 
@@ -60,7 +80,7 @@
         </div>
 
         <!-- Action Buttons -->
-        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <div class="modal-public-btn-group" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
             <a 
                 id="modalPublicViewBtn" 
                 href="#" 

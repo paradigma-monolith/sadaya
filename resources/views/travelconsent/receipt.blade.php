@@ -102,6 +102,101 @@
             background: #e2e8f0;
             color: #0f172a;
         }
+        .link-input-group {
+            display: flex;
+            gap: 8px;
+        }
+        .btn-action-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        /* Responsive Mobile Optimizations */
+        @media (max-width: 640px) {
+            body {
+                padding: 16px 10px;
+                display: block;
+                min-height: auto;
+            }
+            .card {
+                padding: 20px 14px;
+                border-radius: 18px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.05);
+            }
+            .success-icon {
+                width: 54px;
+                height: 54px;
+                margin-bottom: 12px;
+            }
+            .success-icon svg {
+                width: 26px;
+                height: 26px;
+            }
+            .card h2 {
+                font-size: 19px !important;
+                line-height: 1.3;
+            }
+            .badge-reg {
+                font-size: 13px;
+                padding: 6px 12px;
+                margin: 10px 0 16px 0;
+                word-break: break-all;
+                border-radius: 10px;
+            }
+            .detail-box {
+                padding: 12px 10px;
+                margin-bottom: 18px;
+                font-size: 12px;
+                border-radius: 12px;
+            }
+            .detail-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 2px;
+                padding: 6px 0;
+            }
+            .detail-row span:first-child {
+                font-size: 11px;
+            }
+            .detail-row strong, .detail-row span:last-child {
+                font-size: 12.5px;
+                word-break: break-word;
+            }
+            .photo-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+            .btn-action-group {
+                flex-direction: column !important;
+                width: 100%;
+                gap: 8px !important;
+            }
+            .btn {
+                width: 100%;
+                padding: 10px 14px;
+                font-size: 13px;
+            }
+            .link-input-group {
+                flex-direction: column;
+                gap: 6px;
+            }
+            .link-input-group input {
+                width: 100% !important;
+                font-size: 11px !important;
+                padding: 8px 10px !important;
+            }
+            .link-input-group button {
+                width: 100% !important;
+                padding: 8px 12px !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -184,7 +279,7 @@
             <span>Dokumentasi Foto Geotagging ({{ count($inspection->foto_dokumentasi) }} Foto)</span>
         </h4>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px;">
+        <div class="photo-grid">
             @foreach($inspection->foto_dokumentasi as $foto)
             <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
                 <div style="position: relative; width: 100%; height: 120px; background: #0f172a;">
@@ -216,7 +311,7 @@
             </span>
             <span style="font-size: 10.5px; color: #64748b;">Dapat diakses langsung tanpa login</span>
         </div>
-        <div class="flex gap-2">
+        <div class="link-input-group">
             <input 
                 type="text" 
                 id="pageLinkInput" 
@@ -239,7 +334,7 @@
         </div>
     </div>
 
-    <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+    <div class="btn-action-group">
         <a href="{{ route('travelconsent.public_pdf', $inspection->registration_no) }}" class="btn btn-primary">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span>Unduh Berkas PDF Resmi</span>

@@ -110,6 +110,35 @@
                 grid-template-columns: 1.25fr 1fr;
             }
         }
+        @media (max-width: 640px) {
+            .geotag-section {
+                padding: 14px 10px;
+                border-radius: 14px;
+            }
+            .upload-buttons-bar {
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+            .btn-camera-action, .btn-gallery-action {
+                width: 100% !important;
+                justify-content: center !important;
+            }
+            .geo-coords-display {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+            .photo-gallery-grid {
+                grid-template-columns: repeat(2, 1fr) !important;
+                gap: 8px !important;
+            }
+            .camera-modal-card {
+                width: 95vw !important;
+                max-height: 90vh !important;
+            }
+            .camera-viewfinder-box {
+                height: 280px !important;
+            }
+        }
         .geo-info-box {
             background: #f8fafc;
             border: 1px solid #e2e8f0;
@@ -479,7 +508,7 @@
             @csrf
 
             <!-- SECTION 1: Informasi Penerbangan & Kloter -->
-            <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-5">
+            <div class="glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-5">
                 <div class="flex items-center gap-2.5 pb-3 border-b border-slate-200">
                     <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-xs">1</span>
                     <h2 class="text-base font-extrabold text-slate-900">
@@ -578,7 +607,7 @@
             </div>
 
             <!-- SECTION 2: Pemakaian Obat Kotak P3K (6 Items) -->
-            <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-4">
+            <div class="glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
                     <div class="flex items-center gap-2.5">
                         <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-xs">2</span>
@@ -599,8 +628,9 @@
                     </button>
                 </div>
 
+                <p class="text-[10px] text-slate-400 sm:hidden">👉 Geser tabel ke samping untuk melihat kolom Terpakai &amp; Keterangan</p>
                 <div class="border border-slate-200 rounded-2xl overflow-hidden overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
+                    <table class="w-full text-left border-collapse text-xs min-w-[500px]">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
                                 <th class="px-4 py-3 w-12 text-center">No</th>
@@ -658,7 +688,7 @@
             </div>
 
             <!-- SECTION 3: Pemakaian Obat Kotak Emergensi (15 Items) -->
-            <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-4">
+            <div class="glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
                     <div class="flex items-center gap-2.5">
                         <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-xs">3</span>
@@ -679,8 +709,9 @@
                     </button>
                 </div>
 
+                <p class="text-[10px] text-slate-400 sm:hidden">👉 Geser tabel ke samping untuk melihat kolom Terpakai &amp; Keterangan</p>
                 <div class="border border-slate-200 rounded-2xl overflow-hidden overflow-x-auto">
-                    <table class="w-full text-left border-collapse text-xs">
+                    <table class="w-full text-left border-collapse text-xs min-w-[500px]">
                         <thead>
                             <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase tracking-wider text-[11px]">
                                 <th class="px-4 py-3 w-12 text-center">No</th>
@@ -840,7 +871,7 @@
             </div>
 
             <!-- SECTION 5: Tanda Tangan Digital Ganda -->
-            <div class="glass-card rounded-3xl p-6 sm:p-8 space-y-4">
+            <div class="glass-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 space-y-4">
                 <div class="flex items-center gap-2.5 pb-3 border-b border-slate-200">
                     <span class="w-7 h-7 rounded-lg bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-xs">5</span>
                     <h2 class="text-base font-extrabold text-slate-900">
@@ -848,9 +879,9 @@
                     </h2>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <!-- Awak Kabin / Crew -->
-                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div class="p-3.5 sm:p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                         <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
                             Awak Kabin / Kru Pesawat <span class="text-rose-500">*</span>
                         </label>

@@ -88,10 +88,30 @@
             background: #f0f7ff;
             border-radius: 4px 4px 0 0;
         }
+        .check-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            border: 1px solid #cbd5e1;
+        }
         .check-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 0;
+            min-width: 600px;
+        }
+        .table-swipe-hint {
+            display: none;
+            padding: 6px 12px;
+            margin-bottom: 8px;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 11px;
+            color: #475569;
+            font-weight: 600;
         }
         .check-table th, .check-table td {
             border: 1px solid #cbd5e1;
@@ -130,11 +150,76 @@
             text-align: center;
         }
         @media (max-width: 640px) {
-            .signature-wrapper {
-                grid-template-columns: 1fr;
+            body {
+                padding: 10px 6px 40px 6px;
             }
             .container {
-                padding: 16px;
+                padding: 14px 10px;
+                border-radius: 14px;
+            }
+            .doc-title {
+                font-size: 14.5px;
+                line-height: 1.3;
+            }
+            .doc-subtitle {
+                font-size: 10.5px;
+                margin-bottom: 16px;
+            }
+            .table-meta, .table-meta tbody, .table-meta tr {
+                display: block;
+                width: 100%;
+            }
+            .table-meta tr {
+                margin-bottom: 10px;
+                padding-bottom: 8px;
+                border-bottom: 1px dashed #e2e8f0;
+            }
+            .table-meta tr:last-child {
+                border-bottom: none;
+            }
+            .table-meta td {
+                display: block;
+                width: 100% !important;
+                padding: 3px 0 !important;
+                box-sizing: border-box;
+            }
+            .table-swipe-hint {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .signature-wrapper {
+                grid-template-columns: 1fr;
+                gap: 14px;
+                margin-top: 20px;
+            }
+            .sig-card {
+                padding: 12px 10px;
+            }
+            .sig-canvas {
+                max-width: 100% !important;
+                width: 100% !important;
+                height: 120px;
+            }
+            .btn-submit {
+                width: 100%;
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+            .geo-info-box {
+                padding: 12px 10px;
+            }
+            .geo-coords-display {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+            .btn-camera-action, .btn-gallery-action {
+                width: 100%;
+                justify-content: center;
+            }
+            .btn-gps-refresh {
+                width: 100%;
+                justify-content: center;
             }
         }
         .sig-card {
@@ -689,6 +774,11 @@
         </table>
 
         <!-- Main Checklist Table -->
+        <div class="table-swipe-hint">
+            <span>👉 Geser tabel ke samping untuk melihat kolom Keadaan (Baik/Tidak Baik)</span>
+            <span style="font-size: 10px; color: #0284c7; background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">Checklist</span>
+        </div>
+        <div class="check-table-wrapper">
         <table class="check-table">
             <thead>
                 <tr>
@@ -1077,6 +1167,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
 
         <p style="font-size: 12px; color: #64748b; margin-bottom: 25px;">
             * &nbsp;&nbsp; Isilah tanda &#10003; Untuk jawaban dimaksud &nbsp;&bull;&nbsp; <span class="italic-eng">Please tick appropriate option</span>
