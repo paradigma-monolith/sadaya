@@ -345,6 +345,141 @@ class SinkarkesDashboardService
             ],
         ];
 
+        // 11. Comprehensive Monthly Total Summary Table (Jan - Des + Total Tahunan)
+        $summaryDefinitions = [
+            // KSE Section
+            ['code' => 'KSE.1', 'label' => 'Kedatangan Kapal', 'unit' => 'Kpl', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 7],
+            ['code' => 'KSE.2', 'label' => 'Keberangkatan Kapal (PHC)', 'unit' => 'Kpl', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 14],
+            ['code' => 'KSE.3', 'label' => 'Kedatangan Pesawat Udara', 'unit' => 'Pswt', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 21],
+            ['code' => 'KSE.4', 'label' => 'Keberangkatan Pesawat Udara', 'unit' => 'Pswt', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 30],
+            ['code' => 'KSE.5.1', 'label' => 'Penumpang Kapal Datang', 'unit' => 'Org', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 37],
+            ['code' => 'KSE.5.2', 'label' => 'Penumpang Kapal Berangkat', 'unit' => 'Org', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 44],
+            ['code' => 'KSE.6.1', 'label' => 'Penumpang Pesawat Datang', 'unit' => 'Org', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 51],
+            ['code' => 'KSE.6.2', 'label' => 'Penumpang Pesawat Berangkat', 'unit' => 'Org', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 58],
+            ['code' => 'KSE.7', 'label' => 'Anak Buah Kapal (ABK)', 'unit' => 'Org', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'rows_sum' => [65, 72]],
+            ['code' => 'KSE.8', 'label' => 'Kru / Awak Pesawat', 'unit' => 'Org', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'rows_sum' => [79, 86]],
+            ['code' => 'KSE.9.A', 'label' => 'Penerbitan SSCEC (Bebas Sanitasi)', 'unit' => 'Sertifikat', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 93],
+            ['code' => 'KSE.9.B', 'label' => 'Penerbitan SSCC (Tindakan Sanitasi)', 'unit' => 'Sertifikat', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 94],
+            ['code' => 'KSE.10', 'label' => 'Pemberian Health Alert Card (HAC)', 'unit' => 'Lembar', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 96],
+            ['code' => 'KSE.11', 'label' => 'Sertifikat Desinseksi Alat Angkut', 'unit' => 'Lembar', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 99],
+            ['code' => 'KSE.12', 'label' => 'Sertifikat Desinfeksi Alat Angkut', 'unit' => 'Lembar', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 102],
+            ['code' => 'KSE.15', 'label' => 'Pemberian Sailing Permit', 'unit' => 'Kpl', 'section' => 'KSE', 'section_name' => 'Karantina & Surveilans Epidemiologi', 'row' => 107],
+
+            // UKP Section
+            ['code' => 'UKP.1', 'label' => 'Kunjungan Poliklinik KKP', 'unit' => 'Pasien', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 160],
+            ['code' => 'UKP.2', 'label' => 'Surat Keterangan Berbadan Sehat', 'unit' => 'Org', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 184],
+            ['code' => 'UKP.3', 'label' => 'Pemeriksaan Obat & P3K Kapal/Pesawat', 'unit' => 'Unit', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 185],
+            ['code' => 'UKP.4', 'label' => 'Pemeriksaan Lab Klinik Dasar', 'unit' => 'Sampel', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 188],
+            ['code' => 'UKP.5', 'label' => 'Penanggulangan Gawat Darurat Medik', 'unit' => 'Kasus', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 193],
+            ['code' => 'UKP.6', 'label' => 'Sertifikat Keterangan Laik Terbang', 'unit' => 'Org', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'row' => 196],
+            ['code' => 'UKP.7', 'label' => 'Surat Izin Angkut / Masuk Jenazah', 'unit' => 'Lembar', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'rows_sum' => [198, 201]],
+            ['code' => 'UKP.10', 'label' => 'Pelayanan Vaksinasi Internasional (ICV)', 'unit' => 'Dosis', 'section' => 'UKP', 'section_name' => 'Upaya Kesehatan Pelabuhan', 'special' => 'icv'],
+
+            // PRL Section
+            ['code' => 'PRL.1', 'label' => 'Pengamatan Jentik Bangunan Diperiksa', 'unit' => 'Bangunan', 'section' => 'PRL', 'section_name' => 'Pengendalian Risiko Lingkungan', 'row' => 227],
+            ['code' => 'PRL.2', 'label' => 'Pengendalian Tikus Tertangkap', 'unit' => 'Ekor', 'section' => 'PRL', 'section_name' => 'Pengendalian Risiko Lingkungan', 'row' => 257],
+            ['code' => 'PRL.5', 'label' => 'Pemeriksaan Kualitas Air Bersih (Fisik)', 'unit' => 'Sampel', 'section' => 'PRL', 'section_name' => 'Pengendalian Risiko Lingkungan', 'rows_sum' => [274, 277, 280]],
+            ['code' => 'PRL.6', 'label' => 'Pengawasan Tempat Pengolahan Makanan (TPM)', 'unit' => 'Sarana', 'section' => 'PRL', 'section_name' => 'Pengendalian Risiko Lingkungan', 'row' => 285],
+            ['code' => 'PRL.9', 'label' => 'Hygiene Sanitasi Alat Angkut (Kapal & Pesawat)', 'unit' => 'Unit', 'section' => 'PRL', 'section_name' => 'Pengendalian Risiko Lingkungan', 'rows_sum' => [324, 325, 331]],
+        ];
+
+        $summaryTable = [];
+        $monthlyTotalsAll = array_fill(1, 12, 0);
+        $sectionTotals = [
+            'KSE' => array_fill(1, 12, 0),
+            'UKP' => array_fill(1, 12, 0),
+            'PRL' => array_fill(1, 12, 0),
+        ];
+
+        foreach ($summaryDefinitions as $def) {
+            $months = [];
+            $totalYear = 0;
+
+            for ($m = 1; $m <= 12; $m++) {
+                $val = 0;
+                if (isset($def['row'])) {
+                    $val = (float)($activeWilkerData[$m][$def['row']] ?? 0);
+                } elseif (isset($def['rows_sum'])) {
+                    foreach ($def['rows_sum'] as $r) {
+                        $val += (float)($activeWilkerData[$m][$r] ?? 0);
+                    }
+                } elseif (($def['special'] ?? '') === 'icv') {
+                    $val = (float)($activeWilkerData[$m][207] ?? 0);
+                    if ($val == 0) {
+                        $val = (float)(
+                            ($activeWilkerData[$m][210] ?? 0) +
+                            ($activeWilkerData[$m][211] ?? 0) +
+                            ($activeWilkerData[$m][212] ?? 0) +
+                            ($activeWilkerData[$m][213] ?? 0) +
+                            ($activeWilkerData[$m][220] ?? 0) +
+                            ($activeWilkerData[$m][221] ?? 0) +
+                            ($activeWilkerData[$m][222] ?? 0) +
+                            ($activeWilkerData[$m][223] ?? 0)
+                        );
+                    }
+                }
+
+                $months[$m] = $val;
+                $totalYear += $val;
+                $monthlyTotalsAll[$m] += $val;
+                $sec = $def['section'];
+                if (isset($sectionTotals[$sec])) {
+                    $sectionTotals[$sec][$m] += $val;
+                }
+            }
+
+            $summaryTable[] = [
+                'code' => $def['code'],
+                'label' => $def['label'],
+                'unit' => $def['unit'],
+                'section' => $def['section'],
+                'section_name' => $def['section_name'],
+                'months' => $months,
+                'total_year' => $totalYear,
+            ];
+        }
+
+        // 12. Cross-Wilker Monthly Total Summary
+        $wilkerMonthlyTotals = [];
+        $wilkerGrandMonthly = array_fill(1, 12, 0);
+
+        foreach ($wilkerOptions as $w) {
+            $wMonths = [];
+            $wTotalYear = 0;
+            $wFilledCount = 0;
+
+            for ($m = 1; $m <= 12; $m++) {
+                $d = $wilkerMonthData[$w][$m] ?? [];
+                // Sum all key operational activity in this wilker this month
+                $mSum = (float)(
+                    ($d[7] ?? 0) + ($d[14] ?? 0) + ($d[21] ?? 0) + ($d[30] ?? 0) +
+                    ($d[37] ?? 0) + ($d[44] ?? 0) + ($d[51] ?? 0) + ($d[58] ?? 0) +
+                    ($d[65] ?? 0) + ($d[72] ?? 0) + ($d[79] ?? 0) + ($d[86] ?? 0) +
+                    ($d[93] ?? 0) + ($d[94] ?? 0) + ($d[96] ?? 0) + ($d[99] ?? 0) + ($d[102] ?? 0) + ($d[107] ?? 0) +
+                    ($d[160] ?? 0) + ($d[184] ?? 0) + ($d[185] ?? 0) + ($d[188] ?? 0) + ($d[193] ?? 0) + ($d[196] ?? 0) + ($d[198] ?? 0) + ($d[201] ?? 0) + ($d[207] ?? 0)
+                );
+
+                $wMonths[$m] = $mSum;
+                $wTotalYear += $mSum;
+                $wilkerGrandMonthly[$m] += $mSum;
+
+                if (!empty($d)) {
+                    $wFilledCount++;
+                }
+            }
+
+            $wilkerMonthlyTotals[] = [
+                'wilker' => $w,
+                'months' => $wMonths,
+                'total_year' => $wTotalYear,
+                'filled_months' => $wFilledCount,
+                'compliance_percent' => round(($wFilledCount / 12) * 100),
+            ];
+        }
+
+        $grandTotalYearAll = array_sum($monthlyTotalsAll);
+        $wilkerGrandTotalYear = array_sum($wilkerGrandMonthly);
+
         return [
             'year' => $year,
             'wilker' => $wilker ?? 'all',
@@ -357,6 +492,17 @@ class SinkarkesDashboardService
             'wilker_comparison' => $wilkerComparison,
             'health_chart' => $healthChart,
             'environment_chart' => $environmentChart,
+            'summary_table' => [
+                'items' => $summaryTable,
+                'monthly_totals' => $monthlyTotalsAll,
+                'total_year' => $grandTotalYearAll,
+                'section_totals' => $sectionTotals,
+            ],
+            'wilker_summary' => [
+                'items' => $wilkerMonthlyTotals,
+                'monthly_totals' => $wilkerGrandMonthly,
+                'total_year' => $wilkerGrandTotalYear,
+            ],
         ];
     }
 
@@ -421,3 +567,4 @@ class SinkarkesDashboardService
         return $wilker;
     }
 }
+
