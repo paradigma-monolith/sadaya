@@ -528,42 +528,46 @@ const filteredInspections = computed(() => {
             <div class="h-5 w-px bg-white/20 hidden sm:block"></div>
 
             <div class="flex items-center gap-1">
-              <Link
-                :href="getUrl('/public_aircraft')"
+              <a
+                :href="getUrl('/travelconsent/public_aircraft')"
                 target="_blank"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#00A99D]/20 hover:bg-[#00A99D]/35 text-[#E6F7F5] border border-[#00A99D]/40 transition-all flex items-center gap-1"
+                rel="noopener noreferrer"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#00A99D]/20 hover:bg-[#00A99D]/35 text-[#E6F7F5] border border-[#00A99D]/40 transition-all flex items-center gap-1 cursor-pointer"
                 title="Input Inspeksi Pesawat Udara"
               >
                 <Plane class="w-3.5 h-3.5" />
                 <span class="hidden md:inline">Pesawat</span>
-              </Link>
-              <Link
-                :href="getUrl('/public_sanitasi')"
+              </a>
+              <a
+                :href="getUrl('/travelconsent/public_sanitasi')"
                 target="_blank"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#005851]/40 hover:bg-[#005851]/60 text-white border border-[#99DFD6]/35 transition-all flex items-center gap-1"
+                rel="noopener noreferrer"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#005851]/40 hover:bg-[#005851]/60 text-white border border-[#99DFD6]/35 transition-all flex items-center gap-1 cursor-pointer"
                 title="Input Karantina Sanitasi Kapal Laut"
               >
                 <Ship class="w-3.5 h-3.5" />
                 <span class="hidden md:inline">Kapal</span>
-              </Link>
-              <Link
-                :href="getUrl('/public_alat')"
+              </a>
+              <a
+                :href="getUrl('/travelconsent/public_alat')"
                 target="_blank"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#99CC33]/20 hover:bg-[#99CC33]/35 text-[#F7FCE8] border border-[#99CC33]/40 transition-all flex items-center gap-1"
+                rel="noopener noreferrer"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#99CC33]/20 hover:bg-[#99CC33]/35 text-[#F7FCE8] border border-[#99CC33]/40 transition-all flex items-center gap-1 cursor-pointer"
                 title="Input Pemeriksaan Alat Kesehatan Haji"
               >
                 <Stethoscope class="w-3.5 h-3.5" />
                 <span class="hidden md:inline">Alkes</span>
-              </Link>
-              <Link
-                :href="getUrl('/public_obat')"
+              </a>
+              <a
+                :href="getUrl('/travelconsent/public_obat')"
                 target="_blank"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#00A99D]/25 hover:bg-[#00A99D]/40 text-[#E6F7F5] border border-[#00A99D]/45 transition-all flex items-center gap-1"
+                rel="noopener noreferrer"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#00A99D]/25 hover:bg-[#00A99D]/40 text-[#E6F7F5] border border-[#00A99D]/45 transition-all flex items-center gap-1 cursor-pointer"
                 title="Input Pemakaian Obat P3K Pesawat"
               >
                 <Pill class="w-3.5 h-3.5" />
                 <span class="hidden md:inline">Obat</span>
-              </Link>
+              </a>
             </div>
           </div>
         </div>

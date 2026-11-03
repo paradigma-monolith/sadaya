@@ -35,6 +35,17 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 });
 
+// --- Convenient Top-Level Shortcut & Alias Routes (Redirect to travelconsent) ---
+Route::redirect('/public_aircraft', '/travelconsent/public_aircraft');
+Route::redirect('/public_sanitasi', '/travelconsent/public_sanitasi');
+Route::redirect('/public_alat', '/travelconsent/public_alat');
+Route::redirect('/public_obat', '/travelconsent/public_obat');
+Route::redirect('/aircraft', '/travelconsent/public_aircraft');
+Route::redirect('/sanitasi', '/travelconsent/public_sanitasi');
+Route::redirect('/kapal', '/travelconsent/public_sanitasi');
+Route::redirect('/alkes', '/travelconsent/public_alat');
+Route::redirect('/obat', '/travelconsent/public_obat');
+
 // --- Public Travel Consent & Sanitation Inspection Routes ---
 Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
     // Public Landing Page / Hub Pelayanan
