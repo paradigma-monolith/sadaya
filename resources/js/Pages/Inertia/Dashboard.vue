@@ -845,6 +845,363 @@ const sinkarkesHealthOption = computed(() => {
     ],
   };
 });
+
+// ---------------------------------------------------------------------------
+// SINKARKES 2027 PROJECTION — METODE CAGR (Compound Annual Growth Rate)
+// ---------------------------------------------------------------------------
+const cagrRaw = computed(() => sinkarkesData.value.cagr_projection || {});
+const cagrTargetYear = computed(() => cagrRaw.value.target_year || (Number(selectedSinkarkesYear.value) + 1));
+const cagrBaseYear = computed(() => cagrRaw.value.base_year || Number(selectedSinkarkesYear.value));
+
+// Scenario Mode: 'auto' (Empirical per indicator) | 'conservative' (5%) | 'moderate' (8.5%) | 'optimistic' (12.5%) | 'custom'
+const cagrScenarioMode = ref('auto');
+const customCagrRate = ref(8.5);
+// Base Mode: 'annualized' (Full-Year 12 Months Estimate) | 'actual' (Cumulative Realization)
+const cagrBaseMode = ref('annualized');
+// Sub-tab in CAGR Table: 'indicators' | 'wilkers'
+const activeCagrTableTab = ref('indicators');
+// Chart Comparison Metric: 'total' | 'alat_angkut' | 'orang'
+const cagrChartMetric = ref('total');
+
+const selectCagrScenario = (mode, rate = null) => {
+  cagrScenarioMode.value = mode;
+  if (rate !== null) {
+    customCagrRate.value = rate;
+  }
+};
+
+// Resolve effective CAGR % for a given item
+const getEffectiveCagrRate = (itemRate) => {
+  if (cagrScenarioMode.value === 'conservative') return 5.0;
+  if (cagrScenarioMode.value === 'moderate') return 8.5;
+  if (cagrScenarioMode.value === 'optimistic') return 12.5;
+  if (cagrScenarioMode.value === 'custom') return Number(customCagrRate.value) || 0;
+  return Number(itemRate ?? cagrRaw.value.avg_cagr_rate ?? 8.5);
+};
+
+const effectiveAvgCagr = computed(() => {
+  if (cagrScenarioMode.value !== 'auto') {
+    return getEffectiveCagrRate(cagrRaw.value.avg_cagr_rate);
+  }
+  return Number(cagrRaw.value.avg_cagr_rate ?? 8.5);
+});
+
+// Recompute Indicator Projections reactively based on selected CAGR Scenario & Base Mode
+const computedCagrIndicators = computed(() => {
+  const rawItems = cagrRaw.value?.indicators?.items || [];
+  return rawItems.map((item) => {
+    const baseVal = cagrBaseMode.value === 'annualized'
+      ? Number(item.annualized_2026 || 0)
+      : Number(item.actual_2026 || 0);
+    const rate = baseVal > 0 ? getEffectiveCagrRate(item.cagr_rate) : 0;
+    const multiplier = 1 + (rate / 100);
+    const projTotal = Math.round(baseVal * multiplier);
+
+    // Distribute across 12 months preserving seasonal weights
+    const sourceMonths = cagrBaseMode.value === 'annualized'
+      ? (item.months_2026_est || item.months_2026 || {})
+      : (item.months_2026 || {});
+    const months2027 = {};
+    let running = 0;
+
+    for (let m = 1; m <= 12; m++) {
+      const mBase = Number(sourceMonths[m] || 0);
+      const weight = baseVal > 0 ? (mBase / baseVal) : (1 / 12);
+      if (m < 12) {
+        const val = Math.round(projTotal * weight);
+        months2027[m] = val;
+        running += val;
+      } else {
+        months2027[m] = Math.max(0, projTotal - running);
+      }
+    }
+
+    return {
+      ...item,
+      base_2026: baseVal,
+      effective_cagr: rate,
+      projected_2027_val: projTotal,
+      delta_val: projTotal - baseVal,
+      months_2027_calc: months2027,
+    };
+  });
+});
+
+const filteredCagrIndicators = computed(() => {
+  return computedCagrIndicators.value.filter((item) => {
+    const matchSection = selectedSectionFilter.value === 'ALL' || item.section === selectedSectionFilter.value;
+    const matchSearch =
+      !summarySearchQuery.value ||
+      item.label.toLowerCase().includes(summarySearchQuery.value.toLowerCase()) ||
+      item.code.toLowerCase().includes(summarySearchQuery.value.toLowerCase());
+    return matchSection && matchSearch;
+  });
+});
+
+const computedCagrIndicatorTotals = computed(() => {
+  const monthly2027 = {};
+  for (let m = 1; m <= 12; m++) monthly2027[m] = 0;
+  let totalBase2026 = 0;
+  let totalProj2027 = 0;
+
+  filteredCagrIndicators.value.forEach((row) => {
+    totalBase2026 += row.base_2026;
+    totalProj2027 += row.projected_2027_val;
+    for (let m = 1; m <= 12; m++) {
+      monthly2027[m] += Number(row.months_2027_calc[m] || 0);
+    }
+  });
+
+  return {
+    monthly_2027: monthly2027,
+    total_base_2026: totalBase2026,
+    total_proj_2027: totalProj2027,
+    delta_total: totalProj2027 - totalBase2026,
+  };
+});
+
+// Recompute Wilker Projections reactively
+const computedCagrWilkers = computed(() => {
+  const rawWilkers = cagrRaw.value?.wilkers?.items || [];
+  return rawWilkers.map((w) => {
+    const baseVal = cagrBaseMode.value === 'annualized'
+      ? Number(w.annualized_2026 || 0)
+      : Number(w.actual_2026 || 0);
+    const rate = baseVal > 0 ? getEffectiveCagrRate(w.cagr_rate) : 0;
+    const multiplier = 1 + (rate / 100);
+    const projTotal = Math.round(baseVal * multiplier);
+
+    const sourceMonths = cagrBaseMode.value === 'annualized'
+      ? (w.months_2026_est || w.months_2026 || {})
+      : (w.months_2026 || {});
+    const months2027 = {};
+    let running = 0;
+
+    for (let m = 1; m <= 12; m++) {
+      const mBase = Number(sourceMonths[m] || 0);
+      const weight = baseVal > 0 ? (mBase / baseVal) : (1 / 12);
+      if (m < 12) {
+        const val = Math.round(projTotal * weight);
+        months2027[m] = val;
+        running += val;
+      } else {
+        months2027[m] = Math.max(0, projTotal - running);
+      }
+    }
+
+    return {
+      ...w,
+      base_2026: baseVal,
+      effective_cagr: rate,
+      projected_2027_val: projTotal,
+      delta_val: projTotal - baseVal,
+      months_2027_calc: months2027,
+    };
+  });
+});
+
+const computedCagrWilkerTotals = computed(() => {
+  const monthly2027 = {};
+  for (let m = 1; m <= 12; m++) monthly2027[m] = 0;
+  let totalActual2026 = 0;
+  let totalBase2026 = 0;
+  let totalProj2027 = 0;
+
+  computedCagrWilkers.value.forEach((w) => {
+    totalActual2026 += Number(w.actual_2026 || 0);
+    totalBase2026 += w.base_2026;
+    totalProj2027 += w.projected_2027_val;
+    for (let m = 1; m <= 12; m++) {
+      monthly2027[m] += Number(w.months_2027_calc[m] || 0);
+    }
+  });
+
+  return {
+    monthly_2027: monthly2027,
+    total_actual_2026: totalActual2026,
+    total_base_2026: totalBase2026,
+    total_proj_2027: totalProj2027,
+  };
+});
+
+// Executive 2027 KPI Cards reactively computed
+const computedKpi2027 = computed(() => {
+  const k27 = cagrRaw.value?.kpi_2027 || {};
+  const buildCard = (block, fallbackRate = 8.5) => {
+    const actual = Number(block?.actual_2026 || 0);
+    const annualized = Number(block?.annualized_2026 || actual);
+    const base = cagrBaseMode.value === 'annualized' ? annualized : actual;
+    const rate = base > 0 ? getEffectiveCagrRate(block?.cagr_rate ?? fallbackRate) : 0;
+    const projected = Math.round(base * (1 + rate / 100));
+    return {
+      actual_2026: actual,
+      base_2026: base,
+      cagr_rate: rate,
+      projected_2027: projected,
+      delta: projected - base,
+    };
+  };
+
+  return {
+    alat_angkut: buildCard(k27.alat_angkut, 8.4),
+    orang: buildCard(k27.orang, 8.5),
+    dokumen: buildCard(k27.dokumen, 8.4),
+    layanan: buildCard(k27.layanan_kesehatan, 9.2),
+    prl: buildCard(k27.prl, 7.5),
+  };
+});
+
+// ECharts Option 1: 12-Month Trend Comparison (Base Year 2026 vs CAGR Projection 2027)
+const cagrMonthlyComparisonOption = computed(() => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const series2026 = Array(12).fill(0);
+  const series2027 = Array(12).fill(0);
+
+  const filterCodes = cagrChartMetric.value === 'alat_angkut'
+    ? ['KSE.1', 'KSE.2', 'KSE.3', 'KSE.4']
+    : cagrChartMetric.value === 'orang'
+    ? ['KSE.5.1', 'KSE.5.2', 'KSE.6.1', 'KSE.6.2', 'KSE.7', 'KSE.8']
+    : null;
+
+  computedCagrIndicators.value.forEach((ind) => {
+    if (filterCodes && !filterCodes.includes(ind.code)) return;
+    const src26 = cagrBaseMode.value === 'annualized'
+      ? (ind.months_2026_est || ind.months_2026 || {})
+      : (ind.months_2026 || {});
+    for (let m = 1; m <= 12; m++) {
+      series2026[m - 1] += Number(src26[m] || 0);
+      series2027[m - 1] += Number(ind.months_2027_calc[m] || 0);
+    }
+  });
+
+  const label2026 = cagrBaseMode.value === 'annualized'
+    ? `Baseline ${cagrBaseYear.value} (Annualized)`
+    : `Realisasi ${cagrBaseYear.value}`;
+  const label2027 = `Proyeksi CAGR ${cagrTargetYear.value} (+${effectiveAvgCagr.value}%)`;
+
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'cross' },
+      backgroundColor: '#003B36',
+      borderColor: '#00A99D',
+      textStyle: { color: '#f8fafc', fontSize: 11 },
+    },
+    legend: {
+      data: [label2026, label2027],
+      bottom: 0,
+      textStyle: { color: '#64748b', fontSize: 11, fontWeight: 'bold' },
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '14%',
+      top: '10%',
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: months,
+      axisLine: { lineStyle: { color: '#cbd5e1' } },
+      axisLabel: { fontSize: 11, color: '#475569', fontWeight: 600 },
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.7)', type: 'dashed' } },
+      axisLabel: { fontSize: 10, color: '#64748b' },
+    },
+    series: [
+      {
+        name: label2026,
+        type: 'line',
+        smooth: true,
+        data: series2026,
+        itemStyle: { color: '#64748b' },
+        lineStyle: { width: 2.2, color: '#64748b', type: 'dashed' },
+        areaStyle: {
+          color: 'rgba(100, 116, 139, 0.08)',
+        },
+      },
+      {
+        name: label2027,
+        type: 'line',
+        smooth: true,
+        data: series2027,
+        itemStyle: { color: '#00A99D' },
+        lineStyle: { width: 3, color: '#00A99D' },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(0, 169, 157, 0.35)' },
+              { offset: 1, color: 'rgba(153, 204, 51, 0.03)' },
+            ],
+          },
+        },
+      },
+    ],
+  };
+});
+
+// ECharts Option 2: Cross-Wilker 2026 vs 2027 CAGR Projection Bar Chart
+const cagrWilkerComparisonOption = computed(() => {
+  const list = computedCagrWilkers.value;
+  const categories = list.map((w) => w.short_name);
+  const data2026 = list.map((w) => w.base_2026);
+  const data2027 = list.map((w) => w.projected_2027_val);
+
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      backgroundColor: '#003B36',
+      borderColor: '#00A99D',
+      textStyle: { color: '#f8fafc', fontSize: 11 },
+    },
+    legend: {
+      data: [`Basis ${cagrBaseYear.value}`, `Proyeksi CAGR ${cagrTargetYear.value}`],
+      bottom: 0,
+      textStyle: { color: '#64748b', fontSize: 11, fontWeight: 'bold' },
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '14%',
+      top: '8%',
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      data: categories,
+      axisLine: { lineStyle: { color: '#cbd5e1' } },
+      axisLabel: { fontSize: 10, color: '#334155', fontWeight: 'bold', interval: 0, rotate: 15 },
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.7)' } },
+      axisLabel: { fontSize: 10, color: '#64748b' },
+    },
+    series: [
+      {
+        name: `Basis ${cagrBaseYear.value}`,
+        type: 'bar',
+        data: data2026,
+        itemStyle: { color: '#94a3b8', borderRadius: [4, 4, 0, 0] },
+      },
+      {
+        name: `Proyeksi CAGR ${cagrTargetYear.value}`,
+        type: 'bar',
+        data: data2027,
+        itemStyle: { color: '#005851', borderRadius: [4, 4, 0, 0] },
+      },
+    ],
+  };
+});
 </script>
 
 <template>
@@ -1529,6 +1886,15 @@ const sinkarkesHealthOption = computed(() => {
                 </select>
               </div>
 
+              <!-- Jump to CAGR 2027 Projection Button -->
+              <a
+                href="#cagr-projection-2027"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#003B36] bg-[#99CC33] hover:bg-[#88b82b] border border-[#D6EC8E] transition-all shadow-sm cursor-pointer"
+              >
+                <TrendingUp class="w-3.5 h-3.5" />
+                <span>Proyeksi CAGR {{ cagrTargetYear }}</span>
+              </a>
+
               <!-- Open Form Input Button -->
               <Link
                 :href="getUrl(`/sinkarkes?wilker=${encodeURIComponent(selectedSinkarkesWilker !== 'all' ? selectedSinkarkesWilker : 'POS Bandara Husen')}&year=${selectedSinkarkesYear}`)"
@@ -2076,6 +2442,529 @@ const sinkarkesHealthOption = computed(() => {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ======================================================================= -->
+        <!-- SINKARKES PROYEKSI TAHUN 2027 — METODE CAGR (COMPOUND ANNUAL GROWTH)    -->
+        <!-- ======================================================================= -->
+        <div id="cagr-projection-2027" class="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs space-y-4">
+          <!-- Dark Teal Kemenkes Banner Header -->
+          <div class="bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] px-4 py-3.5 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[#00A99D]/30">
+            <div class="flex items-start sm:items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-[#99CC33]/20 border border-[#99CC33]/50 flex items-center justify-center shrink-0">
+                <TrendingUp class="w-5 h-5 text-[#99CC33]" />
+              </div>
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#99CC33] text-[#003B36]">
+                    METODE CAGR {{ cagrTargetYear }}
+                  </span>
+                  <h2 class="text-sm sm:text-base font-extrabold tracking-tight text-white">
+                    Proyeksi SINKARKES Tahun {{ cagrTargetYear }} &mdash; Metode Rata-Rata Tingkat Pertumbuhan Majemuk (CAGR)
+                  </h2>
+                </div>
+                <p class="text-[11px] text-[#99DFD6] mt-0.5">
+                  Perhitungan proyeksi beban kerja kekarantinaan kesehatan tahun {{ cagrTargetYear }} berbasis Compound Annual Growth Rate dari tren data tahun {{ cagrBaseYear }}.
+                </p>
+              </div>
+            </div>
+
+            <!-- Formula Callout Badge -->
+            <div class="flex flex-wrap items-center gap-2 shrink-0 bg-[#002D29]/90 border border-[#00A99D]/40 rounded-xl px-3 py-2 text-[11px] font-mono">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[#99CC33] font-bold">Rumus:</span>
+                <span class="text-white">CAGR = (V<sub>akhir</sub> / V<sub>awal</sub>)<sup>1/n</sup> &minus; 1</span>
+              </div>
+              <span class="text-slate-500">|</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[#99DFD6] font-bold">P<sub>{{ cagrTargetYear }}</sub> =</span>
+                <span class="text-white">Basis<sub>{{ cagrBaseYear }}</sub> &times; (1 + CAGR)</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-4 sm:px-5 pb-5 space-y-4">
+            <!-- Interactive CAGR Scenario & Basis Controls Bar -->
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col xl:flex-row xl:items-center justify-between gap-3 text-xs">
+              <!-- Left: Scenario Selector Pills -->
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-[11px] font-bold text-slate-600 mr-1 flex items-center gap-1">
+                  <Sparkles class="w-3.5 h-3.5 text-[#00A99D]" />
+                  <span>Skenario CAGR:</span>
+                </span>
+
+                <button
+                  type="button"
+                  @click="selectCagrScenario('auto')"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border"
+                  :class="cagrScenarioMode === 'auto'
+                    ? 'bg-[#005851] text-white border-[#005851] shadow-2xs'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-[#00A99D]'"
+                >
+                  Otomatis Tren Data ({{ cagrRaw.avg_cagr_rate || 8.5 }}%)
+                </button>
+
+                <button
+                  type="button"
+                  @click="selectCagrScenario('conservative', 5.0)"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border"
+                  :class="cagrScenarioMode === 'conservative'
+                    ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-2xs font-bold'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-[#00A99D]'"
+                >
+                  Konservatif (+5,0%)
+                </button>
+
+                <button
+                  type="button"
+                  @click="selectCagrScenario('moderate', 8.5)"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border"
+                  :class="cagrScenarioMode === 'moderate'
+                    ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-2xs font-bold'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-[#00A99D]'"
+                >
+                  Moderat (+8,5%)
+                </button>
+
+                <button
+                  type="button"
+                  @click="selectCagrScenario('optimistic', 12.5)"
+                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border"
+                  :class="cagrScenarioMode === 'optimistic'
+                    ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-2xs font-bold'
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-[#00A99D]'"
+                >
+                  Optimis (+12,5%)
+                </button>
+
+                <!-- Custom Rate Input -->
+                <div class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1">
+                  <span class="text-[11px] text-slate-500 font-medium">Kustom:</span>
+                  <input
+                    v-model.number="customCagrRate"
+                    @focus="cagrScenarioMode = 'custom'"
+                    @input="cagrScenarioMode = 'custom'"
+                    type="number"
+                    step="0.5"
+                    min="-30"
+                    max="100"
+                    class="w-14 text-right font-mono font-bold text-xs text-[#005851] bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 focus:outline-none focus:border-[#00A99D]"
+                  />
+                  <span class="text-[11px] font-mono font-bold text-slate-600">%</span>
+                </div>
+              </div>
+
+              <!-- Right: Base 2026 Calculation Mode Toggle -->
+              <div class="flex flex-wrap items-center gap-2 shrink-0">
+                <span class="text-[11px] font-bold text-slate-600">Basis {{ cagrBaseYear }}:</span>
+                <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-200/80 border border-slate-300/70 text-[11px]">
+                  <button
+                    type="button"
+                    @click="cagrBaseMode = 'annualized'"
+                    class="px-2.5 py-1 rounded-md transition-all cursor-pointer font-semibold"
+                    :class="cagrBaseMode === 'annualized' ? 'bg-white text-[#005851] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+                    title="Menormalisasi bulan yang belum terisi di 2026 menjadi estimasi 12 bulan penuh (Annualized)"
+                  >
+                    Estimasi 12 Bulan (Annualized)
+                  </button>
+                  <button
+                    type="button"
+                    @click="cagrBaseMode = 'actual'"
+                    class="px-2.5 py-1 rounded-md transition-all cursor-pointer font-semibold"
+                    :class="cagrBaseMode === 'actual' ? 'bg-white text-[#005851] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+                    title="Menggunakan angka realisasi kumulatif 2026 apa adanya tanpa disetahunkan"
+                  >
+                    Realisasi Berjalan ({{ cagrRaw.active_months_count || 8 }} Bln)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5 Executive KPI Cards for 2027 Projection -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+              <!-- Card 1: Proyeksi Alat Angkut 2027 -->
+              <div class="rounded-xl p-3 bg-gradient-to-br from-[#E6F7F5]/60 to-white border border-[#99DFD6] shadow-2xs">
+                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-[#005851]">
+                  <span>PROYEKSI ALAT ANGKUT {{ cagrTargetYear }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-[#00A99D] text-white">+{{ computedKpi2027.alat_angkut.cagr_rate }}%</span>
+                </div>
+                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
+                  {{ computedKpi2027.alat_angkut.projected_2027.toLocaleString('id-ID') }}
+                </div>
+                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
+                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.alat_angkut.base_2026.toLocaleString('id-ID') }}</span>
+                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.alat_angkut.delta.toLocaleString('id-ID') }} unit</span>
+                </div>
+              </div>
+
+              <!-- Card 2: Proyeksi Orang Terawasi 2027 -->
+              <div class="rounded-xl p-3 bg-gradient-to-br from-amber-50/70 to-white border border-amber-200 shadow-2xs">
+                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-amber-900">
+                  <span>PROYEKSI ORANG {{ cagrTargetYear }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-amber-500 text-white">+{{ computedKpi2027.orang.cagr_rate }}%</span>
+                </div>
+                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
+                  {{ computedKpi2027.orang.projected_2027.toLocaleString('id-ID') }}
+                </div>
+                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
+                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.orang.base_2026.toLocaleString('id-ID') }}</span>
+                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.orang.delta.toLocaleString('id-ID') }} org</span>
+                </div>
+              </div>
+
+              <!-- Card 3: Proyeksi Dokumen Karantina 2027 -->
+              <div class="rounded-xl p-3 bg-gradient-to-br from-[#E0EFEF]/70 to-white border border-[#99DFD6] shadow-2xs">
+                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-[#005851]">
+                  <span>PROYEKSI DOKUMEN {{ cagrTargetYear }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-[#005851] text-white">+{{ computedKpi2027.dokumen.cagr_rate }}%</span>
+                </div>
+                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
+                  {{ computedKpi2027.dokumen.projected_2027.toLocaleString('id-ID') }}
+                </div>
+                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
+                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.dokumen.base_2026.toLocaleString('id-ID') }}</span>
+                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.dokumen.delta.toLocaleString('id-ID') }} dok</span>
+                </div>
+              </div>
+
+              <!-- Card 4: Proyeksi Layanan Kesehatan & ICV 2027 -->
+              <div class="rounded-xl p-3 bg-gradient-to-br from-sky-50/70 to-white border border-sky-200 shadow-2xs">
+                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-sky-900">
+                  <span>PROYEKSI UKP &amp; ICV {{ cagrTargetYear }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-sky-600 text-white">+{{ computedKpi2027.layanan.cagr_rate }}%</span>
+                </div>
+                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
+                  {{ computedKpi2027.layanan.projected_2027.toLocaleString('id-ID') }}
+                </div>
+                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
+                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.layanan.base_2026.toLocaleString('id-ID') }}</span>
+                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.layanan.delta.toLocaleString('id-ID') }} layanan</span>
+                </div>
+              </div>
+
+              <!-- Card 5: Proyeksi PRL Lingkungan 2027 -->
+              <div class="rounded-xl p-3 bg-gradient-to-br from-[#F7FCE8] to-white border border-[#D6EC8E] shadow-2xs">
+                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-[#557A18]">
+                  <span>PROYEKSI PRL {{ cagrTargetYear }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-[#7CA622] text-white">+{{ computedKpi2027.prl.cagr_rate }}%</span>
+                </div>
+                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
+                  {{ computedKpi2027.prl.projected_2027.toLocaleString('id-ID') }}
+                </div>
+                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
+                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.prl.base_2026.toLocaleString('id-ID') }}</span>
+                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.prl.delta.toLocaleString('id-ID') }} objek</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Dual ECharts Comparison Row: 12-Month Trajectory & 7-Wilker Projection -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
+              <!-- Chart A: 12-Month Trajectory Comparison (2026 vs 2027) -->
+              <div class="lg:col-span-7 rounded-xl p-4 bg-slate-50/50 border border-slate-200/90 flex flex-col justify-between">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                  <div>
+                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                      <ChartLine class="w-4 h-4 text-[#00A99D]" />
+                      <span>Kurva Proyeksi Bulanan {{ cagrBaseYear }} vs {{ cagrTargetYear }} (Metode CAGR)</span>
+                    </h3>
+                    <p class="text-[11px] text-slate-500">
+                      Perbandingan lintasan pertumbuhan bulanan (Januari s/d Desember) dengan rata-rata CAGR efektif <strong>+{{ effectiveAvgCagr }}%</strong>.
+                    </p>
+                  </div>
+
+                  <!-- Metric Filter Buttons -->
+                  <div class="inline-flex items-center p-0.5 rounded-lg bg-white border border-slate-200 text-[11px]">
+                    <button
+                      type="button"
+                      @click="cagrChartMetric = 'total'"
+                      class="px-2 py-1 rounded font-semibold cursor-pointer transition-all"
+                      :class="cagrChartMetric === 'total' ? 'bg-[#005851] text-white font-bold' : 'text-slate-600 hover:text-slate-900'"
+                    >
+                      Semua Indikator
+                    </button>
+                    <button
+                      type="button"
+                      @click="cagrChartMetric = 'alat_angkut'"
+                      class="px-2 py-1 rounded font-semibold cursor-pointer transition-all"
+                      :class="cagrChartMetric === 'alat_angkut' ? 'bg-[#005851] text-white font-bold' : 'text-slate-600 hover:text-slate-900'"
+                    >
+                      Alat Angkut
+                    </button>
+                    <button
+                      type="button"
+                      @click="cagrChartMetric = 'orang'"
+                      class="px-2 py-1 rounded font-semibold cursor-pointer transition-all"
+                      :class="cagrChartMetric === 'orang' ? 'bg-[#005851] text-white font-bold' : 'text-slate-600 hover:text-slate-900'"
+                    >
+                      Orang
+                    </button>
+                  </div>
+                </div>
+
+                <div class="w-full h-[250px]">
+                  <BaseChart :option="cagrMonthlyComparisonOption" height="250px" />
+                </div>
+              </div>
+
+              <!-- Chart B: 7 Wilkers 2026 vs 2027 Bar Chart -->
+              <div class="lg:col-span-5 rounded-xl p-4 bg-slate-50/50 border border-slate-200/90 flex flex-col justify-between">
+                <div class="mb-2">
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                    <ChartColumn class="w-4 h-4 text-[#7CA622]" />
+                    <span>Target Proyeksi {{ cagrTargetYear }} Lintas 7 Wilayah Kerja</span>
+                  </h3>
+                  <p class="text-[11px] text-slate-500">
+                    Komparasi volume operasional tahun {{ cagrBaseYear }} terhadap target proyeksi CAGR tahun {{ cagrTargetYear }}.
+                  </p>
+                </div>
+
+                <div class="w-full h-[250px]">
+                  <BaseChart :option="cagrWilkerComparisonOption" height="250px" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Detailed 2027 Monthly Projection Table (Indicators & Wilkers) -->
+            <div class="space-y-3 pt-1">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start">
+                  <button
+                    type="button"
+                    @click="activeCagrTableTab = 'indicators'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                    :class="activeCagrTableTab === 'indicators' ? 'bg-[#005851] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-[#005851]'"
+                  >
+                    <Table class="w-3.5 h-3.5" :class="activeCagrTableTab === 'indicators' ? 'text-[#99CC33]' : 'text-[#00A99D]'" />
+                    <span>Tabel Proyeksi {{ cagrTargetYear }} per Indikator (29 Item)</span>
+                  </button>
+                  <button
+                    type="button"
+                    @click="activeCagrTableTab = 'wilkers'"
+                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                    :class="activeCagrTableTab === 'wilkers' ? 'bg-[#005851] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-[#005851]'"
+                  >
+                    <Building2 class="w-3.5 h-3.5" :class="activeCagrTableTab === 'wilkers' ? 'text-[#99CC33]' : 'text-[#7CA622]'" />
+                    <span>Tabel Proyeksi {{ cagrTargetYear }} per Wilayah Kerja</span>
+                  </button>
+                </div>
+
+                <!-- Section Filter when in Indicators tab -->
+                <div v-if="activeCagrTableTab === 'indicators'" class="flex items-center gap-1.5 overflow-x-auto">
+                  <button
+                    v-for="sec in [
+                      { id: 'ALL', label: 'Semua' },
+                      { id: 'KSE', label: 'KSE' },
+                      { id: 'UKP', label: 'UKP' },
+                      { id: 'PRL', label: 'PRL' }
+                    ]"
+                    :key="sec.id"
+                    type="button"
+                    @click="selectedSectionFilter = sec.id"
+                    class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border"
+                    :class="selectedSectionFilter === sec.id
+                      ? 'bg-[#00A99D] text-white border-[#00A99D]'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+                  >
+                    {{ sec.label }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sub-Tab 1: 29 Key Indicators 2027 Monthly Projection Table -->
+              <div v-if="activeCagrTableTab === 'indicators'" class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full min-w-[1120px] text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                      <th class="py-2.5 px-2.5 w-18 text-center sticky left-0 bg-slate-50 z-10 shadow-xs">Kode</th>
+                      <th class="py-2.5 px-3 min-w-[230px] sticky left-18 bg-slate-50 z-10 shadow-xs">Indikator SINKARKES</th>
+                      <th class="py-2.5 px-2 text-center w-14">Satuan</th>
+                      <th class="py-2.5 px-2.5 text-right w-24 bg-slate-100 text-slate-700 font-mono">
+                        BASIS {{ cagrBaseYear }}
+                      </th>
+                      <th class="py-2.5 px-2 text-center w-20 bg-[#F7FCE8] text-[#557A18] font-mono">
+                        CAGR (%)
+                      </th>
+                      <th
+                        v-for="m in monthNames"
+                        :key="`cagr-m-${m}`"
+                        class="py-2.5 px-1.5 text-right w-13 font-mono text-[10px]"
+                      >
+                        {{ m }}
+                      </th>
+                      <th class="py-2.5 px-3 text-right w-28 bg-[#E6F7F5] text-[#005851] font-mono font-bold text-[11px]">
+                        PROYEKSI {{ cagrTargetYear }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr
+                      v-for="row in filteredCagrIndicators"
+                      :key="`cagr-ind-${row.code}`"
+                      class="hover:bg-[#E6F7F5]/30 transition-colors group"
+                    >
+                      <td class="py-2 px-2.5 font-mono font-bold text-[11px] text-center text-slate-600 sticky left-0 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
+                        <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">{{ row.code }}</span>
+                      </td>
+                      <td class="py-2 px-3 text-slate-800 font-medium sticky left-18 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
+                        <div class="flex items-center gap-1.5">
+                          <span
+                            class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase shrink-0"
+                            :class="{
+                              'bg-blue-50 text-blue-600': row.section === 'KSE',
+                              'bg-emerald-50 text-emerald-600': row.section === 'UKP',
+                              'bg-amber-50 text-amber-600': row.section === 'PRL',
+                            }"
+                          >
+                            {{ row.section }}
+                          </span>
+                          <span class="truncate">{{ row.label }}</span>
+                        </div>
+                      </td>
+                      <td class="py-2 px-2 text-center text-slate-400 font-mono text-[10px]">
+                        {{ row.unit }}
+                      </td>
+                      <td class="py-2 px-2.5 text-right font-mono text-[11px] bg-slate-50/80 text-slate-700 font-semibold">
+                        {{ row.base_2026 > 0 ? row.base_2026.toLocaleString('id-ID') : '-' }}
+                      </td>
+                      <td class="py-2 px-2 text-center font-mono text-[11px] bg-[#F7FCE8]/50">
+                        <span
+                          v-if="row.base_2026 > 0"
+                          class="px-1.5 py-0.5 rounded font-bold text-[10px]"
+                          :class="row.effective_cagr >= 0 ? 'bg-emerald-100/80 text-emerald-800' : 'bg-rose-100 text-rose-700'"
+                        >
+                          {{ row.effective_cagr >= 0 ? '+' : '' }}{{ row.effective_cagr }}%
+                        </span>
+                        <span v-else class="text-slate-300">-</span>
+                      </td>
+                      <td
+                        v-for="mId in 12"
+                        :key="`cagr-cell-${row.code}-${mId}`"
+                        class="py-2 px-1.5 text-right font-mono text-[11px]"
+                        :class="row.months_2027_calc[mId] > 0 ? 'text-slate-800 font-medium' : 'text-slate-300'"
+                      >
+                        {{ row.months_2027_calc[mId] > 0 ? row.months_2027_calc[mId].toLocaleString('id-ID') : '-' }}
+                      </td>
+                      <td class="py-2 px-3 text-right font-mono font-bold text-xs bg-[#E6F7F5]/60 text-[#005851] group-hover:bg-[#E6F7F5]">
+                        {{ row.projected_2027_val > 0 ? row.projected_2027_val.toLocaleString('id-ID') : '-' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="bg-slate-100/95 border-t-2 border-slate-300 font-bold">
+                    <tr>
+                      <td colspan="3" class="py-2.5 px-3 text-slate-800 sticky left-0 bg-slate-100 z-10 text-xs uppercase tracking-wider">
+                        TOTAL PROYEKSI SINKARKES {{ cagrTargetYear }}
+                      </td>
+                      <td class="py-2.5 px-2.5 text-right font-mono text-xs text-slate-800 bg-slate-200/60">
+                        {{ computedCagrIndicatorTotals.total_base_2026.toLocaleString('id-ID') }}
+                      </td>
+                      <td class="py-2.5 px-2 text-center font-mono text-xs text-[#557A18] bg-[#F7FCE8]">
+                        +{{ effectiveAvgCagr }}%
+                      </td>
+                      <td
+                        v-for="mId in 12"
+                        :key="`cagr-tot-m-${mId}`"
+                        class="py-2.5 px-1.5 text-right font-mono text-[11px] text-slate-900"
+                      >
+                        {{ computedCagrIndicatorTotals.monthly_2027[mId] > 0 ? computedCagrIndicatorTotals.monthly_2027[mId].toLocaleString('id-ID') : '-' }}
+                      </td>
+                      <td class="py-2.5 px-3 text-right font-mono font-extrabold text-sm bg-[#00A99D]/25 text-[#003B36]">
+                        {{ computedCagrIndicatorTotals.total_proj_2027.toLocaleString('id-ID') }}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              <!-- Sub-Tab 2: 7 Wilkers 2027 Monthly Projection Table -->
+              <div v-else class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="w-full min-w-[1060px] text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
+                      <th class="py-2.5 px-3 min-w-[210px] sticky left-0 bg-slate-50 z-10 shadow-xs">Wilayah Kerja / Pos</th>
+                      <th class="py-2.5 px-2.5 text-right w-24 font-mono">REALISASI {{ cagrBaseYear }}</th>
+                      <th class="py-2.5 px-2.5 text-right w-24 bg-slate-100 text-slate-700 font-mono">BASIS {{ cagrBaseYear }}</th>
+                      <th class="py-2.5 px-2 text-center w-20 bg-[#F7FCE8] text-[#557A18] font-mono">CAGR (%)</th>
+                      <th
+                        v-for="m in monthNames"
+                        :key="`cagr-wm-${m}`"
+                        class="py-2.5 px-1.5 text-right w-13 font-mono text-[10px]"
+                      >
+                        {{ m }}
+                      </th>
+                      <th class="py-2.5 px-3 text-right w-28 bg-[#E6F7F5] text-[#005851] font-mono font-bold text-[11px]">
+                        PROYEKSI {{ cagrTargetYear }}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr
+                      v-for="wRow in computedCagrWilkers"
+                      :key="`cagr-w-${wRow.wilker}`"
+                      class="hover:bg-[#E6F7F5]/30 transition-colors group"
+                    >
+                      <td class="py-2.5 px-3 font-semibold text-slate-800 flex items-center gap-2 sticky left-0 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
+                        <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+                        <span class="truncate">{{ wRow.wilker }}</span>
+                      </td>
+                      <td class="py-2.5 px-2.5 text-right font-mono text-[11px] text-slate-500">
+                        {{ wRow.actual_2026 > 0 ? wRow.actual_2026.toLocaleString('id-ID') : '-' }}
+                      </td>
+                      <td class="py-2.5 px-2.5 text-right font-mono text-[11px] bg-slate-50/80 text-slate-700 font-semibold">
+                        {{ wRow.base_2026 > 0 ? wRow.base_2026.toLocaleString('id-ID') : '-' }}
+                      </td>
+                      <td class="py-2.5 px-2 text-center font-mono text-[11px] bg-[#F7FCE8]/50">
+                        <span
+                          v-if="wRow.base_2026 > 0"
+                          class="px-1.5 py-0.5 rounded font-bold text-[10px] bg-emerald-100/80 text-emerald-800"
+                        >
+                          {{ wRow.effective_cagr >= 0 ? '+' : '' }}{{ wRow.effective_cagr }}%
+                        </span>
+                        <span v-else class="text-slate-300">-</span>
+                      </td>
+                      <td
+                        v-for="mId in 12"
+                        :key="`cagr-wcell-${wRow.wilker}-${mId}`"
+                        class="py-2.5 px-1.5 text-right font-mono text-[11px]"
+                        :class="wRow.months_2027_calc[mId] > 0 ? 'text-slate-800 font-medium' : 'text-slate-300'"
+                      >
+                        {{ wRow.months_2027_calc[mId] > 0 ? wRow.months_2027_calc[mId].toLocaleString('id-ID') : '-' }}
+                      </td>
+                      <td class="py-2.5 px-3 text-right font-mono font-bold text-xs bg-[#E6F7F5]/60 text-[#005851] group-hover:bg-[#E6F7F5]">
+                        {{ wRow.projected_2027_val > 0 ? wRow.projected_2027_val.toLocaleString('id-ID') : '-' }}
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot class="bg-slate-100/95 border-t-2 border-slate-300 font-bold">
+                    <tr>
+                      <td class="py-2.5 px-3 text-slate-800 sticky left-0 bg-slate-100 z-10 text-xs uppercase tracking-wider">
+                        TOTAL KONSOLIDASI PROYEKSI {{ cagrTargetYear }}
+                      </td>
+                      <td class="py-2.5 px-2.5 text-right font-mono text-xs text-slate-600">
+                        {{ computedCagrWilkerTotals.total_actual_2026.toLocaleString('id-ID') }}
+                      </td>
+                      <td class="py-2.5 px-2.5 text-right font-mono text-xs text-slate-800 bg-slate-200/60">
+                        {{ computedCagrWilkerTotals.total_base_2026.toLocaleString('id-ID') }}
+                      </td>
+                      <td class="py-2.5 px-2 text-center font-mono text-xs text-[#557A18] bg-[#F7FCE8]">
+                        +{{ effectiveAvgCagr }}%
+                      </td>
+                      <td
+                        v-for="mId in 12"
+                        :key="`cagr-wtot-m-${mId}`"
+                        class="py-2.5 px-1.5 text-right font-mono text-[11px] text-slate-900"
+                      >
+                        {{ computedCagrWilkerTotals.monthly_2027[mId] > 0 ? computedCagrWilkerTotals.monthly_2027[mId].toLocaleString('id-ID') : '-' }}
+                      </td>
+                      <td class="py-2.5 px-3 text-right font-mono font-extrabold text-sm bg-[#00A99D]/25 text-[#003B36]">
+                        {{ computedCagrWilkerTotals.total_proj_2027.toLocaleString('id-ID') }}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
           </div>
         </div>
