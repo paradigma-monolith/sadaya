@@ -119,11 +119,11 @@ const defaultActions = [
   },
   {
     id: 'nav-sinkarkes-dashboard',
-    title: 'Dashboard & Analitik SINKARKES',
-    subtitle: 'Executive summary, diagram grafis bulanan & komparasi lintas wilker',
+    title: 'Dashboard & Analitik SINKARKES (Utama)',
+    subtitle: 'Executive summary, diagram grafis bulanan & total summary di Dashboard Utama',
     category: 'Laporan & Dokumen',
     icon: BarChart3,
-    action: () => navigateTo('/sinkarkes/dashboard'),
+    action: () => navigateTo('/dashboard#sinkarkes-section'),
   },
   {
     id: 'nav-sinkarkes',

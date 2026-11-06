@@ -50,6 +50,14 @@ import {
   Shield,
   Gauge,
   Flame,
+  BarChart3,
+  FileSpreadsheet,
+  Calendar,
+  FileCheck,
+  HeartPulse,
+  CalendarCheck,
+  Table,
+  PieChart as PieChartIcon,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -131,11 +139,31 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  sinkarkes: {
+    type: Object,
+    default: () => ({
+      year: 2026,
+      wilker: 'all',
+      is_consolidated: true,
+      wilker_options: [],
+      kpi: {},
+      matrix: [],
+      traffic_chart: {},
+      document_chart: [],
+      wilker_comparison: [],
+      health_chart: {},
+      environment_chart: {},
+      summary_table: { items: [], monthly_totals: {}, total_year: 0, section_totals: {} },
+      wilker_summary: { items: [], monthly_totals: {}, total_year: 0 },
+    }),
+  },
   metrics: {
     type: Object,
     default: () => ({}),
   },
 });
+
+const dashboardViewMode = ref('all'); // 'all' | 'sinkarkes' | 'geospatial'
 
 const getUrl = (path) => {
   if (typeof window !== 'undefined' && window.location.pathname.includes('/hybridlaravel/public')) {
@@ -470,6 +498,353 @@ const filteredInspections = computed(() => {
     r.office.toLowerCase().includes(q)
   );
 });
+
+// ---------------------------------------------------------------------------
+// SINKARKES Integrated Executive Analytics & Total Summary State
+// ---------------------------------------------------------------------------
+const sinkarkesData = computed(() => props.sinkarkes || {});
+const selectedSinkarkesYear = ref(props.sinkarkes?.year || 2026);
+const selectedSinkarkesWilker = ref(props.sinkarkes?.wilker || 'all');
+const availableSinkarkesYears = [2024, 2025, 2026, 2027, 2028, 2029, 2030];
+
+watch(
+  () => props.sinkarkes,
+  (val) => {
+    if (val?.year) selectedSinkarkesYear.value = val.year;
+    if (val?.wilker) selectedSinkarkesWilker.value = val.wilker;
+  }
+);
+
+const sinkarkesKpi = computed(() => sinkarkesData.value.kpi || {});
+const sinkarkesWilkerOptions = computed(() => sinkarkesData.value.wilker_options || []);
+const sinkarkesMatrix = computed(() => sinkarkesData.value.matrix || []);
+const sinkarkesSummaryTable = computed(
+  () => sinkarkesData.value.summary_table || { items: [], monthly_totals: {}, total_year: 0, section_totals: {} }
+);
+const sinkarkesWilkerSummary = computed(
+  () => sinkarkesData.value.wilker_summary || { items: [], monthly_totals: {}, total_year: 0 }
+);
+
+const activeSummaryTab = ref('indicators'); // 'indicators' | 'wilkers' | 'compliance'
+const selectedSectionFilter = ref('ALL'); // 'ALL' | 'KSE' | 'UKP' | 'PRL'
+const summarySearchQuery = ref('');
+const monthNames = ['JAN', 'FEB', 'MART', 'APRL', 'MEI', 'JUN', 'JULI', 'AGUST', 'SEPT', 'OKT', 'NOV', 'DES'];
+
+const filteredSummaryItems = computed(() => {
+  const items = sinkarkesSummaryTable.value?.items || [];
+  return items.filter((item) => {
+    const matchSection = selectedSectionFilter.value === 'ALL' || item.section === selectedSectionFilter.value;
+    const matchSearch =
+      !summarySearchQuery.value ||
+      item.label.toLowerCase().includes(summarySearchQuery.value.toLowerCase()) ||
+      item.code.toLowerCase().includes(summarySearchQuery.value.toLowerCase());
+    return matchSection && matchSearch;
+  });
+});
+
+const sectionCounts = computed(() => {
+  const items = sinkarkesSummaryTable.value?.items || [];
+  return {
+    ALL: items.length,
+    KSE: items.filter((i) => i.section === 'KSE').length,
+    UKP: items.filter((i) => i.section === 'UKP').length,
+    PRL: items.filter((i) => i.section === 'PRL').length,
+  };
+});
+
+const handleSinkarkesFilterChange = () => {
+  const targetPath = typeof window !== 'undefined' ? window.location.pathname : '/dashboard';
+  router.get(
+    targetPath,
+    {
+      year: selectedSinkarkesYear.value,
+      wilker: selectedSinkarkesWilker.value,
+    },
+    {
+      preserveState: true,
+      preserveScroll: true,
+      replace: true,
+    }
+  );
+};
+
+const openSinkarkesMonthForm = (targetWilker, targetMonth) => {
+  router.get(getUrl('/sinkarkes'), {
+    wilker: targetWilker,
+    year: selectedSinkarkesYear.value,
+    month: targetMonth,
+  });
+};
+
+// SINKARKES Chart 1: Monthly Traffic Trend (12 Months)
+const sinkarkesTrafficOption = computed(() => {
+  const tc = sinkarkesData.value.traffic_chart || {};
+  const months = tc.months || ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'cross' },
+      backgroundColor: '#003B36',
+      borderColor: '#00A99D',
+      textStyle: { color: '#f8fafc', fontSize: 11 },
+    },
+    legend: {
+      data: ['Pesawat (Pswt)', 'Kapal Laut (Kpl)', 'Penumpang (Org)', 'Kru & ABK (Org)'],
+      bottom: 0,
+      textStyle: { color: '#64748b', fontSize: 11 },
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '12%',
+      top: '8%',
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: months,
+      axisLine: { lineStyle: { color: '#cbd5e1' } },
+      axisLabel: { fontSize: 11, color: '#64748b' },
+    },
+    yAxis: [
+      {
+        type: 'value',
+        name: 'Alat Angkut',
+        splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.6)' } },
+        axisLabel: { fontSize: 10, color: '#64748b' },
+      },
+      {
+        type: 'value',
+        name: 'Orang (Penumpang/Kru)',
+        position: 'right',
+        splitLine: { show: false },
+        axisLabel: { fontSize: 10, color: '#64748b' },
+      },
+    ],
+    series: [
+      {
+        name: 'Pesawat (Pswt)',
+        type: 'line',
+        smooth: true,
+        yAxisIndex: 0,
+        data: tc.plane || [],
+        itemStyle: { color: '#00A99D' },
+        lineStyle: { width: 2.5, color: '#00A99D' },
+        areaStyle: {
+          color: {
+            type: 'linear',
+            x: 0,
+            y: 0,
+            x2: 0,
+            y2: 1,
+            colorStops: [
+              { offset: 0, color: 'rgba(0, 169, 157, 0.35)' },
+              { offset: 1, color: 'rgba(0, 169, 157, 0.02)' },
+            ],
+          },
+        },
+      },
+      {
+        name: 'Kapal Laut (Kpl)',
+        type: 'line',
+        smooth: true,
+        yAxisIndex: 0,
+        data: tc.ship || [],
+        itemStyle: { color: '#005851' },
+        lineStyle: { width: 2.5, color: '#005851' },
+      },
+      {
+        name: 'Penumpang (Org)',
+        type: 'line',
+        smooth: true,
+        yAxisIndex: 1,
+        data: tc.passenger || [],
+        itemStyle: { color: '#f59e0b' },
+        lineStyle: { width: 2, color: '#f59e0b', type: 'dashed' },
+      },
+      {
+        name: 'Kru & ABK (Org)',
+        type: 'line',
+        smooth: true,
+        yAxisIndex: 1,
+        data: tc.crew || [],
+        itemStyle: { color: '#7CA622' },
+        lineStyle: { width: 2, color: '#7CA622' },
+      },
+    ],
+  };
+});
+
+// SINKARKES Chart 2: Document Composition (Donut / Pie)
+const sinkarkesDocumentOption = computed(() => {
+  return {
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: <strong>{c} dokumen</strong> ({d}%)',
+      backgroundColor: '#003B36',
+      borderColor: '#00A99D',
+      textStyle: { color: '#f8fafc', fontSize: 11 },
+    },
+    legend: {
+      orient: 'vertical',
+      right: '2%',
+      top: 'middle',
+      textStyle: { color: '#64748b', fontSize: 10 },
+      itemWidth: 12,
+      itemHeight: 12,
+    },
+    series: [
+      {
+        name: 'Dokumen Kekarantinaan',
+        type: 'pie',
+        radius: ['45%', '72%'],
+        center: ['35%', '50%'],
+        avoidLabelOverlap: true,
+        itemStyle: {
+          borderRadius: 6,
+          borderColor: '#fff',
+          borderWidth: 2,
+        },
+        label: {
+          show: false,
+          position: 'center',
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 13,
+            fontWeight: 'bold',
+            formatter: '{b}\n{c} ({d}%)',
+          },
+        },
+        color: ['#00A99D', '#005851', '#7CA622', '#0284c7', '#8b5cf6', '#f59e0b', '#ec4899', '#64748b'],
+        data: sinkarkesData.value.document_chart || [],
+      },
+    ],
+  };
+});
+
+// SINKARKES Chart 3: Cross-Wilker Comparison
+const sinkarkesWilkerOption = computed(() => {
+  const comparison = sinkarkesData.value.wilker_comparison || [];
+  const categories = comparison.map((c) => c.short_name);
+  const alatAngkut = comparison.map((c) => c.total_alat_angkut);
+  const orang = comparison.map((c) => c.total_orang);
+  const dokumen = comparison.map((c) => c.total_dokumen);
+
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      backgroundColor: '#003B36',
+      borderColor: '#00A99D',
+      textStyle: { color: '#f8fafc', fontSize: 11 },
+    },
+    legend: {
+      data: ['Alat Angkut', 'Orang (Penumpang & Kru)', 'Dokumen Karantina'],
+      bottom: 0,
+      textStyle: { color: '#64748b', fontSize: 11 },
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '12%',
+      top: '5%',
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.6)' } },
+      axisLabel: { fontSize: 10, color: '#64748b' },
+    },
+    yAxis: {
+      type: 'category',
+      data: categories,
+      axisLine: { lineStyle: { color: '#cbd5e1' } },
+      axisLabel: { fontSize: 11, color: '#334155', fontWeight: 'bold' },
+    },
+    series: [
+      {
+        name: 'Alat Angkut',
+        type: 'bar',
+        stack: 'total',
+        data: alatAngkut,
+        itemStyle: { color: '#00A99D', borderRadius: [0, 4, 4, 0] },
+      },
+      {
+        name: 'Orang (Penumpang & Kru)',
+        type: 'bar',
+        data: orang,
+        itemStyle: { color: '#f59e0b', borderRadius: [0, 4, 4, 0] },
+      },
+      {
+        name: 'Dokumen Karantina',
+        type: 'bar',
+        data: dokumen,
+        itemStyle: { color: '#005851', borderRadius: [0, 4, 4, 0] },
+      },
+    ],
+  };
+});
+
+// SINKARKES Chart 4: Health Services & ICV Vaccines
+const sinkarkesHealthOption = computed(() => {
+  const hc = sinkarkesData.value.health_chart || {};
+  const months = hc.months || ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  return {
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      backgroundColor: '#003B36',
+      borderColor: '#00A99D',
+      textStyle: { color: '#f8fafc', fontSize: 11 },
+    },
+    legend: {
+      data: ['Kunjungan Poliklinik BKK', 'Surat Berbadan Sehat', 'Vaksinasi ICV'],
+      bottom: 0,
+      textStyle: { color: '#64748b', fontSize: 11 },
+    },
+    grid: {
+      left: '3%',
+      right: '4%',
+      bottom: '12%',
+      top: '8%',
+      containLabel: true,
+    },
+    xAxis: {
+      type: 'category',
+      data: months,
+      axisLine: { lineStyle: { color: '#cbd5e1' } },
+      axisLabel: { fontSize: 11, color: '#64748b' },
+    },
+    yAxis: {
+      type: 'value',
+      splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.6)' } },
+      axisLabel: { fontSize: 10, color: '#64748b' },
+    },
+    series: [
+      {
+        name: 'Kunjungan Poliklinik BKK',
+        type: 'bar',
+        data: hc.poliklinik || [],
+        itemStyle: { color: '#0284c7', borderRadius: [4, 4, 0, 0] },
+      },
+      {
+        name: 'Surat Berbadan Sehat',
+        type: 'bar',
+        data: hc.surat_sehat || [],
+        itemStyle: { color: '#7CA622', borderRadius: [4, 4, 0, 0] },
+      },
+      {
+        name: 'Vaksinasi ICV',
+        type: 'bar',
+        data: hc.vaksin_icv || [],
+        itemStyle: { color: '#00A99D', borderRadius: [4, 4, 0, 0] },
+      },
+    ],
+  };
+});
 </script>
 
 <template>
@@ -512,8 +887,38 @@ const filteredInspections = computed(() => {
             </div>
           </div>
 
-          <!-- Right: Command Controls & Form Launchers -->
-          <div class="flex items-center gap-2 shrink-0 text-xs">
+          <!-- Right: Command Controls, Mode Switcher & Form Launchers -->
+          <div class="flex flex-wrap items-center gap-2 shrink-0 text-xs">
+            <!-- Unified View Mode Switcher -->
+            <div class="inline-flex items-center p-0.5 rounded-xl bg-[#002D29]/90 border border-[#00A99D]/40 text-[11px] font-bold">
+              <button
+                type="button"
+                @click="dashboardViewMode = 'all'"
+                class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
+                :class="dashboardViewMode === 'all' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+              >
+                Semua Terpadu
+              </button>
+              <button
+                type="button"
+                @click="dashboardViewMode = 'sinkarkes'"
+                class="px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+                :class="dashboardViewMode === 'sinkarkes' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+              >
+                <BarChart3 class="w-3 h-3 text-[#99CC33]" />
+                <span>SINKARKES</span>
+              </button>
+              <button
+                type="button"
+                @click="dashboardViewMode = 'geospatial'"
+                class="px-2.5 py-1 rounded-lg transition-all cursor-pointer hidden sm:inline-flex items-center gap-1"
+                :class="dashboardViewMode === 'geospatial' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+              >
+                <Globe class="w-3 h-3 text-[#99DFD6]" />
+                <span>Peta &amp; Harian</span>
+              </button>
+            </div>
+
             <button
               type="button"
               @click="refreshData"
@@ -528,6 +933,14 @@ const filteredInspections = computed(() => {
             <div class="h-5 w-px bg-white/20 hidden sm:block"></div>
 
             <div class="flex items-center gap-1">
+              <Link
+                :href="getUrl('/sinkarkes')"
+                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#99CC33]/25 hover:bg-[#99CC33]/40 text-[#F7FCE8] border border-[#99CC33]/50 transition-all flex items-center gap-1 cursor-pointer"
+                title="Buka Formulir Input Laporan SINKARKES"
+              >
+                <FileSpreadsheet class="w-3.5 h-3.5 text-[#99CC33]" />
+                <span class="hidden md:inline">SINKARKES</span>
+              </Link>
               <a
                 :href="getUrl('/travelconsent/public_aircraft')"
                 target="_blank"
@@ -576,7 +989,7 @@ const filteredInspections = computed(() => {
       <!-- ========================================================================= -->
       <!-- 4 HARMONIZED SERVICE TILES (KEMENKES BRAND IDENTITY)                       -->
       <!-- ========================================================================= -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 font-sans">
+      <div v-if="dashboardViewMode !== 'sinkarkes'" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 font-sans">
         
         <!-- Tile 1: Sanitasi Pesawat Udara (Turquoise Accent) -->
         <div
@@ -723,7 +1136,7 @@ const filteredInspections = computed(() => {
       <!-- ========================================================================= -->
       <!-- CENTERPIECE: TACTICAL GEOSPATIAL COMMAND CENTER (HARMONISASI KEMENKES)     -->
       <!-- ========================================================================= -->
-      <div class="bg-white rounded-2xl border-2 border-[#003B36] shadow-2xl overflow-hidden ring-4 ring-[#00A99D]/15 font-sans">
+      <div v-if="dashboardViewMode !== 'sinkarkes'" class="bg-white rounded-2xl border-2 border-[#003B36] shadow-2xl overflow-hidden ring-4 ring-[#00A99D]/15 font-sans">
         
         <!-- Centerpiece Top Command Bar (Dark Teal Gradient) -->
         <div class="px-4 py-2.5 bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] text-white flex flex-wrap items-center justify-between gap-3 border-b border-[#003B36]">
@@ -1057,9 +1470,622 @@ const filteredInspections = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
+      <!-- INTEGRATED SINKARKES EXECUTIVE SUMMARY, CHARTS & TOTAL SUMMARY TABLE       -->
+      <!-- ========================================================================= -->
+      <div id="sinkarkes-section" v-if="dashboardViewMode !== 'geospatial'" class="space-y-3.5 font-sans">
+        
+        <!-- SINKARKES Header & Filter Controls Banner -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+          <div class="px-4 py-3 bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] text-white flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-8 h-8 rounded-xl bg-[#00A99D] text-white flex items-center justify-center shadow-md shadow-[#00A99D]/30 border border-[#99DFD6]/40 shrink-0">
+                <BarChart3 class="w-4 h-4" />
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h2 class="text-sm sm:text-base font-extrabold tracking-tight text-white">
+                    EXECUTIVE SUMMARY &amp; REKAPITULASI SINKARKES ({{ selectedSinkarkesYear }})
+                  </h2>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#99CC33]/20 text-[#99CC33] border border-[#99CC33]/40">
+                    KSE &bull; UKP &bull; PRL
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-200 truncate mt-0.5">
+                  Ringkasan capaian kinerja kekarantinaan kesehatan terpadu: Alat Angkut, Orang, Dokumen Karantina, Layanan Poliklinik BKK &amp; Vaksinasi ICV
+                </p>
+              </div>
+            </div>
+
+            <!-- Wilker, Year, & Form Input Controls -->
+            <div class="flex flex-wrap items-center gap-2 shrink-0">
+              <!-- Wilayah Kerja Selector -->
+              <div class="flex items-center gap-1.5 bg-[#002D29]/90 border border-[#00A99D]/40 rounded-xl px-2.5 py-1.5 text-white">
+                <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+                <select
+                  v-model="selectedSinkarkesWilker"
+                  @change="handleSinkarkesFilterChange"
+                  class="bg-transparent text-xs font-bold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1"
+                  title="Filter Wilayah Kerja SINKARKES"
+                >
+                  <option value="all" class="text-slate-900">Semua Wilayah Kerja (Konsolidasi)</option>
+                  <option v-for="w in sinkarkesWilkerOptions" :key="w" :value="w" class="text-slate-900">
+                    {{ w }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Year Selector -->
+              <div class="flex items-center gap-1.5 bg-[#002D29]/90 border border-[#00A99D]/40 rounded-xl px-2.5 py-1.5 text-white">
+                <Calendar class="w-3.5 h-3.5 text-[#99CC33] shrink-0" />
+                <select
+                  v-model.number="selectedSinkarkesYear"
+                  @change="handleSinkarkesFilterChange"
+                  class="bg-transparent text-xs font-bold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1"
+                  title="Pilih Tahun Laporan SINKARKES"
+                >
+                  <option v-for="y in availableSinkarkesYears" :key="y" :value="y" class="text-slate-900">
+                    Tahun {{ y }}
+                  </option>
+                </select>
+              </div>
+
+              <!-- Open Form Input Button -->
+              <Link
+                :href="getUrl(`/sinkarkes?wilker=${encodeURIComponent(selectedSinkarkesWilker !== 'all' ? selectedSinkarkesWilker : 'POS Bandara Husen')}&year=${selectedSinkarkesYear}`)"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#00A99D] hover:bg-[#008f85] border border-[#99DFD6]/40 transition-all shadow-sm cursor-pointer"
+              >
+                <FileSpreadsheet class="w-3.5 h-3.5" />
+                <span>Formulir Input &rarr;</span>
+              </Link>
+            </div>
+          </div>
+
+          <!-- 6 Key Performance Metric Cards Grid -->
+          <div class="p-3.5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 bg-slate-50/60">
+            <!-- 1. Total Alat Angkut -->
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-[#00A99D] transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+                <span>ALAT ANGKUT</span>
+                <div class="w-6 h-6 rounded-lg bg-[#E6F7F5] text-[#005851] flex items-center justify-center">
+                  <Plane class="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+                {{ (sinkarkesKpi.total_alat_angkut || 0).toLocaleString('id-ID') }}
+              </div>
+              <div class="text-[10px] text-slate-500 mt-1 flex items-center gap-1 truncate">
+                <span>Pswt: <strong class="text-slate-700">{{ (sinkarkesKpi.total_pesawat || 0).toLocaleString('id-ID') }}</strong></span>
+                <span>&bull;</span>
+                <span>Kpl: <strong class="text-slate-700">{{ (sinkarkesKpi.total_kapal || 0).toLocaleString('id-ID') }}</strong></span>
+              </div>
+            </div>
+
+            <!-- 2. Orang Terawasi -->
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-amber-400 transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+                <span>ORANG TERAWASI</span>
+                <div class="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Users class="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+                {{ (sinkarkesKpi.total_orang || 0).toLocaleString('id-ID') }}
+              </div>
+              <div class="text-[10px] text-slate-500 mt-1 flex items-center gap-1 truncate">
+                <span>Pnp: <strong class="text-slate-700">{{ (sinkarkesKpi.total_penumpang || 0).toLocaleString('id-ID') }}</strong></span>
+                <span>&bull;</span>
+                <span>Kru: <strong class="text-slate-700">{{ (sinkarkesKpi.total_crew || 0).toLocaleString('id-ID') }}</strong></span>
+              </div>
+            </div>
+
+            <!-- 3. Dokumen Kekarantinaan -->
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-[#005851] transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+                <span>DOKUMEN KARANTINA</span>
+                <div class="w-6 h-6 rounded-lg bg-[#E0EFEF] text-[#005851] flex items-center justify-center">
+                  <FileCheck class="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+                {{ (sinkarkesKpi.total_dokumen || 0).toLocaleString('id-ID') }}
+              </div>
+              <div class="text-[10px] text-slate-500 mt-1 truncate">
+                SSCEC, SSCC, P3K, Desinseksi
+              </div>
+            </div>
+
+            <!-- 4. Layanan Medis -->
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-sky-400 transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+                <span>LAYANAN MEDIS</span>
+                <div class="w-6 h-6 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+                  <HeartPulse class="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+                {{ (sinkarkesKpi.total_layanan_kesehatan || 0).toLocaleString('id-ID') }}
+              </div>
+              <div class="text-[10px] text-slate-500 mt-1 truncate">
+                Poliklinik BKK &amp; Uji Laik
+              </div>
+            </div>
+
+            <!-- 5. Vaksinasi ICV -->
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-[#7CA622] transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+                <span>VAKSINASI ICV</span>
+                <div class="w-6 h-6 rounded-lg bg-[#F7FCE8] text-[#557A18] flex items-center justify-center">
+                  <ShieldCheck class="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+                {{ (sinkarkesKpi.total_vaksinasi || 0).toLocaleString('id-ID') }}
+              </div>
+              <div class="text-[10px] text-slate-500 mt-1 truncate">
+                Yellow Fever, Meningitis, dll
+              </div>
+            </div>
+
+            <!-- 6. Kepatuhan Pelaporan -->
+            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-emerald-500 transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+                <span>KELENGKAPAN</span>
+                <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <CalendarCheck class="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+                {{ sinkarkesKpi.compliance_rate || 0 }}%
+              </div>
+              <div class="text-[10px] text-slate-500 mt-1 truncate">
+                {{ sinkarkesKpi.submitted_reports_count || 0 }} / {{ sinkarkesKpi.total_possible_reports || 84 }} bulan terisi
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SINKARKES Charts Row 1: Monthly Traffic Trend (2 Cols) & Document Composition (1 Col) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
+          <!-- Monthly Traffic Trend Chart -->
+          <div class="lg:col-span-2 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#00A99D]"></span>
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+                    Tren Bulanan Pengawasan Alat Angkut &amp; Orang ({{ selectedSinkarkesYear }})
+                  </h3>
+                </div>
+                <span class="text-[11px] text-slate-400 font-mono">12 Bulan</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mb-2">
+                Dinamika volume kedatangan/keberangkatan pesawat, kapal laut, penumpang, dan kru sepanjang tahun.
+              </p>
+            </div>
+            <div class="w-full h-[270px]">
+              <BaseChart :option="sinkarkesTrafficOption" height="270px" />
+            </div>
+          </div>
+
+          <!-- Document & Certificate Composition -->
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#005851]"></span>
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+                    Komposisi Dokumen Kekarantinaan
+                  </h3>
+                </div>
+                <PieChartIcon class="w-3.5 h-3.5 text-slate-400" />
+              </div>
+              <p class="text-[11px] text-slate-500 mb-2">
+                Distribusi penerbitan SSCEC, SSCC, P3K, HAC, dan sertifikat penyehatan.
+              </p>
+            </div>
+            <div class="w-full h-[270px]">
+              <BaseChart :option="sinkarkesDocumentOption" height="270px" />
+            </div>
+          </div>
+        </div>
+
+        <!-- SINKARKES Charts Row 2: Cross-Wilker Comparison & Health Services -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+          <!-- Cross-Wilker Operational Volume Comparison -->
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#7CA622]"></span>
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+                    Perbandingan Volume Lintas 7 Wilayah Kerja
+                  </h3>
+                </div>
+                <span class="text-[11px] text-slate-400 font-mono">BKK Bandung</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mb-2">
+                Komparasi beban aktivitas alat angkut, orang, dan dokumen antar pos dan wilayah kerja.
+              </p>
+            </div>
+            <div class="w-full h-[270px]">
+              <BaseChart :option="sinkarkesWilkerOption" height="270px" />
+            </div>
+          </div>
+
+          <!-- Health Services & Vaccines Monthly Stack -->
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
+                  <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+                    Layanan Kesehatan Pelabuhan &amp; Vaksinasi ICV
+                  </h3>
+                </div>
+                <span class="text-[11px] text-slate-400 font-mono">UKP</span>
+              </div>
+              <p class="text-[11px] text-slate-500 mb-2">
+                Kunjungan poliklinik BKK, penerbitan surat keterangan sehat, dan vaksinasi haji/umrah/internasional.
+              </p>
+            </div>
+            <div class="w-full h-[270px]">
+              <BaseChart :option="sinkarkesHealthOption" height="270px" />
+            </div>
+          </div>
+        </div>
+
+        <!-- SINKARKES Total Summary Table (Jan - Des + Total Tahunan) -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5">
+          <!-- Header & Top Controls -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6] mb-1">
+                <Table class="w-3.5 h-3.5 text-[#00A99D]" />
+                <span>TOTAL SUMMARY &amp; REKAPITULASI SINKARKES (JAN &ndash; DES {{ selectedSinkarkesYear }})</span>
+              </div>
+              <h3 class="text-sm sm:text-base font-bold text-slate-900">
+                Tabel Total Summary Bulanan &amp; Capaian Tahunan
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Rekapitulasi total capaian indikator utama per bulan Januari s/d Desember beserta akumulasi total tahunan {{ sinkarkesData.is_consolidated !== false ? 'seluruh Wilayah Kerja' : selectedSinkarkesWilker }}.
+              </p>
+            </div>
+
+            <!-- Tab Switcher: Indikator vs Wilker vs Status Matriks -->
+            <div class="flex flex-wrap items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start lg:self-auto">
+              <button
+                type="button"
+                @click="activeSummaryTab = 'indicators'"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                :class="activeSummaryTab === 'indicators' ? 'bg-[#005851] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-[#005851]'"
+              >
+                <Activity class="w-3.5 h-3.5" :class="activeSummaryTab === 'indicators' ? 'text-[#99CC33]' : 'text-[#00A99D]'" />
+                <span>Rekap Indikator Utama</span>
+              </button>
+              <button
+                type="button"
+                @click="activeSummaryTab = 'wilkers'"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                :class="activeSummaryTab === 'wilkers' ? 'bg-[#005851] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-[#005851]'"
+              >
+                <Building2 class="w-3.5 h-3.5" :class="activeSummaryTab === 'wilkers' ? 'text-[#99CC33]' : 'text-[#7CA622]'" />
+                <span>Rekap per Wilker</span>
+              </button>
+              <button
+                type="button"
+                @click="activeSummaryTab = 'compliance'"
+                class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+                :class="activeSummaryTab === 'compliance' ? 'bg-[#005851] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-[#005851]'"
+              >
+                <CalendarCheck class="w-3.5 h-3.5" :class="activeSummaryTab === 'compliance' ? 'text-[#99CC33]' : 'text-sky-500'" />
+                <span>Status Pengisian</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Bar (For Indikator View) -->
+          <div v-if="activeSummaryTab === 'indicators'" class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <!-- Section Filter Pills -->
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+              <button
+                v-for="sec in [
+                  { id: 'ALL', label: 'Semua', count: sectionCounts.ALL },
+                  { id: 'KSE', label: 'KSE (Karantina)', count: sectionCounts.KSE },
+                  { id: 'UKP', label: 'UKP (Layanan Medis)', count: sectionCounts.UKP },
+                  { id: 'PRL', label: 'PRL (Lingkungan)', count: sectionCounts.PRL }
+                ]"
+                :key="sec.id"
+                type="button"
+                @click="selectedSectionFilter = sec.id"
+                class="px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 cursor-pointer flex items-center gap-1.5 border"
+                :class="selectedSectionFilter === sec.id
+                  ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-xs font-bold'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
+              >
+                <span>{{ sec.label }}</span>
+                <span
+                  class="px-1.5 py-0.2 rounded-full text-[10px] font-mono"
+                  :class="selectedSectionFilter === sec.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'"
+                >
+                  {{ sec.count }}
+                </span>
+              </button>
+            </div>
+
+            <!-- Search Box -->
+            <div class="relative w-full sm:w-64 shrink-0">
+              <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                v-model="summarySearchQuery"
+                type="text"
+                placeholder="Cari nama indikator atau kode..."
+                class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:border-[#00A99D] text-slate-800"
+              />
+            </div>
+          </div>
+
+          <!-- TAB 1: Tabel Indikator Utama (Jan - Des + Total Tahunan) -->
+          <div v-if="activeSummaryTab === 'indicators'" class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full min-w-[980px] text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                  <th class="py-2.5 px-3 w-20 text-center sticky left-0 bg-slate-50 z-10 shadow-xs">Kode</th>
+                  <th class="py-2.5 px-3 min-w-[240px] sticky left-20 bg-slate-50 z-10 shadow-xs">Uraian Indikator</th>
+                  <th class="py-2.5 px-2 text-center w-14">Satuan</th>
+                  <th
+                    v-for="m in monthNames"
+                    :key="m"
+                    class="py-2.5 px-2 text-right w-14 font-mono text-[10px]"
+                  >
+                    {{ m }}
+                  </th>
+                  <th class="py-2.5 px-3 text-right w-24 bg-[#E6F7F5] text-[#005851] font-mono font-bold text-[11px]">
+                    TOTAL TAHUN
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr
+                  v-for="row in filteredSummaryItems"
+                  :key="row.code"
+                  class="hover:bg-[#E6F7F5]/30 transition-colors group"
+                >
+                  <td class="py-2 px-3 font-mono font-bold text-[11px] text-center text-slate-600 sticky left-0 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
+                    <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                      {{ row.code }}
+                    </span>
+                  </td>
+
+                  <td class="py-2 px-3 text-slate-800 font-medium sticky left-20 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
+                    <div class="flex items-center gap-1.5">
+                      <span
+                        class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider shrink-0"
+                        :class="{
+                          'bg-blue-50 text-blue-600': row.section === 'KSE',
+                          'bg-emerald-50 text-emerald-600': row.section === 'UKP',
+                          'bg-amber-50 text-amber-600': row.section === 'PRL',
+                        }"
+                      >
+                        {{ row.section }}
+                      </span>
+                      <span class="truncate">{{ row.label }}</span>
+                    </div>
+                  </td>
+
+                  <td class="py-2 px-2 text-center text-slate-400 font-mono text-[10px]">
+                    {{ row.unit }}
+                  </td>
+
+                  <td
+                    v-for="mId in 12"
+                    :key="mId"
+                    class="py-2 px-2 text-right font-mono text-[11px]"
+                    :class="row.months[mId] > 0 ? 'text-slate-800 font-medium' : 'text-slate-300'"
+                  >
+                    {{ row.months[mId] > 0 ? row.months[mId].toLocaleString('id-ID') : '-' }}
+                  </td>
+
+                  <td class="py-2 px-3 text-right font-mono font-bold text-xs bg-[#E6F7F5]/50 text-[#005851] group-hover:bg-[#E6F7F5] transition-colors">
+                    {{ row.total_year > 0 ? row.total_year.toLocaleString('id-ID') : '-' }}
+                  </td>
+                </tr>
+
+                <tr v-if="filteredSummaryItems.length === 0">
+                  <td colspan="16" class="py-8 text-center text-slate-400 italic">
+                    Tidak ada indikator yang sesuai dengan filter pencarian.
+                  </td>
+                </tr>
+              </tbody>
+
+              <!-- Grand Total Row -->
+              <tfoot class="bg-slate-100/90 border-t-2 border-slate-300 font-bold">
+                <tr>
+                  <td colspan="2" class="py-2.5 px-3 text-slate-800 sticky left-0 bg-slate-100 z-10 shadow-xs text-xs uppercase tracking-wider">
+                    TOTAL KESELURUHAN (GRAND TOTAL)
+                  </td>
+                  <td class="py-2.5 px-2 text-center text-slate-500 font-mono text-[10px]">
+                    Total
+                  </td>
+                  <td
+                    v-for="mId in 12"
+                    :key="mId"
+                    class="py-2.5 px-2 text-right font-mono text-[11px] text-slate-900"
+                  >
+                    {{ (sinkarkesSummaryTable?.monthly_totals?.[mId] || 0) > 0 ? sinkarkesSummaryTable.monthly_totals[mId].toLocaleString('id-ID') : '-' }}
+                  </td>
+                  <td class="py-2.5 px-3 text-right font-mono font-extrabold text-sm bg-[#00A99D]/20 text-[#005851]">
+                    {{ (sinkarkesSummaryTable?.total_year || 0).toLocaleString('id-ID') }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- TAB 2: Tabel Rekapitulasi per Wilayah Kerja -->
+          <div v-else-if="activeSummaryTab === 'wilkers'" class="overflow-x-auto rounded-xl border border-slate-200">
+            <table class="w-full min-w-[980px] text-left text-xs border-collapse">
+              <thead>
+                <tr class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                  <th class="py-2.5 px-3 min-w-[220px] sticky left-0 bg-slate-50 z-10 shadow-xs">Wilayah Kerja / Pos</th>
+                  <th class="py-2.5 px-2 text-center w-28">Kepatuhan</th>
+                  <th
+                    v-for="m in monthNames"
+                    :key="m"
+                    class="py-2.5 px-2 text-right w-14 font-mono text-[10px]"
+                  >
+                    {{ m }}
+                  </th>
+                  <th class="py-2.5 px-3 text-right w-28 bg-[#F7FCE8] text-[#557A18] font-mono font-bold text-[11px]">
+                    TOTAL TAHUN
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                <tr
+                  v-for="wRow in (sinkarkesWilkerSummary?.items || [])"
+                  :key="wRow.wilker"
+                  class="hover:bg-[#E6F7F5]/30 transition-colors group"
+                >
+                  <td class="py-2.5 px-3 font-semibold text-slate-800 flex items-center gap-2 sticky left-0 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
+                    <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+                    <span class="truncate">{{ wRow.wilker }}</span>
+                  </td>
+
+                  <td class="py-2.5 px-2 text-center">
+                    <span
+                      class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                      :class="wRow.compliance_percent >= 80 ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'"
+                    >
+                      {{ wRow.filled_months }}/12 bln ({{ wRow.compliance_percent }}%)
+                    </span>
+                  </td>
+
+                  <td
+                    v-for="mId in 12"
+                    :key="mId"
+                    class="py-2.5 px-2 text-right font-mono text-[11px]"
+                    :class="wRow.months[mId] > 0 ? 'text-slate-800 font-medium' : 'text-slate-300'"
+                  >
+                    {{ wRow.months[mId] > 0 ? wRow.months[mId].toLocaleString('id-ID') : '-' }}
+                  </td>
+
+                  <td class="py-2.5 px-3 text-right font-mono font-bold text-xs bg-[#F7FCE8]/60 text-[#557A18] group-hover:bg-[#F7FCE8] transition-colors">
+                    {{ wRow.total_year > 0 ? wRow.total_year.toLocaleString('id-ID') : '-' }}
+                  </td>
+                </tr>
+              </tbody>
+
+              <!-- Grand Total Row -->
+              <tfoot class="bg-slate-100/90 border-t-2 border-slate-300 font-bold">
+                <tr>
+                  <td class="py-2.5 px-3 text-slate-800 sticky left-0 bg-slate-100 z-10 shadow-xs text-xs uppercase tracking-wider">
+                    TOTAL KONSOLIDASI BKK BANDUNG
+                  </td>
+                  <td class="py-2.5 px-2 text-center text-slate-500 font-mono text-[10px]">
+                    7 Wilker
+                  </td>
+                  <td
+                    v-for="mId in 12"
+                    :key="mId"
+                    class="py-2.5 px-2 text-right font-mono text-[11px] text-slate-900"
+                  >
+                    {{ (sinkarkesWilkerSummary?.monthly_totals?.[mId] || 0) > 0 ? sinkarkesWilkerSummary.monthly_totals[mId].toLocaleString('id-ID') : '-' }}
+                  </td>
+                  <td class="py-2.5 px-3 text-right font-mono font-extrabold text-sm bg-[#99CC33]/25 text-[#557A18]">
+                    {{ (sinkarkesWilkerSummary?.total_year || 0).toLocaleString('id-ID') }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- TAB 3: Status Pengisian (Matriks Kepatuhan Dot Table) -->
+          <div v-else-if="activeSummaryTab === 'compliance'" class="space-y-3">
+            <div class="flex items-center justify-between text-xs text-slate-500 px-1">
+              <span>Klik pada sel bulan untuk membuka dan mengisi formulir bulanan wilayah kerja terkait.</span>
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span>Terisi</span></div>
+                <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-200"></span><span>Kosong</span></div>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+              <table class="w-full min-w-[760px] text-left text-xs border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
+                    <th class="py-2.5 px-3 min-w-[200px]">Wilayah Kerja</th>
+                    <th
+                      v-for="m in monthNames"
+                      :key="m"
+                      class="py-2.5 px-2 text-center w-12 text-[10px]"
+                    >
+                      {{ m }}
+                    </th>
+                    <th class="py-2.5 px-3 text-center w-28">Kepatuhan</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr
+                    v-for="row in sinkarkesMatrix"
+                    :key="row.wilker"
+                    class="hover:bg-slate-50/80 transition-colors"
+                  >
+                    <td class="py-2 px-3 font-semibold text-slate-800 flex items-center gap-2">
+                      <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+                      <span class="truncate">{{ row.wilker }}</span>
+                    </td>
+                    <td
+                      v-for="mId in 12"
+                      :key="mId"
+                      class="py-1.5 px-1 text-center"
+                    >
+                      <button
+                        type="button"
+                        @click="openSinkarkesMonthForm(row.wilker, mId)"
+                        class="w-8 h-8 rounded-lg flex flex-col items-center justify-center transition-all cursor-pointer mx-auto"
+                        :class="[
+                          row.months[mId]?.has_data
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:scale-105'
+                            : 'bg-slate-50 text-slate-300 border border-slate-200/60 hover:border-slate-300'
+                        ]"
+                        :title="row.months[mId]?.has_data ? `${row.wilker} - Bulan ${mId}: ${row.months[mId].filled_count} indikator terisi.` : `${row.wilker} - Bulan ${mId}: Belum ada data. Klik untuk mengisi.`"
+                      >
+                        <span
+                          class="w-2 h-2 rounded-full"
+                          :class="row.months[mId]?.has_data ? 'bg-emerald-500' : 'bg-slate-300'"
+                        ></span>
+                        <span v-if="row.months[mId]?.has_data" class="text-[9px] font-mono leading-none mt-0.5">
+                          {{ row.months[mId].filled_count }}
+                        </span>
+                      </button>
+                    </td>
+                    <td class="py-2 px-3 text-center">
+                      <div class="flex items-center justify-center gap-2">
+                        <div class="w-16 h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div
+                            class="h-full rounded-full transition-all duration-300"
+                            :class="row.compliance_percent >= 80 ? 'bg-emerald-500' : (row.compliance_percent >= 40 ? 'bg-[#00A99D]' : 'bg-amber-500')"
+                            :style="{ width: `${row.compliance_percent}%` }"
+                          ></div>
+                        </div>
+                        <span class="text-xs font-mono font-bold text-slate-700 min-w-[36px]">
+                          {{ row.compliance_percent }}%
+                        </span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ========================================================================= -->
       <!-- ANALYTICS COCKPIT: DYNAMIC TREND + OPERATIONAL RISK FOCUS                 -->
       <!-- ========================================================================= -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 font-sans">
+      <div v-if="dashboardViewMode !== 'sinkarkes'" class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 font-sans">
         
         <!-- 30-Day Trend Multi-Series ECharts (7 Cols) -->
         <div class="lg:col-span-7 rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
@@ -1197,7 +2223,7 @@ const filteredInspections = computed(() => {
       <!-- ========================================================================= -->
       <!-- COMPACT LIVE FEED & AUDIT TRAIL TABLE                                     -->
       <!-- ========================================================================= -->
-      <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden font-sans">
+      <div v-if="dashboardViewMode !== 'sinkarkes'" class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden font-sans">
         
         <!-- Header & Tabs -->
         <div class="px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5 text-xs">

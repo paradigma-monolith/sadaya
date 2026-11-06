@@ -116,11 +116,11 @@ const navSections = computed(() => {
       items: [
         {
           name: 'Dashboard Utama',
-          path: '/inertia/dashboard',
-          url: getUrl('/inertia/dashboard'),
+          path: '/dashboard',
+          url: getUrl('/dashboard'),
           icon: LayoutDashboard,
           iconColor: 'text-[#00A99D]',
-          active: !isSpa.value && (props.currentRoute === 'dashboard' || props.currentRoute === 'home'),
+          active: !isSpa.value && (props.currentRoute === 'dashboard' || props.currentRoute === 'home' || props.currentRoute === 'sinkarkes-dashboard'),
         },
       ],
     },
@@ -167,14 +167,6 @@ const navSections = computed(() => {
           icon: Pill,
           iconColor: 'text-[#00A99D]',
           active: props.currentRoute === 'flight-medical-obat',
-        },
-        {
-          name: 'Dashboard SINKARKES',
-          path: '/sinkarkes/dashboard',
-          url: getUrl('/sinkarkes/dashboard'),
-          icon: BarChart3,
-          iconColor: 'text-[#00A99D]',
-          active: props.currentRoute === 'sinkarkes-dashboard',
         },
         {
           name: 'Form Input SINKARKES',

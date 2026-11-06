@@ -9,6 +9,8 @@ use App\Models\KantorWilker;
 use App\Models\LoginHistory;
 use App\Models\ShipSanitationInspection;
 use App\Models\User;
+use App\Services\SinkarkesDashboardService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
@@ -244,9 +246,9 @@ class DashboardController extends Controller
     }
 
     /**
-     * Display the executive monitoring dashboard built from live inspection data.
+     * Display the executive monitoring dashboard built from live inspection data + SINKARKES analytics.
      */
-    public function dashboard(): Response
+    public function dashboard(Request $request, SinkarkesDashboardService $sinkarkesService): Response
     {
         Carbon::setLocale('id');
         $offices = self::getBkkOffices();
@@ -555,6 +557,31 @@ class DashboardController extends Controller
                 'login_at' => $lh->login_at ? Carbon::parse($lh->login_at)->diffForHumans() : '-',
             ]);
 
+        // ------------------------------------------------------------------
+        // 8. SINKARKES Executive Analytics & Total Summary Integration
+        // ------------------------------------------------------------------
+        $sinkarkesYear = (int) $request->query('year', 2026);
+        $sinkarkesWilker = $request->query('wilker', 'all');
+        try {
+            $sinkarkesData = $sinkarkesService->getDashboardData($sinkarkesYear, $sinkarkesWilker);
+        } catch (\Throwable $e) {
+            $sinkarkesData = [
+                'year' => $sinkarkesYear,
+                'wilker' => $sinkarkesWilker,
+                'is_consolidated' => true,
+                'wilker_options' => collect($offices)->pluck('short_name')->values()->toArray(),
+                'kpi' => [],
+                'matrix' => [],
+                'traffic_chart' => [],
+                'document_chart' => [],
+                'wilker_comparison' => [],
+                'health_chart' => [],
+                'environment_chart' => [],
+                'summary_table' => ['items' => [], 'monthly_totals' => [], 'total_year' => 0, 'section_totals' => []],
+                'wilker_summary' => ['items' => [], 'monthly_totals' => [], 'total_year' => 0],
+            ];
+        }
+
         return Inertia::render('Inertia/Dashboard', [
             'generated_at' => now('Asia/Jakarta')->translatedFormat('d M Y, H:i') . ' WIB',
             'period' => [
@@ -575,6 +602,7 @@ class DashboardController extends Controller
             'recent_activities' => $recentActivities,
             'recent_logins' => $recentLogins,
             'bkk_offices' => $offices,
+            'sinkarkes' => $sinkarkesData,
             'metrics' => array_merge($kpi, [
                 'total_users' => User::count(),
                 'total_inspections' => $kpi['total'],

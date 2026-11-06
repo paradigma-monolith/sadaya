@@ -18,16 +18,11 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class SinkarkesController extends Controller
 {
     /**
-     * Display the Executive Summary & Analytics Dashboard for SINKARKES.
+     * Redirect to the unified Main Dashboard (with SINKARKES query parameters).
      */
-    public function dashboard(Request $request, SinkarkesDashboardService $service): Response
+    public function dashboard(Request $request): RedirectResponse
     {
-        $year = (int) $request->query('year', 2026);
-        $wilker = $request->query('wilker', 'all');
-
-        $data = $service->getDashboardData($year, $wilker);
-
-        return Inertia::render('Sinkarkes/Dashboard', $data);
+        return redirect()->route('dashboard', $request->query());
     }
 
     /**
