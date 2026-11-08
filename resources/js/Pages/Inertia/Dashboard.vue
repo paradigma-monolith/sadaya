@@ -1776,115 +1776,143 @@ const modaReadinessRadarOption = computed(() => {
             </div>
           </div>
 
-          <!-- Side Cockpit: Tactical Wilker Telemetry Dock (4 Cols) -->
-          <div class="lg:col-span-4 p-3.5 flex flex-col justify-between bg-slate-50">
-            <div>
-              <!-- Cockpit Header: Filter & Search -->
-              <div class="space-y-2 pb-2.5 border-b border-slate-200">
-                <div class="flex items-center justify-between gap-1">
-                  <div class="flex items-center gap-1">
-                    <button
-                      type="button"
-                      @click="activeOfficeFilter = 'all'"
-                      class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
-                      :class="activeOfficeFilter === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
-                    >
-                      Semua (7)
-                    </button>
-                    <button
-                      type="button"
-                      @click="activeOfficeFilter = 'udara'"
-                      class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
-                      :class="activeOfficeFilter === 'udara' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
-                    >
-                      Udara (3)
-                    </button>
-                    <button
-                      type="button"
-                      @click="activeOfficeFilter = 'laut'"
-                      class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
-                      :class="activeOfficeFilter === 'laut' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
-                    >
-                      Laut (4)
-                    </button>
-                  </div>
+          <!-- Side Cockpit: Interactive Circular Polar Sonar Radar Scanner (4 Cols) -->
+          <div class="lg:col-span-4 bg-gradient-to-br from-[#001F1C] via-[#002D29] to-[#003B36] text-white p-4 flex flex-col justify-between relative overflow-hidden border-t lg:border-t-0 lg:border-l border-[#004D44]">
+            <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00A99D_1px,transparent_1px)] [background-size:14px_14px]"></div>
 
-                  <span class="text-[10px] font-mono font-bold text-[#005851] bg-[#E6F7F5] px-1.5 py-0.2 rounded border border-[#99DFD6] flex items-center gap-1">
-                    <span class="w-1.5 h-1.5 rounded-full bg-[#00A99D] animate-ping"></span>
-                    SIAGA AKTIF
-                  </span>
+            <!-- Header -->
+            <div class="relative z-10 flex items-center justify-between gap-2">
+              <div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
+                  <h3 class="text-xs sm:text-sm font-extrabold tracking-tight text-white uppercase">
+                    Sonar Radar Jaringan Wilker
+                  </h3>
                 </div>
-
-                <div class="relative w-full">
-                  <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    v-model="searchOffice"
-                    type="text"
-                    placeholder="Cari wilker / alamat..."
-                    class="w-full pl-8 pr-2 py-1 rounded-lg bg-white border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#00A99D]"
-                  />
-                </div>
+                <p class="text-[10px] text-[#99DFD6] font-mono">
+                  Radius 150 KM dari Pusat Komando Bandung
+                </p>
               </div>
 
-              <!-- High-Density Telemetry Card List -->
-              <div class="divide-y divide-slate-100 overflow-y-auto max-h-[410px] mt-1 pr-1">
-                <div
-                  v-for="office in filteredOffices"
-                  :key="office.no"
-                  @click="selectOffice(office)"
-                  class="py-2.5 px-2.5 rounded-xl transition-all cursor-pointer flex flex-col gap-1.5 mb-1"
-                  :class="selectedOffice?.no === office.no
-                    ? 'bg-white border-2 border-[#00A99D] shadow-md ring-2 ring-[#00A99D]/20'
-                    : 'bg-white/70 hover:bg-white border border-slate-200/80'"
+              <!-- Speed & Ping Controls -->
+              <div class="flex items-center gap-1">
+                <button
+                  type="button"
+                  @click="radarSweepSpeed = radarSweepSpeed === 'normal' ? 'fast' : 'normal'"
+                  class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-all cursor-pointer"
+                  :class="radarSweepSpeed === 'fast'
+                    ? 'bg-[#99CC33] text-[#002B27] border-[#99CC33]'
+                    : 'bg-[#003B36] text-[#99DFD6] border-[#00A99D]/40 hover:text-white'"
+                  title="Ubah kecepatan putaran radar"
                 >
-                  <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 min-w-0">
-                      <span class="w-5 h-5 rounded-md bg-[#005851] text-white text-[9px] font-mono font-black flex items-center justify-center shrink-0">
-                        {{ office.no }}
-                      </span>
-                      <div class="min-w-0">
-                        <div class="text-xs font-bold text-slate-900 truncate" :title="office.name">
-                          {{ office.short_name || office.name }}
-                        </div>
-                        <div class="text-[10px] text-slate-500 truncate flex items-center gap-1">
-                          <span>{{ office.moda }}</span>
-                          <span>&bull;</span>
-                          <span class="text-slate-400">{{ office.zone }}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="flex items-center gap-2 shrink-0">
-                      <div class="text-right">
-                        <span class="text-xs font-black text-[#005851] font-mono">{{ office.total || 0 }}</span>
-                        <span class="text-[9px] text-slate-400 ml-0.5">dok</span>
-                      </div>
-                      <button
-                        type="button"
-                        class="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#00A99D] hover:text-white text-slate-400 flex items-center justify-center transition-colors"
-                        title="Kunci radar ke wilker ini"
-                      >
-                        <Crosshair class="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Relative workload bar indicator -->
-                  <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
-                    <div
-                      class="h-full rounded-full shimmer-bar transition-all duration-500"
-                      :class="selectedOffice?.no === office.no ? 'bg-[#00A99D]' : 'bg-[#99CC33]/80'"
-                      :style="{ width: `${Math.max(10, ((office.total || 0) / maxOfficeTotal) * 100)}%` }"
-                    ></div>
-                  </div>
-                </div>
+                  {{ radarSweepSpeed === 'fast' ? '2x FAST' : '1x SCAN' }}
+                </button>
+                <button
+                  type="button"
+                  @click="triggerSonarPing"
+                  class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#00A99D]/30 hover:bg-[#00A99D] text-white border border-[#00A99D]/60 transition-all cursor-pointer"
+                >
+                  PING
+                </button>
               </div>
             </div>
 
-            <!-- Cockpit Footer Summary -->
-            <div class="pt-2 mt-2 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between font-mono">
-              <span>Target: <strong class="text-[#005851] font-sans">{{ selectedOffice?.short_name || '-' }}</strong></span>
-              <span class="text-[#005851] font-bold">{{ selectedOffice?.total || 0 }} Dok</span>
+            <!-- Interactive Circular Radar Scope -->
+            <div class="relative z-10 my-3 flex items-center justify-center">
+              <div class="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full bg-[#001715] border-2 border-[#00A99D]/60 shadow-[0_0_40px_rgba(0,169,157,0.28)] flex items-center justify-center overflow-hidden">
+                <!-- Range Rings (25%, 50%, 75%, 100%) -->
+                <div class="absolute w-[82%] h-[82%] rounded-full border border-[#00A99D]/25"></div>
+                <div class="absolute w-[60%] h-[60%] rounded-full border border-dashed border-[#00A99D]/30"></div>
+                <div class="absolute w-[36%] h-[36%] rounded-full border border-[#00A99D]/25"></div>
+
+                <!-- Crosshairs & Diagonal Axes -->
+                <div class="absolute inset-x-0 top-1/2 h-px bg-[#00A99D]/30"></div>
+                <div class="absolute inset-y-0 left-1/2 w-px bg-[#00A99D]/30"></div>
+                <div class="absolute inset-0 rotate-45">
+                  <div class="absolute inset-x-0 top-1/2 h-px bg-[#00A99D]/15"></div>
+                  <div class="absolute inset-y-0 left-1/2 w-px bg-[#00A99D]/15"></div>
+                </div>
+
+                <!-- Cardinal Labels -->
+                <span class="absolute top-1.5 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold text-[#99CC33]">000&deg; U</span>
+                <span class="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold text-[#00A99D]">180&deg; S</span>
+                <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-mono font-bold text-[#00A99D]">090&deg; T</span>
+                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-mono font-bold text-[#00A99D]">270&deg; B</span>
+
+                <!-- Rotating Conic Sweep Beam -->
+                <div
+                  class="absolute inset-0 rounded-full radar-conic-beam pointer-events-none"
+                  :style="{ animationDuration: radarSweepSpeed === 'fast' ? '2s' : '4s' }"
+                ></div>
+
+                <!-- Expanding Sonar Shockwave on Ping -->
+                <div v-if="isSonarPinging" class="absolute inset-4 rounded-full border-2 border-[#99CC33] sonar-shockwave pointer-events-none"></div>
+
+                <!-- Interactive Wilker Blips on the Radar Scope -->
+                <button
+                  v-for="blip in radarBlips"
+                  :key="`radar-blip-${blip.id}`"
+                  type="button"
+                  @click="selectOffice(blip)"
+                  @mouseenter="hoveredRadarBlip = blip"
+                  @mouseleave="hoveredRadarBlip = null"
+                  class="absolute -translate-x-1/2 -translate-y-1/2 z-20 group/blip cursor-pointer focus:outline-none"
+                  :style="{ left: `${blip.x}%`, top: `${blip.y}%` }"
+                  :title="`${blip.shortTitle}: ${blip.distanceKm} km (${blip.bearingDeg}°)`"
+                >
+                  <span
+                    class="absolute -inset-2 rounded-full animate-ping"
+                    :class="blip.is_hq ? 'bg-[#99CC33]/70' : (selectedOffice?.no === blip.no ? 'bg-[#00A99D]/80' : 'bg-[#00A99D]/40')"
+                  ></span>
+                  <span
+                    class="relative flex items-center justify-center rounded-full font-mono font-black transition-transform group-hover/blip:scale-125 shadow-md"
+                    :class="[
+                      blip.is_hq
+                        ? 'w-5 h-5 bg-[#99CC33] text-[#001F1C] text-[8px] ring-2 ring-white'
+                        : selectedOffice?.no === blip.no
+                        ? 'w-4.5 h-4.5 bg-[#00A99D] text-white text-[8px] ring-2 ring-[#99CC33]'
+                        : 'w-4 h-4 bg-[#005851] text-[#99DFD6] text-[7px] border border-[#00A99D]'
+                    ]"
+                  >
+                    {{ blip.shortCode }}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Radar Footer Telemetry Readout -->
+            <div class="relative z-10 space-y-2.5">
+              <!-- Moda Filter Pills for Radar -->
+              <div class="flex items-center justify-center gap-1.5 text-[10px] font-mono">
+                <button
+                  v-for="rf in [
+                    { id: 'all', label: 'SEMUA (7)' },
+                    { id: 'udara', label: 'UDARA (3)' },
+                    { id: 'laut', label: 'LAUT (4)' },
+                  ]"
+                  :key="rf.id"
+                  type="button"
+                  @click="activeRadarFilter = rf.id"
+                  class="px-2.5 py-1 rounded border transition-all cursor-pointer"
+                  :class="activeRadarFilter === rf.id
+                    ? 'bg-[#00A99D] text-white border-[#00A99D] font-bold'
+                    : 'bg-[#00221F] text-slate-300 border-[#004D44] hover:text-white'"
+                >
+                  {{ rf.label }}
+                </button>
+              </div>
+
+              <div class="p-2.5 rounded-xl bg-[#001715]/90 border border-[#00A99D]/30 flex items-center justify-between text-[11px] font-mono">
+                <div class="truncate">
+                  <span class="text-slate-400">LOCK: </span>
+                  <strong class="text-[#99CC33]">{{ (hoveredRadarBlip || activeMapNode)?.shortTitle || 'Induk Bandung' }}</strong>
+                </div>
+                <div class="text-right shrink-0 text-[#99DFD6]">
+                  <span>{{ (hoveredRadarBlip || radarBlips.find(b => b.no === activeMapNode?.no))?.distanceKm || 0 }} KM</span>
+                  <span class="mx-1">&bull;</span>
+                  <span>{{ (hoveredRadarBlip || radarBlips.find(b => b.no === activeMapNode?.no))?.bearingDeg || 0 }}&deg;</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1893,147 +1921,119 @@ const modaReadinessRadarOption = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TACTICAL MULTI-RADAR COMMAND DECK (SONAR SCANNER + ECHARTS POLAR RADARS)  -->
+      <!-- TACTICAL MULTI-RADAR COMMAND DECK (WILKER DOCK + ECHARTS POLAR RADARS)    -->
       <!-- ========================================================================= -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 font-sans">
         
-        <!-- Panel 1: Interactive Circular Polar Sonar Radar Scanner (4 Cols) -->
-        <div class="lg:col-span-4 rounded-2xl bg-gradient-to-br from-[#001F1C] via-[#002D29] to-[#003B36] text-white p-4 shadow-xl border border-[#00A99D]/40 flex flex-col justify-between relative overflow-hidden">
-          <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00A99D_1px,transparent_1px)] [background-size:14px_14px]"></div>
+        <!-- Panel 1: Tactical Wilker Telemetry Dock (4 Cols - Swapped Here) -->
+        <div class="lg:col-span-4 rounded-2xl bg-white border border-slate-200/90 p-4 shadow-xs flex flex-col justify-between">
+          <div>
+            <!-- Cockpit Header: Filter & Search -->
+            <div class="space-y-2 pb-2.5 border-b border-slate-200">
+              <div class="flex items-center justify-between gap-1">
+                <div class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    @click="activeOfficeFilter = 'all'"
+                    class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
+                    :class="activeOfficeFilter === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
+                  >
+                    Semua (7)
+                  </button>
+                  <button
+                    type="button"
+                    @click="activeOfficeFilter = 'udara'"
+                    class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
+                    :class="activeOfficeFilter === 'udara' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
+                  >
+                    Udara (3)
+                  </button>
+                  <button
+                    type="button"
+                    @click="activeOfficeFilter = 'laut'"
+                    class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
+                    :class="activeOfficeFilter === 'laut' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
+                  >
+                    Laut (4)
+                  </button>
+                </div>
 
-          <!-- Header -->
-          <div class="relative z-10 flex items-center justify-between gap-2 mb-2">
-            <div>
-              <div class="flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
-                <h3 class="text-xs sm:text-sm font-extrabold tracking-tight text-white uppercase">
-                  Sonar Radar Jaringan Wilker
-                </h3>
-              </div>
-              <p class="text-[10px] text-[#99DFD6] font-mono">
-                Radius 150 KM dari Pusat Komando Bandung
-              </p>
-            </div>
-
-            <!-- Speed & Filter Controls -->
-            <div class="flex items-center gap-1">
-              <button
-                type="button"
-                @click="radarSweepSpeed = radarSweepSpeed === 'normal' ? 'fast' : 'normal'"
-                class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-all cursor-pointer"
-                :class="radarSweepSpeed === 'fast'
-                  ? 'bg-[#99CC33] text-[#002B27] border-[#99CC33]'
-                  : 'bg-[#003B36] text-[#99DFD6] border-[#00A99D]/40 hover:text-white'"
-                title="Ubah kecepatan putaran radar"
-              >
-                {{ radarSweepSpeed === 'fast' ? '2x FAST' : '1x SCAN' }}
-              </button>
-              <button
-                type="button"
-                @click="triggerSonarPing"
-                class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#00A99D]/30 hover:bg-[#00A99D] text-white border border-[#00A99D]/60 transition-all cursor-pointer"
-              >
-                PING
-              </button>
-            </div>
-          </div>
-
-          <!-- Interactive Circular Radar Scope -->
-          <div class="relative z-10 my-2 flex items-center justify-center">
-            <div class="relative w-64 h-64 sm:w-68 sm:h-68 rounded-full bg-[#001715] border-2 border-[#00A99D]/60 shadow-[0_0_35px_rgba(0,169,157,0.25)] flex items-center justify-center overflow-hidden">
-              <!-- Range Rings (25%, 50%, 75%, 100%) -->
-              <div class="absolute w-[82%] h-[82%] rounded-full border border-[#00A99D]/25"></div>
-              <div class="absolute w-[60%] h-[60%] rounded-full border border-dashed border-[#00A99D]/30"></div>
-              <div class="absolute w-[36%] h-[36%] rounded-full border border-[#00A99D]/25"></div>
-
-              <!-- Crosshairs & Diagonal Axes -->
-              <div class="absolute inset-x-0 top-1/2 h-px bg-[#00A99D]/30"></div>
-              <div class="absolute inset-y-0 left-1/2 w-px bg-[#00A99D]/30"></div>
-              <div class="absolute inset-0 rotate-45">
-                <div class="absolute inset-x-0 top-1/2 h-px bg-[#00A99D]/15"></div>
-                <div class="absolute inset-y-0 left-1/2 w-px bg-[#00A99D]/15"></div>
-              </div>
-
-              <!-- Cardinal Labels -->
-              <span class="absolute top-1.5 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold text-[#99CC33]">000&deg; U</span>
-              <span class="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold text-[#00A99D]">180&deg; S</span>
-              <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-mono font-bold text-[#00A99D]">090&deg; T</span>
-              <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-mono font-bold text-[#00A99D]">270&deg; B</span>
-
-              <!-- Rotating Conic Sweep Beam -->
-              <div
-                class="absolute inset-0 rounded-full radar-conic-beam pointer-events-none"
-                :style="{ animationDuration: radarSweepSpeed === 'fast' ? '2s' : '4s' }"
-              ></div>
-
-              <!-- Expanding Sonar Shockwave on Ping -->
-              <div v-if="isSonarPinging" class="absolute inset-4 rounded-full border-2 border-[#99CC33] sonar-shockwave pointer-events-none"></div>
-
-              <!-- Interactive Wilker Blips on the Radar Scope -->
-              <button
-                v-for="blip in radarBlips"
-                :key="`radar-blip-${blip.id}`"
-                type="button"
-                @click="selectOffice(blip)"
-                @mouseenter="hoveredRadarBlip = blip"
-                @mouseleave="hoveredRadarBlip = null"
-                class="absolute -translate-x-1/2 -translate-y-1/2 z-20 group/blip cursor-pointer focus:outline-none"
-                :style="{ left: `${blip.x}%`, top: `${blip.y}%` }"
-                :title="`${blip.shortTitle}: ${blip.distanceKm} km (${blip.bearingDeg}°)`"
-              >
-                <span
-                  class="absolute -inset-2 rounded-full animate-ping"
-                  :class="blip.is_hq ? 'bg-[#99CC33]/70' : (selectedOffice?.no === blip.no ? 'bg-[#00A99D]/80' : 'bg-[#00A99D]/40')"
-                ></span>
-                <span
-                  class="relative flex items-center justify-center rounded-full font-mono font-black transition-transform group-hover/blip:scale-125 shadow-md"
-                  :class="[
-                    blip.is_hq
-                      ? 'w-5 h-5 bg-[#99CC33] text-[#001F1C] text-[8px] ring-2 ring-white'
-                      : selectedOffice?.no === blip.no
-                      ? 'w-4.5 h-4.5 bg-[#00A99D] text-white text-[8px] ring-2 ring-[#99CC33]'
-                      : 'w-4 h-4 bg-[#005851] text-[#99DFD6] text-[7px] border border-[#00A99D]'
-                  ]"
-                >
-                  {{ blip.shortCode }}
+                <span class="text-[10px] font-mono font-bold text-[#005851] bg-[#E6F7F5] px-1.5 py-0.2 rounded border border-[#99DFD6] flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#00A99D] animate-ping"></span>
+                  SIAGA AKTIF
                 </span>
-              </button>
+              </div>
+
+              <div class="relative w-full">
+                <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  v-model="searchOffice"
+                  type="text"
+                  placeholder="Cari wilker / alamat..."
+                  class="w-full pl-8 pr-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#00A99D] focus:bg-white"
+                />
+              </div>
+            </div>
+
+            <!-- High-Density Telemetry Card List -->
+            <div class="divide-y divide-slate-100 overflow-y-auto max-h-[235px] mt-1.5 pr-1">
+              <div
+                v-for="office in filteredOffices"
+                :key="office.no"
+                @click="selectOffice(office)"
+                class="py-2 px-2.5 rounded-xl transition-all cursor-pointer flex flex-col gap-1.5 mb-1"
+                :class="selectedOffice?.no === office.no
+                  ? 'bg-white border-2 border-[#00A99D] shadow-md ring-2 ring-[#00A99D]/20'
+                  : 'bg-slate-50/70 hover:bg-white border border-slate-200/80'"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <span class="w-5 h-5 rounded-md bg-[#005851] text-white text-[9px] font-mono font-black flex items-center justify-center shrink-0">
+                      {{ office.no }}
+                    </span>
+                    <div class="min-w-0">
+                      <div class="text-xs font-bold text-slate-900 truncate" :title="office.name">
+                        {{ office.short_name || office.name }}
+                      </div>
+                      <div class="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                        <span>{{ office.moda }}</span>
+                        <span>&bull;</span>
+                        <span class="text-slate-400">{{ office.zone }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-2 shrink-0">
+                    <div class="text-right">
+                      <span class="text-xs font-black text-[#005851] font-mono">{{ office.total || 0 }}</span>
+                      <span class="text-[9px] text-slate-400 ml-0.5">dok</span>
+                    </div>
+                    <button
+                      type="button"
+                      class="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#00A99D] hover:text-white text-slate-400 flex items-center justify-center transition-colors"
+                      title="Kunci radar ke wilker ini"
+                    >
+                      <Crosshair class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Relative workload bar indicator -->
+                <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+                  <div
+                    class="h-full rounded-full shimmer-bar transition-all duration-500"
+                    :class="selectedOffice?.no === office.no ? 'bg-[#00A99D]' : 'bg-[#99CC33]/80'"
+                    :style="{ width: `${Math.max(10, ((office.total || 0) / maxOfficeTotal) * 100)}%` }"
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <!-- Radar Footer Telemetry Readout -->
-          <div class="relative z-10 space-y-2">
-            <!-- Moda Filter Pills for Radar -->
-            <div class="flex items-center justify-center gap-1.5 text-[10px] font-mono">
-              <button
-                v-for="rf in [
-                  { id: 'all', label: 'SEMUA (7)' },
-                  { id: 'udara', label: 'UDARA (3)' },
-                  { id: 'laut', label: 'LAUT (4)' },
-                ]"
-                :key="rf.id"
-                type="button"
-                @click="activeRadarFilter = rf.id"
-                class="px-2 py-0.5 rounded border transition-all cursor-pointer"
-                :class="activeRadarFilter === rf.id
-                  ? 'bg-[#00A99D] text-white border-[#00A99D] font-bold'
-                  : 'bg-[#00221F] text-slate-300 border-[#004D44] hover:text-white'"
-              >
-                {{ rf.label }}
-              </button>
-            </div>
-
-            <div class="p-2 rounded-xl bg-[#001715]/90 border border-[#00A99D]/30 flex items-center justify-between text-[11px] font-mono">
-              <div class="truncate">
-                <span class="text-slate-400">LOCK: </span>
-                <strong class="text-[#99CC33]">{{ (hoveredRadarBlip || activeMapNode)?.shortTitle || 'Induk Bandung' }}</strong>
-              </div>
-              <div class="text-right shrink-0 text-[#99DFD6]">
-                <span>{{ (hoveredRadarBlip || radarBlips.find(b => b.no === activeMapNode?.no))?.distanceKm || 0 }} KM</span>
-                <span class="mx-1">&bull;</span>
-                <span>{{ (hoveredRadarBlip || radarBlips.find(b => b.no === activeMapNode?.no))?.bearingDeg || 0 }}&deg;</span>
-              </div>
-            </div>
+          <!-- Cockpit Footer Summary -->
+          <div class="pt-2 mt-2 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between font-mono">
+            <span>Target: <strong class="text-[#005851] font-sans">{{ selectedOffice?.short_name || '-' }}</strong></span>
+            <span class="text-[#005851] font-bold">{{ selectedOffice?.total || 0 }} Dok</span>
           </div>
         </div>
 
