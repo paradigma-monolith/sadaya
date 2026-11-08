@@ -847,357 +847,314 @@ const sinkarkesHealthOption = computed(() => {
 });
 
 // ---------------------------------------------------------------------------
-// SINKARKES 2027 PROJECTION — METODE CAGR (Compound Annual Growth Rate)
+// INTERACTIVE TACTICAL RADAR, SONAR SCANNER & LIVE TELEMETRY ENGINE
 // ---------------------------------------------------------------------------
-const cagrRaw = computed(() => sinkarkesData.value.cagr_projection || {});
-const cagrTargetYear = computed(() => cagrRaw.value.target_year || (Number(selectedSinkarkesYear.value) + 1));
-const cagrBaseYear = computed(() => cagrRaw.value.base_year || Number(selectedSinkarkesYear.value));
+const showMapRadarHud = ref(true);
+const radarSweepSpeed = ref('normal'); // 'normal' | 'fast'
+const isSonarPinging = ref(false);
+const activeRadarFilter = ref('all'); // 'all' | 'udara' | 'laut'
+const hoveredRadarBlip = ref(null);
+const selectedRadarCompareMode = ref('top'); // 'top' | 'all'
+const liveTimeStr = ref('');
+const radarAngle = ref(0);
 
-// Scenario Mode: 'auto' (Empirical per indicator) | 'conservative' (5%) | 'moderate' (8.5%) | 'optimistic' (12.5%) | 'custom'
-const cagrScenarioMode = ref('auto');
-const customCagrRate = ref(8.5);
-// Base Mode: 'annualized' (Full-Year 12 Months Estimate) | 'actual' (Cumulative Realization)
-const cagrBaseMode = ref('annualized');
-// Sub-tab in CAGR Table: 'indicators' | 'wilkers'
-const activeCagrTableTab = ref('indicators');
-// Chart Comparison Metric: 'total' | 'alat_angkut' | 'orang'
-const cagrChartMetric = ref('total');
-
-const selectCagrScenario = (mode, rate = null) => {
-  cagrScenarioMode.value = mode;
-  if (rate !== null) {
-    customCagrRate.value = rate;
-  }
+let telemetryTimer = null;
+const updateLiveClock = () => {
+  const now = new Date();
+  liveTimeStr.value = now.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }) + ' WIB';
+  radarAngle.value = (radarAngle.value + (radarSweepSpeed.value === 'fast' ? 29 : 13)) % 360;
 };
 
-// Resolve effective CAGR % for a given item
-const getEffectiveCagrRate = (itemRate) => {
-  if (cagrScenarioMode.value === 'conservative') return 5.0;
-  if (cagrScenarioMode.value === 'moderate') return 8.5;
-  if (cagrScenarioMode.value === 'optimistic') return 12.5;
-  if (cagrScenarioMode.value === 'custom') return Number(customCagrRate.value) || 0;
-  return Number(itemRate ?? cagrRaw.value.avg_cagr_rate ?? 8.5);
+onMounted(() => {
+  updateLiveClock();
+  telemetryTimer = setInterval(updateLiveClock, 1000);
+});
+
+onUnmounted(() => {
+  if (telemetryTimer) {
+    clearInterval(telemetryTimer);
+    telemetryTimer = null;
+  }
+});
+
+const triggerSonarPing = () => {
+  isSonarPinging.value = false;
+  setTimeout(() => {
+    isSonarPinging.value = true;
+    setTimeout(() => {
+      isSonarPinging.value = false;
+    }, 1800);
+  }, 20);
 };
 
-const effectiveAvgCagr = computed(() => {
-  if (cagrScenarioMode.value !== 'auto') {
-    return getEffectiveCagrRate(cagrRaw.value.avg_cagr_rate);
-  }
-  return Number(cagrRaw.value.avg_cagr_rate ?? 8.5);
-});
+// Compute real geographic bearing & distance from Induk Bandung (-6.8989, 107.6108) for the Circular Sonar Radar
+const radarBlips = computed(() => {
+  const hqLat = -6.8989;
+  const hqLng = 107.6108;
+  const maxRadiusKm = 135; // Max distance in West Java (~Pelabuhanratu / Cirebon)
 
-// Recompute Indicator Projections reactively based on selected CAGR Scenario & Base Mode
-const computedCagrIndicators = computed(() => {
-  const rawItems = cagrRaw.value?.indicators?.items || [];
-  return rawItems.map((item) => {
-    const baseVal = cagrBaseMode.value === 'annualized'
-      ? Number(item.annualized_2026 || 0)
-      : Number(item.actual_2026 || 0);
-    const rate = baseVal > 0 ? getEffectiveCagrRate(item.cagr_rate) : 0;
-    const multiplier = 1 + (rate / 100);
-    const projTotal = Math.round(baseVal * multiplier);
-
-    // Distribute across 12 months preserving seasonal weights
-    const sourceMonths = cagrBaseMode.value === 'annualized'
-      ? (item.months_2026_est || item.months_2026 || {})
-      : (item.months_2026 || {});
-    const months2027 = {};
-    let running = 0;
-
-    for (let m = 1; m <= 12; m++) {
-      const mBase = Number(sourceMonths[m] || 0);
-      const weight = baseVal > 0 ? (mBase / baseVal) : (1 / 12);
-      if (m < 12) {
-        const val = Math.round(projTotal * weight);
-        months2027[m] = val;
-        running += val;
-      } else {
-        months2027[m] = Math.max(0, projTotal - running);
+  return bkkMapMarkers.value
+    .filter((node) => {
+      if (activeRadarFilter.value === 'all') return true;
+      const modaLower = `${node.moda || ''} ${node.type || ''}`.toLowerCase();
+      if (activeRadarFilter.value === 'udara') {
+        return node.is_hq || modaLower.includes('udara') || modaLower.includes('bandara');
       }
-    }
-
-    return {
-      ...item,
-      base_2026: baseVal,
-      effective_cagr: rate,
-      projected_2027_val: projTotal,
-      delta_val: projTotal - baseVal,
-      months_2027_calc: months2027,
-    };
-  });
-});
-
-const filteredCagrIndicators = computed(() => {
-  return computedCagrIndicators.value.filter((item) => {
-    const matchSection = selectedSectionFilter.value === 'ALL' || item.section === selectedSectionFilter.value;
-    const matchSearch =
-      !summarySearchQuery.value ||
-      item.label.toLowerCase().includes(summarySearchQuery.value.toLowerCase()) ||
-      item.code.toLowerCase().includes(summarySearchQuery.value.toLowerCase());
-    return matchSection && matchSearch;
-  });
-});
-
-const computedCagrIndicatorTotals = computed(() => {
-  const monthly2027 = {};
-  for (let m = 1; m <= 12; m++) monthly2027[m] = 0;
-  let totalBase2026 = 0;
-  let totalProj2027 = 0;
-
-  filteredCagrIndicators.value.forEach((row) => {
-    totalBase2026 += row.base_2026;
-    totalProj2027 += row.projected_2027_val;
-    for (let m = 1; m <= 12; m++) {
-      monthly2027[m] += Number(row.months_2027_calc[m] || 0);
-    }
-  });
-
-  return {
-    monthly_2027: monthly2027,
-    total_base_2026: totalBase2026,
-    total_proj_2027: totalProj2027,
-    delta_total: totalProj2027 - totalBase2026,
-  };
-});
-
-// Recompute Wilker Projections reactively
-const computedCagrWilkers = computed(() => {
-  const rawWilkers = cagrRaw.value?.wilkers?.items || [];
-  return rawWilkers.map((w) => {
-    const baseVal = cagrBaseMode.value === 'annualized'
-      ? Number(w.annualized_2026 || 0)
-      : Number(w.actual_2026 || 0);
-    const rate = baseVal > 0 ? getEffectiveCagrRate(w.cagr_rate) : 0;
-    const multiplier = 1 + (rate / 100);
-    const projTotal = Math.round(baseVal * multiplier);
-
-    const sourceMonths = cagrBaseMode.value === 'annualized'
-      ? (w.months_2026_est || w.months_2026 || {})
-      : (w.months_2026 || {});
-    const months2027 = {};
-    let running = 0;
-
-    for (let m = 1; m <= 12; m++) {
-      const mBase = Number(sourceMonths[m] || 0);
-      const weight = baseVal > 0 ? (mBase / baseVal) : (1 / 12);
-      if (m < 12) {
-        const val = Math.round(projTotal * weight);
-        months2027[m] = val;
-        running += val;
-      } else {
-        months2027[m] = Math.max(0, projTotal - running);
+      return node.is_hq || modaLower.includes('laut') || modaLower.includes('pelabuhan');
+    })
+    .map((node) => {
+      if (node.is_hq || node.no === 1) {
+        return {
+          ...node,
+          x: 50,
+          y: 50,
+          distanceKm: 0,
+          bearingDeg: 0,
+        };
       }
-    }
+
+      const dLatKm = (node.lat - hqLat) * 110.574;
+      const dLngKm = (node.lng - hqLng) * (111.32 * Math.cos((hqLat * Math.PI) / 180));
+      const distanceKm = Math.round(Math.sqrt(dLatKm * dLatKm + dLngKm * dLngKm));
+
+      // Bearing in degrees (0 = North, 90 = East, 180 = South, 270 = West)
+      const rad = Math.atan2(dLngKm, dLatKm);
+      const bearingDeg = Math.round(((rad * 180) / Math.PI + 360) % 360);
+
+      // Normalize radius into 14% .. 42% of radar circle radius (center is 50%, 50%)
+      const normR = Math.min(42, Math.max(14, (distanceKm / maxRadiusKm) * 40));
+      const x = Number((50 + normR * Math.sin(rad)).toFixed(2));
+      const y = Number((50 - normR * Math.cos(rad)).toFixed(2));
+
+      return {
+        ...node,
+        x,
+        y,
+        distanceKm,
+        bearingDeg,
+      };
+    });
+});
+
+// ECharts Radar 1: Multi-Dimensional Operational Radar Across 7 Wilayah Kerja
+const wilkerRadarOption = computed(() => {
+  const comparison = sinkarkesData.value.wilker_comparison || [];
+  const matrix = sinkarkesData.value.matrix || [];
+
+  const rows = comparison.map((c, idx) => {
+    const mRow = matrix.find((m) => m.wilker === c.name) || {};
+    const officeMatch = officesList.value.find(
+      (o) => (o.short_name && o.short_name.includes(c.short_name)) || (o.name && o.name.includes(c.short_name))
+    );
+    const dailyInspect = officeMatch?.total || 0;
 
     return {
-      ...w,
-      base_2026: baseVal,
-      effective_cagr: rate,
-      projected_2027_val: projTotal,
-      delta_val: projTotal - baseVal,
-      months_2027_calc: months2027,
+      name: c.short_name || c.name || `Wilker ${idx + 1}`,
+      alat_angkut: Number(c.total_alat_angkut || 0) + dailyInspect * 2,
+      orang: Number(c.total_orang || 0) + dailyInspect * 15,
+      dokumen: Number(c.total_dokumen || 0) + dailyInspect * 3,
+      layanan: Number(c.total_layanan || 0) + dailyInspect * 4,
+      kepatuhan: Number(mRow.compliance_percent || 85),
+      daily_ops: dailyInspect,
     };
   });
-});
 
-const computedCagrWilkerTotals = computed(() => {
-  const monthly2027 = {};
-  for (let m = 1; m <= 12; m++) monthly2027[m] = 0;
-  let totalActual2026 = 0;
-  let totalBase2026 = 0;
-  let totalProj2027 = 0;
+  const maxAlat = Math.max(...rows.map((r) => r.alat_angkut), 100);
+  const maxOrang = Math.max(...rows.map((r) => r.orang), 500);
+  const maxDok = Math.max(...rows.map((r) => r.dokumen), 100);
+  const maxLayanan = Math.max(...rows.map((r) => r.layanan), 100);
 
-  computedCagrWilkers.value.forEach((w) => {
-    totalActual2026 += Number(w.actual_2026 || 0);
-    totalBase2026 += w.base_2026;
-    totalProj2027 += w.projected_2027_val;
-    for (let m = 1; m <= 12; m++) {
-      monthly2027[m] += Number(w.months_2027_calc[m] || 0);
-    }
-  });
+  const sortedRows = [...rows].sort(
+    (a, b) => b.alat_angkut + b.dokumen + b.daily_ops - (a.alat_angkut + a.dokumen + a.daily_ops)
+  );
+  const displayRows = selectedRadarCompareMode.value === 'all' ? sortedRows : sortedRows.slice(0, 4);
 
-  return {
-    monthly_2027: monthly2027,
-    total_actual_2026: totalActual2026,
-    total_base_2026: totalBase2026,
-    total_proj_2027: totalProj2027,
-  };
-});
-
-// Executive 2027 KPI Cards reactively computed
-const computedKpi2027 = computed(() => {
-  const k27 = cagrRaw.value?.kpi_2027 || {};
-  const buildCard = (block, fallbackRate = 8.5) => {
-    const actual = Number(block?.actual_2026 || 0);
-    const annualized = Number(block?.annualized_2026 || actual);
-    const base = cagrBaseMode.value === 'annualized' ? annualized : actual;
-    const rate = base > 0 ? getEffectiveCagrRate(block?.cagr_rate ?? fallbackRate) : 0;
-    const projected = Math.round(base * (1 + rate / 100));
-    return {
-      actual_2026: actual,
-      base_2026: base,
-      cagr_rate: rate,
-      projected_2027: projected,
-      delta: projected - base,
-    };
-  };
+  const palette = [
+    { line: '#00A99D', fill: 'rgba(0, 169, 157, 0.28)' },
+    { line: '#99CC33', fill: 'rgba(153, 204, 51, 0.24)' },
+    { line: '#38bdf8', fill: 'rgba(56, 189, 248, 0.22)' },
+    { line: '#f59e0b', fill: 'rgba(245, 158, 11, 0.20)' },
+    { line: '#a855f7', fill: 'rgba(168, 85, 247, 0.18)' },
+    { line: '#f43f5e', fill: 'rgba(244, 63, 94, 0.18)' },
+    { line: '#10b981', fill: 'rgba(16, 185, 129, 0.18)' },
+  ];
 
   return {
-    alat_angkut: buildCard(k27.alat_angkut, 8.4),
-    orang: buildCard(k27.orang, 8.5),
-    dokumen: buildCard(k27.dokumen, 8.4),
-    layanan: buildCard(k27.layanan_kesehatan, 9.2),
-    prl: buildCard(k27.prl, 7.5),
-  };
-});
-
-// ECharts Option 1: 12-Month Trend Comparison (Base Year 2026 vs CAGR Projection 2027)
-const cagrMonthlyComparisonOption = computed(() => {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-  const series2026 = Array(12).fill(0);
-  const series2027 = Array(12).fill(0);
-
-  const filterCodes = cagrChartMetric.value === 'alat_angkut'
-    ? ['KSE.1', 'KSE.2', 'KSE.3', 'KSE.4']
-    : cagrChartMetric.value === 'orang'
-    ? ['KSE.5.1', 'KSE.5.2', 'KSE.6.1', 'KSE.6.2', 'KSE.7', 'KSE.8']
-    : null;
-
-  computedCagrIndicators.value.forEach((ind) => {
-    if (filterCodes && !filterCodes.includes(ind.code)) return;
-    const src26 = cagrBaseMode.value === 'annualized'
-      ? (ind.months_2026_est || ind.months_2026 || {})
-      : (ind.months_2026 || {});
-    for (let m = 1; m <= 12; m++) {
-      series2026[m - 1] += Number(src26[m] || 0);
-      series2027[m - 1] += Number(ind.months_2027_calc[m] || 0);
-    }
-  });
-
-  const label2026 = cagrBaseMode.value === 'annualized'
-    ? `Baseline ${cagrBaseYear.value} (Annualized)`
-    : `Realisasi ${cagrBaseYear.value}`;
-  const label2027 = `Proyeksi CAGR ${cagrTargetYear.value} (+${effectiveAvgCagr.value}%)`;
-
-  return {
+    backgroundColor: 'transparent',
     tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'cross' },
-      backgroundColor: '#003B36',
+      trigger: 'item',
+      backgroundColor: '#002D29',
       borderColor: '#00A99D',
+      borderWidth: 1,
       textStyle: { color: '#f8fafc', fontSize: 11 },
     },
     legend: {
-      data: [label2026, label2027],
       bottom: 0,
-      textStyle: { color: '#64748b', fontSize: 11, fontWeight: 'bold' },
+      data: displayRows.map((r) => r.name),
+      textStyle: { color: '#475569', fontSize: 10, fontWeight: 'bold' },
+      itemWidth: 10,
+      itemHeight: 10,
     },
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '14%',
-      top: '10%',
-      containLabel: true,
-    },
-    xAxis: {
-      type: 'category',
-      boundaryGap: false,
-      data: months,
-      axisLine: { lineStyle: { color: '#cbd5e1' } },
-      axisLabel: { fontSize: 11, color: '#475569', fontWeight: 600 },
-    },
-    yAxis: {
-      type: 'value',
-      splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.7)', type: 'dashed' } },
-      axisLabel: { fontSize: 10, color: '#64748b' },
+    radar: {
+      shape: 'polygon',
+      center: ['50%', '46%'],
+      radius: '64%',
+      splitNumber: 4,
+      axisName: {
+        color: '#005851',
+        fontSize: 10,
+        fontWeight: 'bold',
+      },
+      splitLine: {
+        lineStyle: {
+          color: [
+            'rgba(0, 169, 157, 0.15)',
+            'rgba(0, 169, 157, 0.25)',
+            'rgba(0, 169, 157, 0.35)',
+            'rgba(0, 88, 81, 0.45)',
+          ],
+        },
+      },
+      splitArea: {
+        show: true,
+        areaStyle: {
+          color: ['rgba(230, 247, 245, 0.45)', 'rgba(255, 255, 255, 0.8)'],
+        },
+      },
+      axisLine: {
+        lineStyle: { color: 'rgba(0, 169, 157, 0.35)' },
+      },
+      indicator: [
+        { name: 'Alat Angkut', max: Math.ceil(maxAlat * 1.15) },
+        { name: 'Penumpang/Kru', max: Math.ceil(maxOrang * 1.15) },
+        { name: 'Dokumen', max: Math.ceil(maxDok * 1.15) },
+        { name: 'Layanan UKP', max: Math.ceil(maxLayanan * 1.15) },
+        { name: 'Kepatuhan (%)', max: 100 },
+      ],
     },
     series: [
       {
-        name: label2026,
-        type: 'line',
-        smooth: true,
-        data: series2026,
-        itemStyle: { color: '#64748b' },
-        lineStyle: { width: 2.2, color: '#64748b', type: 'dashed' },
-        areaStyle: {
-          color: 'rgba(100, 116, 139, 0.08)',
-        },
-      },
-      {
-        name: label2027,
-        type: 'line',
-        smooth: true,
-        data: series2027,
-        itemStyle: { color: '#00A99D' },
-        lineStyle: { width: 3, color: '#00A99D' },
-        areaStyle: {
-          color: {
-            type: 'linear',
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: 'rgba(0, 169, 157, 0.35)' },
-              { offset: 1, color: 'rgba(153, 204, 51, 0.03)' },
-            ],
-          },
-        },
+        name: 'Radar Kinerja Wilayah Kerja',
+        type: 'radar',
+        symbol: 'circle',
+        symbolSize: 6,
+        data: displayRows.map((r, idx) => {
+          const col = palette[idx % palette.length];
+          return {
+            value: [r.alat_angkut, r.orang, r.dokumen, r.layanan, r.kepatuhan],
+            name: r.name,
+            itemStyle: { color: col.line },
+            lineStyle: { width: 2.2, color: col.line },
+            areaStyle: { color: col.fill },
+          };
+        }),
       },
     ],
   };
 });
 
-// ECharts Option 2: Cross-Wilker 2026 vs 2027 CAGR Projection Bar Chart
-const cagrWilkerComparisonOption = computed(() => {
-  const list = computedCagrWilkers.value;
-  const categories = list.map((w) => w.short_name);
-  const data2026 = list.map((w) => w.base_2026);
-  const data2027 = list.map((w) => w.projected_2027_val);
+// ECharts Radar 2: Biosecurity & 4-Moda Quarantine Readiness Radar
+const modaReadinessRadarOption = computed(() => {
+  const aircraftScore = Number(props.kpi?.compliance_rate || 92);
+  const shipTotal = Number(props.ship_stats?.total || 1);
+  const shipClean = Math.max(0, shipTotal - Number(props.ship_stats?.ships_with_risk || 0));
+  const shipScore = shipTotal > 0 ? Math.round((shipClean / shipTotal) * 100) : 90;
+  const completionScore = Number(props.kpi?.completion_rate || 88);
+  const sinkarkesCompliance = Number(sinkarkesKpi.value?.compliance_rate || 85);
+  const alkesScore = Number(props.medical_stats?.alat || 0) > 0 ? 94 : 82;
+  const obatScore = Number(props.medical_stats?.obat || 0) > 0 ? 92 : 80;
 
   return {
+    backgroundColor: 'transparent',
     tooltip: {
-      trigger: 'axis',
-      axisPointer: { type: 'shadow' },
-      backgroundColor: '#003B36',
-      borderColor: '#00A99D',
+      trigger: 'item',
+      backgroundColor: '#002D29',
+      borderColor: '#99CC33',
+      borderWidth: 1,
       textStyle: { color: '#f8fafc', fontSize: 11 },
     },
     legend: {
-      data: [`Basis ${cagrBaseYear.value}`, `Proyeksi CAGR ${cagrTargetYear.value}`],
       bottom: 0,
-      textStyle: { color: '#64748b', fontSize: 11, fontWeight: 'bold' },
+      data: ['Kesiapsiagaan Aktual (%)', 'Target Standar IHR (%)'],
+      textStyle: { color: '#475569', fontSize: 10, fontWeight: 'bold' },
+      itemWidth: 10,
+      itemHeight: 10,
     },
-    grid: {
-      left: '3%',
-      right: '4%',
-      bottom: '14%',
-      top: '8%',
-      containLabel: true,
-    },
-    xAxis: {
-      type: 'category',
-      data: categories,
-      axisLine: { lineStyle: { color: '#cbd5e1' } },
-      axisLabel: { fontSize: 10, color: '#334155', fontWeight: 'bold', interval: 0, rotate: 15 },
-    },
-    yAxis: {
-      type: 'value',
-      splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.7)' } },
-      axisLabel: { fontSize: 10, color: '#64748b' },
+    radar: {
+      shape: 'circle',
+      center: ['50%', '46%'],
+      radius: '64%',
+      splitNumber: 4,
+      axisName: {
+        color: '#005851',
+        fontSize: 10,
+        fontWeight: 'bold',
+      },
+      splitLine: {
+        lineStyle: {
+          color: [
+            'rgba(0, 169, 157, 0.2)',
+            'rgba(0, 169, 157, 0.3)',
+            'rgba(153, 204, 51, 0.35)',
+            'rgba(0, 88, 81, 0.5)',
+          ],
+        },
+      },
+      splitArea: {
+        show: true,
+        areaStyle: {
+          color: ['rgba(0, 169, 157, 0.06)', 'rgba(153, 204, 51, 0.05)'],
+        },
+      },
+      axisLine: {
+        lineStyle: { color: 'rgba(0, 169, 157, 0.35)' },
+      },
+      indicator: [
+        { name: 'Laik Pesawat', max: 100 },
+        { name: 'Bebas Risiko Kapal', max: 100 },
+        { name: 'Kesiapan Alkes', max: 100 },
+        { name: 'Stok Obat P3K', max: 100 },
+        { name: 'Verifikasi Dok', max: 100 },
+        { name: 'Pelaporan SINKARKES', max: 100 },
+      ],
     },
     series: [
       {
-        name: `Basis ${cagrBaseYear.value}`,
-        type: 'bar',
-        data: data2026,
-        itemStyle: { color: '#94a3b8', borderRadius: [4, 4, 0, 0] },
-      },
-      {
-        name: `Proyeksi CAGR ${cagrTargetYear.value}`,
-        type: 'bar',
-        data: data2027,
-        itemStyle: { color: '#005851', borderRadius: [4, 4, 0, 0] },
+        type: 'radar',
+        symbol: 'circle',
+        symbolSize: 6,
+        data: [
+          {
+            value: [aircraftScore, shipScore, alkesScore, obatScore, completionScore, sinkarkesCompliance],
+            name: 'Kesiapsiagaan Aktual (%)',
+            itemStyle: { color: '#00A99D' },
+            lineStyle: { width: 2.5, color: '#00A99D' },
+            areaStyle: {
+              color: {
+                type: 'radial',
+                x: 0.5,
+                y: 0.5,
+                r: 0.7,
+                colorStops: [
+                  { offset: 0, color: 'rgba(153, 204, 51, 0.45)' },
+                  { offset: 1, color: 'rgba(0, 169, 157, 0.25)' },
+                ],
+              },
+            },
+          },
+          {
+            value: [95, 95, 95, 95, 95, 95],
+            name: 'Target Standar IHR (%)',
+            itemStyle: { color: '#99CC33' },
+            lineStyle: { width: 1.5, color: '#7CA622', type: 'dashed' },
+            areaStyle: { color: 'rgba(153, 204, 51, 0.06)' },
+          },
+        ],
       },
     ],
   };
@@ -1211,35 +1168,51 @@ const cagrWilkerComparisonOption = computed(() => {
     <main class="w-full px-3 sm:px-5 lg:px-6 pt-3 pb-16 space-y-3.5 transition-all duration-300">
       
       <!-- ========================================================================= -->
-      <!-- TOP COMMAND BAR: HARMONISASI IDENTITAS KEMENKES RI (TURQUOISE & DARK TEAL)-->
+      <!-- TOP COMMAND BAR: HARMONISASI IDENTITAS KEMENKES RI (RADAR & TELEMETRI)    -->
       <!-- ========================================================================= -->
-      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] text-white p-3.5 sm:p-4 shadow-xl border border-[#005851]/80 ring-1 ring-[#00A99D]/30 font-sans">
-        <!-- Background Subtle Brand Grid Accent -->
-        <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00A99D_1px,transparent_1px)] [background-size:16px_16px]"></div>
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#002B27] via-[#00443C] to-[#005851] text-white p-3.5 sm:p-4 shadow-xl border border-[#00A99D]/50 ring-1 ring-[#00A99D]/30 font-sans">
+        <!-- Animated Tactical Grid & Radar Glow Background -->
+        <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#00A99D_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full border border-[#99CC33]/20 pointer-events-none animate-pulse"></div>
+        <div class="absolute -right-6 -top-6 w-36 h-36 rounded-full border border-dashed border-[#00A99D]/30 pointer-events-none radar-spin-slow"></div>
 
         <div class="relative z-10 flex flex-wrap items-center justify-between gap-3">
-          <!-- Left: Identity & Live Telemetry -->
+          <!-- Left: Animated Mini Radar Emblem & Live Telemetry -->
           <div class="flex items-center gap-3 min-w-0">
-            <div class="relative w-9 h-9 rounded-xl bg-gradient-to-br from-[#00A99D] to-[#005851] flex items-center justify-center font-black text-white shrink-0 shadow-lg shadow-black/20 border border-[#99DFD6]/40">
-              <Radio class="w-5 h-5 text-white animate-pulse" />
-              <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-[#99CC33] border-2 border-[#003B36] animate-ping"></span>
+            <div
+              @click="triggerSonarPing"
+              title="Klik untuk memancarkan gelombang Ping Sonar Radar"
+              class="relative w-11 h-11 rounded-2xl bg-[#001F1C] flex items-center justify-center shrink-0 shadow-lg shadow-black/40 border border-[#00A99D]/60 cursor-pointer overflow-hidden group"
+            >
+              <!-- Mini Sweeping Conic Beam -->
+              <div class="absolute inset-0 rounded-2xl radar-conic-beam opacity-75"></div>
+              <div class="absolute inset-1.5 rounded-full border border-[#00A99D]/40"></div>
+              <Radio class="relative z-10 w-5 h-5 text-[#99CC33] group-hover:scale-110 transition-transform" />
+              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
             </div>
 
             <div class="min-w-0">
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
                 <h1 class="text-sm sm:text-base font-extrabold font-heading tracking-tight text-white flex items-center gap-2 truncate">
-                  <span>PUSAT KOMANDO GEOSPASIAL</span>
+                  <span>PUSAT KOMANDO RADAR GEOSPASIAL</span>
                   <span class="text-[#99CC33] font-mono text-xs font-bold">BKK KELAS I BANDUNG</span>
                 </h1>
-                <span class="hidden md:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#00A99D]/20 text-[#E6F7F5] border border-[#00A99D]/40">
-                  <span class="w-1.5 h-1.5 rounded-full bg-[#99CC33] animate-pulse"></span>
-                  OPERASIONAL AKTIF
+                <span class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#00A99D]/25 text-[#E6F7F5] border border-[#00A99D]/50 shadow-xs">
+                  <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
+                  <span>RADAR LOCK: 7 WILKER</span>
+                </span>
+                <span class="hidden xl:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#001F1C]/80 text-[#99CC33] border border-[#99CC33]/40">
+                  <Compass class="w-3 h-3 animate-spin" style="animation-duration: 8s" />
+                  <span>AZM {{ String(radarAngle).padStart(3, '0') }}&deg;</span>
                 </span>
               </div>
-              <p class="text-[11px] text-slate-200 flex items-center gap-2 truncate mt-0.5">
+              <p class="text-[11px] text-slate-200 flex flex-wrap items-center gap-2 truncate mt-0.5">
                 <span>Jaringan 7 Wilker &bull; 4 Moda Karantina Terpadu</span>
                 <span class="text-slate-400">|</span>
-                <span class="font-mono text-[#99DFD6]">{{ generated_at }}</span>
+                <span class="font-mono text-[#99DFD6] flex items-center gap-1">
+                  <Clock class="w-3 h-3 text-[#99CC33]" />
+                  {{ liveTimeStr || generated_at }}
+                </span>
               </p>
             </div>
           </div>
@@ -1247,7 +1220,7 @@ const cagrWilkerComparisonOption = computed(() => {
           <!-- Right: Command Controls, Mode Switcher & Form Launchers -->
           <div class="flex flex-wrap items-center gap-2 shrink-0 text-xs">
             <!-- Unified View Mode Switcher -->
-            <div class="inline-flex items-center p-0.5 rounded-xl bg-[#002D29]/90 border border-[#00A99D]/40 text-[11px] font-bold">
+            <div class="inline-flex items-center p-0.5 rounded-xl bg-[#001F1C]/90 border border-[#00A99D]/40 text-[11px] font-bold">
               <button
                 type="button"
                 @click="dashboardViewMode = 'all'"
@@ -1272,9 +1245,19 @@ const cagrWilkerComparisonOption = computed(() => {
                 :class="dashboardViewMode === 'geospatial' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
               >
                 <Globe class="w-3 h-3 text-[#99DFD6]" />
-                <span>Peta &amp; Harian</span>
+                <span>Radar &amp; Peta</span>
               </button>
             </div>
+
+            <button
+              type="button"
+              @click="triggerSonarPing"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-[#99CC33]/20 hover:bg-[#99CC33]/35 text-[#99CC33] border border-[#99CC33]/50 transition-all cursor-pointer"
+              title="Pancarkan Gelombang Sonar Radar"
+            >
+              <Zap class="w-3.5 h-3.5" :class="isSonarPinging ? 'animate-bounce' : ''" />
+              <span class="hidden sm:inline">Ping Radar</span>
+            </button>
 
             <button
               type="button"
@@ -1344,34 +1327,38 @@ const cagrWilkerComparisonOption = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
-      <!-- 4 HARMONIZED SERVICE TILES (KEMENKES BRAND IDENTITY)                       -->
+      <!-- 4 INTERACTIVE RADAR-GAUGE SERVICE TILES (ANIMATED MODA TELEMETRY)         -->
       <!-- ========================================================================= -->
-      <div v-if="dashboardViewMode !== 'sinkarkes'" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 font-sans">
+      <div v-if="dashboardViewMode !== 'sinkarkes'" class="grid grid-cols-2 lg:grid-cols-4 gap-3 font-sans">
         
-        <!-- Tile 1: Sanitasi Pesawat Udara (Turquoise Accent) -->
+        <!-- Tile 1: Sanitasi Pesawat Udara -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'aircraft' ? 'all' : 'aircraft'"
-          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
+          class="rounded-2xl p-3.5 transition-all duration-300 cursor-pointer border relative overflow-hidden group bg-white shadow-xs hover:shadow-lg hover:-translate-y-0.5"
           :class="selectedModuleKey === 'aircraft'
-            ? 'border-[#00A99D] ring-2 ring-[#00A99D]/25 bg-gradient-to-br from-[#E6F7F5]/50 to-white'
-            : 'border-slate-200 hover:border-[#00A99D]'"
+            ? 'border-[#00A99D] ring-2 ring-[#00A99D]/30 bg-gradient-to-br from-[#E6F7F5]/70 to-white'
+            : 'border-slate-200/90 hover:border-[#00A99D]'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-[#00A99D]" :class="selectedModuleKey === 'aircraft' ? 'opacity-100' : 'opacity-80'"></div>
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#005851] via-[#00A99D] to-[#99CC33]"></div>
+          <!-- Subtle Animated Radar Ring Decoration -->
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full border border-dashed border-[#00A99D]/20 group-hover:scale-125 transition-transform duration-500 pointer-events-none radar-spin-slow"></div>
+
           <div class="flex items-center justify-between text-xs mt-0.5">
-            <span class="font-bold flex items-center gap-1.5 text-slate-800">
-              <span class="w-6 h-6 rounded-lg bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0">
-                <Plane class="w-3.5 h-3.5" />
+            <span class="font-bold flex items-center gap-2 text-slate-800">
+              <span class="relative w-7 h-7 rounded-xl bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0 border border-[#99DFD6]/60 group-hover:bg-[#00A99D] group-hover:text-white transition-colors">
+                <Plane class="w-4 h-4" />
+                <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00A99D] animate-ping"></span>
               </span>
               <span>Sanitasi Pesawat</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
               {{ kpi.compliance_rate }}% Laik
             </span>
           </div>
 
-          <div class="flex items-baseline justify-between mt-2">
+          <div class="flex items-baseline justify-between mt-2.5">
             <div>
-              <span class="text-xl font-black text-[#005851] tracking-tight font-mono">
+              <span class="text-2xl font-black text-[#005851] tracking-tight font-mono">
                 {{ aircraft_stats.total }}
               </span>
               <span class="text-xs text-slate-400 ml-1">dok</span>
@@ -1381,32 +1368,42 @@ const cagrWilkerComparisonOption = computed(() => {
               <span :class="aircraft_stats.tidak_layak > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'">{{ aircraft_stats.tidak_layak }} Tindakan</span>
             </div>
           </div>
+
+          <div class="mt-2.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div
+              class="h-full bg-gradient-to-r from-[#005851] to-[#00A99D] rounded-full shimmer-bar transition-all duration-700"
+              :style="{ width: `${Math.max(12, kpi.compliance_rate || 85)}%` }"
+            ></div>
+          </div>
         </div>
 
-        <!-- Tile 2: Sanitasi Kapal Laut (Dark Teal Accent) -->
+        <!-- Tile 2: Sanitasi Kapal Laut -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'ship' ? 'all' : 'ship'"
-          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
+          class="rounded-2xl p-3.5 transition-all duration-300 cursor-pointer border relative overflow-hidden group bg-white shadow-xs hover:shadow-lg hover:-translate-y-0.5"
           :class="selectedModuleKey === 'ship'
-            ? 'border-[#005851] ring-2 ring-[#005851]/25 bg-gradient-to-br from-[#E0EFEF]/50 to-white'
-            : 'border-slate-200 hover:border-[#005851]'"
+            ? 'border-[#005851] ring-2 ring-[#005851]/30 bg-gradient-to-br from-[#E0EFEF]/70 to-white'
+            : 'border-slate-200/90 hover:border-[#005851]'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-[#005851]" :class="selectedModuleKey === 'ship' ? 'opacity-100' : 'opacity-80'"></div>
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#003B36] via-[#005851] to-[#00A99D]"></div>
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full border border-dashed border-[#005851]/20 group-hover:scale-125 transition-transform duration-500 pointer-events-none radar-spin-slow"></div>
+
           <div class="flex items-center justify-between text-xs mt-0.5">
-            <span class="font-bold flex items-center gap-1.5 text-slate-800">
-              <span class="w-6 h-6 rounded-lg bg-[#E0EFEF] text-[#005851] flex items-center justify-center shrink-0">
-                <Ship class="w-3.5 h-3.5" />
+            <span class="font-bold flex items-center gap-2 text-slate-800">
+              <span class="relative w-7 h-7 rounded-xl bg-[#E0EFEF] text-[#005851] flex items-center justify-center shrink-0 border border-[#99DFD6]/60 group-hover:bg-[#005851] group-hover:text-white transition-colors">
+                <Ship class="w-4 h-4" />
+                <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#005851] animate-ping"></span>
               </span>
               <span>Sanitasi Kapal</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#E0EFEF] text-[#005851] border border-[#99DFD6]">
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#E0EFEF] text-[#005851] border border-[#99DFD6]">
               IHR 2005
             </span>
           </div>
 
-          <div class="flex items-baseline justify-between mt-2">
+          <div class="flex items-baseline justify-between mt-2.5">
             <div>
-              <span class="text-xl font-black text-[#005851] tracking-tight font-mono">
+              <span class="text-2xl font-black text-[#005851] tracking-tight font-mono">
                 {{ ship_stats.total }}
               </span>
               <span class="text-xs text-slate-400 ml-1">kapal</span>
@@ -1416,32 +1413,42 @@ const cagrWilkerComparisonOption = computed(() => {
               <span class="text-amber-700 font-bold">{{ ship_stats.sscc }} SSCC</span>
             </div>
           </div>
+
+          <div class="mt-2.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div
+              class="h-full bg-gradient-to-r from-[#003B36] to-[#00A99D] rounded-full shimmer-bar transition-all duration-700"
+              :style="{ width: `${ship_stats.total > 0 ? Math.max(15, Math.round((ship_stats.sscec / ship_stats.total) * 100)) : 75}%` }"
+            ></div>
+          </div>
         </div>
 
-        <!-- Tile 3: Alkes Haji & Emergensi (Lime Accent) -->
+        <!-- Tile 3: Alkes Haji & Emergensi -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'alat' ? 'all' : 'alat'"
-          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
+          class="rounded-2xl p-3.5 transition-all duration-300 cursor-pointer border relative overflow-hidden group bg-white shadow-xs hover:shadow-lg hover:-translate-y-0.5"
           :class="selectedModuleKey === 'alat'
-            ? 'border-[#99CC33] ring-2 ring-[#99CC33]/30 bg-gradient-to-br from-[#F7FCE8]/60 to-white'
-            : 'border-slate-200 hover:border-[#99CC33]'"
+            ? 'border-[#99CC33] ring-2 ring-[#99CC33]/35 bg-gradient-to-br from-[#F7FCE8]/80 to-white'
+            : 'border-slate-200/90 hover:border-[#99CC33]'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-[#99CC33]" :class="selectedModuleKey === 'alat' ? 'opacity-100' : 'opacity-80'"></div>
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#557A18] via-[#7CA622] to-[#99CC33]"></div>
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full border border-dashed border-[#7CA622]/25 group-hover:scale-125 transition-transform duration-500 pointer-events-none radar-spin-slow"></div>
+
           <div class="flex items-center justify-between text-xs mt-0.5">
-            <span class="font-bold flex items-center gap-1.5 text-slate-800">
-              <span class="w-6 h-6 rounded-lg bg-[#F7FCE8] text-[#557A18] flex items-center justify-center shrink-0">
-                <Stethoscope class="w-3.5 h-3.5" />
+            <span class="font-bold flex items-center gap-2 text-slate-800">
+              <span class="relative w-7 h-7 rounded-xl bg-[#F7FCE8] text-[#557A18] flex items-center justify-center shrink-0 border border-[#D6EC8E] group-hover:bg-[#7CA622] group-hover:text-white transition-colors">
+                <Stethoscope class="w-4 h-4" />
+                <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
               </span>
               <span>Alkes Haji Pesawat</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#F7FCE8] text-[#557A18] border border-[#D6EC8E]">
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#F7FCE8] text-[#557A18] border border-[#D6EC8E]">
               Emergensi
             </span>
           </div>
 
-          <div class="flex items-baseline justify-between mt-2">
+          <div class="flex items-baseline justify-between mt-2.5">
             <div>
-              <span class="text-xl font-black text-[#005851] tracking-tight font-mono">
+              <span class="text-2xl font-black text-[#005851] tracking-tight font-mono">
                 {{ medical_stats.alat }}
               </span>
               <span class="text-xs text-slate-400 ml-1">dok</span>
@@ -1451,32 +1458,42 @@ const cagrWilkerComparisonOption = computed(() => {
               <span class="text-amber-700 font-bold">{{ kpi.pending }} Proses</span>
             </div>
           </div>
+
+          <div class="mt-2.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div
+              class="h-full bg-gradient-to-r from-[#557A18] to-[#99CC33] rounded-full shimmer-bar transition-all duration-700"
+              :style="{ width: `${Math.max(18, kpi.completion_rate || 80)}%` }"
+            ></div>
+          </div>
         </div>
 
-        <!-- Tile 4: Obat P3K Pesawat (Turquoise-Lime Blend) -->
+        <!-- Tile 4: Obat P3K Pesawat -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'obat' ? 'all' : 'obat'"
-          class="rounded-xl p-3 transition-all cursor-pointer border relative overflow-hidden group bg-white shadow-2xs hover:shadow-md"
+          class="rounded-2xl p-3.5 transition-all duration-300 cursor-pointer border relative overflow-hidden group bg-white shadow-xs hover:shadow-lg hover:-translate-y-0.5"
           :class="selectedModuleKey === 'obat'
-            ? 'border-[#00A99D] ring-2 ring-[#00A99D]/25 bg-gradient-to-br from-[#E6F7F5]/50 to-white'
-            : 'border-slate-200 hover:border-[#00A99D]'"
+            ? 'border-[#00A99D] ring-2 ring-[#00A99D]/30 bg-gradient-to-br from-[#E6F7F5]/70 to-white'
+            : 'border-slate-200/90 hover:border-[#00A99D]'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00A99D] to-[#99CC33]" :class="selectedModuleKey === 'obat' ? 'opacity-100' : 'opacity-80'"></div>
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00A99D] to-[#99CC33]"></div>
+          <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full border border-dashed border-[#00A99D]/20 group-hover:scale-125 transition-transform duration-500 pointer-events-none radar-spin-slow"></div>
+
           <div class="flex items-center justify-between text-xs mt-0.5">
-            <span class="font-bold flex items-center gap-1.5 text-slate-800">
-              <span class="w-6 h-6 rounded-lg bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0">
-                <Pill class="w-3.5 h-3.5" />
+            <span class="font-bold flex items-center gap-2 text-slate-800">
+              <span class="relative w-7 h-7 rounded-xl bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0 border border-[#99DFD6]/60 group-hover:bg-[#00A99D] group-hover:text-white transition-colors">
+                <Pill class="w-4 h-4" />
+                <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00A99D] animate-ping"></span>
               </span>
               <span>Obat P3K Pesawat</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
+            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
               Total {{ kpi.total }}
             </span>
           </div>
 
-          <div class="flex items-baseline justify-between mt-2">
+          <div class="flex items-baseline justify-between mt-2.5">
             <div>
-              <span class="text-xl font-black text-[#005851] tracking-tight font-mono">
+              <span class="text-2xl font-black text-[#005851] tracking-tight font-mono">
                 {{ medical_stats.obat }}
               </span>
               <span class="text-xs text-slate-400 ml-1">dok</span>
@@ -1486,12 +1503,19 @@ const cagrWilkerComparisonOption = computed(() => {
               <span class="text-slate-600 font-medium">{{ kpi.today }} Hari Ini</span>
             </div>
           </div>
+
+          <div class="mt-2.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+            <div
+              class="h-full bg-gradient-to-r from-[#00A99D] to-[#99CC33] rounded-full shimmer-bar transition-all duration-700"
+              :style="{ width: `${Math.max(15, kpi.completion_rate || 82)}%` }"
+            ></div>
+          </div>
         </div>
 
       </div>
 
       <!-- ========================================================================= -->
-      <!-- CENTERPIECE: TACTICAL GEOSPATIAL COMMAND CENTER (HARMONISASI KEMENKES)     -->
+      <!-- CENTERPIECE: TACTICAL GEOSPATIAL COMMAND CENTER (WITH LIVE RADAR HUD)     -->
       <!-- ========================================================================= -->
       <div v-if="dashboardViewMode !== 'sinkarkes'" class="bg-white rounded-2xl border-2 border-[#003B36] shadow-2xl overflow-hidden ring-4 ring-[#00A99D]/15 font-sans">
         
@@ -1499,24 +1523,24 @@ const cagrWilkerComparisonOption = computed(() => {
         <div class="px-4 py-2.5 bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] text-white flex flex-wrap items-center justify-between gap-3 border-b border-[#003B36]">
           <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 rounded-lg bg-[#00A99D] text-white flex items-center justify-center font-black text-xs shadow-md shadow-[#00A99D]/30 border border-[#99DFD6]/40">
-              <Scan class="w-4 h-4" />
+              <Scan class="w-4 h-4 animate-pulse" />
             </div>
             <div>
               <div class="flex items-center gap-2">
                 <h2 class="text-sm font-extrabold font-heading tracking-tight text-white flex items-center gap-1.5">
-                  <span>PETA GEOSPASIAL WILAYAH KERJA JAWA BARAT</span>
+                  <span>RADAR GEOSPASIAL WILAYAH KERJA JAWA BARAT</span>
                 </h2>
                 <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#00A99D]/20 text-[#E6F7F5] border border-[#00A99D]/40">
                   7 NODE TERHUBUNG
                 </span>
               </div>
               <p class="text-[11px] text-slate-200">
-                Vektor koneksi otomatis menghubungkan Kantor Induk Bandung dengan 6 Pos/Wilayah Kerja
+                Pemindaian radar aktif menghubungkan Kantor Induk Bandung dengan 6 Pos/Wilayah Kerja
               </p>
             </div>
           </div>
 
-          <!-- Controls: Map Layer Switcher & WebGL Actions -->
+          <!-- Controls: Map Layer Switcher & WebGL Radar Actions -->
           <div class="flex flex-wrap items-center gap-2 text-xs">
             <!-- Map Layer Switcher -->
             <div class="inline-flex items-center p-0.5 rounded-lg bg-[#00312D] border border-[#005851] text-[10px] font-bold">
@@ -1546,8 +1570,20 @@ const cagrWilkerComparisonOption = computed(() => {
               </button>
             </div>
 
-            <!-- WebGL Camera Actions -->
+            <!-- WebGL Camera & Radar HUD Actions -->
             <div class="flex items-center gap-1">
+              <button
+                type="button"
+                @click="showMapRadarHud = !showMapRadarHud"
+                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer"
+                :class="showMapRadarHud
+                  ? 'bg-[#99CC33] text-[#002B27] border-[#99CC33] shadow-xs'
+                  : 'bg-white/10 hover:bg-[#00A99D]/20 text-white border-white/10'"
+                title="Tampilkan / Sembunyikan Overlay Pemindai Radar di Peta"
+              >
+                <Radio class="w-3 h-3" :class="showMapRadarHud ? 'animate-pulse' : ''" />
+                <span>Radar HUD</span>
+              </button>
               <button
                 type="button"
                 @click="resetGlobalView"
@@ -1587,8 +1623,8 @@ const cagrWilkerComparisonOption = computed(() => {
         <div class="px-3.5 py-2 bg-[#002D29] border-b border-[#003B36] text-white flex flex-wrap items-center justify-between gap-2 text-xs">
           <div class="flex flex-wrap items-center gap-1.5">
             <span class="text-[10px] font-mono font-bold tracking-wider uppercase text-[#99CC33] mr-1 flex items-center gap-1">
-              <Crosshair class="w-3 h-3 text-[#99CC33]" />
-              TARGET:
+              <Crosshair class="w-3 h-3 text-[#99CC33] animate-spin" style="animation-duration: 6s" />
+              RADAR LOCK:
             </span>
             <button
               v-for="node in bkkMapMarkers"
@@ -1597,7 +1633,7 @@ const cagrWilkerComparisonOption = computed(() => {
               @click="selectOffice(node)"
               class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border"
               :class="selectedOffice?.no === node.no
-                ? 'bg-[#00A99D] text-white border-[#00A99D] font-extrabold shadow-md shadow-[#00A99D]/30'
+                ? 'bg-[#00A99D] text-white border-[#00A99D] font-extrabold shadow-md shadow-[#00A99D]/30 scale-105'
                 : 'bg-[#003B36]/90 text-slate-200 border-[#004D44] hover:bg-[#005851] hover:text-white'"
             >
               <span class="text-[9px] font-mono font-black" :class="selectedOffice?.no === node.no ? 'text-white' : 'text-[#99CC33]'">
@@ -1615,8 +1651,8 @@ const cagrWilkerComparisonOption = computed(() => {
           </div>
 
           <div class="text-[11px] font-mono text-slate-300 hidden xl:flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-pulse"></span>
-            <span>KLIK NODE UNTUK INSPEKSI LOKASI PRESISI</span>
+            <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
+            <span>PEMINDAIAN SONAR GEOSPASIAL AKTIF</span>
           </div>
         </div>
 
@@ -1624,7 +1660,7 @@ const cagrWilkerComparisonOption = computed(() => {
         <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
           
           <!-- Large WebGL Map Area (8 Cols) -->
-          <div class="lg:col-span-8 relative min-w-0 bg-[#002D29]">
+          <div class="lg:col-span-8 relative min-w-0 bg-[#002D29] overflow-hidden">
             <BaseMap
               ref="mapComponentRef"
               :initialCenter="[107.55, -6.65]"
@@ -1638,27 +1674,55 @@ const cagrWilkerComparisonOption = computed(() => {
               @mapMove="onCameraMove"
             />
 
+            <!-- Interactive Map Radar HUD Overlay (Pointer-Events-None so map remains interactive) -->
+            <div v-if="showMapRadarHud" class="absolute inset-0 pointer-events-none z-10 flex items-center justify-center overflow-hidden">
+              <!-- Corner Targeting Brackets -->
+              <div class="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-[#00A99D]/60"></div>
+              <div class="absolute top-3 right-12 w-6 h-6 border-t-2 border-r-2 border-[#00A99D]/60"></div>
+              <div class="absolute bottom-8 left-3 w-6 h-6 border-b-2 border-l-2 border-[#00A99D]/60"></div>
+              <div class="absolute bottom-8 right-3 w-6 h-6 border-b-2 border-r-2 border-[#00A99D]/60"></div>
+
+              <!-- Concentric Tactical Radar Reticle Rings -->
+              <div class="relative w-[360px] h-[360px] sm:w-[440px] sm:h-[440px] rounded-full border border-[#00A99D]/30 flex items-center justify-center">
+                <div class="w-[72%] h-[72%] rounded-full border border-dashed border-[#00A99D]/30 flex items-center justify-center">
+                  <div class="w-[50%] h-[50%] rounded-full border border-[#99CC33]/35 flex items-center justify-center">
+                    <div class="w-3 h-3 rounded-full border-2 border-[#99CC33] bg-[#00A99D]/40 animate-ping"></div>
+                  </div>
+                </div>
+                <!-- Crosshair Lines -->
+                <div class="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-[#00A99D]/35 to-transparent"></div>
+                <div class="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-[#00A99D]/35 to-transparent"></div>
+                <!-- Rotating Conic Radar Sweep Beam -->
+                <div
+                  class="absolute inset-0 rounded-full radar-conic-beam opacity-35"
+                  :style="{ animationDuration: radarSweepSpeed === 'fast' ? '2.2s' : '4.5s' }"
+                ></div>
+                <!-- Triggered Sonar Shockwave Ring -->
+                <div v-if="isSonarPinging" class="absolute inset-0 rounded-full border-4 border-[#99CC33] sonar-shockwave"></div>
+              </div>
+            </div>
+
             <!-- Top Left Cyber HUD Overlay -->
-            <div class="absolute top-3 left-3 z-10 w-48 rounded-xl bg-[#002D29]/92 backdrop-blur-md border border-[#00A99D]/30 px-3 py-2.5 shadow-2xl text-[10px] font-mono text-[#99DFD6] pointer-events-none ring-1 ring-[#00A99D]/20">
+            <div class="absolute top-3 left-3 z-20 w-52 rounded-xl bg-[#00221F]/92 backdrop-blur-md border border-[#00A99D]/40 px-3 py-2.5 shadow-2xl text-[10px] font-mono text-[#99DFD6] pointer-events-none ring-1 ring-[#00A99D]/20">
               <div class="flex items-center justify-between border-b border-[#00A99D]/30 pb-1 mb-1.5">
                 <div class="flex items-center gap-1.5 font-bold text-[#99CC33]">
                   <Terminal class="w-3 h-3 text-[#99CC33]" />
-                  <span>TELEMETRI GPS</span>
+                  <span>TELEMETRI RADAR GPS</span>
                 </div>
-                <span class="w-1.5 h-1.5 rounded-full bg-[#99CC33] animate-ping"></span>
+                <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
               </div>
               <div class="space-y-1 text-slate-200">
                 <div class="flex justify-between">
-                  <span class="text-slate-400">LAT / LNG:</span>
+                  <span class="text-slate-400">KOORDINAT:</span>
                   <span class="text-white font-bold">{{ mapCenter[1].toFixed(4) }}, {{ mapCenter[0].toFixed(4) }}</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-slate-400">ZOOM / TILT:</span>
-                  <span class="text-white font-bold">{{ mapZoom.toFixed(1) }}x / {{ mapPitch }}°</span>
+                  <span class="text-slate-400">ZOOM / PITCH:</span>
+                  <span class="text-white font-bold">{{ mapZoom.toFixed(1) }}x / {{ mapPitch }}&deg;</span>
                 </div>
                 <div class="flex justify-between">
-                  <span class="text-slate-400">STATUS LINK:</span>
-                  <span class="text-[#99CC33] font-bold">TERKONEKSI (7)</span>
+                  <span class="text-slate-400">AZIMUTH:</span>
+                  <span class="text-[#99CC33] font-bold">{{ String(radarAngle).padStart(3, '0') }}&deg; ACTIVE</span>
                 </div>
               </div>
             </div>
@@ -1666,13 +1730,14 @@ const cagrWilkerComparisonOption = computed(() => {
             <!-- Bottom Right Target Node Telemetry HUD -->
             <div
               v-if="activeMapNode"
-              class="absolute bottom-3 right-3 z-10 rounded-xl bg-[#002D29]/94 backdrop-blur-md border border-[#005851] shadow-2xl transition-all duration-200 text-white ring-1 ring-[#00A99D]/30"
+              class="absolute bottom-3 right-3 z-20 rounded-xl bg-[#00221F]/95 backdrop-blur-md border border-[#00A99D]/50 shadow-2xl transition-all duration-200 text-white ring-1 ring-[#00A99D]/30"
               :class="isNodeCardMinimized ? 'w-52 px-3 py-2' : 'w-72 sm:w-80 px-4 py-3'"
             >
               <div class="flex items-center justify-between gap-1.5">
                 <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="w-7 h-7 rounded-lg bg-[#00A99D] text-white flex items-center justify-center text-xs font-mono font-black shrink-0 shadow-xs border border-[#99DFD6]/40">
+                  <div class="relative w-8 h-8 rounded-lg bg-[#00A99D] text-white flex items-center justify-center text-xs font-mono font-black shrink-0 shadow-xs border border-[#99DFD6]/40">
                     {{ activeMapNode.shortCode }}
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#99CC33] animate-ping"></span>
                   </div>
                   <div class="min-w-0">
                     <h4 class="text-xs font-black text-white truncate">
@@ -1700,7 +1765,7 @@ const cagrWilkerComparisonOption = computed(() => {
                   </div>
                   <div class="p-1.5 rounded bg-[#003B36]/80 border border-[#004D44]">
                     <span class="text-[9px] text-slate-400 block uppercase">Terakhir Aktif</span>
-                    <span class="text-xs font-semibold text-[#E6F7F5] truncate block">{{ activeMapNode.last_human || 'Belum ada' }}</span>
+                    <span class="text-xs font-semibold text-[#E6F7F5] truncate block">{{ activeMapNode.last_human || 'Siaga Aktif' }}</span>
                   </div>
                 </div>
                 <div class="mt-2 pt-2 border-t border-[#003B36] text-[10px] text-slate-300 line-clamp-2 leading-tight flex items-start gap-1">
@@ -1744,8 +1809,9 @@ const cagrWilkerComparisonOption = computed(() => {
                     </button>
                   </div>
 
-                  <span class="text-[10px] font-mono font-bold text-[#005851] bg-[#E6F7F5] px-1.5 py-0.2 rounded border border-[#99DFD6]">
-                    STATUS AKTIF
+                  <span class="text-[10px] font-mono font-bold text-[#005851] bg-[#E6F7F5] px-1.5 py-0.2 rounded border border-[#99DFD6] flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#00A99D] animate-ping"></span>
+                    SIAGA AKTIF
                   </span>
                 </div>
 
@@ -1796,7 +1862,7 @@ const cagrWilkerComparisonOption = computed(() => {
                       <button
                         type="button"
                         class="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#00A99D] hover:text-white text-slate-400 flex items-center justify-center transition-colors"
-                        title="Arahkan kamera peta ke wilker ini"
+                        title="Kunci radar ke wilker ini"
                       >
                         <Crosshair class="w-3.5 h-3.5" />
                       </button>
@@ -1804,11 +1870,11 @@ const cagrWilkerComparisonOption = computed(() => {
                   </div>
 
                   <!-- Relative workload bar indicator -->
-                  <div class="w-full bg-slate-100 rounded-full h-1 overflow-hidden">
+                  <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                     <div
-                      class="h-full rounded-full transition-all duration-500"
-                      :class="selectedOffice?.no === office.no ? 'bg-[#00A99D]' : 'bg-[#99CC33]/70'"
-                      :style="{ width: `${Math.max(8, ((office.total || 0) / maxOfficeTotal) * 100)}%` }"
+                      class="h-full rounded-full shimmer-bar transition-all duration-500"
+                      :class="selectedOffice?.no === office.no ? 'bg-[#00A99D]' : 'bg-[#99CC33]/80'"
+                      :style="{ width: `${Math.max(10, ((office.total || 0) / maxOfficeTotal) * 100)}%` }"
                     ></div>
                   </div>
                 </div>
@@ -1822,6 +1888,217 @@ const cagrWilkerComparisonOption = computed(() => {
             </div>
           </div>
 
+        </div>
+
+      </div>
+
+      <!-- ========================================================================= -->
+      <!-- TACTICAL MULTI-RADAR COMMAND DECK (SONAR SCANNER + ECHARTS POLAR RADARS)  -->
+      <!-- ========================================================================= -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 font-sans">
+        
+        <!-- Panel 1: Interactive Circular Polar Sonar Radar Scanner (4 Cols) -->
+        <div class="lg:col-span-4 rounded-2xl bg-gradient-to-br from-[#001F1C] via-[#002D29] to-[#003B36] text-white p-4 shadow-xl border border-[#00A99D]/40 flex flex-col justify-between relative overflow-hidden">
+          <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00A99D_1px,transparent_1px)] [background-size:14px_14px]"></div>
+
+          <!-- Header -->
+          <div class="relative z-10 flex items-center justify-between gap-2 mb-2">
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
+                <h3 class="text-xs sm:text-sm font-extrabold tracking-tight text-white uppercase">
+                  Sonar Radar Jaringan Wilker
+                </h3>
+              </div>
+              <p class="text-[10px] text-[#99DFD6] font-mono">
+                Radius 150 KM dari Pusat Komando Bandung
+              </p>
+            </div>
+
+            <!-- Speed & Filter Controls -->
+            <div class="flex items-center gap-1">
+              <button
+                type="button"
+                @click="radarSweepSpeed = radarSweepSpeed === 'normal' ? 'fast' : 'normal'"
+                class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-all cursor-pointer"
+                :class="radarSweepSpeed === 'fast'
+                  ? 'bg-[#99CC33] text-[#002B27] border-[#99CC33]'
+                  : 'bg-[#003B36] text-[#99DFD6] border-[#00A99D]/40 hover:text-white'"
+                title="Ubah kecepatan putaran radar"
+              >
+                {{ radarSweepSpeed === 'fast' ? '2x FAST' : '1x SCAN' }}
+              </button>
+              <button
+                type="button"
+                @click="triggerSonarPing"
+                class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#00A99D]/30 hover:bg-[#00A99D] text-white border border-[#00A99D]/60 transition-all cursor-pointer"
+              >
+                PING
+              </button>
+            </div>
+          </div>
+
+          <!-- Interactive Circular Radar Scope -->
+          <div class="relative z-10 my-2 flex items-center justify-center">
+            <div class="relative w-64 h-64 sm:w-68 sm:h-68 rounded-full bg-[#001715] border-2 border-[#00A99D]/60 shadow-[0_0_35px_rgba(0,169,157,0.25)] flex items-center justify-center overflow-hidden">
+              <!-- Range Rings (25%, 50%, 75%, 100%) -->
+              <div class="absolute w-[82%] h-[82%] rounded-full border border-[#00A99D]/25"></div>
+              <div class="absolute w-[60%] h-[60%] rounded-full border border-dashed border-[#00A99D]/30"></div>
+              <div class="absolute w-[36%] h-[36%] rounded-full border border-[#00A99D]/25"></div>
+
+              <!-- Crosshairs & Diagonal Axes -->
+              <div class="absolute inset-x-0 top-1/2 h-px bg-[#00A99D]/30"></div>
+              <div class="absolute inset-y-0 left-1/2 w-px bg-[#00A99D]/30"></div>
+              <div class="absolute inset-0 rotate-45">
+                <div class="absolute inset-x-0 top-1/2 h-px bg-[#00A99D]/15"></div>
+                <div class="absolute inset-y-0 left-1/2 w-px bg-[#00A99D]/15"></div>
+              </div>
+
+              <!-- Cardinal Labels -->
+              <span class="absolute top-1.5 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold text-[#99CC33]">000&deg; U</span>
+              <span class="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold text-[#00A99D]">180&deg; S</span>
+              <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-mono font-bold text-[#00A99D]">090&deg; T</span>
+              <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] font-mono font-bold text-[#00A99D]">270&deg; B</span>
+
+              <!-- Rotating Conic Sweep Beam -->
+              <div
+                class="absolute inset-0 rounded-full radar-conic-beam pointer-events-none"
+                :style="{ animationDuration: radarSweepSpeed === 'fast' ? '2s' : '4s' }"
+              ></div>
+
+              <!-- Expanding Sonar Shockwave on Ping -->
+              <div v-if="isSonarPinging" class="absolute inset-4 rounded-full border-2 border-[#99CC33] sonar-shockwave pointer-events-none"></div>
+
+              <!-- Interactive Wilker Blips on the Radar Scope -->
+              <button
+                v-for="blip in radarBlips"
+                :key="`radar-blip-${blip.id}`"
+                type="button"
+                @click="selectOffice(blip)"
+                @mouseenter="hoveredRadarBlip = blip"
+                @mouseleave="hoveredRadarBlip = null"
+                class="absolute -translate-x-1/2 -translate-y-1/2 z-20 group/blip cursor-pointer focus:outline-none"
+                :style="{ left: `${blip.x}%`, top: `${blip.y}%` }"
+                :title="`${blip.shortTitle}: ${blip.distanceKm} km (${blip.bearingDeg}°)`"
+              >
+                <span
+                  class="absolute -inset-2 rounded-full animate-ping"
+                  :class="blip.is_hq ? 'bg-[#99CC33]/70' : (selectedOffice?.no === blip.no ? 'bg-[#00A99D]/80' : 'bg-[#00A99D]/40')"
+                ></span>
+                <span
+                  class="relative flex items-center justify-center rounded-full font-mono font-black transition-transform group-hover/blip:scale-125 shadow-md"
+                  :class="[
+                    blip.is_hq
+                      ? 'w-5 h-5 bg-[#99CC33] text-[#001F1C] text-[8px] ring-2 ring-white'
+                      : selectedOffice?.no === blip.no
+                      ? 'w-4.5 h-4.5 bg-[#00A99D] text-white text-[8px] ring-2 ring-[#99CC33]'
+                      : 'w-4 h-4 bg-[#005851] text-[#99DFD6] text-[7px] border border-[#00A99D]'
+                  ]"
+                >
+                  {{ blip.shortCode }}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Radar Footer Telemetry Readout -->
+          <div class="relative z-10 space-y-2">
+            <!-- Moda Filter Pills for Radar -->
+            <div class="flex items-center justify-center gap-1.5 text-[10px] font-mono">
+              <button
+                v-for="rf in [
+                  { id: 'all', label: 'SEMUA (7)' },
+                  { id: 'udara', label: 'UDARA (3)' },
+                  { id: 'laut', label: 'LAUT (4)' },
+                ]"
+                :key="rf.id"
+                type="button"
+                @click="activeRadarFilter = rf.id"
+                class="px-2 py-0.5 rounded border transition-all cursor-pointer"
+                :class="activeRadarFilter === rf.id
+                  ? 'bg-[#00A99D] text-white border-[#00A99D] font-bold'
+                  : 'bg-[#00221F] text-slate-300 border-[#004D44] hover:text-white'"
+              >
+                {{ rf.label }}
+              </button>
+            </div>
+
+            <div class="p-2 rounded-xl bg-[#001715]/90 border border-[#00A99D]/30 flex items-center justify-between text-[11px] font-mono">
+              <div class="truncate">
+                <span class="text-slate-400">LOCK: </span>
+                <strong class="text-[#99CC33]">{{ (hoveredRadarBlip || activeMapNode)?.shortTitle || 'Induk Bandung' }}</strong>
+              </div>
+              <div class="text-right shrink-0 text-[#99DFD6]">
+                <span>{{ (hoveredRadarBlip || radarBlips.find(b => b.no === activeMapNode?.no))?.distanceKm || 0 }} KM</span>
+                <span class="mx-1">&bull;</span>
+                <span>{{ (hoveredRadarBlip || radarBlips.find(b => b.no === activeMapNode?.no))?.bearingDeg || 0 }}&deg;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: ECharts Multi-Dimensional Wilker Radar (4 Cols) -->
+        <div class="lg:col-span-4 rounded-2xl bg-white border border-slate-200/90 p-4 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#00A99D] animate-pulse"></span>
+                <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+                  Radar Performa 5-Dimensi Wilayah Kerja
+                </h3>
+              </div>
+
+              <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-bold">
+                <button
+                  type="button"
+                  @click="selectedRadarCompareMode = 'top'"
+                  class="px-2 py-0.5 rounded cursor-pointer transition-all"
+                  :class="selectedRadarCompareMode === 'top' ? 'bg-[#005851] text-white' : 'text-slate-600'"
+                >
+                  Top 4
+                </button>
+                <button
+                  type="button"
+                  @click="selectedRadarCompareMode = 'all'"
+                  class="px-2 py-0.5 rounded cursor-pointer transition-all"
+                  :class="selectedRadarCompareMode === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600'"
+                >
+                  7 Wilker
+                </button>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500 mb-1">
+              Pemetaan poligon radar atas volume Alat Angkut, Orang, Dokumen, Layanan UKP, dan Kepatuhan.
+            </p>
+          </div>
+
+          <div class="w-full h-[275px]">
+            <BaseChart :option="wilkerRadarOption" height="275px" />
+          </div>
+        </div>
+
+        <!-- Panel 3: ECharts Biosecurity & 4-Moda Quarantine Readiness Radar (4 Cols) -->
+        <div class="lg:col-span-4 rounded-2xl bg-white border border-slate-200/90 p-4 shadow-xs flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#99CC33] animate-pulse"></span>
+                <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+                  Radar Kesiapsiagaan Biosecurity &amp; 4 Moda
+                </h3>
+              </div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
+                IHR 2005 READY
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 mb-1">
+              Indeks kesiapsiagaan aktual lintas 6 parameter pengawasan dibandingkan terhadap standar IHR (95%).
+            </p>
+          </div>
+
+          <div class="w-full h-[275px]">
+            <BaseChart :option="modaReadinessRadarOption" height="275px" />
+          </div>
         </div>
 
       </div>
@@ -1853,7 +2130,7 @@ const cagrWilkerComparisonOption = computed(() => {
               </div>
             </div>
 
-            <!-- Wilker, Year, & Form Input Controls -->
+            <!-- Wilker, Year, & Form Input Controls (Projection button removed) -->
             <div class="flex flex-wrap items-center gap-2 shrink-0">
               <!-- Wilayah Kerja Selector -->
               <div class="flex items-center gap-1.5 bg-[#002D29]/90 border border-[#00A99D]/40 rounded-xl px-2.5 py-1.5 text-white">
@@ -1885,15 +2162,6 @@ const cagrWilkerComparisonOption = computed(() => {
                   </option>
                 </select>
               </div>
-
-              <!-- Jump to CAGR 2027 Projection Button -->
-              <a
-                href="#cagr-projection-2027"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[#003B36] bg-[#99CC33] hover:bg-[#88b82b] border border-[#D6EC8E] transition-all shadow-sm cursor-pointer"
-              >
-                <TrendingUp class="w-3.5 h-3.5" />
-                <span>Proyeksi CAGR {{ cagrTargetYear }}</span>
-              </a>
 
               <!-- Open Form Input Button -->
               <Link
@@ -2446,529 +2714,6 @@ const cagrWilkerComparisonOption = computed(() => {
           </div>
         </div>
 
-        <!-- ======================================================================= -->
-        <!-- SINKARKES PROYEKSI TAHUN 2027 — METODE CAGR (COMPOUND ANNUAL GROWTH)    -->
-        <!-- ======================================================================= -->
-        <div id="cagr-projection-2027" class="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-2xs space-y-4">
-          <!-- Dark Teal Kemenkes Banner Header -->
-          <div class="bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] px-4 py-3.5 text-white flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-[#00A99D]/30">
-            <div class="flex items-start sm:items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-[#99CC33]/20 border border-[#99CC33]/50 flex items-center justify-center shrink-0">
-                <TrendingUp class="w-5 h-5 text-[#99CC33]" />
-              </div>
-              <div>
-                <div class="flex flex-wrap items-center gap-2">
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#99CC33] text-[#003B36]">
-                    METODE CAGR {{ cagrTargetYear }}
-                  </span>
-                  <h2 class="text-sm sm:text-base font-extrabold tracking-tight text-white">
-                    Proyeksi SINKARKES Tahun {{ cagrTargetYear }} &mdash; Metode Rata-Rata Tingkat Pertumbuhan Majemuk (CAGR)
-                  </h2>
-                </div>
-                <p class="text-[11px] text-[#99DFD6] mt-0.5">
-                  Perhitungan proyeksi beban kerja kekarantinaan kesehatan tahun {{ cagrTargetYear }} berbasis Compound Annual Growth Rate dari tren data tahun {{ cagrBaseYear }}.
-                </p>
-              </div>
-            </div>
-
-            <!-- Formula Callout Badge -->
-            <div class="flex flex-wrap items-center gap-2 shrink-0 bg-[#002D29]/90 border border-[#00A99D]/40 rounded-xl px-3 py-2 text-[11px] font-mono">
-              <div class="flex items-center gap-1.5">
-                <span class="text-[#99CC33] font-bold">Rumus:</span>
-                <span class="text-white">CAGR = (V<sub>akhir</sub> / V<sub>awal</sub>)<sup>1/n</sup> &minus; 1</span>
-              </div>
-              <span class="text-slate-500">|</span>
-              <div class="flex items-center gap-1.5">
-                <span class="text-[#99DFD6] font-bold">P<sub>{{ cagrTargetYear }}</sub> =</span>
-                <span class="text-white">Basis<sub>{{ cagrBaseYear }}</sub> &times; (1 + CAGR)</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="px-4 sm:px-5 pb-5 space-y-4">
-            <!-- Interactive CAGR Scenario & Basis Controls Bar -->
-            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col xl:flex-row xl:items-center justify-between gap-3 text-xs">
-              <!-- Left: Scenario Selector Pills -->
-              <div class="flex flex-wrap items-center gap-1.5">
-                <span class="text-[11px] font-bold text-slate-600 mr-1 flex items-center gap-1">
-                  <Sparkles class="w-3.5 h-3.5 text-[#00A99D]" />
-                  <span>Skenario CAGR:</span>
-                </span>
-
-                <button
-                  type="button"
-                  @click="selectCagrScenario('auto')"
-                  class="px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border"
-                  :class="cagrScenarioMode === 'auto'
-                    ? 'bg-[#005851] text-white border-[#005851] shadow-2xs'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-[#00A99D]'"
-                >
-                  Otomatis Tren Data ({{ cagrRaw.avg_cagr_rate || 8.5 }}%)
-                </button>
-
-                <button
-                  type="button"
-                  @click="selectCagrScenario('conservative', 5.0)"
-                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border"
-                  :class="cagrScenarioMode === 'conservative'
-                    ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-2xs font-bold'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-[#00A99D]'"
-                >
-                  Konservatif (+5,0%)
-                </button>
-
-                <button
-                  type="button"
-                  @click="selectCagrScenario('moderate', 8.5)"
-                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border"
-                  :class="cagrScenarioMode === 'moderate'
-                    ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-2xs font-bold'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-[#00A99D]'"
-                >
-                  Moderat (+8,5%)
-                </button>
-
-                <button
-                  type="button"
-                  @click="selectCagrScenario('optimistic', 12.5)"
-                  class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer border"
-                  :class="cagrScenarioMode === 'optimistic'
-                    ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-2xs font-bold'
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-[#00A99D]'"
-                >
-                  Optimis (+12,5%)
-                </button>
-
-                <!-- Custom Rate Input -->
-                <div class="inline-flex items-center gap-1 bg-white border border-slate-200 rounded-lg px-2 py-1">
-                  <span class="text-[11px] text-slate-500 font-medium">Kustom:</span>
-                  <input
-                    v-model.number="customCagrRate"
-                    @focus="cagrScenarioMode = 'custom'"
-                    @input="cagrScenarioMode = 'custom'"
-                    type="number"
-                    step="0.5"
-                    min="-30"
-                    max="100"
-                    class="w-14 text-right font-mono font-bold text-xs text-[#005851] bg-slate-50 border border-slate-200 rounded px-1.5 py-0.5 focus:outline-none focus:border-[#00A99D]"
-                  />
-                  <span class="text-[11px] font-mono font-bold text-slate-600">%</span>
-                </div>
-              </div>
-
-              <!-- Right: Base 2026 Calculation Mode Toggle -->
-              <div class="flex flex-wrap items-center gap-2 shrink-0">
-                <span class="text-[11px] font-bold text-slate-600">Basis {{ cagrBaseYear }}:</span>
-                <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-200/80 border border-slate-300/70 text-[11px]">
-                  <button
-                    type="button"
-                    @click="cagrBaseMode = 'annualized'"
-                    class="px-2.5 py-1 rounded-md transition-all cursor-pointer font-semibold"
-                    :class="cagrBaseMode === 'annualized' ? 'bg-white text-[#005851] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
-                    title="Menormalisasi bulan yang belum terisi di 2026 menjadi estimasi 12 bulan penuh (Annualized)"
-                  >
-                    Estimasi 12 Bulan (Annualized)
-                  </button>
-                  <button
-                    type="button"
-                    @click="cagrBaseMode = 'actual'"
-                    class="px-2.5 py-1 rounded-md transition-all cursor-pointer font-semibold"
-                    :class="cagrBaseMode === 'actual' ? 'bg-white text-[#005851] shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
-                    title="Menggunakan angka realisasi kumulatif 2026 apa adanya tanpa disetahunkan"
-                  >
-                    Realisasi Berjalan ({{ cagrRaw.active_months_count || 8 }} Bln)
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- 5 Executive KPI Cards for 2027 Projection -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
-              <!-- Card 1: Proyeksi Alat Angkut 2027 -->
-              <div class="rounded-xl p-3 bg-gradient-to-br from-[#E6F7F5]/60 to-white border border-[#99DFD6] shadow-2xs">
-                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-[#005851]">
-                  <span>PROYEKSI ALAT ANGKUT {{ cagrTargetYear }}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-[#00A99D] text-white">+{{ computedKpi2027.alat_angkut.cagr_rate }}%</span>
-                </div>
-                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
-                  {{ computedKpi2027.alat_angkut.projected_2027.toLocaleString('id-ID') }}
-                </div>
-                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
-                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.alat_angkut.base_2026.toLocaleString('id-ID') }}</span>
-                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.alat_angkut.delta.toLocaleString('id-ID') }} unit</span>
-                </div>
-              </div>
-
-              <!-- Card 2: Proyeksi Orang Terawasi 2027 -->
-              <div class="rounded-xl p-3 bg-gradient-to-br from-amber-50/70 to-white border border-amber-200 shadow-2xs">
-                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-amber-900">
-                  <span>PROYEKSI ORANG {{ cagrTargetYear }}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-amber-500 text-white">+{{ computedKpi2027.orang.cagr_rate }}%</span>
-                </div>
-                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
-                  {{ computedKpi2027.orang.projected_2027.toLocaleString('id-ID') }}
-                </div>
-                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
-                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.orang.base_2026.toLocaleString('id-ID') }}</span>
-                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.orang.delta.toLocaleString('id-ID') }} org</span>
-                </div>
-              </div>
-
-              <!-- Card 3: Proyeksi Dokumen Karantina 2027 -->
-              <div class="rounded-xl p-3 bg-gradient-to-br from-[#E0EFEF]/70 to-white border border-[#99DFD6] shadow-2xs">
-                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-[#005851]">
-                  <span>PROYEKSI DOKUMEN {{ cagrTargetYear }}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-[#005851] text-white">+{{ computedKpi2027.dokumen.cagr_rate }}%</span>
-                </div>
-                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
-                  {{ computedKpi2027.dokumen.projected_2027.toLocaleString('id-ID') }}
-                </div>
-                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
-                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.dokumen.base_2026.toLocaleString('id-ID') }}</span>
-                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.dokumen.delta.toLocaleString('id-ID') }} dok</span>
-                </div>
-              </div>
-
-              <!-- Card 4: Proyeksi Layanan Kesehatan & ICV 2027 -->
-              <div class="rounded-xl p-3 bg-gradient-to-br from-sky-50/70 to-white border border-sky-200 shadow-2xs">
-                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-sky-900">
-                  <span>PROYEKSI UKP &amp; ICV {{ cagrTargetYear }}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-sky-600 text-white">+{{ computedKpi2027.layanan.cagr_rate }}%</span>
-                </div>
-                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
-                  {{ computedKpi2027.layanan.projected_2027.toLocaleString('id-ID') }}
-                </div>
-                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
-                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.layanan.base_2026.toLocaleString('id-ID') }}</span>
-                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.layanan.delta.toLocaleString('id-ID') }} layanan</span>
-                </div>
-              </div>
-
-              <!-- Card 5: Proyeksi PRL Lingkungan 2027 -->
-              <div class="rounded-xl p-3 bg-gradient-to-br from-[#F7FCE8] to-white border border-[#D6EC8E] shadow-2xs">
-                <div class="flex items-center justify-between text-[10px] font-mono font-bold text-[#557A18]">
-                  <span>PROYEKSI PRL {{ cagrTargetYear }}</span>
-                  <span class="px-1.5 py-0.5 rounded bg-[#7CA622] text-white">+{{ computedKpi2027.prl.cagr_rate }}%</span>
-                </div>
-                <div class="text-xl sm:text-2xl font-black text-[#003B36] font-mono mt-1.5">
-                  {{ computedKpi2027.prl.projected_2027.toLocaleString('id-ID') }}
-                </div>
-                <div class="mt-1 flex items-center justify-between text-[10px] text-slate-600 font-mono">
-                  <span>Basis {{ cagrBaseYear }}: {{ computedKpi2027.prl.base_2026.toLocaleString('id-ID') }}</span>
-                  <span class="text-emerald-700 font-bold">+{{ computedKpi2027.prl.delta.toLocaleString('id-ID') }} objek</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Dual ECharts Comparison Row: 12-Month Trajectory & 7-Wilker Projection -->
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5">
-              <!-- Chart A: 12-Month Trajectory Comparison (2026 vs 2027) -->
-              <div class="lg:col-span-7 rounded-xl p-4 bg-slate-50/50 border border-slate-200/90 flex flex-col justify-between">
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
-                  <div>
-                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                      <ChartLine class="w-4 h-4 text-[#00A99D]" />
-                      <span>Kurva Proyeksi Bulanan {{ cagrBaseYear }} vs {{ cagrTargetYear }} (Metode CAGR)</span>
-                    </h3>
-                    <p class="text-[11px] text-slate-500">
-                      Perbandingan lintasan pertumbuhan bulanan (Januari s/d Desember) dengan rata-rata CAGR efektif <strong>+{{ effectiveAvgCagr }}%</strong>.
-                    </p>
-                  </div>
-
-                  <!-- Metric Filter Buttons -->
-                  <div class="inline-flex items-center p-0.5 rounded-lg bg-white border border-slate-200 text-[11px]">
-                    <button
-                      type="button"
-                      @click="cagrChartMetric = 'total'"
-                      class="px-2 py-1 rounded font-semibold cursor-pointer transition-all"
-                      :class="cagrChartMetric === 'total' ? 'bg-[#005851] text-white font-bold' : 'text-slate-600 hover:text-slate-900'"
-                    >
-                      Semua Indikator
-                    </button>
-                    <button
-                      type="button"
-                      @click="cagrChartMetric = 'alat_angkut'"
-                      class="px-2 py-1 rounded font-semibold cursor-pointer transition-all"
-                      :class="cagrChartMetric === 'alat_angkut' ? 'bg-[#005851] text-white font-bold' : 'text-slate-600 hover:text-slate-900'"
-                    >
-                      Alat Angkut
-                    </button>
-                    <button
-                      type="button"
-                      @click="cagrChartMetric = 'orang'"
-                      class="px-2 py-1 rounded font-semibold cursor-pointer transition-all"
-                      :class="cagrChartMetric === 'orang' ? 'bg-[#005851] text-white font-bold' : 'text-slate-600 hover:text-slate-900'"
-                    >
-                      Orang
-                    </button>
-                  </div>
-                </div>
-
-                <div class="w-full h-[250px]">
-                  <BaseChart :option="cagrMonthlyComparisonOption" height="250px" />
-                </div>
-              </div>
-
-              <!-- Chart B: 7 Wilkers 2026 vs 2027 Bar Chart -->
-              <div class="lg:col-span-5 rounded-xl p-4 bg-slate-50/50 border border-slate-200/90 flex flex-col justify-between">
-                <div class="mb-2">
-                  <h3 class="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                    <ChartColumn class="w-4 h-4 text-[#7CA622]" />
-                    <span>Target Proyeksi {{ cagrTargetYear }} Lintas 7 Wilayah Kerja</span>
-                  </h3>
-                  <p class="text-[11px] text-slate-500">
-                    Komparasi volume operasional tahun {{ cagrBaseYear }} terhadap target proyeksi CAGR tahun {{ cagrTargetYear }}.
-                  </p>
-                </div>
-
-                <div class="w-full h-[250px]">
-                  <BaseChart :option="cagrWilkerComparisonOption" height="250px" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Detailed 2027 Monthly Projection Table (Indicators & Wilkers) -->
-            <div class="space-y-3 pt-1">
-              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                <div class="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80 self-start">
-                  <button
-                    type="button"
-                    @click="activeCagrTableTab = 'indicators'"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                    :class="activeCagrTableTab === 'indicators' ? 'bg-[#005851] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-[#005851]'"
-                  >
-                    <Table class="w-3.5 h-3.5" :class="activeCagrTableTab === 'indicators' ? 'text-[#99CC33]' : 'text-[#00A99D]'" />
-                    <span>Tabel Proyeksi {{ cagrTargetYear }} per Indikator (29 Item)</span>
-                  </button>
-                  <button
-                    type="button"
-                    @click="activeCagrTableTab = 'wilkers'"
-                    class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
-                    :class="activeCagrTableTab === 'wilkers' ? 'bg-[#005851] text-white shadow-xs font-bold' : 'text-slate-600 hover:text-[#005851]'"
-                  >
-                    <Building2 class="w-3.5 h-3.5" :class="activeCagrTableTab === 'wilkers' ? 'text-[#99CC33]' : 'text-[#7CA622]'" />
-                    <span>Tabel Proyeksi {{ cagrTargetYear }} per Wilayah Kerja</span>
-                  </button>
-                </div>
-
-                <!-- Section Filter when in Indicators tab -->
-                <div v-if="activeCagrTableTab === 'indicators'" class="flex items-center gap-1.5 overflow-x-auto">
-                  <button
-                    v-for="sec in [
-                      { id: 'ALL', label: 'Semua' },
-                      { id: 'KSE', label: 'KSE' },
-                      { id: 'UKP', label: 'UKP' },
-                      { id: 'PRL', label: 'PRL' }
-                    ]"
-                    :key="sec.id"
-                    type="button"
-                    @click="selectedSectionFilter = sec.id"
-                    class="px-2.5 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer border"
-                    :class="selectedSectionFilter === sec.id
-                      ? 'bg-[#00A99D] text-white border-[#00A99D]'
-                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'"
-                  >
-                    {{ sec.label }}
-                  </button>
-                </div>
-              </div>
-
-              <!-- Sub-Tab 1: 29 Key Indicators 2027 Monthly Projection Table -->
-              <div v-if="activeCagrTableTab === 'indicators'" class="overflow-x-auto rounded-xl border border-slate-200">
-                <table class="w-full min-w-[1120px] text-left text-xs border-collapse">
-                  <thead>
-                    <tr class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
-                      <th class="py-2.5 px-2.5 w-18 text-center sticky left-0 bg-slate-50 z-10 shadow-xs">Kode</th>
-                      <th class="py-2.5 px-3 min-w-[230px] sticky left-18 bg-slate-50 z-10 shadow-xs">Indikator SINKARKES</th>
-                      <th class="py-2.5 px-2 text-center w-14">Satuan</th>
-                      <th class="py-2.5 px-2.5 text-right w-24 bg-slate-100 text-slate-700 font-mono">
-                        BASIS {{ cagrBaseYear }}
-                      </th>
-                      <th class="py-2.5 px-2 text-center w-20 bg-[#F7FCE8] text-[#557A18] font-mono">
-                        CAGR (%)
-                      </th>
-                      <th
-                        v-for="m in monthNames"
-                        :key="`cagr-m-${m}`"
-                        class="py-2.5 px-1.5 text-right w-13 font-mono text-[10px]"
-                      >
-                        {{ m }}
-                      </th>
-                      <th class="py-2.5 px-3 text-right w-28 bg-[#E6F7F5] text-[#005851] font-mono font-bold text-[11px]">
-                        PROYEKSI {{ cagrTargetYear }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100">
-                    <tr
-                      v-for="row in filteredCagrIndicators"
-                      :key="`cagr-ind-${row.code}`"
-                      class="hover:bg-[#E6F7F5]/30 transition-colors group"
-                    >
-                      <td class="py-2 px-2.5 font-mono font-bold text-[11px] text-center text-slate-600 sticky left-0 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
-                        <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">{{ row.code }}</span>
-                      </td>
-                      <td class="py-2 px-3 text-slate-800 font-medium sticky left-18 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
-                        <div class="flex items-center gap-1.5">
-                          <span
-                            class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase shrink-0"
-                            :class="{
-                              'bg-blue-50 text-blue-600': row.section === 'KSE',
-                              'bg-emerald-50 text-emerald-600': row.section === 'UKP',
-                              'bg-amber-50 text-amber-600': row.section === 'PRL',
-                            }"
-                          >
-                            {{ row.section }}
-                          </span>
-                          <span class="truncate">{{ row.label }}</span>
-                        </div>
-                      </td>
-                      <td class="py-2 px-2 text-center text-slate-400 font-mono text-[10px]">
-                        {{ row.unit }}
-                      </td>
-                      <td class="py-2 px-2.5 text-right font-mono text-[11px] bg-slate-50/80 text-slate-700 font-semibold">
-                        {{ row.base_2026 > 0 ? row.base_2026.toLocaleString('id-ID') : '-' }}
-                      </td>
-                      <td class="py-2 px-2 text-center font-mono text-[11px] bg-[#F7FCE8]/50">
-                        <span
-                          v-if="row.base_2026 > 0"
-                          class="px-1.5 py-0.5 rounded font-bold text-[10px]"
-                          :class="row.effective_cagr >= 0 ? 'bg-emerald-100/80 text-emerald-800' : 'bg-rose-100 text-rose-700'"
-                        >
-                          {{ row.effective_cagr >= 0 ? '+' : '' }}{{ row.effective_cagr }}%
-                        </span>
-                        <span v-else class="text-slate-300">-</span>
-                      </td>
-                      <td
-                        v-for="mId in 12"
-                        :key="`cagr-cell-${row.code}-${mId}`"
-                        class="py-2 px-1.5 text-right font-mono text-[11px]"
-                        :class="row.months_2027_calc[mId] > 0 ? 'text-slate-800 font-medium' : 'text-slate-300'"
-                      >
-                        {{ row.months_2027_calc[mId] > 0 ? row.months_2027_calc[mId].toLocaleString('id-ID') : '-' }}
-                      </td>
-                      <td class="py-2 px-3 text-right font-mono font-bold text-xs bg-[#E6F7F5]/60 text-[#005851] group-hover:bg-[#E6F7F5]">
-                        {{ row.projected_2027_val > 0 ? row.projected_2027_val.toLocaleString('id-ID') : '-' }}
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot class="bg-slate-100/95 border-t-2 border-slate-300 font-bold">
-                    <tr>
-                      <td colspan="3" class="py-2.5 px-3 text-slate-800 sticky left-0 bg-slate-100 z-10 text-xs uppercase tracking-wider">
-                        TOTAL PROYEKSI SINKARKES {{ cagrTargetYear }}
-                      </td>
-                      <td class="py-2.5 px-2.5 text-right font-mono text-xs text-slate-800 bg-slate-200/60">
-                        {{ computedCagrIndicatorTotals.total_base_2026.toLocaleString('id-ID') }}
-                      </td>
-                      <td class="py-2.5 px-2 text-center font-mono text-xs text-[#557A18] bg-[#F7FCE8]">
-                        +{{ effectiveAvgCagr }}%
-                      </td>
-                      <td
-                        v-for="mId in 12"
-                        :key="`cagr-tot-m-${mId}`"
-                        class="py-2.5 px-1.5 text-right font-mono text-[11px] text-slate-900"
-                      >
-                        {{ computedCagrIndicatorTotals.monthly_2027[mId] > 0 ? computedCagrIndicatorTotals.monthly_2027[mId].toLocaleString('id-ID') : '-' }}
-                      </td>
-                      <td class="py-2.5 px-3 text-right font-mono font-extrabold text-sm bg-[#00A99D]/25 text-[#003B36]">
-                        {{ computedCagrIndicatorTotals.total_proj_2027.toLocaleString('id-ID') }}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-
-              <!-- Sub-Tab 2: 7 Wilkers 2027 Monthly Projection Table -->
-              <div v-else class="overflow-x-auto rounded-xl border border-slate-200">
-                <table class="w-full min-w-[1060px] text-left text-xs border-collapse">
-                  <thead>
-                    <tr class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[10px] border-b border-slate-200">
-                      <th class="py-2.5 px-3 min-w-[210px] sticky left-0 bg-slate-50 z-10 shadow-xs">Wilayah Kerja / Pos</th>
-                      <th class="py-2.5 px-2.5 text-right w-24 font-mono">REALISASI {{ cagrBaseYear }}</th>
-                      <th class="py-2.5 px-2.5 text-right w-24 bg-slate-100 text-slate-700 font-mono">BASIS {{ cagrBaseYear }}</th>
-                      <th class="py-2.5 px-2 text-center w-20 bg-[#F7FCE8] text-[#557A18] font-mono">CAGR (%)</th>
-                      <th
-                        v-for="m in monthNames"
-                        :key="`cagr-wm-${m}`"
-                        class="py-2.5 px-1.5 text-right w-13 font-mono text-[10px]"
-                      >
-                        {{ m }}
-                      </th>
-                      <th class="py-2.5 px-3 text-right w-28 bg-[#E6F7F5] text-[#005851] font-mono font-bold text-[11px]">
-                        PROYEKSI {{ cagrTargetYear }}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100">
-                    <tr
-                      v-for="wRow in computedCagrWilkers"
-                      :key="`cagr-w-${wRow.wilker}`"
-                      class="hover:bg-[#E6F7F5]/30 transition-colors group"
-                    >
-                      <td class="py-2.5 px-3 font-semibold text-slate-800 flex items-center gap-2 sticky left-0 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
-                        <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
-                        <span class="truncate">{{ wRow.wilker }}</span>
-                      </td>
-                      <td class="py-2.5 px-2.5 text-right font-mono text-[11px] text-slate-500">
-                        {{ wRow.actual_2026 > 0 ? wRow.actual_2026.toLocaleString('id-ID') : '-' }}
-                      </td>
-                      <td class="py-2.5 px-2.5 text-right font-mono text-[11px] bg-slate-50/80 text-slate-700 font-semibold">
-                        {{ wRow.base_2026 > 0 ? wRow.base_2026.toLocaleString('id-ID') : '-' }}
-                      </td>
-                      <td class="py-2.5 px-2 text-center font-mono text-[11px] bg-[#F7FCE8]/50">
-                        <span
-                          v-if="wRow.base_2026 > 0"
-                          class="px-1.5 py-0.5 rounded font-bold text-[10px] bg-emerald-100/80 text-emerald-800"
-                        >
-                          {{ wRow.effective_cagr >= 0 ? '+' : '' }}{{ wRow.effective_cagr }}%
-                        </span>
-                        <span v-else class="text-slate-300">-</span>
-                      </td>
-                      <td
-                        v-for="mId in 12"
-                        :key="`cagr-wcell-${wRow.wilker}-${mId}`"
-                        class="py-2.5 px-1.5 text-right font-mono text-[11px]"
-                        :class="wRow.months_2027_calc[mId] > 0 ? 'text-slate-800 font-medium' : 'text-slate-300'"
-                      >
-                        {{ wRow.months_2027_calc[mId] > 0 ? wRow.months_2027_calc[mId].toLocaleString('id-ID') : '-' }}
-                      </td>
-                      <td class="py-2.5 px-3 text-right font-mono font-bold text-xs bg-[#E6F7F5]/60 text-[#005851] group-hover:bg-[#E6F7F5]">
-                        {{ wRow.projected_2027_val > 0 ? wRow.projected_2027_val.toLocaleString('id-ID') : '-' }}
-                      </td>
-                    </tr>
-                  </tbody>
-                  <tfoot class="bg-slate-100/95 border-t-2 border-slate-300 font-bold">
-                    <tr>
-                      <td class="py-2.5 px-3 text-slate-800 sticky left-0 bg-slate-100 z-10 text-xs uppercase tracking-wider">
-                        TOTAL KONSOLIDASI PROYEKSI {{ cagrTargetYear }}
-                      </td>
-                      <td class="py-2.5 px-2.5 text-right font-mono text-xs text-slate-600">
-                        {{ computedCagrWilkerTotals.total_actual_2026.toLocaleString('id-ID') }}
-                      </td>
-                      <td class="py-2.5 px-2.5 text-right font-mono text-xs text-slate-800 bg-slate-200/60">
-                        {{ computedCagrWilkerTotals.total_base_2026.toLocaleString('id-ID') }}
-                      </td>
-                      <td class="py-2.5 px-2 text-center font-mono text-xs text-[#557A18] bg-[#F7FCE8]">
-                        +{{ effectiveAvgCagr }}%
-                      </td>
-                      <td
-                        v-for="mId in 12"
-                        :key="`cagr-wtot-m-${mId}`"
-                        class="py-2.5 px-1.5 text-right font-mono text-[11px] text-slate-900"
-                      >
-                        {{ computedCagrWilkerTotals.monthly_2027[mId] > 0 ? computedCagrWilkerTotals.monthly_2027[mId].toLocaleString('id-ID') : '-' }}
-                      </td>
-                      <td class="py-2.5 px-3 text-right font-mono font-extrabold text-sm bg-[#00A99D]/25 text-[#003B36]">
-                        {{ computedCagrWilkerTotals.total_proj_2027.toLocaleString('id-ID') }}
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </div>
 
       <!-- ========================================================================= -->
@@ -3335,3 +3080,75 @@ const cagrWilkerComparisonOption = computed(() => {
     </main>
   </HybridNavbar>
 </template>
+
+<style scoped>
+@keyframes radar-sweep-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sonar-ping-expand {
+  0% {
+    transform: scale(0.15);
+    opacity: 0.95;
+  }
+  70% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
+@keyframes shimmer-glide {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.radar-conic-beam {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(0, 169, 157, 0.03) 240deg,
+    rgba(0, 169, 157, 0.38) 325deg,
+    rgba(153, 204, 51, 0.85) 360deg
+  );
+  animation: radar-sweep-spin 4s linear infinite;
+}
+
+.radar-spin-slow {
+  animation: radar-sweep-spin 14s linear infinite;
+}
+
+.sonar-shockwave {
+  animation: sonar-ping-expand 1.6s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+.shimmer-bar {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  width: 50%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.45),
+    transparent
+  );
+  animation: shimmer-glide 2.6s ease-in-out infinite;
+}
+</style>

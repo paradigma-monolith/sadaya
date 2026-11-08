@@ -140,12 +140,16 @@ const renderMarkers = () => {
     el.setAttribute('data-node-id', node.id);
 
     const isPrimary = Boolean(node.is_hq || node.no === 1 || node.id === 'jkt-01');
+    const isSelected = activeMarkerId.value ? activeMarkerId.value === node.id : isPrimary;
     const badgeLabel = node.flag || node.short_code || node.shortCode || '📍';
+    const ringColor = isPrimary ? '#00A99D' : '#99CC33';
 
     el.innerHTML = `
-      <div style="position: relative; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;">
-        <span style="position: absolute; width: 100%; height: 100%; border-radius: 9999px; opacity: 0.75; animation: maplibre-pulse-ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; background-color: ${isPrimary ? '#005851' : '#99CC33'};"></span>
-        <div style="position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.35); border: 2px solid ${isPrimary ? '#99DFD6' : '#ffffff'}; background-color: ${isPrimary ? '#005851' : '#00A99D'}; color: #ffffff; font-size: ${badgeLabel.length > 2 ? '10px' : '12px'}; font-family: monospace; font-weight: 800; cursor: pointer; transition: transform 0.2s;">
+      <div class="bkk-radar-marker" style="position: relative; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;">
+        <span style="position: absolute; width: 100%; height: 100%; border-radius: 9999px; opacity: 0.75; animation: maplibre-pulse-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; background-color: ${ringColor};"></span>
+        <span style="position: absolute; width: 100%; height: 100%; border-radius: 9999px; opacity: 0.5; animation: maplibre-pulse-ping 1.8s cubic-bezier(0, 0, 0.2, 1) 0.7s infinite; border: 1.5px solid ${ringColor};"></span>
+        <span style="position: absolute; width: 42px; height: 42px; border-radius: 9999px; border: 1.5px dashed ${isSelected ? '#99CC33' : 'rgba(0, 169, 157, 0.65)'}; animation: maplibre-radar-spin 6s linear infinite;"></span>
+        <div style="position: relative; z-index: 10; display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9999px; box-shadow: 0 0 14px ${ringColor}, 0 4px 6px -1px rgba(0, 0, 0, 0.45); border: 2px solid ${isPrimary ? '#99CC33' : '#ffffff'}; background: ${isPrimary ? 'linear-gradient(135deg, #003B36, #00A99D)' : 'linear-gradient(135deg, #005851, #00A99D)'}; color: #ffffff; font-size: ${badgeLabel.length > 2 ? '9.5px' : '11px'}; font-family: monospace; font-weight: 900; cursor: pointer; transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);">
           ${badgeLabel}
         </div>
       </div>
@@ -492,17 +496,30 @@ defineExpose({
 <style>
 @keyframes maplibre-pulse-ping {
   0% {
-    transform: scale(0.95);
-    opacity: 0.8;
+    transform: scale(0.85);
+    opacity: 0.85;
   }
   70% {
-    transform: scale(2.2);
+    transform: scale(2.35);
     opacity: 0;
   }
   100% {
-    transform: scale(2.4);
+    transform: scale(2.5);
     opacity: 0;
   }
+}
+
+@keyframes maplibre-radar-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.bkk-radar-marker:hover > div {
+  transform: scale(1.18);
 }
 
 .maplibregl-marker {
