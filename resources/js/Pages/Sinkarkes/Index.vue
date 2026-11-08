@@ -503,25 +503,25 @@ onUnmounted(() => {
   <Head :title="`SINKARKES - ${selectedWilker} (${selectedYear})`" />
 
   <HybridNavbar mode="inertia" currentRoute="sinkarkes">
-    <main class="w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 max-w-[1600px] mx-auto font-sans">
+    <main class="w-full max-w-none px-2.5 sm:px-4 lg:px-5 pt-3 pb-12 space-y-3.5 font-sans">
 
       <!-- Top Institutional Banner & Period Controls -->
-      <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xs transition-all">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div class="w-full bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 sm:p-5 shadow-xs transition-all">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <!-- Title & Meta -->
-          <div class="space-y-1.5">
+          <div class="space-y-1 min-w-0 flex-1">
             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] sm:text-xs font-mono font-semibold bg-[#00A99D]/10 text-[#005851] dark:text-[#00A99D] border border-[#00A99D]/30">
               <Building2 class="w-3.5 h-3.5 text-[#00A99D]" />
               <span>SINKARKES &bull; BKK KELAS I BANDUNG</span>
             </div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5 flex-wrap">
+            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5 flex-wrap">
               <span>Formulir Laporan SINKARKES</span>
               <span v-if="isDirty" class="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/50 px-2 py-0.5 rounded-full">
                 <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
                 Ada perubahan belum disimpan
               </span>
             </h1>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-3xl leading-relaxed">
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
               Instrumen pengumpulan data karantina &amp; surveilans epidemiologi (KSE), upaya kesehatan (UKP), dan pengendalian risiko lingkungan (PRL) wilayah kerja BKK Bandung.
             </p>
           </div>
@@ -734,7 +734,7 @@ onUnmounted(() => {
           <!-- Quick Search & Type Filter -->
           <div class="flex items-center gap-2">
             <!-- Search -->
-            <div class="relative flex-1 sm:w-64">
+            <div class="relative flex-1 sm:w-80 lg:w-96">
               <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 v-model="searchQuery"
@@ -783,20 +783,20 @@ onUnmounted(() => {
       </div>
 
       <!-- Main Form Data Table -->
-      <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl sm:rounded-3xl shadow-xs overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full min-w-[620px] text-left text-xs border-collapse">
+      <div class="w-full bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl shadow-xs overflow-hidden">
+        <div class="w-full overflow-x-auto">
+          <table class="w-full min-w-[680px] text-left text-xs border-collapse">
             <!-- Table Header -->
             <thead>
               <tr class="bg-slate-100/90 dark:bg-[#161c28] text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
-                <th class="py-3 px-3 sm:px-4 w-12 text-center">Row</th>
-                <th class="py-3 px-2 sm:px-3 w-16 text-center">No</th>
-                <th class="py-3 px-3 sm:px-4 min-w-[260px] sm:min-w-[420px]">
+                <th class="py-3 px-3 sm:px-4 w-14 text-center whitespace-nowrap">Row</th>
+                <th class="py-3 px-2 sm:px-3 w-16 text-center whitespace-nowrap">No</th>
+                <th class="py-3 px-3 sm:px-4 w-full min-w-[280px] sm:min-w-[420px]">
                   Uraian Kegiatan / Indikator
                 </th>
-                <th class="py-3 px-2 sm:px-3 w-20 text-center">Satuan</th>
-                <th class="py-3 px-2 sm:px-3 w-24 text-center">Tipe</th>
-                <th class="py-3 px-3 sm:px-5 w-44 sm:w-52 text-right bg-slate-200/50 dark:bg-[#1a2130]">
+                <th class="py-3 px-2 sm:px-3 w-24 text-center whitespace-nowrap">Satuan</th>
+                <th class="py-3 px-2 sm:px-3 w-28 text-center whitespace-nowrap">Tipe</th>
+                <th class="py-3 px-3 sm:px-5 w-48 sm:w-60 text-right whitespace-nowrap bg-slate-200/50 dark:bg-[#1a2130]">
                   Nilai ({{ monthsList.find(m => m.id === activeMonth)?.label }})
                 </th>
               </tr>
@@ -933,9 +933,9 @@ onUnmounted(() => {
                         placeholder="0"
                         :value="getValue(item.excel_row, 'input')"
                         @input="onInputChange(item.excel_row, $event.target.value, item.data_type)"
-                        class="w-24 sm:w-28 py-1 px-2.5 text-right font-mono text-xs font-semibold rounded-lg bg-white dark:bg-[#1e2533] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#00A99D] focus:border-transparent transition-all shadow-2xs"
+                        class="w-full max-w-[140px] sm:max-w-[165px] py-1 px-2.5 text-right font-mono text-xs font-semibold rounded-lg bg-white dark:bg-[#1e2533] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#00A99D] focus:border-transparent transition-all shadow-2xs"
                       />
-                      <span class="text-[11px] font-mono text-slate-400 w-8 text-left truncate">
+                      <span class="text-[11px] font-mono text-slate-400 w-9 text-left truncate">
                         {{ item.unit || '' }}
                       </span>
                     </div>

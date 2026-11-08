@@ -415,7 +415,7 @@ const openMonthForm = (targetWilker, targetMonth) => {
   <Head :title="`Dashboard SINKARKES ${year} &bull; BKK Bandung`" />
 
   <HybridNavbar mode="inertia" currentRoute="sinkarkes-dashboard">
-    <main class="w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 max-w-[1600px] mx-auto font-sans">
+    <main class="w-full max-w-none px-2.5 sm:px-4 lg:px-5 pt-3 pb-12 space-y-5 font-sans">
 
       <!-- Top Executive Header & Filter Bar -->
       <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs">
