@@ -1,4 +1,4 @@
-<script setup>
+﻿<script setup>
 import { ref, computed, onMounted } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
@@ -29,11 +29,6 @@ import {
   Settings,
   Key,
   RotateCcw,
-  Eye,
-  EyeOff,
-  Play,
-  Save,
-  Lock,
 } from 'lucide-vue-next';
 import axios from 'axios';
 
@@ -381,159 +376,6 @@ const handleTestConnection = async () => {
   }
 };
 
-// Pre-Sync Database Configuration Modal State
-const showPreSyncModal = ref(false);
-const preSyncTarget = ref('all');
-const showDbPassword = ref(false);
-const preSyncHost = ref(credentials.value.host);
-const preSyncPort = ref(credentials.value.port);
-const preSyncUsername = ref(credentials.value.username);
-const preSyncPassword = ref(credentials.value.password);
-const preSyncDbSimply = ref('bkkr3927_simply');
-const preSyncDbCop = ref('bkkr3927_cop');
-const preSyncModules = ref(props.modules.map(m => m.id));
-const showPerModuleAdvanced = ref(false);
-const isPreSyncTesting = ref(false);
-const preSyncTestResults = ref(null);
-const preSyncFeedback = ref(null);
-const isSavingPreSyncConfig = ref(false);
-
-const openPreSyncModal = (target = 'all') => {
-  preSyncTarget.value = target;
-  preSyncHost.value = credentials.value.host || '127.0.0.1';
-  preSyncPort.value = credentials.value.port || 3306;
-  preSyncUsername.value = credentials.value.username || 'root';
-  preSyncPassword.value = credentials.value.password || 'mysql';
-
-  preSyncDbSimply.value = moduleConfigs.value.ship_sanitation?.database || 'bkkr3927_simply';
-  preSyncDbCop.value = moduleConfigs.value.ship_surveillance?.database || 'bkkr3927_cop';
-
-  if (target === 'all') {
-    preSyncModules.value = props.modules.map(m => m.id);
-  } else {
-    preSyncModules.value = [target];
-  }
-
-  preSyncTestResults.value = null;
-  preSyncFeedback.value = null;
-  showPreSyncModal.value = true;
-};
-
-const closePreSyncModal = () => {
-  showPreSyncModal.value = false;
-  preSyncFeedback.value = null;
-};
-
-const toggleAllPreSyncModules = () => {
-  if (preSyncModules.value.length === props.modules.length) {
-    preSyncModules.value = [];
-  } else {
-    preSyncModules.value = props.modules.map(m => m.id);
-  }
-};
-
-const applyPreSyncToConfigs = () => {
-  credentials.value.host = preSyncHost.value;
-  credentials.value.port = Number(preSyncPort.value);
-  credentials.value.username = preSyncUsername.value;
-  credentials.value.password = preSyncPassword.value;
-
-  props.modules.forEach(mod => {
-    if (!moduleConfigs.value[mod.id]) {
-      moduleConfigs.value[mod.id] = {};
-    }
-    moduleConfigs.value[mod.id].host = preSyncHost.value;
-    moduleConfigs.value[mod.id].port = Number(preSyncPort.value);
-    moduleConfigs.value[mod.id].username = preSyncUsername.value;
-    moduleConfigs.value[mod.id].password = preSyncPassword.value;
-
-    if (mod.id === 'ship_surveillance') {
-      moduleConfigs.value[mod.id].database = preSyncDbCop.value;
-    } else {
-      moduleConfigs.value[mod.id].database = preSyncDbSimply.value;
-    }
-  });
-};
-
-const handleSavePreSyncConfigOnly = async () => {
-  applyPreSyncToConfigs();
-  isSavingPreSyncConfig.value = true;
-  preSyncFeedback.value = null;
-
-  try {
-    localStorage.setItem('sadaya_import_module_configs', JSON.stringify(moduleConfigs.value));
-    localStorage.setItem('sadaya_import_credentials', JSON.stringify(credentials.value));
-  } catch (e) {}
-
-  try {
-    await axios.post('/database-import/save-config', {
-      modules: moduleConfigs.value,
-    });
-    preSyncFeedback.value = {
-      success: true,
-      message: 'Konfigurasi database berhasil disimpan permanen ke server.',
-    };
-  } catch (err) {
-    preSyncFeedback.value = {
-      success: false,
-      message: err.response?.data?.message || err.message || 'Gagal menyimpan konfigurasi.',
-    };
-  } finally {
-    isSavingPreSyncConfig.value = false;
-  }
-};
-
-const handlePreSyncTestConnection = async () => {
-  applyPreSyncToConfigs();
-  isPreSyncTesting.value = true;
-  preSyncTestResults.value = null;
-  preSyncFeedback.value = null;
-
-  try {
-    const res = await axios.post('/database-import/test-connection', {
-      host: preSyncHost.value,
-      port: Number(preSyncPort.value),
-      username: preSyncUsername.value,
-      password: preSyncPassword.value,
-      modules: moduleConfigs.value,
-    });
-    preSyncTestResults.value = res.data.modules || {};
-    testResults.value = res.data;
-    preSyncFeedback.value = {
-      success: res.data.success,
-      message: res.data.message || (res.data.success ? 'Koneksi ke semua database modul berhasil diverifikasi!' : 'Sebagian koneksi database modul tidak dapat dihubungi.'),
-    };
-  } catch (err) {
-    preSyncFeedback.value = {
-      success: false,
-      message: err.response?.data?.message || err.message || 'Gagal menghubungi server database.',
-    };
-  } finally {
-    isPreSyncTesting.value = false;
-  }
-};
-
-const handleExecuteSyncFromModal = async () => {
-  if (preSyncModules.value.length === 0) {
-    preSyncFeedback.value = {
-      success: false,
-      message: 'Pilih minimal satu modul untuk disinkronkan.',
-    };
-    return;
-  }
-
-  await handleSavePreSyncConfigOnly();
-  showPreSyncModal.value = false;
-
-  if (preSyncModules.value.length === props.modules.length) {
-    await handleMigrate('all');
-  } else {
-    for (const modId of preSyncModules.value) {
-      await handleMigrate(modId);
-    }
-  }
-};
-
 const handleMigrate = async (moduleId) => {
   if (options.value.truncate_first) {
     const targetName = moduleId === 'all' ? 'SELURUH data dari semua modul' : `data modul ${moduleId}`;
@@ -653,7 +495,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Head title="Pusat Migrasi & Import Database • BKK Bandung" />
+  <Head title="Pusat Migrasi & Import Database â€¢ BKK Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="database-import">
     <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
@@ -663,7 +505,7 @@ onMounted(() => {
         <div>
           <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 mb-2">
             <Database class="w-3.5 h-3.5" />
-            <span>Pusat Satu Pintu Migrasi Data • Simply (CI4) &rarr; Sadaya (Laravel/Vue 3)</span>
+            <span>Pusat Satu Pintu Migrasi Data â€¢ Simply (CI4) &rarr; Sadaya (Laravel/Vue 3)</span>
           </div>
           <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
             Pusat Migrasi &amp; Import Database
@@ -674,15 +516,6 @@ onMounted(() => {
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-          <button
-            type="button"
-            @click="openPreSyncModal('all')"
-            class="px-4 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 hover:bg-indigo-50/50 dark:hover:bg-slate-700 text-xs font-bold text-indigo-700 dark:text-indigo-300 transition shadow-xs flex items-center gap-2 cursor-pointer"
-          >
-            <SlidersHorizontal class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>Konfigurasi Database Sumber</span>
-          </button>
-
           <button
             type="button"
             @click="showAutoSyncModal = true"
@@ -709,7 +542,7 @@ onMounted(() => {
 
           <button
             type="button"
-            @click="openPreSyncModal('all')"
+            @click="handleMigrate('all')"
             :disabled="isMigrating"
             class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:opacity-95 text-xs font-bold text-white transition shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
           >
@@ -1202,7 +1035,7 @@ onMounted(() => {
               <input
                 type="password"
                 v-model="moduleConfigs[configTargetModule.id].password"
-                placeholder="••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
@@ -1325,27 +1158,6 @@ onMounted(() => {
               <input type="checkbox" v-model="autoSync.enabled" class="sr-only peer" />
               <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
             </label>
-          </div>
-
-          <!-- Konfigurasi Database Sumber untuk Auto-Sync -->
-          <div class="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <div class="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
-                <Database class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                <span>Koneksi Database Sumber Auto-Sync</span>
-              </div>
-              <div class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-1">
-                {{ credentials.host }}:{{ credentials.port }} &bull; User: {{ credentials.username }} &bull; Simply: {{ moduleConfigs.ship_sanitation?.database || 'bkkr3927_simply' }} &bull; COP: {{ moduleConfigs.ship_surveillance?.database || 'bkkr3927_cop' }}
-              </div>
-            </div>
-            <button
-              type="button"
-              @click="showAutoSyncModal = false; openPreSyncModal('all')"
-              class="px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 rounded-xl border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-50 dark:hover:bg-slate-700 transition shadow-2xs flex items-center gap-1.5 shrink-0 cursor-pointer self-start sm:self-auto"
-            >
-              <SlidersHorizontal class="w-3.5 h-3.5" />
-              <span>Ubah Database Sumber</span>
-            </button>
           </div>
 
           <!-- Interval Frekuensi -->
@@ -1481,339 +1293,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- ==================== MODAL KONFIGURASI DATABASE SEBELUM SINKRONISASI ==================== -->
-    <div
-      v-if="showPreSyncModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
-    >
-      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-2xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-8">
-        
-        <!-- Header -->
-        <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-indigo-50/60 to-white dark:from-indigo-950/20 dark:to-slate-900">
-          <div class="flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-600/20 shrink-0">
-              <Database class="w-6 h-6" />
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="font-extrabold text-base text-slate-900 dark:text-white">
-                  Konfigurasi Database Sumber Sebelum Sinkronisasi
-                </h3>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300">
-                  Pra-Sinkronisasi
-                </span>
-              </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Pastikan kredensial MySQL, host, port, dan basis data sumber sudah sesuai sebelum proses migrasi dijalankan.
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            @click="closePreSyncModal"
-            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-          >
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-
-        <!-- Body -->
-        <div class="p-5 sm:p-6 space-y-5 text-xs max-h-[75vh] overflow-y-auto">
-          
-          <!-- Section 1: Server MySQL Credentials -->
-          <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/30 space-y-3">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-xs">
-                <Server class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Kredensial Server MySQL Sumber (Global)</span>
-              </span>
-              <span class="text-[11px] text-slate-400">
-                Koneksi default ke database sumber
-              </span>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                  Host MySQL
-                </label>
-                <input
-                  type="text"
-                  v-model="preSyncHost"
-                  placeholder="127.0.0.1"
-                  class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                  Port
-                </label>
-                <input
-                  type="number"
-                  v-model="preSyncPort"
-                  placeholder="3306"
-                  class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  v-model="preSyncUsername"
-                  placeholder="root"
-                  class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">
-                  Password
-                </label>
-                <div class="relative">
-                  <input
-                    :type="showDbPassword ? 'text' : 'password'"
-                    v-model="preSyncPassword"
-                    placeholder="mysql"
-                    class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 pl-3 pr-8 py-2 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    @click="showDbPassword = !showDbPassword"
-                    class="absolute inset-y-0 right-0 pr-2.5 flex items-center text-slate-400 hover:text-slate-600"
-                    tabindex="-1"
-                  >
-                    <EyeOff v-if="showDbPassword" class="w-3.5 h-3.5" />
-                    <Eye v-else class="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 2: Mapping Database Sumber -->
-          <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/40 space-y-3">
-            <span class="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-xs">
-              <Database class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>Pemetaan Basis Data Sumber (Simply &amp; COP)</span>
-            </span>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Basis Data Simply (Aplikasi Utama)
-                </label>
-                <input
-                  type="text"
-                  v-model="preSyncDbSimply"
-                  placeholder="bkkr3927_simply"
-                  class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-mono font-semibold text-indigo-700 dark:text-indigo-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-                />
-                <p class="text-[10px] text-slate-400 mt-1">
-                  Digunakan untuk Sanitasi Kapal, Sanitasi Pesawat, Alkes Medis Haji, Obat Medis Haji, dan Akun Pengguna Simply.
-                </p>
-              </div>
-
-              <div>
-                <label class="block text-[11px] font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                  Basis Data COP (Pengawasan Kapal)
-                </label>
-                <input
-                  type="text"
-                  v-model="preSyncDbCop"
-                  placeholder="bkkr3927_cop"
-                  class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-mono font-semibold text-emerald-700 dark:text-emerald-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                />
-                <p class="text-[10px] text-slate-400 mt-1">
-                  Digunakan untuk Pengawasan Kedatangan Kapal (TANGKAP / MDH &amp; COP).
-                </p>
-              </div>
-            </div>
-
-            <!-- Accordion Kustomisasi Lanjutan Per Modul -->
-            <div class="pt-2">
-              <button
-                type="button"
-                @click="showPerModuleAdvanced = !showPerModuleAdvanced"
-                class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <span>{{ showPerModuleAdvanced ? '▼ Sembunyikan' : '▶ Tampilkan' }} Pengaturan Khusus Tabel Per Modul (Lanjutan)</span>
-              </button>
-
-              <div v-if="showPerModuleAdvanced" class="mt-3 space-y-2 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-                <div
-                  v-for="mod in modules"
-                  :key="mod.id"
-                  class="p-2.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-                >
-                  <div class="flex items-center gap-2">
-                    <component :is="iconComponent(mod.icon)" class="w-4 h-4 text-indigo-500 shrink-0" />
-                    <div>
-                      <span class="font-bold text-slate-900 dark:text-white text-xs block">{{ mod.name }}</span>
-                      <span class="text-[10px] text-slate-400 font-mono">Tabel Tujuan Sadaya: {{ mod.target_table }}</span>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-2 text-xs">
-                    <input
-                      type="text"
-                      v-model="moduleConfigs[mod.id].database"
-                      placeholder="Database"
-                      class="w-32 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1 text-[11px] font-mono"
-                      title="Nama Basis Data Sumber"
-                    />
-                    <span class="text-slate-400 font-mono">.</span>
-                    <input
-                      type="text"
-                      v-model="moduleConfigs[mod.id].table"
-                      placeholder="Tabel"
-                      class="w-36 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1 text-[11px] font-mono"
-                      title="Nama Tabel Sumber"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 3: Modul yang Disinkronkan -->
-          <div>
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
-                <Layers class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <span>Pilih Modul yang Akan Disinkronkan:</span>
-              </span>
-              <button
-                type="button"
-                @click="toggleAllPreSyncModules"
-                class="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
-              >
-                {{ preSyncModules.length === modules.length ? 'Batal Pilih Semua' : 'Pilih Semua Modul' }}
-              </button>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <label
-                v-for="mod in modules"
-                :key="mod.id"
-                class="flex items-center gap-2.5 p-3 rounded-xl border transition cursor-pointer"
-                :class="preSyncModules.includes(mod.id) ? 'bg-indigo-50/70 border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-800' : 'bg-slate-50 border-slate-200 dark:bg-slate-800/40 dark:border-slate-700'"
-              >
-                <input
-                  type="checkbox"
-                  :value="mod.id"
-                  v-model="preSyncModules"
-                  class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 shrink-0"
-                />
-                <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" :class="[mod.bg_color, mod.color]">
-                  <component :is="iconComponent(mod.icon)" class="w-3.5 h-3.5" />
-                </div>
-                <div class="min-w-0 flex-1">
-                  <div class="font-bold text-slate-900 dark:text-white text-xs truncate">
-                    {{ mod.name }}
-                  </div>
-                  <div class="text-[10px] text-slate-400 font-mono truncate">
-                    {{ moduleConfigs[mod.id]?.database || mod.source_db }}.{{ moduleConfigs[mod.id]?.table || mod.source_table }}
-                  </div>
-                </div>
-                <span
-                  v-if="preSyncTestResults && preSyncTestResults[mod.id]"
-                  class="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 font-mono"
-                  :class="preSyncTestResults[mod.id].connected && preSyncTestResults[mod.id].table_exists ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300'"
-                >
-                  {{ preSyncTestResults[mod.id].connected ? `${formatNumber(preSyncTestResults[mod.id].count)} data` : 'Error' }}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Section 4: Opsi Sinkronisasi -->
-          <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 space-y-2">
-            <span class="font-bold text-slate-900 dark:text-white block text-xs">
-              Opsi Penanganan Data:
-            </span>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-              <label class="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
-                <input type="checkbox" v-model="options.skip_duplicate" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
-                <span>Lewati Duplikat (Skip Duplicate)</span>
-              </label>
-              <label class="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
-                <input type="checkbox" v-model="options.recalculate_pnbp" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
-                <span>Kalkulasi Otomatis PNBP</span>
-              </label>
-              <label class="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
-                <input type="checkbox" v-model="options.normalize_ports" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
-                <span>Normalisasi Format Wilker / Pelabuhan</span>
-              </label>
-              <label class="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold cursor-pointer">
-                <input type="checkbox" v-model="options.truncate_first" class="rounded border-rose-300 text-rose-600 focus:ring-rose-500 w-4 h-4" />
-                <span>Kosongkan Tabel Sadaya Sebelum Impor</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Live Feedback Banner -->
-          <div
-            v-if="preSyncFeedback"
-            class="p-3.5 rounded-2xl text-xs border flex items-start gap-2.5"
-            :class="preSyncFeedback.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300'"
-          >
-            <CheckCircle2 v-if="preSyncFeedback.success" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <XCircle v-else class="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-            <div>
-              <p class="font-bold">{{ preSyncFeedback.success ? 'Koneksi Berhasil' : 'Peringatan / Galat' }}</p>
-              <p class="mt-0.5">{{ preSyncFeedback.message }}</p>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div class="p-4 sm:p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <button
-            type="button"
-            @click="handlePreSyncTestConnection"
-            :disabled="isPreSyncTesting"
-            class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-xs font-bold text-slate-700 dark:text-slate-200 transition shadow-2xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw class="w-3.5 h-3.5 text-indigo-500" :class="{ 'animate-spin': isPreSyncTesting }" />
-            <span>{{ isPreSyncTesting ? 'Memeriksa Koneksi...' : 'Uji Koneksi Database' }}</span>
-          </button>
-
-          <div class="flex items-center gap-2 justify-end">
-            <button
-              type="button"
-              @click="closePreSyncModal"
-              class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition cursor-pointer"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              @click="handleSavePreSyncConfigOnly"
-              :disabled="isSavingPreSyncConfig"
-              class="px-4 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/60 dark:bg-indigo-950/40 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-            >
-              <Save class="w-3.5 h-3.5" />
-              <span>{{ isSavingPreSyncConfig ? 'Menyimpan...' : 'Simpan Pengaturan' }}</span>
-            </button>
-            <button
-              type="button"
-              @click="handleExecuteSyncFromModal"
-              :disabled="isMigrating"
-              class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:opacity-95 text-white text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20 disabled:opacity-50"
-            >
-              <Play class="w-4 h-4 fill-current" />
-              <span>{{ isMigrating ? 'Memigrasikan...' : 'Mulai Sinkronisasi Sekarang' }}</span>
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </div>
 
   </HybridNavbar>
 </template>
-
