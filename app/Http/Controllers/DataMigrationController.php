@@ -41,6 +41,25 @@ class DataMigrationController extends Controller
             }
         }
 
+        // Load automatic synchronization configuration if available
+        $autoSyncPath = storage_path('app/simply_sync_schedule.json');
+        $autoSyncConfig = [
+            'enabled' => false,
+            'frequency' => 'hourly',
+            'modules' => array_keys($rawConfigs),
+            'last_run_at' => null,
+            'last_status' => null,
+            'last_imported_count' => 0,
+            'last_duration' => 0,
+            'last_message' => null,
+        ];
+        if (file_exists($autoSyncPath)) {
+            $savedAutoSync = json_decode(file_get_contents($autoSyncPath), true);
+            if (is_array($savedAutoSync)) {
+                $autoSyncConfig = array_merge($autoSyncConfig, $savedAutoSync);
+            }
+        }
+
         return Inertia::render('DatabaseImport/Index', [
             'modules' => array_values($rawConfigs),
             'sadaya_stats' => $service->getSadayaStats(),
@@ -51,6 +70,7 @@ class DataMigrationController extends Controller
                 'password' => 'mysql',
             ],
             'default_module_configs' => $defaultModuleConfigs,
+            'auto_sync_config' => $autoSyncConfig,
             'selected_module' => $request->query('module', 'all'),
         ]);
     }
@@ -71,6 +91,70 @@ class DataMigrationController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Konfigurasi koneksi MySQL per modul berhasil disimpan secara permanen.',
+        ]);
+    }
+
+    /**
+     * Save auto-sync schedule configuration.
+     */
+    public function saveAutoSync(Request $request): JsonResponse
+    {
+        $enabled = (bool)$request->input('enabled', false);
+        $frequency = (string)$request->input('frequency', 'hourly');
+        $modules = $request->input('modules', []);
+
+        $autoSyncPath = storage_path('app/simply_sync_schedule.json');
+        $current = [
+            'enabled' => false,
+            'frequency' => 'hourly',
+            'modules' => [],
+            'last_run_at' => null,
+            'last_status' => null,
+            'last_imported_count' => 0,
+            'last_duration' => 0,
+            'last_message' => null,
+        ];
+
+        if (file_exists($autoSyncPath)) {
+            $saved = json_decode(file_get_contents($autoSyncPath), true);
+            if (is_array($saved)) {
+                $current = array_merge($current, $saved);
+            }
+        }
+
+        $current['enabled'] = $enabled;
+        $current['frequency'] = $frequency;
+        $current['modules'] = is_array($modules) ? $modules : [];
+
+        file_put_contents($autoSyncPath, json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pengaturan sinkronisasi otomatis berhasil disimpan.',
+            'auto_sync_config' => $current,
+        ]);
+    }
+
+    /**
+     * Force run auto-sync immediately from web UI.
+     */
+    public function runAutoSyncNow(Request $request, SimplyDataMigrationService $service): JsonResponse
+    {
+        \Illuminate\Support\Facades\Artisan::call('simply:auto-sync', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        $autoSyncPath = storage_path('app/simply_sync_schedule.json');
+        $current = [];
+        if (file_exists($autoSyncPath)) {
+            $current = json_decode(file_get_contents($autoSyncPath), true) ?: [];
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sinkronisasi otomatis berhasil dieksekusi.',
+            'output' => $output,
+            'auto_sync_config' => $current,
+            'sadaya_current' => $service->getSadayaStats(),
         ]);
     }
 

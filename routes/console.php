@@ -2,6 +2,10 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
+
+// Automatic Background Synchronization for Simply (CI4) Database
+Schedule::command('simply:auto-sync')->everyMinute()->withoutOverlapping();
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());

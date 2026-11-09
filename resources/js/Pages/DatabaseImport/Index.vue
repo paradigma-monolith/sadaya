@@ -53,6 +53,19 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  auto_sync_config: {
+    type: Object,
+    default: () => ({
+      enabled: false,
+      frequency: 'hourly',
+      modules: [],
+      last_run_at: null,
+      last_status: null,
+      last_imported_count: 0,
+      last_duration: 0,
+      last_message: null,
+    }),
+  },
   selected_module: {
     type: String,
     default: 'all',
@@ -115,6 +128,88 @@ const uploadResult = ref(null);
 
 // Live local stats
 const localSadayaStats = ref({ ...props.sadaya_stats });
+
+// Auto-Sync Modal & Schedule State
+const showAutoSyncModal = ref(false);
+const autoSync = ref({
+  enabled: props.auto_sync_config?.enabled || false,
+  frequency: props.auto_sync_config?.frequency || 'hourly',
+  modules: (props.auto_sync_config?.modules && props.auto_sync_config.modules.length > 0)
+    ? [...props.auto_sync_config.modules]
+    : props.modules.map((m) => m.id),
+  last_run_at: props.auto_sync_config?.last_run_at || null,
+  last_status: props.auto_sync_config?.last_status || null,
+  last_imported_count: props.auto_sync_config?.last_imported_count || 0,
+  last_duration: props.auto_sync_config?.last_duration || 0,
+  last_message: props.auto_sync_config?.last_message || null,
+});
+
+const isSavingAutoSync = ref(false);
+const isRunningSyncNow = ref(false);
+const syncFeedback = ref(null);
+
+const formatFrequency = (freq) => {
+  switch (freq) {
+    case 'every_15_minutes': return 'Setiap 15 Menit';
+    case 'every_30_minutes': return 'Setiap 30 Menit';
+    case 'hourly': return 'Setiap 1 Jam';
+    case 'every_6_hours': return 'Setiap 6 Jam';
+    case 'daily': return 'Setiap Hari (00:00 WIB)';
+    default: return 'Berkala';
+  }
+};
+
+const handleSaveAutoSync = async () => {
+  isSavingAutoSync.value = true;
+  syncFeedback.value = null;
+  try {
+    const res = await axios.post('/database-import/save-auto-sync', {
+      enabled: autoSync.value.enabled,
+      frequency: autoSync.value.frequency,
+      modules: autoSync.value.modules,
+    });
+    if (res.data.auto_sync_config) {
+      autoSync.value = { ...autoSync.value, ...res.data.auto_sync_config };
+    }
+    syncFeedback.value = {
+      success: true,
+      message: 'Jadwal sinkronisasi otomatis berhasil disimpan.',
+    };
+  } catch (err) {
+    syncFeedback.value = {
+      success: false,
+      message: err.response?.data?.message || err.message || 'Gagal menyimpan pengaturan auto-sync.',
+    };
+  } finally {
+    isSavingAutoSync.value = false;
+  }
+};
+
+const handleRunSyncNow = async () => {
+  isRunningSyncNow.value = true;
+  syncFeedback.value = null;
+  try {
+    const res = await axios.post('/database-import/sync-now');
+    if (res.data.auto_sync_config) {
+      autoSync.value = { ...autoSync.value, ...res.data.auto_sync_config };
+    }
+    if (res.data.sadaya_current) {
+      localSadayaStats.value = res.data.sadaya_current;
+    }
+    syncFeedback.value = {
+      success: true,
+      message: res.data.auto_sync_config?.last_message || 'Sinkronisasi berhasil dijalankan!',
+    };
+    router.reload({ only: ['sadaya_stats'] });
+  } catch (err) {
+    syncFeedback.value = {
+      success: false,
+      message: err.response?.data?.message || err.message || 'Gagal menjalankan sinkronisasi.',
+    };
+  } finally {
+    isRunningSyncNow.value = false;
+  }
+};
 
 const iconComponent = (iconName) => {
   switch (iconName) {
@@ -421,6 +516,20 @@ onMounted(() => {
         <div class="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
+            @click="showAutoSyncModal = true"
+            class="px-4 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/50 text-xs font-bold text-indigo-700 dark:text-indigo-300 transition shadow-2xs flex items-center gap-2 cursor-pointer"
+          >
+            <Clock class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span>Sinkronisasi Otomatis</span>
+            <span
+              class="w-2 h-2 rounded-full"
+              :class="autoSync.enabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'"
+              :title="autoSync.enabled ? 'Status: Aktif' : 'Status: Nonaktif'"
+            />
+          </button>
+
+          <button
+            type="button"
             @click="handleTestConnection"
             :disabled="isTesting"
             class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition shadow-xs flex items-center gap-2 cursor-pointer"
@@ -479,6 +588,29 @@ onMounted(() => {
             />
             <span>Kosongkan Tabel Sadaya Sebelum Impor (Truncate)</span>
           </label>
+        </div>
+
+        <!-- Banner Auto-Sync Aktif -->
+        <div v-if="autoSync.enabled" class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-bold text-[11px] border border-emerald-200 dark:border-emerald-800">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Auto-Sync Aktif ({{ formatFrequency(autoSync.frequency) }})
+            </span>
+            <span v-if="autoSync.last_run_at" class="text-[11px]">
+              Terakhir berjalan: <strong class="text-slate-700 dark:text-slate-200 font-mono">{{ autoSync.last_run_at }}</strong> ({{ autoSync.last_imported_count }} data baru diimpor)
+            </span>
+            <span v-else class="text-[11px]">
+              Menunggu jadwal eksekusi berikutnya via Laravel Scheduler.
+            </span>
+          </div>
+          <button
+            type="button"
+            @click="showAutoSyncModal = true"
+            class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline cursor-pointer"
+          >
+            Kelola Jadwal &rarr;
+          </button>
         </div>
       </div>
 
@@ -965,6 +1097,195 @@ onMounted(() => {
             <Check v-else class="w-4 h-4" />
             <span>{{ isSavingConfig ? 'Menyimpan...' : 'Simpan &amp; Tutup' }}</span>
           </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== MODAL PENGATURAN SINKRONISASI OTOMATIS ==================== -->
+    <div
+      v-if="showAutoSyncModal"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+    >
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-8">
+        
+        <!-- Header -->
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+              <Clock class="w-5 h-5" />
+            </div>
+            <div>
+              <h3 class="font-bold text-sm text-slate-900 dark:text-white">
+                Pengaturan Sinkronisasi Otomatis
+              </h3>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                Jadwalkan penarikan data berkala Simply &rarr; Sadaya secara otomatis
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            @click="showAutoSyncModal = false"
+            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+          >
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-5 space-y-4 text-xs max-h-[75vh] overflow-y-auto">
+          
+          <!-- Toggle Aktif/Nonaktif -->
+          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-2">
+                <span>Status Sinkronisasi Otomatis</span>
+                <span
+                  class="px-2 py-0.5 rounded-md text-[10px] font-bold"
+                  :class="autoSync.enabled ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'"
+                >
+                  {{ autoSync.enabled ? 'AKTIF' : 'NONAKTIF' }}
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                {{ autoSync.enabled ? 'Data baru akan ditarik otomatis sesuai jadwal.' : 'Sinkronisasi hanya berjalan ketika tombol ditekan manual.' }}
+              </p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" v-model="autoSync.enabled" class="sr-only peer" />
+              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+            </label>
+          </div>
+
+          <!-- Interval Frekuensi -->
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
+              Interval Frekuensi Sinkronisasi
+            </label>
+            <select
+              v-model="autoSync.frequency"
+              class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            >
+              <option value="every_15_minutes">Setiap 15 Menit</option>
+              <option value="every_30_minutes">Setiap 30 Menit</option>
+              <option value="hourly">Setiap 1 Jam (Rekomendasi Standar)</option>
+              <option value="every_6_hours">Setiap 6 Jam</option>
+              <option value="daily">Setiap Hari (Pukul 00:00 WIB)</option>
+            </select>
+            <span class="text-[10px] text-slate-400 block mt-1">
+              Data ditarik secara cerdas dengan filter <code>skip_duplicate</code> sehingga tidak membebani server dan tidak menduplikat rekaman.
+            </span>
+          </div>
+
+          <!-- Pilihan Modul -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                Pilih Modul yang Disinkronkan
+              </label>
+              <span class="text-[10px] text-slate-400">
+                {{ autoSync.modules.length }} dari {{ modules.length }} modul dipilih
+              </span>
+            </div>
+            <div class="space-y-1.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+              <label
+                v-for="mod in modules"
+                :key="mod.id"
+                class="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition"
+              >
+                <input
+                  type="checkbox"
+                  :value="mod.id"
+                  v-model="autoSync.modules"
+                  class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                />
+                <span class="font-medium text-slate-900 dark:text-white">{{ mod.name }}</span>
+                <span class="text-[10px] text-slate-400 font-mono ml-auto">
+                  {{ moduleConfigs[mod.id]?.database || mod.source_db }}.{{ moduleConfigs[mod.id]?.table || mod.source_table }}
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Status & Riwayat Eksekusi Terakhir -->
+          <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1.5">
+            <div class="flex items-center justify-between text-[11px]">
+              <span class="font-bold text-slate-600 dark:text-slate-300">Eksekusi Terakhir:</span>
+              <span class="font-mono text-slate-900 dark:text-white font-semibold">
+                {{ autoSync.last_run_at || 'Belum pernah dieksekusi' }}
+              </span>
+            </div>
+            <div v-if="autoSync.last_status" class="flex items-center justify-between text-[11px]">
+              <span class="font-bold text-slate-600 dark:text-slate-300">Status &amp; Data:</span>
+              <span
+                class="px-2 py-0.5 rounded text-[10px] font-bold"
+                :class="autoSync.last_status === 'success' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400'"
+              >
+                {{ autoSync.last_status === 'success' ? `Sukses (${autoSync.last_imported_count} data baru)` : 'Ada Catatan' }}
+              </span>
+            </div>
+            <p v-if="autoSync.last_message" class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-slate-700/60 leading-relaxed">
+              {{ autoSync.last_message }}
+            </p>
+          </div>
+
+          <!-- Notifikasi Feedback -->
+          <div
+            v-if="syncFeedback"
+            class="p-3 rounded-xl text-xs border"
+            :class="syncFeedback.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300'"
+          >
+            {{ syncFeedback.message }}
+          </div>
+
+          <!-- Panduan Cron Scheduler di Server -->
+          <div class="p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 text-[11px] space-y-1.5">
+            <span class="font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+              <Sparkles class="w-3.5 h-3.5" />
+              Satu Baris Cron Scheduler Server (cPanel / Linux):
+            </span>
+            <code class="block font-mono text-[10px] p-2 bg-white dark:bg-slate-900 rounded-lg border border-indigo-100 dark:border-indigo-900 text-slate-700 dark:text-slate-300 overflow-x-auto">
+              * * * * * cd /path/to/sadaya && php artisan schedule:run >> /dev/null 2>&1
+            </code>
+            <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+              Jika scheduler server sudah aktif, sinkronisasi berjalan otomatis di latar belakang tepat sesuai interval waktu yang Anda pilih di atas.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/40">
+          <button
+            type="button"
+            @click="handleRunSyncNow"
+            :disabled="isRunningSyncNow"
+            class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+            title="Jalankan sinkronisasi sekarang juga tanpa menunggu putaran jadwal"
+          >
+            <RefreshCw class="w-3.5 h-3.5 text-indigo-500" :class="{ 'animate-spin': isRunningSyncNow }" />
+            <span>{{ isRunningSyncNow ? 'Menyinkronkan...' : 'Sinkronkan Sekarang' }}</span>
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              @click="showAutoSyncModal = false"
+              class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition cursor-pointer"
+            >
+              Tutup
+            </button>
+            <button
+              type="button"
+              @click="handleSaveAutoSync"
+              :disabled="isSavingAutoSync"
+              class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+            >
+              <Check class="w-4 h-4" />
+              <span>{{ isSavingAutoSync ? 'Menyimpan...' : 'Simpan Pengaturan' }}</span>
+            </button>
+          </div>
         </div>
 
       </div>

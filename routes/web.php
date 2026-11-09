@@ -175,6 +175,8 @@ Route::middleware('auth')->group(function () {
     Route::prefix('database-import')->name('database-import.')->group(function () {
         Route::get('/', [\App\Http\Controllers\DataMigrationController::class, 'index'])->name('index');
         Route::post('/save-config', [\App\Http\Controllers\DataMigrationController::class, 'saveConfig'])->name('saveConfig');
+        Route::post('/save-auto-sync', [\App\Http\Controllers\DataMigrationController::class, 'saveAutoSync'])->name('saveAutoSync');
+        Route::post('/sync-now', [\App\Http\Controllers\DataMigrationController::class, 'runAutoSyncNow'])->name('syncNow');
         Route::post('/test-connection', [\App\Http\Controllers\DataMigrationController::class, 'testConnection'])->name('test');
         Route::post('/migrate', [\App\Http\Controllers\DataMigrationController::class, 'migrate'])->name('migrate');
         Route::post('/import-file', [\App\Http\Controllers\DataMigrationController::class, 'importFile'])->name('importFile');
