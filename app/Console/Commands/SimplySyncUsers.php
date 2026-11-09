@@ -92,3 +92,4 @@ class SimplySyncUsers extends Command
         }
     }
 }
+
