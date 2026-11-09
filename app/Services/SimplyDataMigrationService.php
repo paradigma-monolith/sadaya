@@ -123,8 +123,45 @@ class SimplyDataMigrationService
     }
 
     /**
+     * Validate host and port to mitigate SSRF and internal network scanning.
+     */
+    public function validateHostAndPort(string $host, int $port): void
+    {
+        if ($port < 1 || $port > 65535) {
+            throw new \InvalidArgumentException("Port database tidak valid: {$port}.");
+        }
+
+        // Mitigate SSRF attacks against cloud metadata endpoints (e.g. 169.254.169.254)
+        $ip = filter_var($host, FILTER_VALIDATE_IP) ? $host : @gethostbyname($host);
+        if (str_starts_with($ip, '169.254.')) {
+            throw new \InvalidArgumentException("Akses ke host IP metadata [{$host}] diblokir untuk alasan keamanan.");
+        }
+
+        // Enforce whitelist if SIMPLY_ALLOWED_HOSTS is defined in .env
+        $allowedHostsEnv = env('SIMPLY_ALLOWED_HOSTS');
+        if (!empty($allowedHostsEnv)) {
+            $allowed = array_map('trim', explode(',', strtolower($allowedHostsEnv)));
+            if (!in_array(strtolower($host), $allowed, true) && !in_array($ip, $allowed, true)) {
+                throw new \InvalidArgumentException("Host '{$host}' tidak terdaftar dalam daftar host yang diizinkan (SIMPLY_ALLOWED_HOSTS).");
+            }
+        }
+    }
+
+    /**
+     * Sanitize and validate SQL identifiers (database name, table name) against SQL injection.
+     */
+    public function sanitizeIdentifier(string $identifier, string $type = 'Identifier'): string
+    {
+        $trimmed = trim($identifier);
+        if ($trimmed === '' || !preg_match('/^[a-zA-Z0-9_]+$/', $trimmed)) {
+            throw new \InvalidArgumentException("Karakter tidak valid pada nama {$type}: '{$identifier}'. Hanya karakter alfanumerik dan underscore yang diperbolehkan.");
+        }
+        return $trimmed;
+    }
+
+    /**
      * Resolve effective credentials and target DB/table for a module.
-     * Checks per-module credentials first, falls back to global credentials, then module default config.
+     * Checks per-module credentials first, falls back to saved config, global credentials, then module default config.
      */
     public function resolveModuleCredentials(string $module, array $credentials): array
     {
@@ -134,13 +171,47 @@ class SimplyDataMigrationService
         // Check if credentials are nested under modules[module]
         $modCreds = $credentials['modules'][$module] ?? [];
 
+        // Read persistent stored configurations if available
+        $savedPath = storage_path('app/simply_migration_configs.json');
+        $savedMod = [];
+        if (file_exists($savedPath)) {
+            $saved = json_decode(file_get_contents($savedPath), true);
+            if (is_array($saved) && isset($saved[$module]) && is_array($saved[$module])) {
+                $savedMod = $saved[$module];
+            }
+        }
+
+        $host = !empty($modCreds['host'])
+            ? $modCreds['host']
+            : (!empty($credentials['host']) ? $credentials['host'] : ($savedMod['host'] ?? '127.0.0.1'));
+
+        $port = (int)(!empty($modCreds['port'])
+            ? $modCreds['port']
+            : (!empty($credentials['port']) ? $credentials['port'] : ($savedMod['port'] ?? 3306)));
+
+        $username = isset($modCreds['username']) && $modCreds['username'] !== ''
+            ? $modCreds['username']
+            : (isset($credentials['username']) && $credentials['username'] !== '' ? $credentials['username'] : ($savedMod['username'] ?? 'root'));
+
+        $password = isset($modCreds['password']) && $modCreds['password'] !== ''
+            ? $modCreds['password']
+            : (isset($credentials['password']) && $credentials['password'] !== '' ? $credentials['password'] : ($savedMod['password'] ?? 'mysql'));
+
+        $database = !empty($modCreds['database'])
+            ? $modCreds['database']
+            : (!empty($credentials['database']) ? $credentials['database'] : ($savedMod['database'] ?? ($cfg['source_db'] ?? '')));
+
+        $table = !empty($modCreds['table'])
+            ? $modCreds['table']
+            : (!empty($credentials['table']) ? $credentials['table'] : ($savedMod['table'] ?? ($cfg['source_table'] ?? '')));
+
         return [
-            'host' => !empty($modCreds['host']) ? $modCreds['host'] : ($credentials['host'] ?? '127.0.0.1'),
-            'port' => (int)(!empty($modCreds['port']) ? $modCreds['port'] : ($credentials['port'] ?? 3306)),
-            'username' => isset($modCreds['username']) ? $modCreds['username'] : ($credentials['username'] ?? 'root'),
-            'password' => isset($modCreds['password']) ? $modCreds['password'] : ($credentials['password'] ?? 'mysql'),
-            'database' => !empty($modCreds['database']) ? $modCreds['database'] : (!empty($credentials['database']) ? $credentials['database'] : ($cfg['source_db'] ?? '')),
-            'table' => !empty($modCreds['table']) ? $modCreds['table'] : (!empty($credentials['table']) ? $credentials['table'] : ($cfg['source_table'] ?? '')),
+            'host' => $host,
+            'port' => $port,
+            'username' => $username,
+            'password' => $password,
+            'database' => $database,
+            'table' => $table,
         ];
     }
 
@@ -164,11 +235,30 @@ class SimplyDataMigrationService
         $cfg = $configs[$module];
         $cred = $this->resolveModuleCredentials($module, $credentials);
         $host = $cred['host'];
-        $port = $cred['port'];
+        $port = (int)$cred['port'];
         $username = $cred['username'];
         $password = $cred['password'];
         $dbName = $cred['database'];
         $tblName = $cred['table'];
+
+        try {
+            $this->validateHostAndPort($host, $port);
+            $dbName = $this->sanitizeIdentifier($dbName, 'basis data');
+            $tblName = $this->sanitizeIdentifier($tblName, 'tabel');
+        } catch (\InvalidArgumentException $ve) {
+            return [
+                'module' => $module,
+                'name' => $cfg['name'],
+                'host' => $host,
+                'port' => $port,
+                'database' => $dbName,
+                'table' => $tblName,
+                'connected' => false,
+                'table_exists' => false,
+                'count' => 0,
+                'error' => $ve->getMessage(),
+            ];
+        }
 
         try {
             $pdo = new PDO(
@@ -291,7 +381,7 @@ class SimplyDataMigrationService
         $cfg = $configs[$module];
         $cred = $this->resolveModuleCredentials($module, $credentials);
         $host = $cred['host'];
-        $port = $cred['port'];
+        $port = (int)$cred['port'];
         $username = $cred['username'];
         $password = $cred['password'];
         $dbName = $cred['database'];
@@ -300,6 +390,14 @@ class SimplyDataMigrationService
         $skipDuplicate = $options['skip_duplicate'] ?? true;
         $truncateFirst = $options['truncate_first'] ?? false;
         $dryRun = $options['dry_run'] ?? false;
+
+        try {
+            $this->validateHostAndPort($host, $port);
+            $dbName = $this->sanitizeIdentifier($dbName, 'basis data');
+            $tblName = $this->sanitizeIdentifier($tblName, 'tabel');
+        } catch (\InvalidArgumentException $ve) {
+            return ['success' => false, 'message' => $ve->getMessage()];
+        }
 
         try {
             $pdo = new PDO(
@@ -839,6 +937,10 @@ class SimplyDataMigrationService
         $table = $cred['table'] ?: 'user';
 
         try {
+            $service->validateHostAndPort($host, $port);
+            $db = $service->sanitizeIdentifier($db, 'basis data');
+            $table = $service->sanitizeIdentifier($table, 'tabel');
+
             $pdo = new PDO(
                 "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4",
                 $user,

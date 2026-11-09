@@ -1,6 +1,6 @@
-﻿<script setup>
+<script setup>
 import { ref, computed, onMounted } from 'vue';
-import { Head, router, Link } from '@inertiajs/vue3';
+import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
 import {
   Database,
@@ -32,6 +32,12 @@ import {
 } from 'lucide-vue-next';
 import axios from 'axios';
 
+const page = usePage();
+const isSuperAdmin = computed(() => {
+  const roles = page.props.auth?.user?.roles || [];
+  return Array.isArray(roles) ? roles.includes('Super Admin') : false;
+});
+
 const props = defineProps({
   modules: {
     type: Array,
@@ -47,7 +53,8 @@ const props = defineProps({
       host: '127.0.0.1',
       port: 3306,
       username: 'root',
-      password: 'mysql',
+      password: '',
+      has_password: true,
     }),
   },
   default_module_configs: {
@@ -73,12 +80,12 @@ const props = defineProps({
   },
 });
 
-// Global / Default Credentials state
+// Global / Default Credentials state (Password is redacted/hidden from frontend props)
 const credentials = ref({
   host: props.default_config.host || '127.0.0.1',
   port: props.default_config.port || 3306,
   username: props.default_config.username || 'root',
-  password: props.default_config.password || 'mysql',
+  password: '',
 });
 
 // Per-module configurations state (host, port, username, password, database, table)
@@ -89,7 +96,8 @@ props.modules.forEach((mod) => {
     host: fromProps.host || credentials.value.host,
     port: fromProps.port || credentials.value.port,
     username: fromProps.username !== undefined ? fromProps.username : credentials.value.username,
-    password: fromProps.password !== undefined ? fromProps.password : credentials.value.password,
+    password: '',
+    has_password: Boolean(fromProps.has_password),
     database: fromProps.database || mod.source_db,
     table: fromProps.table || mod.source_table,
   };
@@ -293,12 +301,17 @@ const closeConfigModal = () => {
   singleModuleTestResult.value = null;
 };
 
-// Save module configuration permanently to localStorage & backend database/storage
+// Save module configuration permanently to backend database/storage
 const saveModuleConfigAndClose = async () => {
   isSavingConfig.value = true;
-  // 1. Simpan langsung ke browser localStorage
+  // 1. Simpan metadata ke browser localStorage (tanpa plaintext password untuk keamanan)
   try {
-    localStorage.setItem('sadaya_import_module_configs', JSON.stringify(moduleConfigs.value));
+    const safeStorage = {};
+    Object.keys(moduleConfigs.value).forEach((k) => {
+      const { password, ...rest } = moduleConfigs.value[k] || {};
+      safeStorage[k] = { ...rest, password: '' };
+    });
+    localStorage.setItem('sadaya_import_module_configs', JSON.stringify(safeStorage));
   } catch (e) {
     console.warn('LocalStorage error:', e);
   }
@@ -308,6 +321,10 @@ const saveModuleConfigAndClose = async () => {
     await axios.post('/database-import/save-config', {
       modules: moduleConfigs.value,
     });
+    if (configTargetModule.value?.id && moduleConfigs.value[configTargetModule.value.id]?.password) {
+      moduleConfigs.value[configTargetModule.value.id].has_password = true;
+      moduleConfigs.value[configTargetModule.value.id].password = '';
+    }
   } catch (err) {
     console.error('Gagal menyimpan konfigurasi ke server:', err);
   } finally {
@@ -477,9 +494,10 @@ onMounted(() => {
       if (parsed && typeof parsed === 'object') {
         Object.keys(parsed).forEach((k) => {
           if (moduleConfigs.value[k] && parsed[k]) {
+            const { password, ...rest } = parsed[k];
             moduleConfigs.value[k] = {
               ...moduleConfigs.value[k],
-              ...parsed[k],
+              ...rest,
             };
           }
         });
@@ -582,13 +600,19 @@ onMounted(() => {
             <span class="font-medium">Normalisasi Format Nama Wilker / Pelabuhan</span>
           </label>
 
-          <label class="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-bold cursor-pointer">
+          <label
+            class="flex items-center gap-2 font-bold transition select-none"
+            :class="isSuperAdmin ? 'text-rose-600 dark:text-rose-400 cursor-pointer' : 'text-slate-400 dark:text-slate-600 cursor-not-allowed opacity-60'"
+            :title="isSuperAdmin ? 'Kosongkan data sebelum impor' : 'Hanya Super Admin yang diizinkan mengosongkan tabel (Truncate)'"
+          >
             <input
               type="checkbox"
               v-model="options.truncate_first"
-              class="rounded border-rose-300 text-rose-600 focus:ring-rose-500 w-4 h-4"
+              :disabled="!isSuperAdmin"
+              class="rounded border-rose-300 text-rose-600 focus:ring-rose-500 w-4 h-4 disabled:opacity-40"
             />
             <span>Kosongkan Tabel Sadaya Sebelum Impor (Truncate)</span>
+            <span v-if="!isSuperAdmin" class="text-[10px] font-normal text-slate-400 dark:text-slate-500">(Khusus Super Admin)</span>
           </label>
         </div>
 
@@ -1035,9 +1059,10 @@ onMounted(() => {
               <input
                 type="password"
                 v-model="moduleConfigs[configTargetModule.id].password"
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                :placeholder="moduleConfigs[configTargetModule.id]?.has_password ? '•••••••• (Tersimpan di Server)' : 'Masukkan Password'"
                 class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
+              <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Kosongkan jika ingin tetap menggunakan password tersimpan di server.</p>
             </div>
           </div>
 

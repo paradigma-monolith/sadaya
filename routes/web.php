@@ -171,8 +171,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/pdf', [ExportController::class, 'exportPdf'])->name('pdf');
     });
 
-    // Pusat Migrasi & Import Database Simply (CI4) -> Sadaya
-    Route::prefix('database-import')->name('database-import.')->group(function () {
+    // Pusat Migrasi & Import Database Simply (CI4) -> Sadaya (Hanya Super Admin & Admin)
+    Route::prefix('database-import')->middleware('role:Super Admin|Admin')->name('database-import.')->group(function () {
         Route::get('/', [\App\Http\Controllers\DataMigrationController::class, 'index'])->name('index');
         Route::post('/save-config', [\App\Http\Controllers\DataMigrationController::class, 'saveConfig'])->name('saveConfig');
         Route::post('/save-auto-sync', [\App\Http\Controllers\DataMigrationController::class, 'saveAutoSync'])->name('saveAutoSync');
