@@ -390,66 +390,9 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- ==================== MYSQL CREDENTIALS & OPTIONS BAR ==================== -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-          <div class="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-            <Server class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            <span>Konfigurasi Koneksi MySQL Sumber (Global / Default)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              @click="applyGlobalToAllModules"
-              class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition flex items-center gap-1 cursor-pointer"
-              title="Salin kredensial global ini ke seluruh modul"
-            >
-              <RotateCcw class="w-3 h-3 text-indigo-500" />
-              <span>Terapkan ke Semua Modul</span>
-            </button>
-            <span class="text-[11px] text-slate-400 font-mono hidden md:inline-block">
-              Basis data &amp; tabel per modul dapat diatur mandiri di bawah
-            </span>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Host MySQL Global</label>
-            <input
-              type="text"
-              v-model="credentials.host"
-              class="w-full text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Port Global</label>
-            <input
-              type="number"
-              v-model="credentials.port"
-              class="w-full text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Username Global</label>
-            <input
-              type="text"
-              v-model="credentials.username"
-              class="w-full text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Password Global</label>
-            <input
-              type="password"
-              v-model="credentials.password"
-              class="w-full text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        <!-- Migration Flags Checkboxes -->
-        <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
+      <!-- ==================== MIGRATION OPTIONS BAR ==================== -->
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs">
+        <div class="flex flex-wrap items-center gap-x-6 gap-y-3 text-xs">
           <label class="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
             <input
               type="checkbox"
