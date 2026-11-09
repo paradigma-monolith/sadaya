@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\KantorWilker;
 use App\Models\ShipHealthSurveillance;
+use App\Services\ShipSurveillanceImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -481,6 +482,64 @@ class ShipHealthSurveillanceController extends Controller
         return view('ship_surveillance.receipt', [
             'surveillance' => $surveillance,
         ]);
+    }
+
+    /**
+     * Test connection to Simply MySQL database and return statistics.
+     */
+    public function testImportConnection(Request $request, ShipSurveillanceImportService $service): JsonResponse
+    {
+        $validated = $request->validate([
+            'host' => 'nullable|string',
+            'port' => 'nullable|numeric',
+            'database' => 'nullable|string',
+            'username' => 'nullable|string',
+            'password' => 'nullable|string',
+            'table' => 'nullable|string',
+        ]);
+
+        $result = $service->testConnection($validated);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Execute direct database migration from Simply MySQL to Sadaya.
+     */
+    public function importDirect(Request $request, ShipSurveillanceImportService $service): JsonResponse
+    {
+        $config = $request->only(['host', 'port', 'database', 'username', 'password', 'table']);
+        $options = [
+            'skip_duplicate' => (bool)$request->input('skip_duplicate', true),
+            'recalculate_pnbp' => (bool)$request->input('recalculate_pnbp', true),
+            'normalize_ports' => (bool)$request->input('normalize_ports', true),
+            'truncate_first' => (bool)$request->input('truncate_first', false),
+        ];
+
+        $result = $service->importFromMysql($config, $options);
+
+        return response()->json($result);
+    }
+
+    /**
+     * Import records from an uploaded backup file (.sql, .json, .csv).
+     */
+    public function importFile(Request $request, ShipSurveillanceImportService $service): JsonResponse
+    {
+        $request->validate([
+            'file' => 'required|file|max:51200', // max 50MB
+        ]);
+
+        $options = [
+            'skip_duplicate' => (bool)$request->input('skip_duplicate', true),
+            'recalculate_pnbp' => (bool)$request->input('recalculate_pnbp', true),
+            'normalize_ports' => (bool)$request->input('normalize_ports', true),
+            'truncate_first' => (bool)$request->input('truncate_first', false),
+        ];
+
+        $result = $service->importFromFile($request->file('file'), $options);
+
+        return response()->json($result);
     }
 }
 

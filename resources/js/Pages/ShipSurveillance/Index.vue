@@ -41,7 +41,12 @@ import {
   Flag,
   ChevronDown,
   Globe,
+  Database,
+  UploadCloud,
+  Server,
+  AlertCircle,
 } from 'lucide-vue-next';
+import axios from 'axios';
 
 const props = defineProps({
   surveillances: {
@@ -282,7 +287,7 @@ onUnmounted(() => {
   <Head title="Pengawasan Kedatangan Kapal (MDH) &bull; BKK Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="ship-surveillance">
-    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 max-w-7xl mx-auto space-y-6">
+    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       
       <!-- Top Title & Navigation Header -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm">
@@ -347,6 +352,16 @@ onUnmounted(() => {
             <Download class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             Export CSV
           </a>
+
+          <!-- Pusat Import Database Simply -->
+          <Link
+            href="/database-import?module=ship_surveillance"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/80 dark:bg-indigo-950/40 text-xs font-semibold text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition cursor-pointer shadow-xs"
+            title="Buka Pusat Migrasi & Import Database Simply"
+          >
+            <Database class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span>Pusat Import Database</span>
+          </Link>
 
           <!-- Public Self-Assessment Portal Link (TANGKAP - Native Sadaya) -->
           <div ref="portalDropdownRef" class="relative inline-flex items-center shadow-xs">

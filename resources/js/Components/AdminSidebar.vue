@@ -27,7 +27,8 @@ import {
   Anchor,
   BriefcaseMedical,
   Pill,
-  ExternalLink
+  ExternalLink,
+  Database
 } from 'lucide-vue-next';
 import { useSidebar } from '@/composables/useSidebar';
 
@@ -204,6 +205,14 @@ const navSections = computed(() => {
           icon: UserIcon,
           iconColor: 'text-slate-600',
           active: props.currentRoute === 'profile',
+        },
+        {
+          name: 'Pusat Import Database',
+          path: '/database-import',
+          url: getUrl('/database-import'),
+          icon: Database,
+          iconColor: 'text-indigo-600',
+          active: props.currentRoute === 'database-import',
         },
       ],
     },

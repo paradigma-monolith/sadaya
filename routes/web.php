@@ -150,6 +150,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/{id}/verify', [ShipHealthSurveillanceController::class, 'verify'])->name('verify');
         Route::delete('/{id}', [ShipHealthSurveillanceController::class, 'destroy'])->name('destroy');
         Route::get('/export/csv', [ShipHealthSurveillanceController::class, 'export'])->name('export');
+        Route::post('/import/test-connection', [ShipHealthSurveillanceController::class, 'testImportConnection'])->name('import.test');
+        Route::post('/import/direct', [ShipHealthSurveillanceController::class, 'importDirect'])->name('import.direct');
+        Route::post('/import/file', [ShipHealthSurveillanceController::class, 'importFile'])->name('import.file');
     });
 
     // SINKARKES - Laporan Karantina Kesehatan Terpadu BKK Kelas I Bandung
@@ -166,6 +169,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/excel', [ExportController::class, 'exportExcel'])->name('excel');
         Route::get('/csv', [ExportController::class, 'exportCsv'])->name('csv');
         Route::get('/pdf', [ExportController::class, 'exportPdf'])->name('pdf');
+    });
+
+    // Pusat Migrasi & Import Database Simply (CI4) -> Sadaya
+    Route::prefix('database-import')->name('database-import.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\DataMigrationController::class, 'index'])->name('index');
+        Route::post('/test-connection', [\App\Http\Controllers\DataMigrationController::class, 'testConnection'])->name('test');
+        Route::post('/migrate', [\App\Http\Controllers\DataMigrationController::class, 'migrate'])->name('migrate');
+        Route::post('/import-file', [\App\Http\Controllers\DataMigrationController::class, 'importFile'])->name('importFile');
     });
 
     // In-App & Real-Time Notifications (Reverb WebSocket Powered)
