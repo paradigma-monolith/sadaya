@@ -31,7 +31,7 @@ class SimplyDataMigrationService
         return [
             'ship_surveillance' => [
                 'id' => 'ship_surveillance',
-                'name' => 'Pengawasan Kedatangan Kapal (MDH)',
+                'name' => 'Pengawasan Kedatangan Kapal (TANGKAP)',
                 'source_db' => 'bkkr3927_cop',
                 'source_table' => 'tbl_pasien',
                 'target_model' => ShipHealthSurveillance::class,

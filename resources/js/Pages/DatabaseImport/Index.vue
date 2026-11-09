@@ -363,7 +363,7 @@ onMounted(() => {
             Pusat Migrasi &amp; Import Database
           </h1>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
-            Pindahkan dan sinkronkan seluruh basis data operasional (Pengawasan Kedatangan Kapal MDH, Travel Consent Pesawat Udara, Sanitasi Kapal, Alkes &amp; Obat Medis Haji) secara langsung dari MySQL Simply maupun berkas backup.
+            Pindahkan dan sinkronkan seluruh basis data operasional (Pengawasan Kedatangan Kapal TANGKAP, Travel Consent Pesawat Udara, Sanitasi Kapal, Alkes &amp; Obat Medis Haji) secara langsung dari MySQL Simply maupun berkas backup.
           </p>
         </div>
 
@@ -535,7 +535,7 @@ onMounted(() => {
                 <th class="py-3 px-4">Koneksi &amp; Tabel Sumber Simply</th>
                 <th class="py-3 px-4">Tujuan Sadaya</th>
                 <th class="py-3 px-4 text-center">Data di Sadaya</th>
-                <th class="py-3 px-4 text-center">Status di Simply</th>
+                <th class="py-3 px-4 text-center">Status</th>
                 <th class="py-3 px-5 text-right">Aksi</th>
               </tr>
             </thead>

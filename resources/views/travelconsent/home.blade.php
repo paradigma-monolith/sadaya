@@ -78,7 +78,7 @@
         <!-- 5 Card Menu Grid (Clean & Direct) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 w-full">
             
-            <!-- 1. Karantina Kedatangan Kapal (MDH / TANGKAP) -->
+            <!-- 1. Karantina Kedatangan Kapal (TANGKAP) -->
             <a href="{{ route('ship-surveillance.portal') }}" class="card-menu bg-white rounded-2xl border-2 border-emerald-500/30 p-6 flex flex-col items-center text-center shadow-md group relative overflow-hidden">
                 <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
                     TANGKAP
@@ -93,7 +93,7 @@
                     </svg>
                 </div>
                 <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-snug group-hover:text-emerald-700 transition-colors">
-                    Pengawasan Kapal (MDH)
+                    Pengawasan Kapal (TANGKAP)
                 </h2>
                 <span class="text-[11px] text-slate-400 mt-1 block">Self-Assessment Karantina Kapal</span>
             </a>

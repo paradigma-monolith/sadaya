@@ -95,7 +95,7 @@ const defaultActions = [
   },
   {
     id: 'nav-ship-surveillance',
-    title: 'Pengawasan Kedatangan Kapal (MDH & Karantina)',
+    title: 'Pengawasan Kedatangan Kapal (TANGKAP & Karantina)',
     subtitle: 'Self-assessment karantina, skoring risiko, verifikasi sandar & estimasi PNBP',
     category: 'Pengawasan Alat Angkut & Barang',
     icon: Ship,

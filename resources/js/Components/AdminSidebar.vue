@@ -146,7 +146,7 @@ const navSections = computed(() => {
           active: props.currentRoute === 'aircraft-inspections',
         },
         {
-          name: 'Pengawasan Kapal (MDH)',
+          name: 'Pengawasan Kapal (TANGKAP)',
           path: '/ship-surveillance',
           url: getUrl('/ship-surveillance'),
           icon: Ship,

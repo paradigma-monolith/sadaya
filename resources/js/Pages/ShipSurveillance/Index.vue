@@ -284,7 +284,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Head title="Pengawasan Kedatangan Kapal (MDH) &bull; BKK Bandung" />
+  <Head title="Pengawasan Kedatangan Kapal (TANGKAP) &bull; BKK Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="ship-surveillance">
     <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
@@ -301,13 +301,13 @@ onUnmounted(() => {
             />
             <div>
               <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                Pengawasan Kedatangan Kapal (MDH)
+                Pengawasan Kedatangan Kapal (TANGKAP)
                 <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
                   Kekarantinaan Pelabuhan
                 </span>
               </h1>
               <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                Digitalisasi Self-Assessment Maritime Declaration of Health, Skoring Faktor Risiko, Verifikasi Sandar & Estimasi PNBP
+                Digitalisasi Self-Assessment Maritime Declaration of Health, Skoring Faktor Risiko, Verifikasi Sandar &amp; Estimasi PNBP
               </p>
             </div>
           </div>
@@ -444,7 +444,7 @@ onUnmounted(() => {
                     Ship Arriving from Abroad ↗
                   </div>
                   <div class="text-[11px] text-slate-500 line-clamp-1">
-                    Form English kapal luar negeri (MDH)
+                    Form English kapal luar negeri (TANGKAP)
                   </div>
                 </div>
               </a>
@@ -1161,9 +1161,9 @@ onUnmounted(() => {
 
     </main>
 
-    <!-- ========================================== -->
-    <!-- MODAL DETAIL PEMERIKSAAN KARANTINA (MDH) -->
-    <!-- ========================================== -->
+    <!-- ============================================== -->
+    <!-- MODAL DETAIL PEMERIKSAAN KARANTINA (TANGKAP)   -->
+    <!-- ============================================== -->
     <div
       v-if="showDetailModal && activeItem"
       class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
