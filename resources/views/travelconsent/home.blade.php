@@ -75,14 +75,51 @@
             </div>
         </div>
 
-        <!-- 4 Card Menu Grid (Clean & Direct) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 sm:gap-6 w-full">
+        <!-- 5 Card Menu Grid (Clean & Direct) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 w-full">
             
-            <!-- 1. Aircraft Sanitation Inspection -->
+            <!-- 1. Karantina Kedatangan Kapal (MDH / TANGKAP) -->
+            <a href="{{ route('ship-surveillance.portal') }}" class="card-menu bg-white rounded-2xl border-2 border-emerald-500/30 p-6 flex flex-col items-center text-center shadow-md group relative overflow-hidden">
+                <div class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                    TANGKAP
+                </div>
+                <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 transition-colors group-hover:bg-emerald-600 group-hover:text-white shrink-0">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
+                        <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
+                        <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
+                        <path d="M12 10V2"/>
+                        <path d="M12 2h4"/>
+                    </svg>
+                </div>
+                <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-snug group-hover:text-emerald-700 transition-colors">
+                    Pengawasan Kapal (MDH)
+                </h2>
+                <span class="text-[11px] text-slate-400 mt-1 block">Self-Assessment Karantina Kapal</span>
+            </a>
+
+            <!-- 2. Sanitasi Kapal (Ship Sanitation) -->
+            <a href="{{ route('travelconsent.public_sanitasi') }}" class="card-menu bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col items-center text-center shadow-xs group">
+                <div class="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4 transition-colors group-hover:bg-teal-600 group-hover:text-white shrink-0">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="m4.93 4.93 4.24 4.24"/>
+                        <path d="m14.83 9.17 4.24-4.24"/>
+                        <path d="m14.83 14.83 4.24 4.24"/>
+                        <path d="m9.17 14.83-4.24 4.24"/>
+                        <circle cx="12" cy="12" r="4"/>
+                    </svg>
+                </div>
+                <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-snug group-hover:text-teal-600 transition-colors">
+                    Sanitasi Kapal (SSCC / SSCEC)
+                </h2>
+                <span class="text-[11px] text-slate-400 mt-1 block">Sertifikat Sanitasi Kapal</span>
+            </a>
+
+            <!-- 3. Aircraft Sanitation Inspection -->
             <a href="{{ route('travelconsent.public_aircraft') }}" class="card-menu bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col items-center text-center shadow-xs group">
                 <div class="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 transition-colors group-hover:bg-indigo-600 group-hover:text-white shrink-0">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Plane departure icon -->
                         <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>
                     </svg>
                 </div>
@@ -92,29 +129,10 @@
                 <span class="text-[11px] text-slate-400 mt-1 block">Sanitasi Pesawat Udara</span>
             </a>
 
-            <!-- 2. Sanitasi Kapal (Ship Sanitation) -->
-            <a href="{{ route('travelconsent.public_sanitasi') }}" class="card-menu bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col items-center text-center shadow-xs group">
-                <div class="w-16 h-16 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4 transition-colors group-hover:bg-teal-600 group-hover:text-white shrink-0">
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Ship icon -->
-                        <path d="M2 21c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1 .6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
-                        <path d="M19.38 20A11.6 11.6 0 0 0 21 14l-9-4-9 4c0 2.9.94 5.34 2.81 7.76"/>
-                        <path d="M19 13V7a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v6"/>
-                        <path d="M12 10V2"/>
-                        <path d="M12 2h4"/>
-                    </svg>
-                </div>
-                <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-snug group-hover:text-teal-600 transition-colors">
-                    Sanitasi Kapal (Ship Sanitation)
-                </h2>
-                <span class="text-[11px] text-slate-400 mt-1 block">Sertifikat SSCC / SSCEC</span>
-            </a>
-
-            <!-- 3. Alat Kesehatan Kotak P3K & Emergensi -->
+            <!-- 4. Alat Kesehatan Kotak P3K & Emergensi -->
             <a href="{{ route('travelconsent.public_alat') }}" class="card-menu bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col items-center text-center shadow-xs group">
                 <div class="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 transition-colors group-hover:bg-blue-600 group-hover:text-white shrink-0">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Medkit icon -->
                         <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
                         <path d="M8 2h8a2 2 0 0 1 2 2v2H6V4a2 2 0 0 1 2-2z"/>
                         <path d="M12 11v6"/>
@@ -122,16 +140,15 @@
                     </svg>
                 </div>
                 <h2 class="text-sm sm:text-base font-bold text-slate-900 leading-snug group-hover:text-blue-600 transition-colors">
-                    Alat Kesehatan Kotak P3K &amp; Emergensi
+                    Alat Kesehatan P3K &amp; Emergensi
                 </h2>
                 <span class="text-[11px] text-slate-400 mt-1 block">First Aid &amp; Emergency Kit</span>
             </a>
 
-            <!-- 4. Obat Kotak P3K & Emergensi -->
+            <!-- 5. Obat Kotak P3K & Emergensi -->
             <a href="{{ route('travelconsent.public_obat') }}" class="card-menu bg-white rounded-2xl border border-slate-200/90 p-6 flex flex-col items-center text-center shadow-xs group">
                 <div class="w-16 h-16 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4 transition-colors group-hover:bg-rose-600 group-hover:text-white shrink-0">
                     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Pills icon -->
                         <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/>
                         <path d="m8.5 8.5 7 7"/>
                     </svg>

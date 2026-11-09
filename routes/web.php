@@ -9,6 +9,7 @@ use App\Http\Controllers\FlightMedicalInspectionController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ShipHealthSurveillanceController;
 use App\Http\Controllers\ShipInspectionController;
 use App\Http\Controllers\SinkarkesController;
 use App\Http\Controllers\TravelConsentController;
@@ -36,7 +37,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
 });
 
-// --- Convenient Top-Level Shortcut & Alias Routes (Redirect to travelconsent) ---
+// --- Convenient Top-Level Shortcut & Alias Routes (Redirect to travelconsent & ship-surveillance) ---
 Route::redirect('/public_aircraft', '/travelconsent/public_aircraft');
 Route::redirect('/public_sanitasi', '/travelconsent/public_sanitasi');
 Route::redirect('/public_alat', '/travelconsent/public_alat');
@@ -46,6 +47,19 @@ Route::redirect('/sanitasi', '/travelconsent/public_sanitasi');
 Route::redirect('/kapal', '/travelconsent/public_sanitasi');
 Route::redirect('/alkes', '/travelconsent/public_alat');
 Route::redirect('/obat', '/travelconsent/public_obat');
+Route::redirect('/quarantine', '/ship-surveillance/assessment/domestic');
+Route::redirect('/quarantine/english', '/ship-surveillance/assessment/international');
+Route::redirect('/selfassessment', '/ship-surveillance/portal');
+Route::redirect('/tangkap', '/ship-surveillance/portal');
+
+// --- Public Ship Health Quarantine Assessment Routes (TANGKAP - Native Sadaya) ---
+Route::prefix('ship-surveillance')->name('ship-surveillance.')->group(function () {
+    Route::get('/portal', [ShipHealthSurveillanceController::class, 'publicPortal'])->name('portal');
+    Route::get('/assessment/domestic', [ShipHealthSurveillanceController::class, 'publicDomestic'])->name('assessment.domestic');
+    Route::get('/assessment/international', [ShipHealthSurveillanceController::class, 'publicInternational'])->name('assessment.international');
+    Route::post('/assessment/submit', [ShipHealthSurveillanceController::class, 'submitAssessment'])->name('assessment.submit');
+    Route::get('/receipt/{registration_no}', [ShipHealthSurveillanceController::class, 'receipt'])->name('receipt');
+});
 
 // --- Public Travel Consent & Sanitation Inspection Routes ---
 Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
@@ -126,6 +140,16 @@ Route::middleware('auth')->group(function () {
         Route::delete('/{id}', [ShipInspectionController::class, 'destroy'])->name('destroy');
         Route::get('/export', [ShipInspectionController::class, 'export'])->name('export');
         Route::get('/{id}/pdf', [ShipInspectionController::class, 'downloadPdf'])->name('pdf');
+    });
+
+    // Pengawasan Kekarantinaan Kedatangan Kapal (Maritime Declaration of Health / MDH)
+    Route::prefix('ship-surveillance')->name('ship-surveillance.')->group(function () {
+        Route::get('/', [ShipHealthSurveillanceController::class, 'index'])->name('index');
+        Route::get('/{id}', [ShipHealthSurveillanceController::class, 'show'])->name('show');
+        Route::patch('/{id}/gross-tonnage', [ShipHealthSurveillanceController::class, 'updateGrossTonnage'])->name('updateGrossTonnage');
+        Route::put('/{id}/verify', [ShipHealthSurveillanceController::class, 'verify'])->name('verify');
+        Route::delete('/{id}', [ShipHealthSurveillanceController::class, 'destroy'])->name('destroy');
+        Route::get('/export/csv', [ShipHealthSurveillanceController::class, 'export'])->name('export');
     });
 
     // SINKARKES - Laporan Karantina Kesehatan Terpadu BKK Kelas I Bandung

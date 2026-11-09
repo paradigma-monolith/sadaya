@@ -145,7 +145,15 @@ const navSections = computed(() => {
           active: props.currentRoute === 'aircraft-inspections',
         },
         {
-          name: 'Data Inspeksi Kapal',
+          name: 'Pengawasan Kapal (MDH)',
+          path: '/ship-surveillance',
+          url: getUrl('/ship-surveillance'),
+          icon: Ship,
+          iconColor: 'text-[#00A99D]',
+          active: props.currentRoute === 'ship-surveillance',
+        },
+        {
+          name: 'Inspeksi Sanitasi Kapal',
           path: '/ship-inspections',
           url: getUrl('/ship-inspections'),
           icon: Anchor,
@@ -242,10 +250,10 @@ const navSections = computed(() => {
           title="Kementerian Kesehatan RI &bull; BKK Kelas I Bandung"
         >
           <img 
-            :src="getUrl('/images/logokemenkes.png')" 
-            alt="Logo Kemenkes" 
+            :src="getUrl('/images/LOGO KARANTINA.png')" 
+            alt="Logo Karantina Kesehatan" 
             class="h-8 w-auto max-w-[36px] object-contain flex-shrink-0 transition-transform group-hover:scale-105 drop-shadow-2xs"
-            onerror="this.onerror=null;this.src='/storage/images/logokemenkes.png';"
+            onerror="this.onerror=null;this.src='/storage/images/LOGO KARANTINA.png';"
           />
 
           <div v-if="!isCollapsed" class="transition-opacity duration-200 min-w-0">

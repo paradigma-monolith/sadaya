@@ -396,10 +396,10 @@ const handleLogout = () => {
               <!-- Mobile Brand (Hidden on lg+ because Sidebar already displays BKK Kelas I Bandung) -->
               <a :href="getUrl('/')" @click="handleNav('/', $event)" class="flex lg:hidden items-center gap-2 group cursor-pointer shrink-0">
                 <img 
-                  :src="getUrl('/images/logokemenkes.png')" 
-                  alt="Logo Kemenkes" 
+                  :src="getUrl('/images/LOGO KARANTINA.png')" 
+                  alt="Logo Karantina Kesehatan" 
                   class="h-7 w-auto max-w-[32px] object-contain shrink-0 drop-shadow-2xs"
-                  onerror="this.onerror=null;this.src='/storage/images/logokemenkes.png';"
+                  onerror="this.onerror=null;this.src='/storage/images/LOGO KARANTINA.png';"
                 />
                 <span class="text-sm font-bold text-slate-900 tracking-tight">
                   BKK Kelas I Bandung

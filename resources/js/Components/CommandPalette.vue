@@ -94,6 +94,14 @@ const defaultActions = [
     action: () => navigateTo('/aircraft-inspections'),
   },
   {
+    id: 'nav-ship-surveillance',
+    title: 'Pengawasan Kedatangan Kapal (MDH & Karantina)',
+    subtitle: 'Self-assessment karantina, skoring risiko, verifikasi sandar & estimasi PNBP',
+    category: 'Pengawasan Alat Angkut & Barang',
+    icon: Ship,
+    action: () => navigateTo('/ship-surveillance'),
+  },
+  {
     id: 'nav-ship-inspections',
     title: 'Data Inspeksi Kapal (SSCC / SSCEC)',
     subtitle: 'Kelola sertifikat & verifikasi sanitasi kapal laut',
@@ -140,6 +148,14 @@ const defaultActions = [
     category: 'Karantina Laut',
     icon: Ship,
     action: () => window.open(getUrl('/travelconsent/public_sanitasi'), '_blank'),
+  },
+  {
+    id: 'nav-tangkap-portal',
+    title: 'Portal Karantina Kapal TANGKAP (Self-Assessment MDH)',
+    subtitle: 'Formulir kedatangan kapal Mandiri Terintegrasi BKK Bandung',
+    category: 'Karantina Laut',
+    icon: Globe,
+    action: () => window.open(getUrl('/ship-surveillance/portal'), '_blank'),
   },
   {
     id: 'nav-audit',
