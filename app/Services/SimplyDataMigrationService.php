@@ -10,6 +10,9 @@ use App\Models\ShipSanitationInspection;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
+use Spatie\Permission\Models\Role;
 use PDO;
 use Throwable;
 
@@ -89,6 +92,18 @@ class SimplyDataMigrationService
                 'color' => 'text-purple-600',
                 'bg_color' => 'bg-purple-50 dark:bg-purple-950/40',
             ],
+            'users' => [
+                'id' => 'users',
+                'name' => 'Akun Pengguna & Petugas (Simply User)',
+                'source_db' => 'bkkr3927_simply',
+                'source_table' => 'user',
+                'target_model' => User::class,
+                'target_table' => 'users',
+                'description' => 'Sinkronisasi seluruh akun pengguna, username/NIP, password, dan hak akses dari Simply.',
+                'icon' => 'Users',
+                'color' => 'text-amber-600',
+                'bg_color' => 'bg-amber-50 dark:bg-amber-950/40',
+            ],
         ];
     }
 
@@ -103,6 +118,7 @@ class SimplyDataMigrationService
             'ship_sanitation' => ShipSanitationInspection::count(),
             'medical_alat' => FlightMedicalInspection::where('type', 'alat')->count(),
             'medical_obat' => FlightMedicalInspection::where('type', 'obat')->count(),
+            'users' => User::count(),
         ];
     }
 
@@ -306,7 +322,7 @@ class SimplyDataMigrationService
         $usersMap = User::pluck('id', 'name')->toArray();
         $emailMap = User::pluck('id', 'email')->toArray();
 
-        $stmt = $pdo->query("SELECT * FROM `{$tblName}` ORDER BY id ASC");
+        $stmt = $pdo->query("SELECT * FROM `{$tblName}` ORDER BY 1 ASC");
         $totalProcessed = 0;
         $importedCount = 0;
         $skippedCount = 0;
@@ -340,8 +356,9 @@ class SimplyDataMigrationService
                 }
             } catch (Throwable $e) {
                 $failedCount++;
+                $rowId = $row['id'] ?? $row['id_user'] ?? $row['id_pasien'] ?? $totalProcessed;
                 if (count($errors) < 5) {
-                    $errors[] = "ID {$row['id']}: " . $e->getMessage();
+                    $errors[] = "ID {$rowId}: " . $e->getMessage();
                 }
             }
         }
@@ -608,6 +625,30 @@ class SimplyDataMigrationService
                     'updated_at' => date('Y-m-d H:i:s', $timestamp),
                 ];
 
+            case 'users':
+                $idUser = (int)($row['id_user'] ?? $row['id'] ?? 0);
+                $username = trim($row['username'] ?? '');
+                $nama = trim($row['nama'] ?? ($username ?: 'Pengguna Simply'));
+                $email = !empty($row['email']) ? trim($row['email']) : ($username ? "{$username}@bkkbandung.net" : null);
+                $phone = !empty($row['no_telp']) ? trim($row['no_telp']) : null;
+                $statusPegawai = !empty($row['status_pegawai_aktif']) ? trim($row['status_pegawai_aktif']) : 'Aktif';
+                $password = $row['password'] ?? '';
+                $roleId = (int)($row['id_role_access'] ?? 12863);
+
+                return [
+                    'id_user' => $idUser,
+                    'name' => $nama,
+                    'username' => $username,
+                    'simply_user_id' => $idUser,
+                    'email' => $email,
+                    'phone' => $phone,
+                    'status_pegawai_aktif' => $statusPegawai,
+                    'password' => $password,
+                    'role_id' => $roleId,
+                    'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s'),
+                    'updated_at' => $row['updated_at'] ?? date('Y-m-d H:i:s'),
+                ];
+
             default:
                 throw new \InvalidArgumentException("Modul {$module} belum didukung.");
         }
@@ -632,6 +673,15 @@ class SimplyDataMigrationService
             case 'medical_obat':
                 return FlightMedicalInspection::where('registration_no', $reg)->exists() ||
                     FlightMedicalInspection::where('type', $mapped['type'])->where('nomor_kloter', $mapped['nomor_kloter'])->where('embarkasi', $mapped['embarkasi'])->exists();
+            case 'users':
+                $uname = $mapped['username'] ?? '';
+                $email = $mapped['email'] ?? '';
+                $simplyId = $mapped['simply_user_id'] ?? null;
+                return User::where(function ($q) use ($uname, $email, $simplyId) {
+                    if ($simplyId) $q->where('simply_user_id', $simplyId);
+                    if ($uname) $q->orWhere('username', $uname);
+                    if ($email) $q->orWhere('email', $email);
+                })->exists();
             default:
                 return false;
         }
@@ -642,9 +692,61 @@ class SimplyDataMigrationService
      */
     protected function insertBatch(string $module, array $records): void
     {
+        if ($module === 'users') {
+            $this->insertUserBatch($records);
+            return;
+        }
         $configs = $this->getModuleConfigs();
         $table = $configs[$module]['target_table'];
         DB::table($table)->insert($records);
+    }
+
+    /**
+     * Insert or update user accounts and assign roles.
+     */
+    protected function insertUserBatch(array $records): void
+    {
+        $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
+        $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+
+        foreach ($records as $item) {
+            $username = $item['username'] ?? '';
+            $email = $item['email'] ?? '';
+            $simplyId = $item['simply_user_id'] ?? null;
+
+            $user = User::where(function ($q) use ($username, $email, $simplyId) {
+                if ($simplyId) $q->where('simply_user_id', $simplyId);
+                if ($username) $q->orWhere('username', $username);
+                if ($email) $q->orWhere('email', $email);
+            })->first();
+
+            if (!$user) {
+                $user = new User();
+            }
+
+            $user->name = $item['name'] ?? $user->name ?? 'Pengguna';
+            $user->username = $username ?: $user->username;
+            $user->email = $email ?: ($user->email ?: ($username ? "{$username}@bkkbandung.net" : null));
+            $user->simply_user_id = $simplyId ?: $user->simply_user_id;
+            $user->phone = $item['phone'] ?? $user->phone;
+            $user->status_pegawai_aktif = $item['status_pegawai_aktif'] ?? 'Aktif';
+            if (!empty($item['password'])) {
+                $user->password = $item['password'];
+            }
+            $user->save();
+
+            $roleId = (int)($item['role_id'] ?? 12863);
+            $role = $staffRole;
+            if ($roleId === 21313) {
+                $role = $adminRole;
+            }
+            if (in_array(strtolower($username), ['admin', 'superadmin', 'hadianzm'])) {
+                $role = $superAdminRole;
+            }
+
+            $user->syncRoles([$role]);
+        }
     }
 
     /**
@@ -667,6 +769,9 @@ class SimplyDataMigrationService
                 break;
             case 'medical_obat':
                 FlightMedicalInspection::where('type', 'obat')->delete();
+                break;
+            case 'users':
+                User::whereNotNull('simply_user_id')->where('email', '!=', 'admin@hybrid.local')->delete();
                 break;
         }
     }
@@ -716,6 +821,98 @@ class SimplyDataMigrationService
         }
 
         return $rows;
+    }
+
+    /**
+     * Find and verify credentials against Simply database.
+     */
+    public static function findAndVerifySimplyUser(string $login, string $password): ?array
+    {
+        $service = new self();
+        $cred = $service->resolveModuleCredentials('users', []);
+
+        $host = env('SIMPLY_DB_HOST', $cred['host'] ?? '127.0.0.1');
+        $port = (int)env('SIMPLY_DB_PORT', $cred['port'] ?? 3306);
+        $user = env('SIMPLY_DB_USERNAME', $cred['username'] ?? 'root');
+        $pass = env('SIMPLY_DB_PASSWORD', $cred['password'] ?? 'mysql');
+        $db   = env('SIMPLY_DB_DATABASE', $cred['database'] ?: 'bkkr3927_simply');
+        $table = $cred['table'] ?: 'user';
+
+        try {
+            $pdo = new PDO(
+                "mysql:host={$host};port={$port};dbname={$db};charset=utf8mb4",
+                $user,
+                $pass,
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 3,
+                ]
+            );
+
+            $stmt = $pdo->prepare("SELECT * FROM `{$table}` WHERE (`username` = :login OR `email` = :login) LIMIT 1");
+            $stmt->execute(['login' => $login]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$row) {
+                return null;
+            }
+
+            // Verify password using Bcrypt
+            if (password_verify($password, $row['password']) || Hash::check($password, $row['password'])) {
+                return $row;
+            }
+
+            return null;
+        } catch (Throwable $e) {
+            Log::warning("Simply database auth failed to connect: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Synchronize a verified Simply user account into Sadaya Eloquent User model.
+     */
+    public static function syncUserFromSimplyData(array $simplyUser): User
+    {
+        $username = trim($simplyUser['username'] ?? '');
+        $email = !empty($simplyUser['email']) ? trim($simplyUser['email']) : ($username ? "{$username}@bkkbandung.net" : null);
+        $simplyId = (int)($simplyUser['id_user'] ?? 0);
+
+        $user = User::where(function ($q) use ($username, $email, $simplyId) {
+            if ($simplyId) $q->where('simply_user_id', $simplyId);
+            if ($username) $q->orWhere('username', $username);
+            if ($email) $q->orWhere('email', $email);
+        })->first();
+
+        if (!$user) {
+            $user = new User();
+        }
+
+        $user->name = $simplyUser['nama'] ?? ($username ?: 'Pengguna Simply');
+        $user->username = $username ?: $user->username;
+        $user->email = $email ?: ($user->email ?: ($username ? "{$username}@bkkbandung.net" : null));
+        $user->simply_user_id = $simplyId ?: $user->simply_user_id;
+        $user->phone = $simplyUser['no_telp'] ?? $user->phone;
+        $user->status_pegawai_aktif = $simplyUser['status_pegawai_aktif'] ?? 'Aktif';
+        $user->password = $simplyUser['password'];
+        $user->save();
+
+        $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
+        $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+
+        $roleId = (int)($simplyUser['id_role_access'] ?? 12863);
+        $role = $staffRole;
+        if ($roleId === 21313) {
+            $role = $adminRole;
+        }
+        if (in_array(strtolower($username), ['admin', 'superadmin', 'hadianzm'])) {
+            $role = $superAdminRole;
+        }
+
+        $user->syncRoles([$role]);
+
+        return $user;
     }
 }
 

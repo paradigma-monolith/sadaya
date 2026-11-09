@@ -15,6 +15,7 @@ import {
   Anchor,
   PackageCheck,
   Pill,
+  Users,
   ArrowRight,
   Layers,
   FileSpreadsheet,
@@ -218,6 +219,7 @@ const iconComponent = (iconName) => {
     case 'Anchor': return Anchor;
     case 'PackageCheck': return PackageCheck;
     case 'Pill': return Pill;
+    case 'Users': return Users;
     default: return Database;
   }
 };

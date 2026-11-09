@@ -11,7 +11,7 @@
     "src": "__plugin-vue_export-helper-DL-QBuGR.css"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BOnlYYwf.css",
+    "file": "assets/app-CN-0Q7ci.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -20,7 +20,7 @@
     ]
   },
   "resources/js/inertia.js": {
-    "file": "assets/inertia-CyORuqMr.js",
+    "file": "assets/inertia-B8IU3F9I.js",
     "name": "inertia",
     "src": "resources/js/inertia.js",
     "isEntry": true,

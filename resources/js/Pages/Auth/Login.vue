@@ -12,7 +12,8 @@ import {
   CheckCircle2, 
   AlertCircle,
   Layers,
-  Cpu
+  Cpu,
+  User
 } from 'lucide-vue-next';
 
 defineProps({
@@ -32,12 +33,16 @@ const getUrl = (path) => {
 };
 
 const form = useForm({
+  login: '',
   email: '',
   password: '',
   remember: true,
 });
 
 const submit = () => {
+  if (!form.email && form.login) {
+    form.email = form.login;
+  }
   form.post(getUrl('/login'), {
     onFinish: () => form.reset('password'),
     onSuccess: () => {
@@ -83,38 +88,42 @@ const submit = () => {
         </div>
 
         <!-- Validation Error Alert Banner -->
-        <div v-if="form.errors.email || form.errors.password" class="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">
+        <div v-if="form.errors.login || form.errors.email || form.errors.password" class="mb-5 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2.5">
           <AlertCircle class="w-4 h-4 shrink-0 text-rose-600 mt-0.5" />
           <div>
             <p class="font-semibold text-rose-900">Gagal Masuk</p>
-            <p class="mt-0.5">{{ form.errors.email || form.errors.password }}</p>
+            <p class="mt-0.5">{{ form.errors.login || form.errors.email || form.errors.password }}</p>
           </div>
         </div>
 
         <!-- Login Form -->
         <form @submit.prevent="submit" class="space-y-5">
-          <!-- Email Input -->
+          <!-- Username / NIP / Email Input -->
           <div>
-            <label for="email" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">
-              Alamat Email
+            <label for="login" class="block text-xs font-semibold uppercase tracking-wider text-slate-600">
+              Username / NIP / Email
             </label>
             <div class="mt-1.5 relative rounded-xl">
               <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Mail class="w-4 h-4" />
+                <User class="w-4 h-4" />
               </div>
               <input
-                id="email"
-                v-model="form.email"
-                type="email"
+                id="login"
+                v-model="form.login"
+                @input="form.email = form.login"
+                type="text"
                 autocomplete="username"
                 required
-                placeholder="nama@contoh.com"
+                placeholder="NIP / Username / Email (Simply)"
                 class="block w-full pl-10 pr-3.5 py-2.5 text-sm bg-slate-50 focus:bg-white border rounded-xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all font-mono"
-                :class="form.errors.email ? 'border-rose-400 focus:border-rose-500' : 'border-slate-200 focus:border-emerald-500'"
+                :class="(form.errors.login || form.errors.email) ? 'border-rose-400 focus:border-rose-500' : 'border-slate-200 focus:border-emerald-500'"
               />
             </div>
-            <p v-if="form.errors.email" class="mt-1.5 text-xs text-rose-600">
-              {{ form.errors.email }}
+            <p class="mt-1 text-[11px] text-slate-400">
+              Gunakan akun dan kata sandi yang sama persis seperti pada aplikasi Simply.
+            </p>
+            <p v-if="form.errors.login || form.errors.email" class="mt-1.5 text-xs text-rose-600">
+              {{ form.errors.login || form.errors.email }}
             </p>
           </div>
 
