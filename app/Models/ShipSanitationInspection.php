@@ -109,7 +109,7 @@ class ShipSanitationInspection extends Model
             foreach ($raw as $idx => $it) {
                 if (!is_array($it)) continue;
                 $no = $it['no'] ?? ($idx + 1);
-                $std = self::STANDARD_AREAS[$no - 1] ?? ($self::STANDARD_AREAS[$idx] ?? null);
+                $std = self::STANDARD_AREAS[$no - 1] ?? (self::STANDARD_AREAS[$idx] ?? null);
                 $normalized[] = [
                     'no' => $no,
                     'nama' => !empty($it['nama']) ? $it['nama'] : (!empty($it['area_name']) ? $it['area_name'] : ($std['nama'] ?? "Area #{$no}")),
