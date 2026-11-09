@@ -104,6 +104,7 @@ const showConfigModal = ref(false);
 const configTargetModule = ref(null);
 const isTestingSingleModule = ref(false);
 const singleModuleTestResult = ref(null);
+const isSavingConfig = ref(false);
 
 // File Upload Modal State
 const showUploadModal = ref(false);
@@ -161,7 +162,7 @@ const applyGlobalToAllModules = () => {
 };
 
 // Reset single module configuration back to global & default
-const resetModuleToDefault = (moduleId) => {
+const resetModuleToDefault = async (moduleId) => {
   const modDef = props.modules.find(x => x.id === moduleId);
   if (!modDef) return;
   moduleConfigs.value[moduleId] = {
@@ -173,6 +174,13 @@ const resetModuleToDefault = (moduleId) => {
     table: modDef.source_table,
   };
   singleModuleTestResult.value = null;
+
+  try {
+    localStorage.setItem('sadaya_import_module_configs', JSON.stringify(moduleConfigs.value));
+    await axios.post('/database-import/save-config', {
+      modules: moduleConfigs.value,
+    });
+  } catch (e) {}
 };
 
 // Open Module Config Modal
@@ -186,6 +194,29 @@ const closeConfigModal = () => {
   showConfigModal.value = false;
   configTargetModule.value = null;
   singleModuleTestResult.value = null;
+};
+
+// Save module configuration permanently to localStorage & backend database/storage
+const saveModuleConfigAndClose = async () => {
+  isSavingConfig.value = true;
+  // 1. Simpan langsung ke browser localStorage
+  try {
+    localStorage.setItem('sadaya_import_module_configs', JSON.stringify(moduleConfigs.value));
+  } catch (e) {
+    console.warn('LocalStorage error:', e);
+  }
+
+  // 2. Simpan permanen ke storage server Sadaya
+  try {
+    await axios.post('/database-import/save-config', {
+      modules: moduleConfigs.value,
+    });
+  } catch (err) {
+    console.error('Gagal menyimpan konfigurasi ke server:', err);
+  } finally {
+    isSavingConfig.value = false;
+    closeConfigModal();
+  }
 };
 
 // Test single module connection
@@ -341,6 +372,26 @@ const handleExecuteUpload = async () => {
 };
 
 onMounted(() => {
+  // Pulihkan konfigurasi kustom dari browser localStorage jika ada
+  try {
+    const saved = localStorage.getItem('sadaya_import_module_configs');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && typeof parsed === 'object') {
+        Object.keys(parsed).forEach((k) => {
+          if (moduleConfigs.value[k] && parsed[k]) {
+            moduleConfigs.value[k] = {
+              ...moduleConfigs.value[k],
+              ...parsed[k],
+            };
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('Error reading stored module configs:', e);
+  }
+
   // Test connection on initial load
   handleTestConnection();
 });
@@ -906,11 +957,13 @@ onMounted(() => {
           </button>
           <button
             type="button"
-            @click="closeConfigModal"
-            class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            @click="saveModuleConfigAndClose"
+            :disabled="isSavingConfig"
+            class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
           >
-            <Check class="w-4 h-4" />
-            <span>Simpan &amp; Tutup</span>
+            <RefreshCw v-if="isSavingConfig" class="w-4 h-4 animate-spin" />
+            <Check v-else class="w-4 h-4" />
+            <span>{{ isSavingConfig ? 'Menyimpan...' : 'Simpan &amp; Tutup' }}</span>
           </button>
         </div>
 

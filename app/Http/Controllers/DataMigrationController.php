@@ -28,6 +28,19 @@ class DataMigrationController extends Controller
             ];
         }
 
+        // Merge saved persistent configs from storage if available
+        $savedPath = storage_path('app/simply_migration_configs.json');
+        if (file_exists($savedPath)) {
+            $saved = json_decode(file_get_contents($savedPath), true);
+            if (is_array($saved)) {
+                foreach ($saved as $k => $vals) {
+                    if (isset($defaultModuleConfigs[$k]) && is_array($vals)) {
+                        $defaultModuleConfigs[$k] = array_merge($defaultModuleConfigs[$k], $vals);
+                    }
+                }
+            }
+        }
+
         return Inertia::render('DatabaseImport/Index', [
             'modules' => array_values($rawConfigs),
             'sadaya_stats' => $service->getSadayaStats(),
@@ -39,6 +52,25 @@ class DataMigrationController extends Controller
             ],
             'default_module_configs' => $defaultModuleConfigs,
             'selected_module' => $request->query('module', 'all'),
+        ]);
+    }
+
+    /**
+     * Save customized module database credentials to persistent storage.
+     */
+    public function saveConfig(Request $request): JsonResponse
+    {
+        $modules = $request->input('modules', []);
+        if (!is_array($modules)) {
+            return response()->json(['success' => false, 'message' => 'Data konfigurasi tidak valid.'], 422);
+        }
+
+        $savedPath = storage_path('app/simply_migration_configs.json');
+        file_put_contents($savedPath, json_encode($modules, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Konfigurasi koneksi MySQL per modul berhasil disimpan secara permanen.',
         ]);
     }
 

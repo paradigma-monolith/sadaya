@@ -174,6 +174,7 @@ Route::middleware('auth')->group(function () {
     // Pusat Migrasi & Import Database Simply (CI4) -> Sadaya
     Route::prefix('database-import')->name('database-import.')->group(function () {
         Route::get('/', [\App\Http\Controllers\DataMigrationController::class, 'index'])->name('index');
+        Route::post('/save-config', [\App\Http\Controllers\DataMigrationController::class, 'saveConfig'])->name('saveConfig');
         Route::post('/test-connection', [\App\Http\Controllers\DataMigrationController::class, 'testConnection'])->name('test');
         Route::post('/migrate', [\App\Http\Controllers\DataMigrationController::class, 'migrate'])->name('migrate');
         Route::post('/import-file', [\App\Http\Controllers\DataMigrationController::class, 'importFile'])->name('importFile');

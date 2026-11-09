@@ -44,6 +44,15 @@ class SimplyMigrateAll extends Command
             'password' => $this->option('password'),
         ];
 
+        $savedPath = storage_path('app/simply_migration_configs.json');
+        if (file_exists($savedPath)) {
+            $saved = json_decode(file_get_contents($savedPath), true);
+            if (is_array($saved)) {
+                $credentials['modules'] = $saved;
+                $this->info("ℹ️  Memuat konfigurasi kustom basis data dari penyimpanan lokal.");
+            }
+        }
+
         $module = $this->option('module') ?: 'all';
         $options = [
             'skip_duplicate' => true,
