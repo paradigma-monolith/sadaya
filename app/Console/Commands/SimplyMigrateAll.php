@@ -58,13 +58,13 @@ class SimplyMigrateAll extends Command
 
         $testRows = [];
         foreach ($test['modules'] as $k => $m) {
-            $status = $m['connected'] && $m['table_exists'] ? '<info>Siap (' . number_format($m['count']) . ' data)</info>' : '<comment>' . ($m['error'] ?? 'Tidak ditemukan') . '</comment>';
+            $status = ($m['connected'] ?? false) && ($m['table_exists'] ?? false) ? '<info>Siap (' . number_format($m['count'] ?? 0) . ' data)</info>' : '<comment>' . ($m['error'] ?? 'Tidak ditemukan') . '</comment>';
             $testRows[] = [
-                $m['name'],
-                $m['database'],
-                $m['table'],
+                $m['name'] ?? $k,
+                $m['database'] ?? '-',
+                $m['table'] ?? '-',
                 $status,
-                $m['min_date'] ? "{$m['min_date']} - {$m['max_date']}" : '-'
+                (!empty($m['min_date'])) ? "{$m['min_date']} - {$m['max_date']}" : '-'
             ];
         }
 
@@ -84,16 +84,27 @@ class SimplyMigrateAll extends Command
             $result = $service->migrateAll($credentials, $options);
             $summaryRows = [];
             foreach ($result['details'] as $mKey => $detail) {
-                $summaryRows[] = [
-                    $detail['module_name'] ?? $mKey,
-                    number_format($detail['total_processed']),
-                    number_format($detail['imported']),
-                    number_format($detail['skipped']),
-                    number_format($detail['failed']),
-                    "{$detail['duration']}s",
-                ];
+                if ($detail['success'] ?? false) {
+                    $summaryRows[] = [
+                        $detail['module_name'] ?? $mKey,
+                        number_format($detail['total_processed'] ?? 0),
+                        number_format($detail['imported'] ?? 0),
+                        number_format($detail['skipped'] ?? 0),
+                        number_format($detail['failed'] ?? 0),
+                        ($detail['duration'] ?? 0) . 's',
+                    ];
+                } else {
+                    $summaryRows[] = [
+                        $detail['module_name'] ?? $mKey,
+                        '-',
+                        '-',
+                        '-',
+                        '<comment>Gagal</comment>',
+                        substr($detail['message'] ?? 'Gagal koneksi', 0, 40) . '...',
+                    ];
+                }
             }
-            $this->table(['Modul', 'Diproses', 'Diimpor', 'Dilewati (Duplikat)', 'Gagal', 'Durasi'], $summaryRows);
+            $this->table(['Modul', 'Diproses', 'Diimpor', 'Dilewati (Duplikat)', 'Gagal', 'Durasi / Catatan'], $summaryRows);
             $this->info("✅ Seluruh proses migrasi selesai dalam {$result['duration']} detik. Total diimpor: {$result['total_imported']} rekaman.");
         } else {
             $result = $service->migrateModule($module, $credentials, $options);

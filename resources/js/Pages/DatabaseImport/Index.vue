@@ -24,6 +24,10 @@ import {
   ShieldCheck,
   Clock,
   Sparkles,
+  SlidersHorizontal,
+  Settings,
+  Key,
+  RotateCcw,
 } from 'lucide-vue-next';
 import axios from 'axios';
 
@@ -45,19 +49,38 @@ const props = defineProps({
       password: 'mysql',
     }),
   },
+  default_module_configs: {
+    type: Object,
+    default: () => ({}),
+  },
   selected_module: {
     type: String,
     default: 'all',
   },
 });
 
-// Credentials state
+// Global / Default Credentials state
 const credentials = ref({
   host: props.default_config.host || '127.0.0.1',
   port: props.default_config.port || 3306,
   username: props.default_config.username || 'root',
   password: props.default_config.password || 'mysql',
 });
+
+// Per-module configurations state (host, port, username, password, database, table)
+const initialModuleConfigs = {};
+props.modules.forEach((mod) => {
+  const fromProps = props.default_module_configs?.[mod.id] || {};
+  initialModuleConfigs[mod.id] = {
+    host: fromProps.host || credentials.value.host,
+    port: fromProps.port || credentials.value.port,
+    username: fromProps.username !== undefined ? fromProps.username : credentials.value.username,
+    password: fromProps.password !== undefined ? fromProps.password : credentials.value.password,
+    database: fromProps.database || mod.source_db,
+    table: fromProps.table || mod.source_table,
+  };
+});
+const moduleConfigs = ref(initialModuleConfigs);
 
 // Migration Options
 const options = ref({
@@ -75,6 +98,12 @@ const testResults = ref(null);
 const isMigrating = ref(false);
 const activeMigratingModule = ref(null);
 const migrationSummary = ref(null);
+
+// Per-module Config Modal State
+const showConfigModal = ref(false);
+const configTargetModule = ref(null);
+const isTestingSingleModule = ref(false);
+const singleModuleTestResult = ref(null);
 
 // File Upload Modal State
 const showUploadModal = ref(false);
@@ -102,12 +131,108 @@ const formatNumber = (val) => {
   return Number(val).toLocaleString('id-ID');
 };
 
+const isModuleCustomized = (moduleId) => {
+  const m = moduleConfigs.value[moduleId];
+  if (!m) return false;
+  const modDef = props.modules.find(x => x.id === moduleId);
+  if (!modDef) return false;
+  return (
+    m.host !== credentials.value.host ||
+    m.port !== credentials.value.port ||
+    m.username !== credentials.value.username ||
+    m.password !== credentials.value.password ||
+    m.database !== modDef.source_db ||
+    m.table !== modDef.source_table
+  );
+};
+
+// Apply top global credentials to all modules
+const applyGlobalToAllModules = () => {
+  props.modules.forEach((mod) => {
+    if (!moduleConfigs.value[mod.id]) {
+      moduleConfigs.value[mod.id] = {};
+    }
+    moduleConfigs.value[mod.id].host = credentials.value.host;
+    moduleConfigs.value[mod.id].port = credentials.value.port;
+    moduleConfigs.value[mod.id].username = credentials.value.username;
+    moduleConfigs.value[mod.id].password = credentials.value.password;
+  });
+  alert('Kredensial host, port, username, dan password berhasil disalin ke seluruh 5 modul.');
+};
+
+// Reset single module configuration back to global & default
+const resetModuleToDefault = (moduleId) => {
+  const modDef = props.modules.find(x => x.id === moduleId);
+  if (!modDef) return;
+  moduleConfigs.value[moduleId] = {
+    host: credentials.value.host,
+    port: credentials.value.port,
+    username: credentials.value.username,
+    password: credentials.value.password,
+    database: modDef.source_db,
+    table: modDef.source_table,
+  };
+  singleModuleTestResult.value = null;
+};
+
+// Open Module Config Modal
+const openConfigModal = (module) => {
+  configTargetModule.value = module;
+  singleModuleTestResult.value = testResults.value?.modules?.[module.id] || null;
+  showConfigModal.value = true;
+};
+
+const closeConfigModal = () => {
+  showConfigModal.value = false;
+  configTargetModule.value = null;
+  singleModuleTestResult.value = null;
+};
+
+// Test single module connection
+const handleTestSingleModule = async (moduleId) => {
+  isTestingSingleModule.value = true;
+  singleModuleTestResult.value = null;
+  try {
+    const payload = {
+      target_module: moduleId,
+      ...credentials.value,
+      modules: moduleConfigs.value,
+    };
+    const res = await axios.post('/database-import/test-connection', payload);
+    const modResult = res.data.modules?.[moduleId];
+    singleModuleTestResult.value = modResult;
+    if (!testResults.value) {
+      testResults.value = { success: true, modules: {} };
+    }
+    if (!testResults.value.modules) {
+      testResults.value.modules = {};
+    }
+    testResults.value.modules[moduleId] = modResult;
+    if (res.data.sadaya_current) {
+      localSadayaStats.value = res.data.sadaya_current;
+    }
+  } catch (err) {
+    singleModuleTestResult.value = {
+      connected: false,
+      table_exists: false,
+      count: 0,
+      error: err.response?.data?.message || err.message || 'Gagal menghubungi database modul.',
+    };
+  } finally {
+    isTestingSingleModule.value = false;
+  }
+};
+
 const handleTestConnection = async () => {
   isTesting.value = true;
   testResults.value = null;
   migrationSummary.value = null;
   try {
-    const res = await axios.post('/database-import/test-connection', credentials.value);
+    const payload = {
+      ...credentials.value,
+      modules: moduleConfigs.value,
+    };
+    const res = await axios.post('/database-import/test-connection', payload);
     testResults.value = res.data;
     if (res.data.sadaya_current) {
       localSadayaStats.value = res.data.sadaya_current;
@@ -140,6 +265,8 @@ const handleMigrate = async (moduleId) => {
       module: moduleId,
       ...credentials.value,
       ...options.value,
+      modules: moduleConfigs.value,
+      ...(moduleId !== 'all' ? (moduleConfigs.value[moduleId] || {}) : {}),
     };
     const res = await axios.post('/database-import/migrate', payload);
     migrationSummary.value = res.data;
@@ -268,16 +395,27 @@ onMounted(() => {
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
           <div class="flex items-center gap-2 text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
             <Server class="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            <span>Konfigurasi Koneksi MySQL Sumber (Simply / Local AMPPS)</span>
+            <span>Konfigurasi Koneksi MySQL Sumber (Global / Default)</span>
           </div>
-          <span class="text-[11px] text-slate-400 font-mono">
-            Database Terhubung: bkkr3927_cop &amp; bkkr3927_simply
-          </span>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              @click="applyGlobalToAllModules"
+              class="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition flex items-center gap-1 cursor-pointer"
+              title="Salin kredensial global ini ke seluruh modul"
+            >
+              <RotateCcw class="w-3 h-3 text-indigo-500" />
+              <span>Terapkan ke Semua Modul</span>
+            </button>
+            <span class="text-[11px] text-slate-400 font-mono hidden md:inline-block">
+              Basis data &amp; tabel per modul dapat diatur mandiri di bawah
+            </span>
+          </div>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Host MySQL</label>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Host MySQL Global</label>
             <input
               type="text"
               v-model="credentials.host"
@@ -285,7 +423,7 @@ onMounted(() => {
             />
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Port</label>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Port Global</label>
             <input
               type="number"
               v-model="credentials.port"
@@ -293,7 +431,7 @@ onMounted(() => {
             />
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Username</label>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Username Global</label>
             <input
               type="text"
               v-model="credentials.username"
@@ -301,7 +439,7 @@ onMounted(() => {
             />
           </div>
           <div>
-            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Password</label>
+            <label class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Password Global</label>
             <input
               type="password"
               v-model="credentials.password"
@@ -451,7 +589,7 @@ onMounted(() => {
             <thead class="bg-slate-50/80 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-100 dark:border-slate-800">
               <tr>
                 <th class="py-3 px-5">Modul Operasional</th>
-                <th class="py-3 px-4">Sumber Simply (CI4)</th>
+                <th class="py-3 px-4">Koneksi &amp; Tabel Sumber Simply</th>
                 <th class="py-3 px-4">Tujuan Sadaya</th>
                 <th class="py-3 px-4 text-center">Data di Sadaya</th>
                 <th class="py-3 px-4 text-center">Status di Simply</th>
@@ -483,9 +621,19 @@ onMounted(() => {
 
                 <!-- Sumber Simply -->
                 <td class="py-3.5 px-4 font-mono text-[11px]">
-                  <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 inline-block">
-                    {{ mod.source_db }}.{{ mod.source_table }}
-                  </span>
+                  <div class="space-y-1">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                      <span class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 inline-block font-semibold">
+                        {{ moduleConfigs[mod.id]?.database || mod.source_db }}.{{ moduleConfigs[mod.id]?.table || mod.source_table }}
+                      </span>
+                      <span v-if="isModuleCustomized(mod.id)" class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                        Kustom
+                      </span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 font-mono">
+                      {{ moduleConfigs[mod.id]?.host || credentials.host }}:{{ moduleConfigs[mod.id]?.port || credentials.port }} &bull; user: {{ moduleConfigs[mod.id]?.username || credentials.username }}
+                    </div>
+                  </div>
                 </td>
 
                 <!-- Tujuan Sadaya -->
@@ -530,6 +678,16 @@ onMounted(() => {
                 <!-- Actions -->
                 <td class="py-3.5 px-5 text-right">
                   <div class="inline-flex items-center gap-1.5 justify-end">
+                    <button
+                      type="button"
+                      @click="openConfigModal(mod)"
+                      class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition shadow-2xs flex items-center gap-1.5 cursor-pointer"
+                      title="Atur Host, Port, Database, Tabel, dan Kredensial khusus modul ini"
+                    >
+                      <SlidersHorizontal class="w-3.5 h-3.5 text-indigo-500" />
+                      <span class="hidden sm:inline">Atur DB</span>
+                    </button>
+
                     <button
                       type="button"
                       @click="handleMigrate(mod.id)"
@@ -654,6 +812,162 @@ onMounted(() => {
           >
             <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isUploading }" />
             <span>{{ isUploading ? 'Memproses Berkas...' : 'Mulai Import File' }}</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==================== MODAL KONFIGURASI DATABASE PER MODUL ==================== -->
+    <div
+      v-if="showConfigModal && configTargetModule"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+    >
+      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-8">
+        
+        <!-- Modal Header -->
+        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-2xl flex items-center justify-center" :class="[configTargetModule.bg_color, configTargetModule.color]">
+              <component :is="iconComponent(configTargetModule.icon)" class="w-5 h-5" />
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">
+                  Konfigurasi Basis Data: {{ configTargetModule.name }}
+                </h3>
+                <span v-if="isModuleCustomized(configTargetModule.id)" class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
+                  Kustom
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                Atur Host, Port, Database, Tabel, dan Kredensial khusus untuk modul ini
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            @click="closeConfigModal"
+            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
+          >
+            <X class="w-5 h-5" />
+          </button>
+        </div>
+
+        <!-- Modal Body: Inputs -->
+        <div class="p-5 space-y-4">
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Host MySQL</label>
+              <input
+                type="text"
+                v-model="moduleConfigs[configTargetModule.id].host"
+                placeholder="127.0.0.1"
+                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Port</label>
+              <input
+                type="number"
+                v-model="moduleConfigs[configTargetModule.id].port"
+                placeholder="3306"
+                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Nama Database Sumber</label>
+              <input
+                type="text"
+                v-model="moduleConfigs[configTargetModule.id].database"
+                placeholder="bkkr3927_simply"
+                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Nama Tabel Sumber</label>
+              <input
+                type="text"
+                v-model="moduleConfigs[configTargetModule.id].table"
+                placeholder="tc_sanitasi_kapal"
+                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Username MySQL</label>
+              <input
+                type="text"
+                v-model="moduleConfigs[configTargetModule.id].username"
+                placeholder="root"
+                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Password MySQL</label>
+              <input
+                type="password"
+                v-model="moduleConfigs[configTargetModule.id].password"
+                placeholder="••••••••"
+                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <!-- Single Module Test Connection Box -->
+          <div class="pt-2">
+            <div class="flex items-center justify-between pb-2">
+              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Status Pemeriksaan Koneksi Modul</span>
+              <button
+                type="button"
+                @click="handleTestSingleModule(configTargetModule.id)"
+                :disabled="isTestingSingleModule"
+                class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw class="w-3 h-3 text-indigo-500" :class="{ 'animate-spin': isTestingSingleModule }" />
+                <span>{{ isTestingSingleModule ? 'Menguji...' : 'Uji Koneksi Modul Ini' }}</span>
+              </button>
+            </div>
+
+            <div v-if="singleModuleTestResult" class="p-3.5 rounded-xl text-xs border" :class="singleModuleTestResult.connected && singleModuleTestResult.table_exists ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 text-emerald-800 dark:text-emerald-300' : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 text-rose-800 dark:text-rose-300'">
+              <div class="flex items-center gap-2 font-bold">
+                <CheckCircle2 v-if="singleModuleTestResult.connected && singleModuleTestResult.table_exists" class="w-4 h-4 text-emerald-600" />
+                <XCircle v-else class="w-4 h-4 text-rose-600" />
+                <span>{{ singleModuleTestResult.connected && singleModuleTestResult.table_exists ? 'Terkoneksi & Siap Dimigrasikan' : 'Koneksi atau Tabel Bermasalah' }}</span>
+              </div>
+              <div class="text-[11px] mt-1 space-y-0.5 font-mono">
+                <div v-if="singleModuleTestResult.connected && singleModuleTestResult.table_exists">
+                  Ditemukan: <strong>{{ formatNumber(singleModuleTestResult.count) }}</strong> baris data pada <code class="bg-black/5 dark:bg-white/10 px-1 rounded">{{ singleModuleTestResult.database }}.{{ singleModuleTestResult.table }}</code>.
+                  <span v-if="singleModuleTestResult.min_date" class="block font-sans text-slate-500">Rentang tanggal: {{ singleModuleTestResult.min_date }} s/d {{ singleModuleTestResult.max_date }}</span>
+                </div>
+                <div v-else class="text-rose-700 dark:text-rose-400 font-sans">
+                  {{ singleModuleTestResult.error || 'Tabel atau basis data tidak ditemukan.' }}
+                </div>
+              </div>
+            </div>
+            <div v-else class="text-[11px] text-slate-400 italic bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+              Klik "Uji Koneksi Modul Ini" untuk memverifikasi apakah host, database, dan tabel valid.
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/40">
+          <button
+            type="button"
+            @click="resetModuleToDefault(configTargetModule.id)"
+            class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1.5"
+            title="Reset modul ini ke nilai bawaan global"
+          >
+            <RotateCcw class="w-3.5 h-3.5 text-slate-400" />
+            <span>Reset Bawaan</span>
+          </button>
+          <button
+            type="button"
+            @click="closeConfigModal"
+            class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+          >
+            <Check class="w-4 h-4" />
+            <span>Simpan &amp; Tutup</span>
           </button>
         </div>
 

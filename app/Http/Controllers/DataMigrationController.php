@@ -15,8 +15,21 @@ class DataMigrationController extends Controller
      */
     public function index(Request $request, SimplyDataMigrationService $service): Response
     {
+        $rawConfigs = $service->getModuleConfigs();
+        $defaultModuleConfigs = [];
+        foreach ($rawConfigs as $modKey => $cfg) {
+            $defaultModuleConfigs[$modKey] = [
+                'host' => '127.0.0.1',
+                'port' => 3306,
+                'username' => 'root',
+                'password' => 'mysql',
+                'database' => $cfg['source_db'],
+                'table' => $cfg['source_table'],
+            ];
+        }
+
         return Inertia::render('DatabaseImport/Index', [
-            'modules' => array_values($service->getModuleConfigs()),
+            'modules' => array_values($rawConfigs),
             'sadaya_stats' => $service->getSadayaStats(),
             'default_config' => [
                 'host' => '127.0.0.1',
@@ -24,17 +37,32 @@ class DataMigrationController extends Controller
                 'username' => 'root',
                 'password' => 'mysql',
             ],
+            'default_module_configs' => $defaultModuleConfigs,
             'selected_module' => $request->query('module', 'all'),
         ]);
     }
 
     /**
-     * Test connection to MySQL and probe all modules.
+     * Test connection to MySQL and probe all modules or a specific module.
      */
     public function testConnection(Request $request, SimplyDataMigrationService $service): JsonResponse
     {
-        $credentials = $request->only(['host', 'port', 'username', 'password']);
-        $result = $service->testAll($credentials);
+        $payload = $request->all();
+        $targetModule = $request->input('target_module');
+
+        if ($targetModule && $targetModule !== 'all') {
+            $res = $service->testModule($targetModule, $payload);
+            return response()->json([
+                'success' => ($res['connected'] && $res['table_exists']),
+                'message' => ($res['connected'] && $res['table_exists'])
+                    ? "Koneksi ke modul {$res['name']} berhasil ({$res['count']} baris)."
+                    : ($res['error'] ?? 'Gagal terhubung'),
+                'modules' => [$targetModule => $res],
+                'sadaya_current' => $service->getSadayaStats(),
+            ]);
+        }
+
+        $result = $service->testAll($payload);
 
         return response()->json($result);
     }
@@ -45,7 +73,7 @@ class DataMigrationController extends Controller
     public function migrate(Request $request, SimplyDataMigrationService $service): JsonResponse
     {
         $module = $request->input('module', 'all');
-        $credentials = $request->only(['host', 'port', 'username', 'password', 'database', 'table']);
+        $credentials = $request->all();
         $options = [
             'skip_duplicate' => (bool)$request->input('skip_duplicate', true),
             'truncate_first' => (bool)$request->input('truncate_first', false),

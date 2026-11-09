@@ -107,112 +107,155 @@ class SimplyDataMigrationService
     }
 
     /**
-     * Test connection to MySQL and probe all modules.
+     * Resolve effective credentials and target DB/table for a module.
+     * Checks per-module credentials first, falls back to global credentials, then module default config.
      */
-    public function testAll(array $credentials): array
+    public function resolveModuleCredentials(string $module, array $credentials): array
     {
-        $host = $credentials['host'] ?? '127.0.0.1';
-        $port = (int)($credentials['port'] ?? 3306);
-        $username = $credentials['username'] ?? 'root';
-        $password = $credentials['password'] ?? 'mysql';
+        $configs = $this->getModuleConfigs();
+        $cfg = $configs[$module] ?? [];
 
-        $modules = $this->getModuleConfigs();
-        $results = [];
-        $databasesChecked = [];
-        $overallSuccess = true;
+        // Check if credentials are nested under modules[module]
+        $modCreds = $credentials['modules'][$module] ?? [];
 
-        foreach ($modules as $modKey => $cfg) {
-            $dbName = $cfg['source_db'];
-            $tblName = $cfg['source_table'];
+        return [
+            'host' => !empty($modCreds['host']) ? $modCreds['host'] : ($credentials['host'] ?? '127.0.0.1'),
+            'port' => (int)(!empty($modCreds['port']) ? $modCreds['port'] : ($credentials['port'] ?? 3306)),
+            'username' => isset($modCreds['username']) ? $modCreds['username'] : ($credentials['username'] ?? 'root'),
+            'password' => isset($modCreds['password']) ? $modCreds['password'] : ($credentials['password'] ?? 'mysql'),
+            'database' => !empty($modCreds['database']) ? $modCreds['database'] : (!empty($credentials['database']) ? $credentials['database'] : ($cfg['source_db'] ?? '')),
+            'table' => !empty($modCreds['table']) ? $modCreds['table'] : (!empty($credentials['table']) ? $credentials['table'] : ($cfg['source_table'] ?? '')),
+        ];
+    }
 
-            // Connect if not cached
-            if (!isset($databasesChecked[$dbName])) {
-                try {
-                    $pdo = new PDO(
-                        "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4",
-                        $username,
-                        $password,
-                        [
-                            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                            PDO::ATTR_TIMEOUT => 4,
-                        ]
-                    );
-                    $databasesChecked[$dbName] = ['pdo' => $pdo, 'success' => true];
-                } catch (Throwable $e) {
-                    $databasesChecked[$dbName] = ['pdo' => null, 'success' => false, 'error' => $e->getMessage()];
-                }
-            }
+    /**
+     * Test connection to MySQL and probe a single module.
+     */
+    public function testModule(string $module, array $credentials): array
+    {
+        $configs = $this->getModuleConfigs();
+        if (!isset($configs[$module])) {
+            return [
+                'module' => $module,
+                'name' => $module,
+                'connected' => false,
+                'table_exists' => false,
+                'count' => 0,
+                'error' => "Modul '{$module}' tidak ditemukan.",
+            ];
+        }
 
-            if (!$databasesChecked[$dbName]['success']) {
-                $overallSuccess = false;
-                $results[$modKey] = [
-                    'module' => $modKey,
+        $cfg = $configs[$module];
+        $cred = $this->resolveModuleCredentials($module, $credentials);
+        $host = $cred['host'];
+        $port = $cred['port'];
+        $username = $cred['username'];
+        $password = $cred['password'];
+        $dbName = $cred['database'];
+        $tblName = $cred['table'];
+
+        try {
+            $pdo = new PDO(
+                "mysql:host={$host};port={$port};dbname={$dbName};charset=utf8mb4",
+                $username,
+                $password,
+                [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 4,
+                ]
+            );
+        } catch (Throwable $e) {
+            return [
+                'module' => $module,
+                'name' => $cfg['name'],
+                'host' => $host,
+                'port' => $port,
+                'database' => $dbName,
+                'table' => $tblName,
+                'connected' => false,
+                'table_exists' => false,
+                'count' => 0,
+                'error' => $e->getMessage(),
+            ];
+        }
+
+        try {
+            $check = $pdo->query("SHOW TABLES LIKE '{$tblName}'")->fetchAll();
+            if (empty($check)) {
+                return [
+                    'module' => $module,
                     'name' => $cfg['name'],
-                    'database' => $dbName,
-                    'table' => $tblName,
-                    'connected' => false,
-                    'table_exists' => false,
-                    'count' => 0,
-                    'error' => $databasesChecked[$dbName]['error'],
-                ];
-                continue;
-            }
-
-            $pdo = $databasesChecked[$dbName]['pdo'];
-            try {
-                $check = $pdo->query("SHOW TABLES LIKE '{$tblName}'")->fetchAll();
-                if (empty($check)) {
-                    $results[$modKey] = [
-                        'module' => $modKey,
-                        'name' => $cfg['name'],
-                        'database' => $dbName,
-                        'table' => $tblName,
-                        'connected' => true,
-                        'table_exists' => false,
-                        'count' => 0,
-                        'error' => "Tabel '{$tblName}' belum ada di database {$dbName}.",
-                    ];
-                } else {
-                    $cnt = (int)$pdo->query("SELECT COUNT(*) FROM `{$tblName}`")->fetchColumn();
-                    $minDate = null;
-                    $maxDate = null;
-                    try {
-                        $dateCol = ($tblName === 'tbl_pasien') ? 'date_updated' : (($tblName === 'tc_aircraft_sanitation' || $tblName === 'tc_sanitasi_kapal') ? 'tanggal' : 'created_at');
-                        $dRow = $pdo->query("SELECT MIN({$dateCol}) as min_d, MAX({$dateCol}) as max_d FROM `{$tblName}`")->fetch(PDO::FETCH_ASSOC);
-                        $minDate = $dRow['min_d'] ? date('d/m/Y', strtotime($dRow['min_d'])) : null;
-                        $maxDate = $dRow['max_d'] ? date('d/m/Y', strtotime($dRow['max_d'])) : null;
-                    } catch (Throwable) {}
-
-                    $results[$modKey] = [
-                        'module' => $modKey,
-                        'name' => $cfg['name'],
-                        'database' => $dbName,
-                        'table' => $tblName,
-                        'connected' => true,
-                        'table_exists' => true,
-                        'count' => $cnt,
-                        'min_date' => $minDate,
-                        'max_date' => $maxDate,
-                        'error' => null,
-                    ];
-                }
-            } catch (Throwable $e) {
-                $results[$modKey] = [
-                    'module' => $modKey,
-                    'name' => $cfg['name'],
+                    'host' => $host,
+                    'port' => $port,
                     'database' => $dbName,
                     'table' => $tblName,
                     'connected' => true,
                     'table_exists' => false,
                     'count' => 0,
-                    'error' => $e->getMessage(),
+                    'error' => "Tabel '{$tblName}' belum ada di database {$dbName}.",
                 ];
             }
+
+            $cnt = (int)$pdo->query("SELECT COUNT(*) FROM `{$tblName}`")->fetchColumn();
+            $minDate = null;
+            $maxDate = null;
+            try {
+                $dateCol = ($tblName === 'tbl_pasien') ? 'date_updated' : (($tblName === 'tc_aircraft_sanitation' || $tblName === 'tc_sanitasi_kapal') ? 'tanggal' : 'created_at');
+                $dRow = $pdo->query("SELECT MIN({$dateCol}) as min_d, MAX({$dateCol}) as max_d FROM `{$tblName}`")->fetch(PDO::FETCH_ASSOC);
+                $minDate = $dRow['min_d'] ? date('d/m/Y', strtotime($dRow['min_d'])) : null;
+                $maxDate = $dRow['max_d'] ? date('d/m/Y', strtotime($dRow['max_d'])) : null;
+            } catch (Throwable) {}
+
+            return [
+                'module' => $module,
+                'name' => $cfg['name'],
+                'host' => $host,
+                'port' => $port,
+                'database' => $dbName,
+                'table' => $tblName,
+                'connected' => true,
+                'table_exists' => true,
+                'count' => $cnt,
+                'min_date' => $minDate,
+                'max_date' => $maxDate,
+                'error' => null,
+            ];
+        } catch (Throwable $e) {
+            return [
+                'module' => $module,
+                'name' => $cfg['name'],
+                'host' => $host,
+                'port' => $port,
+                'database' => $dbName,
+                'table' => $tblName,
+                'connected' => true,
+                'table_exists' => false,
+                'count' => 0,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
+    /**
+     * Test connection to MySQL and probe all modules with individual credentials.
+     */
+    public function testAll(array $credentials): array
+    {
+        $modules = $this->getModuleConfigs();
+        $results = [];
+        $overallSuccess = true;
+
+        foreach ($modules as $modKey => $cfg) {
+            $modRes = $this->testModule($modKey, $credentials);
+            if (!$modRes['connected'] || !$modRes['table_exists']) {
+                $overallSuccess = false;
+            }
+            $results[$modKey] = $modRes;
         }
 
         return [
             'success' => $overallSuccess,
-            'message' => $overallSuccess ? 'Koneksi ke semua database Simply berhasil diverifikasi.' : 'Sebagian database tidak dapat dihubungi.',
+            'message' => $overallSuccess ? 'Koneksi ke semua database modul Simply berhasil diverifikasi.' : 'Sebagian database/tabel modul tidak dapat dihubungi.',
             'modules' => $results,
             'sadaya_current' => $this->getSadayaStats(),
         ];
@@ -230,12 +273,13 @@ class SimplyDataMigrationService
         }
 
         $cfg = $configs[$module];
-        $host = $credentials['host'] ?? '127.0.0.1';
-        $port = (int)($credentials['port'] ?? 3306);
-        $username = $credentials['username'] ?? 'root';
-        $password = $credentials['password'] ?? 'mysql';
-        $dbName = $credentials['database'] ?? $cfg['source_db'];
-        $tblName = $credentials['table'] ?? $cfg['source_table'];
+        $cred = $this->resolveModuleCredentials($module, $credentials);
+        $host = $cred['host'];
+        $port = $cred['port'];
+        $username = $cred['username'];
+        $password = $cred['password'];
+        $dbName = $cred['database'];
+        $tblName = $cred['table'];
 
         $skipDuplicate = $options['skip_duplicate'] ?? true;
         $truncateFirst = $options['truncate_first'] ?? false;
@@ -252,7 +296,7 @@ class SimplyDataMigrationService
                 ]
             );
         } catch (Throwable $e) {
-            return ['success' => false, 'message' => "Gagal terhubung ke {$dbName}: " . $e->getMessage()];
+            return ['success' => false, 'message' => "Gagal terhubung ke {$dbName} ({$host}:{$port}): " . $e->getMessage()];
         }
 
         if ($truncateFirst && !$dryRun) {
