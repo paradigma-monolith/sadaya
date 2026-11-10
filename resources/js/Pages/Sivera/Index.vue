@@ -39,7 +39,6 @@ import {
   CloudSun,
   Radio,
   Clock,
-  Sparkles,
   BarChart3,
   Table,
   Rat,
@@ -1499,43 +1498,6 @@ const closeDetail = () => {
 
           <!-- 1. SIVERA DASHBOARD VIEW -->
           <div v-if="siveraFilterVektor === 'Dashboard'" class="space-y-6 mt-4">
-            <!-- Modern Hero Banner -->
-            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 border border-teal-500/30 text-white p-6 md:p-7 shadow-xl">
-              <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
-              <div class="absolute -left-12 -top-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-              <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-                <div class="max-w-2xl">
-                  <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/20 border border-teal-400/30 text-teal-300 text-xs font-semibold mb-3">
-                    <Sparkles class="w-3.5 h-3.5" />
-                    <span>Sistem Informasi Surveilans Vektor &amp; Reservoar (SIVERA)</span>
-                  </div>
-                  <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">
-                    Dashboard Surveilans Vektor dan Reservoar
-                  </h2>
-                  <p class="text-xs md:text-sm text-slate-300 mt-1 leading-relaxed">
-                    Ringkasan surveilans kepadatan jentik, lalat, kecoa, tikus, pinjal, dan anopheles di wilayah perimeter &amp; buffer dalam tampilan analitik interaktif, terpadu, dan profesional.
-                  </p>
-                </div>
-
-                <!-- Right Quick Metrics Badges -->
-                <div class="flex flex-wrap items-center gap-2.5">
-                  <div class="px-3.5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center min-w-[110px]">
-                    <div class="text-[10px] text-teal-200 uppercase tracking-wider font-bold">Wilker Terpantau</div>
-                    <div class="text-lg font-black text-white font-mono mt-0.5">{{ siveraDashData.labels.length }}</div>
-                  </div>
-                  <div class="px-3.5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center min-w-[110px]">
-                    <div class="text-[10px] text-teal-200 uppercase tracking-wider font-bold">Total Pemantauan</div>
-                    <div class="text-lg font-black text-white font-mono mt-0.5">{{ siveraDashData.summary.total_surveilans }}</div>
-                  </div>
-                  <div class="px-3.5 py-2 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 text-center min-w-[120px]">
-                    <div class="text-[10px] text-emerald-300 uppercase tracking-wider font-bold">Baku Mutu Aman</div>
-                    <div class="text-lg font-black text-emerald-300 font-mono mt-0.5">{{ siveraDashData.summary.kepatuhan_pct }}%</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             <!-- 6 KPI Metric Cards Grid -->
             <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5">
               <!-- 1. Jentik -->
