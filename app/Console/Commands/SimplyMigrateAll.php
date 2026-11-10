@@ -13,7 +13,7 @@ class SimplyMigrateAll extends Command
      * @var string
      */
     protected $signature = 'simply:migrate
-                            {--module=all : Modul yang akan dimigrasikan (all, ship_surveillance, aircraft_sanitation, ship_sanitation, medical_alat, medical_obat)}
+                            {--module=all : Modul yang akan dimigrasikan (all, ship_surveillance, aircraft_sanitation, ship_sanitation, medical_alat, medical_obat, users, prl_tpp, prl_sab, prl_hsbu, prl_sivera)}
                             {--host=127.0.0.1 : Host MySQL Simply}
                             {--port=3306 : Port MySQL Simply}
                             {--username=root : Username MySQL}
@@ -26,7 +26,7 @@ class SimplyMigrateAll extends Command
      *
      * @var string
      */
-    protected $description = 'Migrasikan seluruh data operasional (Pengawasan Kapal, Travel Consent Pesawat, Sanitasi Kapal, Alkes & Obat Haji) dari Simply ke Sadaya';
+    protected $description = 'Migrasikan seluruh data operasional (Pengawasan Kapal, Sanitasi Pesawat, Sanitasi Kapal, Alkes/Obat Haji, Pengguna, TPP, SAB, HSBU, SIVERA) dari Simply ke Sadaya';
 
     /**
      * Execute the console command.

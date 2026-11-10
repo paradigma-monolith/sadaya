@@ -187,6 +187,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/sivera/{id}/pengendalian', [\App\Http\Controllers\PrlController::class, 'updatePengendalianSivera'])->name('updatePengendalianSivera');
         Route::delete('/inspeksi/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroyInspeksi'])->name('destroyInspeksi');
         Route::delete('/sarana/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroySarana'])->name('destroySarana');
+        Route::post('/sync', [\App\Http\Controllers\PrlController::class, 'syncFromSimply'])->name('sync');
+        Route::post('/test-connection', [\App\Http\Controllers\PrlController::class, 'testSimplyConnection'])->name('testConnection');
     });
 
     // System Data Exports (Excel, CSV, PDF)

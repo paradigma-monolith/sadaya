@@ -16,6 +16,10 @@ import {
   PackageCheck,
   Pill,
   Users,
+  Utensils,
+  Droplet,
+  Building,
+  Bug,
   ArrowRight,
   Layers,
   FileSpreadsheet,
@@ -228,6 +232,10 @@ const iconComponent = (iconName) => {
     case 'PackageCheck': return PackageCheck;
     case 'Pill': return Pill;
     case 'Users': return Users;
+    case 'Utensils': return Utensils;
+    case 'Droplet': return Droplet;
+    case 'Building': return Building;
+    case 'Bug': return Bug;
     default: return Database;
   }
 };
@@ -263,7 +271,7 @@ const applyGlobalToAllModules = () => {
     moduleConfigs.value[mod.id].username = credentials.value.username;
     moduleConfigs.value[mod.id].password = credentials.value.password;
   });
-  alert('Kredensial host, port, username, dan password berhasil disalin ke seluruh 5 modul.');
+  alert(`Kredensial host, port, username, dan password berhasil disalin ke seluruh ${props.modules.length} modul.`);
 };
 
 // Reset single module configuration back to global & default

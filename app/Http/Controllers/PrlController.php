@@ -10,6 +10,7 @@ use App\Models\PrlInspeksiTpp;
 use App\Models\PrlSab;
 use App\Models\PrlSiveraVektor;
 use App\Models\PrlTpp;
+use App\Services\SimplyDataMigrationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -964,6 +965,73 @@ class PrlController extends Controller
         return response()->json([
             'success' => (bool)$deleted,
             'message' => 'Data master sarana berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Test connection to MySQL Simply for PRL module.
+     */
+    public function testSimplyConnection(Request $request, SimplyDataMigrationService $service): JsonResponse
+    {
+        $payload = $request->all();
+        $targetModule = $request->input('target_module', 'prl_sivera');
+        $res = $service->testModule($targetModule, $payload);
+        return response()->json([
+            'success' => ($res['connected'] && $res['table_exists']),
+            'message' => ($res['connected'] && $res['table_exists'])
+                ? "Koneksi ke modul {$res['name']} berhasil ({$res['count']} baris)."
+                : ($res['error'] ?? 'Gagal terhubung ke basis data Simply MySQL'),
+            'modules' => [$targetModule => $res],
+        ]);
+    }
+
+    /**
+     * Run PRL data migration from Simply CI4.
+     */
+    public function syncFromSimply(Request $request, SimplyDataMigrationService $service): JsonResponse
+    {
+        $modules = $request->input('modules', ['prl_tpp', 'prl_sab', 'prl_hsbu', 'prl_sivera']);
+        if (is_string($modules)) {
+            $modules = [$modules];
+        }
+
+        $credentials = $request->all();
+        $options = [
+            'skip_duplicate' => (bool)$request->input('skip_duplicate', true),
+            'truncate_first' => (bool)$request->input('truncate_first', false),
+            'dry_run' => (bool)$request->input('dry_run', false),
+        ];
+
+        // Privilege check: Truncate requires Super Admin
+        if ($options['truncate_first'] && !$request->user()->hasRole('Super Admin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses Ditolak: Opsi mengosongkan tabel (Truncate) hanya diizinkan untuk Super Admin.',
+            ], 403);
+        }
+
+        $results = [];
+        $totalImported = 0;
+        $totalSkipped = 0;
+        $totalProcessed = 0;
+
+        foreach ($modules as $mod) {
+            $res = $service->migrateModule($mod, $credentials, $options);
+            $results[$mod] = $res;
+            if ($res['success']) {
+                $totalImported += $res['imported'] ?? 0;
+                $totalSkipped += $res['skipped'] ?? 0;
+                $totalProcessed += $res['total_processed'] ?? 0;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => "Sinkronisasi data PRL dari Simply selesai ({$totalImported} data baru diimpor, {$totalSkipped} data duplikat dilewati).",
+            'total_processed' => $totalProcessed,
+            'total_imported' => $totalImported,
+            'total_skipped' => $totalSkipped,
+            'details' => $results,
         ]);
     }
 }

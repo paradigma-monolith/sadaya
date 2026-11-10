@@ -43,6 +43,10 @@ import {
   Radio,
   Clock,
   Sparkles,
+  Database,
+  Play,
+  Save,
+  EyeOff,
 } from 'lucide-vue-next';
 import axios from 'axios';
 
@@ -1543,6 +1547,112 @@ const formatTindakanPengendalian = (val) => {
   }
   return val;
 };
+
+// ==========================================
+// 6. MIGRATION & SYNC MODAL STATE & ACTIONS
+// ==========================================
+const showSyncModal = ref(false);
+const showSyncPassword = ref(false);
+const isTestingSync = ref(false);
+const isSyncingData = ref(false);
+const syncTestResult = ref(null);
+const syncResult = ref(null);
+
+const syncForm = ref({
+  host: '127.0.0.1',
+  port: 3306,
+  username: 'root',
+  password: '',
+  database: 'bkkr3927_simply',
+  modules: ['prl_tpp', 'prl_sab', 'prl_hsbu', 'prl_sivera'],
+  skip_duplicate: true,
+  normalize_ports: true,
+  truncate_first: false,
+});
+
+const openSyncModal = () => {
+  syncTestResult.value = null;
+  syncResult.value = null;
+  showSyncModal.value = true;
+};
+
+const closeSyncModal = () => {
+  showSyncModal.value = false;
+};
+
+const toggleAllSyncModules = () => {
+  const allMods = ['prl_tpp', 'prl_sab', 'prl_hsbu', 'prl_sivera'];
+  if (syncForm.value.modules.length === allMods.length) {
+    syncForm.value.modules = [];
+  } else {
+    syncForm.value.modules = [...allMods];
+  }
+};
+
+const handleTestSyncConnection = async () => {
+  isTestingSync.value = true;
+  syncTestResult.value = null;
+  try {
+    const res = await axios.post('/prl/test-connection', {
+      ...syncForm.value,
+      target_module: syncForm.value.modules[0] || 'prl_sivera',
+    });
+    syncTestResult.value = res.data;
+  } catch (err) {
+    syncTestResult.value = {
+      success: false,
+      message: err.response?.data?.message || err.message || 'Koneksi ke server database sumber gagal.',
+    };
+  } finally {
+    isTestingSync.value = false;
+  }
+};
+
+const handleSaveSyncConfig = () => {
+  try {
+    const saved = {
+      host: syncForm.value.host,
+      port: syncForm.value.port,
+      username: syncForm.value.username,
+      database: syncForm.value.database,
+      modules: syncForm.value.modules,
+    };
+    localStorage.setItem('prl_sync_config', JSON.stringify(saved));
+    alert('Pengaturan koneksi sumber PRL berhasil disimpan.');
+  } catch (e) {}
+};
+
+const handleRunSync = async () => {
+  if (syncForm.value.modules.length === 0) {
+    alert('Pilih setidaknya 1 modul yang akan disinkronkan.');
+    return;
+  }
+
+  if (syncForm.value.truncate_first) {
+    const confirmed = confirm('PERINGATAN: Anda memilih opsi Kosongkan Tabel (Truncate). Seluruh data lokal modul terpilih akan dihapus sebelum sinkronisasi. Lanjutkan?');
+    if (!confirmed) return;
+  }
+
+  isSyncingData.value = true;
+  syncResult.value = null;
+
+  try {
+    const res = await axios.post('/prl/sync', syncForm.value);
+    syncResult.value = res.data;
+    if (res.data.success) {
+      router.reload({
+        only: ['stats', 'inspeksi_tpp', 'inspeksi_sab', 'inspeksi_hsbu', 'sivera_vektor', 'master_tpp', 'master_sab', 'master_hsbu'],
+      });
+    }
+  } catch (err) {
+    syncResult.value = {
+      success: false,
+      message: err.response?.data?.message || err.message || 'Terjadi kesalahan saat sinkronisasi data.',
+    };
+  } finally {
+    isSyncingData.value = false;
+  }
+};
 </script>
 
 <template>
@@ -1567,6 +1677,16 @@ const formatTindakanPengendalian = (val) => {
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            @click="openSyncModal"
+            class="px-3.5 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-xs font-bold text-indigo-700 dark:text-indigo-300 transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+            title="Konfigurasi &amp; Sinkronisasi Data dari Simply CI4"
+          >
+            <Database class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span>Migrasi Data Simply</span>
+          </button>
+
           <button
             type="button"
             @click="openAddInspeksi()"
@@ -4310,6 +4430,347 @@ const formatTindakanPengendalian = (val) => {
             <button type="button" @click="closeDetail()" class="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 transition cursor-pointer">
               Tutup
             </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== MODAL SINKRONISASI / MIGRASI DATA SIMPLY ==================== -->
+      <div
+        v-if="showSyncModal"
+        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      >
+        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-8 animate-in fade-in zoom-in-95 duration-150">
+          <!-- Modal Header -->
+          <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/40">
+            <div class="flex items-start gap-3">
+              <div class="w-11 h-11 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shrink-0 shadow-md shadow-indigo-500/20">
+                <Database class="w-5 h-5" />
+              </div>
+              <div>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+                    Konfigurasi Database Sumber Sebelum Sinkronisasi
+                  </h3>
+                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800">
+                    Pra-Sinkronisasi
+                  </span>
+                </div>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                  Pastikan kredensial MySQL, host, port, dan basis data sumber sudah sesuai sebelum proses migrasi dijalankan.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="closeSyncModal"
+              class="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer"
+            >
+              <X class="w-5 h-5" />
+            </button>
+          </div>
+
+          <!-- Modal Body -->
+          <div class="p-5 sm:p-6 space-y-5 max-h-[75vh] overflow-y-auto text-xs">
+            
+            <!-- 1. Kredensial MySQL Global -->
+            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                  <Server class="w-4 h-4 text-indigo-600" />
+                  <span>Kredensial Server MySQL Sumber (Global)</span>
+                </div>
+                <span class="text-[10px] text-slate-400">Koneksi default ke database sumber</span>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Host MySQL</label>
+                  <input
+                    v-model="syncForm.host"
+                    type="text"
+                    placeholder="127.0.0.1"
+                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-mono"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Port</label>
+                  <input
+                    v-model.number="syncForm.port"
+                    type="number"
+                    placeholder="3306"
+                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-mono"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Username</label>
+                  <input
+                    v-model="syncForm.username"
+                    type="text"
+                    placeholder="root"
+                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-mono"
+                  />
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Password</label>
+                  <div class="relative">
+                    <input
+                      v-model="syncForm.password"
+                      :type="showSyncPassword ? 'text' : 'password'"
+                      placeholder="•••••"
+                      class="w-full pl-3 pr-8 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-mono"
+                    />
+                    <button
+                      type="button"
+                      @click="showSyncPassword = !showSyncPassword"
+                      class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                    >
+                      <Eye v-if="!showSyncPassword" class="w-3.5 h-3.5" />
+                      <EyeOff v-else class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Pemetaan Basis Data Sumber -->
+            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 space-y-2">
+              <div class="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                <Database class="w-4 h-4 text-emerald-600" />
+                <span>Pemetaan Basis Data Sumber (Simply &amp; COP)</span>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Basis Data Simply (Aplikasi Utama)</label>
+                  <input
+                    v-model="syncForm.database"
+                    type="text"
+                    placeholder="bkkr3927_simply"
+                    class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-mono font-bold text-emerald-700 dark:text-emerald-400"
+                  />
+                  <span class="text-[10px] text-slate-400 mt-1 block">Digunakan untuk data TPP, SAB, HSBU, dan SIVERA.</span>
+                </div>
+                <div>
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">Pusat Import Database Lain</label>
+                  <a
+                    href="/database-import"
+                    target="_blank"
+                    class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium flex items-center justify-between transition cursor-pointer mt-0.5"
+                  >
+                    <span>Buka Pusat Import 10 Modul</span>
+                    <ArrowRight class="w-3.5 h-3.5 text-indigo-600" />
+                  </a>
+                  <span class="text-[10px] text-slate-400 mt-1 block">Untuk migrasi data pengawasan kapal, pesawat, alkes, &amp; user.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Modul yang Akan Disinkronkan -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                  <Layers class="w-4 h-4 text-purple-600" />
+                  <span>Pilih Modul yang Akan Disinkronkan:</span>
+                </div>
+                <button
+                  type="button"
+                  @click="toggleAllSyncModules"
+                  class="text-[11px] font-bold text-indigo-600 hover:underline cursor-pointer"
+                >
+                  {{ syncForm.modules.length === 4 ? 'Batal Pilih Semua' : 'Pilih Semua' }}
+                </button>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <!-- Modul 1: TPP -->
+                <label
+                  class="p-3 rounded-2xl border transition cursor-pointer flex items-start gap-3 select-none"
+                  :class="syncForm.modules.includes('prl_tpp') ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'"
+                >
+                  <input
+                    type="checkbox"
+                    value="prl_tpp"
+                    v-model="syncForm.modules"
+                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 mt-0.5"
+                  />
+                  <div class="flex-1">
+                    <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                      <Utensils class="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Inspeksi Tempat Pengolahan Pangan (TPP)</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono block mt-0.5">bkkr3927_simply.prl_inspeksi_tpp &amp; prl_tpp</span>
+                  </div>
+                </label>
+
+                <!-- Modul 2: SAB -->
+                <label
+                  class="p-3 rounded-2xl border transition cursor-pointer flex items-start gap-3 select-none"
+                  :class="syncForm.modules.includes('prl_sab') ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'"
+                >
+                  <input
+                    type="checkbox"
+                    value="prl_sab"
+                    v-model="syncForm.modules"
+                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 mt-0.5"
+                  />
+                  <div class="flex-1">
+                    <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                      <Droplets class="w-3.5 h-3.5 text-blue-600" />
+                      <span>Inspeksi Sarana Air Bersih (SAB)</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono block mt-0.5">bkkr3927_simply.prl_inspeksi_sab &amp; prl_sab</span>
+                  </div>
+                </label>
+
+                <!-- Modul 3: HSBU -->
+                <label
+                  class="p-3 rounded-2xl border transition cursor-pointer flex items-start gap-3 select-none"
+                  :class="syncForm.modules.includes('prl_hsbu') ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'"
+                >
+                  <input
+                    type="checkbox"
+                    value="prl_hsbu"
+                    v-model="syncForm.modules"
+                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 mt-0.5"
+                  />
+                  <div class="flex-1">
+                    <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                      <Building2 class="w-3.5 h-3.5 text-purple-600" />
+                      <span>Higiene Sanitasi Bangunan &amp; Usaha (HSBU)</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono block mt-0.5">bkkr3927_simply.prl_inspeksi_hsbu &amp; prl_hsbu</span>
+                  </div>
+                </label>
+
+                <!-- Modul 4: SIVERA -->
+                <label
+                  class="p-3 rounded-2xl border transition cursor-pointer flex items-start gap-3 select-none"
+                  :class="syncForm.modules.includes('prl_sivera') ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-800' : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'"
+                >
+                  <input
+                    type="checkbox"
+                    value="prl_sivera"
+                    v-model="syncForm.modules"
+                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4 mt-0.5"
+                  />
+                  <div class="flex-1">
+                    <div class="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200 text-xs">
+                      <Bug class="w-3.5 h-3.5 text-teal-600" />
+                      <span>Surveilans Vektor SIVERA (7 Jenis)</span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono block mt-0.5">Jentik, Lalat, Kecoa, Tikus, Pinjal, Anopheles</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- 4. Opsi Penanganan Data -->
+            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 space-y-2.5">
+              <span class="font-bold text-slate-800 dark:text-slate-200 text-xs block">Opsi Penanganan Data:</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <label class="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    v-model="syncForm.skip_duplicate"
+                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                  />
+                  <span class="font-medium">Lewati Duplikat (Skip Duplicate)</span>
+                </label>
+
+                <label class="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    v-model="syncForm.normalize_ports"
+                    class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
+                  />
+                  <span class="font-medium">Normalisasi Format Wilker / Pelabuhan</span>
+                </label>
+
+                <label class="flex items-center gap-2 text-rose-600 dark:text-rose-400 cursor-pointer col-span-full font-bold">
+                  <input
+                    type="checkbox"
+                    v-model="syncForm.truncate_first"
+                    class="rounded border-rose-300 text-rose-600 focus:ring-rose-500 w-4 h-4"
+                  />
+                  <span>Kosongkan Tabel Sadaya Sebelum Impor (Truncate)</span>
+                  <span class="text-[10px] font-normal text-rose-500">(Gunakan dengan hati-hati)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- 5. Status Feedback Alert -->
+            <div v-if="syncTestResult" class="p-3.5 rounded-2xl border transition text-xs" :class="syncTestResult.success ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800' : 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800'">
+              <div class="flex items-center gap-2 font-bold">
+                <CheckCircle2 v-if="syncTestResult.success" class="w-4 h-4 text-emerald-600" />
+                <AlertTriangle v-else class="w-4 h-4 text-rose-600" />
+                <span>{{ syncTestResult.message }}</span>
+              </div>
+            </div>
+
+            <div v-if="syncResult" class="p-4 rounded-2xl border transition text-xs space-y-2" :class="syncResult.success ? 'bg-indigo-50 text-indigo-900 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-200 dark:border-indigo-800' : 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800'">
+              <div class="flex items-center gap-2 font-bold text-sm">
+                <CheckCircle2 v-if="syncResult.success" class="w-4 h-4 text-indigo-600" />
+                <AlertTriangle v-else class="w-4 h-4 text-rose-600" />
+                <span>{{ syncResult.message }}</span>
+              </div>
+              <div v-if="syncResult.success" class="grid grid-cols-3 gap-2 font-mono text-[11px] pt-1">
+                <div class="p-2 rounded-xl bg-white/70 dark:bg-slate-900/60 border border-indigo-100 dark:border-indigo-900">
+                  <span class="text-slate-400 block text-[10px]">Total Terproses:</span>
+                  <strong class="text-indigo-700 dark:text-indigo-300 text-sm">{{ syncResult.total_processed }}</strong>
+                </div>
+                <div class="p-2 rounded-xl bg-white/70 dark:bg-slate-900/60 border border-indigo-100 dark:border-indigo-900">
+                  <span class="text-slate-400 block text-[10px]">Data Diimpor:</span>
+                  <strong class="text-emerald-700 dark:text-emerald-300 text-sm">{{ syncResult.total_imported }}</strong>
+                </div>
+                <div class="p-2 rounded-xl bg-white/70 dark:bg-slate-900/60 border border-indigo-100 dark:border-indigo-900">
+                  <span class="text-slate-400 block text-[10px]">Duplikat Dilewati:</span>
+                  <strong class="text-amber-700 dark:text-amber-300 text-sm">{{ syncResult.total_skipped }}</strong>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Modal Footer -->
+          <div class="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+            <button
+              type="button"
+              @click="handleTestSyncConnection"
+              :disabled="isTestingSync"
+              class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition shadow-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <RotateCcw class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': isTestingSync }" />
+              <span>{{ isTestingSync ? 'Menguji...' : 'Uji Koneksi Database' }}</span>
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                @click="closeSyncModal"
+                class="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 transition cursor-pointer"
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                @click="handleSaveSyncConfig"
+                class="px-3.5 py-2 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+                title="Simpan konfigurasi ke browser"
+              >
+                <Save class="w-3.5 h-3.5 text-indigo-600" />
+                <span>Simpan Pengaturan</span>
+              </button>
+
+              <button
+                type="button"
+                @click="handleRunSync"
+                :disabled="isSyncingData"
+                class="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:opacity-95 text-white transition shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <Play class="w-3.5 h-3.5 text-indigo-200" :class="{ 'animate-spin': isSyncingData }" />
+                <span>{{ isSyncingData ? 'Menyinkronkan...' : 'Mulai Sinkronisasi Sekarang' }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>

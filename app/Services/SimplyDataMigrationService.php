@@ -5,6 +5,13 @@ namespace App\Services;
 use App\Models\AircraftSanitationInspection;
 use App\Models\FlightMedicalInspection;
 use App\Models\KantorWilker;
+use App\Models\PrlHsbu;
+use App\Models\PrlInspeksiHsbu;
+use App\Models\PrlInspeksiSab;
+use App\Models\PrlInspeksiTpp;
+use App\Models\PrlSab;
+use App\Models\PrlSiveraVektor;
+use App\Models\PrlTpp;
 use App\Models\ShipHealthSurveillance;
 use App\Models\ShipSanitationInspection;
 use App\Models\User;
@@ -104,6 +111,54 @@ class SimplyDataMigrationService
                 'color' => 'text-amber-600',
                 'bg_color' => 'bg-amber-50 dark:bg-amber-950/40',
             ],
+            'prl_tpp' => [
+                'id' => 'prl_tpp',
+                'name' => 'Inspeksi Tempat Pengolahan Pangan (TPP)',
+                'source_db' => 'bkkr3927_simply',
+                'source_table' => 'prl_inspeksi_tpp',
+                'target_model' => PrlInspeksiTpp::class,
+                'target_table' => 'prl_inspeksi_tpp',
+                'description' => 'Registrasi master sarana TPP dan seluruh riwayat inspeksi kelaikan higiene sanitasi pangan.',
+                'icon' => 'Utensils',
+                'color' => 'text-emerald-600',
+                'bg_color' => 'bg-emerald-50 dark:bg-emerald-950/40',
+            ],
+            'prl_sab' => [
+                'id' => 'prl_sab',
+                'name' => 'Inspeksi Sarana Air Bersih (SAB)',
+                'source_db' => 'bkkr3927_simply',
+                'source_table' => 'prl_inspeksi_sab',
+                'target_model' => PrlInspeksiSab::class,
+                'target_table' => 'prl_inspeksi_sab',
+                'description' => 'Registrasi master sarana air bersih dan pengawasan inspeksi sanitasi sumber & penampungan air.',
+                'icon' => 'Droplet',
+                'color' => 'text-blue-600',
+                'bg_color' => 'bg-blue-50 dark:bg-blue-950/40',
+            ],
+            'prl_hsbu' => [
+                'id' => 'prl_hsbu',
+                'name' => 'Inspeksi Higiene Bangunan & Usaha (HSBU)',
+                'source_db' => 'bkkr3927_simply',
+                'source_table' => 'prl_inspeksi_hsbu',
+                'target_model' => PrlInspeksiHsbu::class,
+                'target_table' => 'prl_inspeksi_hsbu',
+                'description' => 'Pengawasan faktor risiko fisik, kimia, biologi, tata gedung dan lingkungan kerja pelabuhan/bandara.',
+                'icon' => 'Building',
+                'color' => 'text-purple-600',
+                'bg_color' => 'bg-purple-50 dark:bg-purple-950/40',
+            ],
+            'prl_sivera' => [
+                'id' => 'prl_sivera',
+                'name' => 'Surveilans Vektor SIVERA',
+                'source_db' => 'bkkr3927_simply',
+                'source_table' => 'prl_sivera_jentik',
+                'target_model' => PrlSiveraVektor::class,
+                'target_table' => 'prl_sivera_vektor',
+                'description' => 'Surveilans kepadatan 7 jenis vektor (Jentik, Lalat, Kecoa, Tikus, Pinjal, Anopheles) dan pengendalian.',
+                'icon' => 'Bug',
+                'color' => 'text-teal-600',
+                'bg_color' => 'bg-teal-50 dark:bg-teal-950/40',
+            ],
         ];
     }
 
@@ -119,6 +174,10 @@ class SimplyDataMigrationService
             'medical_alat' => FlightMedicalInspection::where('type', 'alat')->count(),
             'medical_obat' => FlightMedicalInspection::where('type', 'obat')->count(),
             'users' => User::count(),
+            'prl_tpp' => PrlInspeksiTpp::count(),
+            'prl_sab' => PrlInspeksiSab::count(),
+            'prl_hsbu' => PrlInspeksiHsbu::count(),
+            'prl_sivera' => PrlSiveraVektor::count(),
         ];
     }
 
@@ -411,6 +470,10 @@ class SimplyDataMigrationService
             );
         } catch (Throwable $e) {
             return ['success' => false, 'message' => "Gagal terhubung ke {$dbName} ({$host}:{$port}): " . $e->getMessage()];
+        }
+
+        if (in_array($module, ['prl_tpp', 'prl_sab', 'prl_hsbu', 'prl_sivera'])) {
+            return $this->migratePrlModule($module, $pdo, $options, $startTime, $cfg);
         }
 
         if ($truncateFirst && !$dryRun) {
@@ -747,6 +810,107 @@ class SimplyDataMigrationService
                     'updated_at' => $row['updated_at'] ?? date('Y-m-d H:i:s'),
                 ];
 
+            case 'prl_tpp':
+                return [
+                    'source_id' => $row['id_prl_inspeksi_tpp'] ?? $row['id'] ?? null,
+                    'prl_tpp_id' => $row['id_prl_tpp'] ?? null,
+                    'wilker' => $row['wilker'] ?? 'Wilayah Kerja Patimban',
+                    'tanggal_inspeksi' => $row['tanggal_inspeksi'] ?? date('Y-m-d'),
+                    'nama_tpp' => $row['nama_tpp'] ?? ($row['penanggung_jawab_tpp'] ?? 'Sarana TPP'),
+                    'penanggung_jawab_tpp' => $row['penanggung_jawab_tpp'] ?? '-',
+                    'jml_karyawan_tpp' => $row['jml_karyawan_tpp'] ?? '-',
+                    'kapasitas_produksi_tpp' => $row['kapasitas_produksi_tpp'] ?? '-',
+                    'nama_pemeriksa' => $row['nama_pemeriksa'] ?? 'Petugas Sanitasi BKK',
+                    'sec_a_satu' => $row['sec_a_satu'] ?? 'Tidak',
+                    'sec_a_dua' => $row['sec_a_dua'] ?? 'Tidak',
+                    'sec_a_tiga' => $row['sec_a_tiga'] ?? 'Tidak',
+                    'sec_a_skor' => (int)($row['sec_a_skor'] ?? 0),
+                    'sec_b_satu' => $row['sec_b_satu'] ?? 'Tidak',
+                    'sec_b_dua' => $row['sec_b_dua'] ?? 'Tidak',
+                    'sec_b_tiga' => $row['sec_b_tiga'] ?? 'Tidak',
+                    'sec_b_skor' => (int)($row['sec_b_skor'] ?? 0),
+                    'sec_c_skor' => (int)($row['sec_c_skor'] ?? 0),
+                    'sec_c_keterangan' => $row['sec_c_keterangan'] ?? '-',
+                    'sec_d_nilai_inspeksi_sebelumnya' => (int)($row['sec_d_nilai_inspeksi_sebelumnya'] ?? 0),
+                    'sec_d_skor' => (int)($row['sec_d_skor'] ?? 0),
+                    'hasil' => (int)($row['hasil'] ?? 0),
+                    'tingkat_risiko' => $row['tingkat_risiko'] ?? 'Sedang',
+                    'kesimpulan' => $row['kesimpulan'] ?? null,
+                    'makanan' => $row['makanan'] ?? null,
+                    'saran_rencana_tindakan' => $row['saran_rencana_tindakan'] ?? null,
+                    'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s'),
+                    'updated_at' => $row['updated_at'] ?? date('Y-m-d H:i:s'),
+                ];
+
+            case 'prl_sab':
+                return [
+                    'source_id' => $row['id_prl_inspeksi_sab'] ?? $row['id'] ?? null,
+                    'prl_sab_id' => $row['id_prl_sab'] ?? null,
+                    'wilker' => $row['wilker'] ?? 'Wilayah Kerja Patimban',
+                    'tanggal_inspeksi' => $row['tanggal_inspeksi'] ?? date('Y-m-d'),
+                    'nama_sab' => $row['nama_sab'] ?? ($row['penanggung_jawab_sab'] ?? 'Sarana Air Bersih'),
+                    'penanggung_jawab_sab' => $row['penanggung_jawab_sab'] ?? '-',
+                    'penanggung_jawab_no_hp_sab' => $row['penanggung_jawab_no_hp_sab'] ?? null,
+                    'sumber_air_sab' => $row['sumber_air_sab'] ?? 'Air Tanah',
+                    'kapasitas_penampungan_sab' => $row['kapasitas_penampungan_sab'] ?? '-',
+                    'nama_pemeriksa' => $row['nama_pemeriksa'] ?? 'Petugas Sanitasi BKK',
+                    'sec_b_satu' => $row['sec_b_satu'] ?? 'Tidak',
+                    'sec_b_dua' => $row['sec_b_dua'] ?? 'Tidak',
+                    'sec_b_tiga' => $row['sec_b_tiga'] ?? 'Tidak',
+                    'sec_b_empat' => $row['sec_b_empat'] ?? 'Tidak',
+                    'sec_c_satu' => $row['sec_c_satu'] ?? 'Tidak',
+                    'sec_c_dua' => $row['sec_c_dua'] ?? 'Tidak',
+                    'sec_c_tiga' => $row['sec_c_tiga'] ?? 'Tidak',
+                    'sec_c_empat' => $row['sec_c_empat'] ?? 'Tidak',
+                    'sec_c_lima' => $row['sec_c_lima'] ?? 'Tidak',
+                    'sec_c_enam' => $row['sec_c_enam'] ?? 'Tidak',
+                    'sec_c_tujuh' => $row['sec_c_tujuh'] ?? 'Tidak',
+                    'sec_c_delapan' => $row['sec_c_delapan'] ?? 'Tidak',
+                    'sec_c_sembilan' => $row['sec_c_sembilan'] ?? 'Tidak',
+                    'sec_c_sepuluh' => $row['sec_c_sepuluh'] ?? 'Tidak',
+                    'hasil' => (int)($row['hasil'] ?? 0),
+                    'tingkat_risiko' => $row['tingkat_risiko'] ?? 'Sedang',
+                    'saran_rencana_tindakan' => $row['saran_rencana_tindakan'] ?? null,
+                    'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s'),
+                    'updated_at' => $row['updated_at'] ?? date('Y-m-d H:i:s'),
+                ];
+
+            case 'prl_hsbu':
+                return [
+                    'source_id' => $row['id_prl_inspeksi_hsbu'] ?? $row['id'] ?? null,
+                    'prl_hsbu_id' => $row['id_prl_hsbu'] ?? null,
+                    'wilker' => $row['wilker'] ?? 'Wilayah Kerja Patimban',
+                    'tanggal_inspeksi' => $row['tanggal_inspeksi'] ?? date('Y-m-d'),
+                    'nama_gedung' => $row['nama_gedung'] ?? ($row['penanggung_jawab_hsbu'] ?? 'Gedung/Bangunan'),
+                    'penanggung_jawab_hsbu' => $row['penanggung_jawab_hsbu'] ?? '-',
+                    'jml_karyawan_hsbu' => $row['jml_karyawan_hsbu'] ?? '-',
+                    'nama_pemeriksa' => $row['nama_pemeriksa'] ?? 'Petugas Sanitasi BKK',
+                    'komponen_penilaian' => !empty($row['komponen_penilaian']) ? (is_array($row['komponen_penilaian']) ? $row['komponen_penilaian'] : json_decode($row['komponen_penilaian'], true)) : [],
+                    'total' => (float)($row['total'] ?? 0),
+                    'tingkat_risiko' => $row['tingkat_risiko'] ?? 'Sedang',
+                    'saran_rencana_tindakan' => $row['saran_rencana_tindakan'] ?? null,
+                    'catatan' => $row['catatan'] ?? null,
+                    'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s'),
+                    'updated_at' => $row['updated_at'] ?? date('Y-m-d H:i:s'),
+                ];
+
+            case 'prl_sivera':
+                return [
+                    'source_id' => $row['source_id'] ?? $row['id'] ?? null,
+                    'jenis_vektor' => $row['jenis_vektor'] ?? 'Jentik Aedes',
+                    'wilker' => $row['wilker'] ?? 'Wilayah Kerja Patimban',
+                    'lokasi' => $row['lokasi'] ?? '-',
+                    'tanggal' => $row['tanggal'] ?? date('Y-m-d'),
+                    'parameter_utama' => $row['parameter_utama'] ?? '-',
+                    'nilai_indeks' => (float)($row['nilai_indeks'] ?? 0),
+                    'baku_mutu_status' => $row['baku_mutu_status'] ?? 'Memenuhi Syarat',
+                    'detail_data' => !empty($row['detail_data']) ? (is_array($row['detail_data']) ? $row['detail_data'] : json_decode($row['detail_data'], true)) : [],
+                    'tindakan_pengendalian' => $this->cleanSiveraPengendalian($row['tindakan_pengendalian'] ?? null),
+                    'created_by_name' => $row['created_by_name'] ?? 'Petugas Vektor',
+                    'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s'),
+                    'updated_at' => $row['updated_at'] ?? date('Y-m-d H:i:s'),
+                ];
+
             default:
                 throw new \InvalidArgumentException("Modul {$module} belum didukung.");
         }
@@ -780,6 +944,14 @@ class SimplyDataMigrationService
                     if ($uname) $q->orWhere('username', $uname);
                     if ($email) $q->orWhere('email', $email);
                 })->exists();
+            case 'prl_tpp':
+                return !empty($mapped['source_id']) && PrlInspeksiTpp::where('source_id', $mapped['source_id'])->exists();
+            case 'prl_sab':
+                return !empty($mapped['source_id']) && PrlInspeksiSab::where('source_id', $mapped['source_id'])->exists();
+            case 'prl_hsbu':
+                return !empty($mapped['source_id']) && PrlInspeksiHsbu::where('source_id', $mapped['source_id'])->exists();
+            case 'prl_sivera':
+                return !empty($mapped['source_id']) && PrlSiveraVektor::where('source_id', $mapped['source_id'])->where('jenis_vektor', $mapped['jenis_vektor'] ?? '')->exists();
             default:
                 return false;
         }
@@ -870,6 +1042,21 @@ class SimplyDataMigrationService
                 break;
             case 'users':
                 User::whereNotNull('simply_user_id')->where('email', '!=', 'admin@hybrid.local')->delete();
+                break;
+            case 'prl_tpp':
+                PrlInspeksiTpp::truncate();
+                PrlTpp::truncate();
+                break;
+            case 'prl_sab':
+                PrlInspeksiSab::truncate();
+                PrlSab::truncate();
+                break;
+            case 'prl_hsbu':
+                PrlInspeksiHsbu::truncate();
+                PrlHsbu::truncate();
+                break;
+            case 'prl_sivera':
+                PrlSiveraVektor::truncate();
                 break;
         }
     }
@@ -1015,6 +1202,643 @@ class SimplyDataMigrationService
         $user->syncRoles([$role]);
 
         return $user;
+    }
+
+    /**
+     * Migrate PRL (Pengendalian Risiko Lingkungan) & SIVERA modules from Simply CI4.
+     */
+    public function migratePrlModule(string $module, PDO $pdo, array $options, float $startTime, array $cfg): array
+    {
+        $skipDuplicate = $options['skip_duplicate'] ?? true;
+        $truncateFirst = $options['truncate_first'] ?? false;
+        $dryRun = $options['dry_run'] ?? false;
+
+        if ($truncateFirst && !$dryRun) {
+            $this->truncateTarget($module);
+        }
+
+        // 1. Fetch lookups from Simply
+        $wilkerMap = [];
+        try {
+            $wilkerMap = $pdo->query("SELECT id_unit_kerja, unit_kerja FROM unit_kerja")->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+        } catch (Throwable $e) {}
+
+        $pegawaiMap = [];
+        try {
+            $pegawaiMap = $pdo->query("SELECT id_data_pegawai, nama FROM data_pegawai")->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+        } catch (Throwable $e) {}
+
+        $userMap = [];
+        try {
+            $userMap = $pdo->query("SELECT id_user, nama FROM user")->fetchAll(PDO::FETCH_KEY_PAIR) ?: [];
+        } catch (Throwable $e) {}
+
+        $resolvePemeriksa = function ($rawId) use ($pegawaiMap) {
+            if (empty($rawId)) return 'Petugas Sanitasi BKK';
+            $ids = explode(' | ', (string)$rawId);
+            $names = [];
+            foreach ($ids as $id) {
+                $id = trim($id);
+                if (isset($pegawaiMap[$id])) {
+                    $names[] = $pegawaiMap[$id];
+                }
+            }
+            return !empty($names) ? implode('; ', $names) : "Petugas (ID: {$rawId})";
+        };
+
+        $totalProcessed = 0;
+        $importedCount = 0;
+        $skippedCount = 0;
+        $failedCount = 0;
+        $errors = [];
+
+        try {
+            if ($module === 'prl_tpp') {
+                // Sync Master TPP first
+                $tppRows = $pdo->query("SELECT * FROM prl_tpp ORDER BY id_prl_tpp ASC")->fetchAll(PDO::FETCH_ASSOC);
+                $tppMapId = [];
+                foreach ($tppRows as $r) {
+                    $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                    if (!$dryRun) {
+                        $m = PrlTpp::updateOrCreate(
+                            ['source_id' => $r['id_prl_tpp']],
+                            [
+                                'wilker' => $wilkerName,
+                                'nama_tpp' => $r['nama_tpp'] ?: 'TPP Tanpa Nama',
+                                'penanggung_jawab' => $r['penanggung_jawab'],
+                                'jml_karyawan' => $r['jml_karyawan'],
+                                'kapasitas_produksi' => $r['kapasitas_produksi'],
+                                'created_by_name' => $userMap[$r['created_by']] ?? null,
+                                'updated_by_name' => $userMap[$r['updated_by']] ?? null,
+                                'created_at' => $r['created_at'],
+                                'updated_at' => $r['updated_at'],
+                            ]
+                        );
+                        $tppMapId[$r['id_prl_tpp']] = $m->id;
+                    }
+                }
+
+                // Sync Inspeksi TPP
+                $inspTppRows = $pdo->query("
+                    SELECT i.*, t.nama_tpp as tpp_nama 
+                    FROM prl_inspeksi_tpp i 
+                    LEFT JOIN prl_tpp t ON t.id_prl_tpp = i.id_prl_tpp 
+                    ORDER BY i.id_prl_inspeksi_tpp ASC
+                ")->fetchAll(PDO::FETCH_ASSOC);
+
+                foreach ($inspTppRows as $r) {
+                    $totalProcessed++;
+                    try {
+                        if ($skipDuplicate && !$truncateFirst && PrlInspeksiTpp::where('source_id', $r['id_prl_inspeksi_tpp'])->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $score = (int)$r['hasil'];
+                        $risk = match (true) {
+                            $score < 35 => 'Rendah',
+                            $score <= 50 => 'Sedang',
+                            default => 'Tinggi',
+                        };
+
+                        if (!$dryRun) {
+                            PrlInspeksiTpp::updateOrCreate(
+                                ['source_id' => $r['id_prl_inspeksi_tpp']],
+                                [
+                                    'prl_tpp_id' => $tppMapId[$r['id_prl_tpp']] ?? null,
+                                    'wilker' => $wilkerName,
+                                    'tanggal_inspeksi' => $r['tanggal_inspeksi'],
+                                    'nama_tpp' => $r['tpp_nama'] ?: ($r['penanggung_jawab_tpp'] ?: 'Sarana TPP'),
+                                    'penanggung_jawab_tpp' => $r['penanggung_jawab_tpp'],
+                                    'jml_karyawan_tpp' => $r['jml_karyawan_tpp'],
+                                    'kapasitas_produksi_tpp' => $r['kapasitas_produksi_tpp'],
+                                    'nama_pemeriksa' => $resolvePemeriksa($r['id_data_pegawai']),
+                                    'sec_a_satu' => $r['sec_a_satu'],
+                                    'sec_a_dua' => $r['sec_a_dua'],
+                                    'sec_a_tiga' => $r['sec_a_tiga'],
+                                    'sec_a_skor' => (int)$r['sec_a_skor'],
+                                    'sec_b_satu' => $r['sec_b_satu'],
+                                    'sec_b_dua' => $r['sec_b_dua'],
+                                    'sec_b_tiga' => $r['sec_b_tiga'],
+                                    'sec_b_skor' => (int)$r['sec_b_skor'],
+                                    'sec_c_skor' => (int)$r['sec_c_skor'],
+                                    'sec_c_keterangan' => $r['sec_c_keterangan'],
+                                    'sec_d_nilai_inspeksi_sebelumnya' => (int)$r['sec_d_nilai_inspeksi_sebelumnya'],
+                                    'sec_d_skor' => (int)$r['sec_d_skor'],
+                                    'hasil' => $score,
+                                    'tingkat_risiko' => $risk,
+                                    'kesimpulan' => $r['kesimpulan'],
+                                    'makanan' => $r['makanan'],
+                                    'saran_rencana_tindakan' => $r['saran_rencana_tindakan'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    } catch (Throwable $e) {
+                        $failedCount++;
+                        if (count($errors) < 5) $errors[] = "Inspeksi TPP #{$r['id_prl_inspeksi_tpp']}: " . $e->getMessage();
+                    }
+                }
+            } elseif ($module === 'prl_sab') {
+                // Sync Master SAB
+                $sabRows = $pdo->query("SELECT * FROM prl_sab ORDER BY id_prl_sab ASC")->fetchAll(PDO::FETCH_ASSOC);
+                $sabMapId = [];
+                foreach ($sabRows as $r) {
+                    $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                    if (!$dryRun) {
+                        $m = PrlSab::updateOrCreate(
+                            ['source_id' => $r['id_prl_sab']],
+                            [
+                                'wilker' => $wilkerName,
+                                'nama_sab' => $r['nama_sab'] ?: 'SAB Tanpa Nama',
+                                'penanggung_jawab' => $r['penanggung_jawab'],
+                                'penanggung_jawab_no_hp' => $r['penanggung_jawab_no_hp'],
+                                'sumber_air' => $r['sumber_air'],
+                                'kapasitas_penampungan' => $r['kapasitas_penampungan'],
+                                'created_by_name' => $userMap[$r['created_by']] ?? null,
+                                'updated_by_name' => $userMap[$r['updated_by']] ?? null,
+                                'created_at' => $r['created_at'],
+                                'updated_at' => $r['updated_at'],
+                            ]
+                        );
+                        $sabMapId[$r['id_prl_sab']] = $m->id;
+                    }
+                }
+
+                // Sync Inspeksi SAB
+                $inspSabRows = $pdo->query("
+                    SELECT i.*, s.nama_sab as sab_nama 
+                    FROM prl_inspeksi_sab i 
+                    LEFT JOIN prl_sab s ON s.id_prl_sab = i.id_prl_sab 
+                    ORDER BY i.id_prl_inspeksi_sab ASC
+                ")->fetchAll(PDO::FETCH_ASSOC);
+
+                foreach ($inspSabRows as $r) {
+                    $totalProcessed++;
+                    try {
+                        if ($skipDuplicate && !$truncateFirst && PrlInspeksiSab::where('source_id', $r['id_prl_inspeksi_sab'])->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $score = (int)$r['hasil'];
+                        $risk = match (true) {
+                            $score < 25 => 'Rendah',
+                            $score <= 50 => 'Sedang',
+                            default => 'Tinggi',
+                        };
+
+                        if (!$dryRun) {
+                            PrlInspeksiSab::updateOrCreate(
+                                ['source_id' => $r['id_prl_inspeksi_sab']],
+                                [
+                                    'prl_sab_id' => $sabMapId[$r['id_prl_sab']] ?? null,
+                                    'wilker' => $wilkerName,
+                                    'tanggal_inspeksi' => $r['tanggal_inspeksi'],
+                                    'nama_sab' => $r['sab_nama'] ?: ($r['penanggung_jawab_sab'] ?: 'Sarana Air Bersih'),
+                                    'penanggung_jawab_sab' => $r['penanggung_jawab_sab'],
+                                    'penanggung_jawab_no_hp_sab' => $r['penanggung_jawab_no_hp_sab'],
+                                    'sumber_air_sab' => $r['sumber_air_sab'],
+                                    'kapasitas_penampungan_sab' => $r['kapasitas_penampungan_sab'],
+                                    'nama_pemeriksa' => $resolvePemeriksa($r['id_data_pegawai']),
+                                    'sec_b_satu' => $r['sec_b_satu'],
+                                    'sec_b_dua' => $r['sec_b_dua'],
+                                    'sec_b_tiga' => $r['sec_b_tiga'],
+                                    'sec_b_empat' => $r['sec_b_empat'],
+                                    'sec_c_satu' => $r['sec_c_satu'],
+                                    'sec_c_dua' => $r['sec_c_dua'],
+                                    'sec_c_tiga' => $r['sec_c_tiga'],
+                                    'sec_c_empat' => $r['sec_c_empat'],
+                                    'sec_c_lima' => $r['sec_c_lima'],
+                                    'sec_c_enam' => $r['sec_c_enam'],
+                                    'sec_c_tujuh' => $r['sec_c_tujuh'],
+                                    'sec_c_delapan' => $r['sec_c_delapan'],
+                                    'sec_c_sembilan' => $r['sec_c_sembilan'],
+                                    'sec_c_sepuluh' => $r['sec_c_sepuluh'],
+                                    'hasil' => $score,
+                                    'tingkat_risiko' => $risk,
+                                    'saran_rencana_tindakan' => $r['saran_rencana_tindakan'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    } catch (Throwable $e) {
+                        $failedCount++;
+                        if (count($errors) < 5) $errors[] = "Inspeksi SAB #{$r['id_prl_inspeksi_sab']}: " . $e->getMessage();
+                    }
+                }
+            } elseif ($module === 'prl_hsbu') {
+                // Sync Master HSBU
+                $hsbuRows = $pdo->query("SELECT * FROM prl_hsbu ORDER BY id_prl_hsbu ASC")->fetchAll(PDO::FETCH_ASSOC);
+                $hsbuMapId = [];
+                foreach ($hsbuRows as $r) {
+                    $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                    if (!$dryRun) {
+                        $m = PrlHsbu::updateOrCreate(
+                            ['source_id' => $r['id_prl_hsbu']],
+                            [
+                                'wilker' => $wilkerName,
+                                'nama_gedung' => $r['nama_gedung'] ?: 'Gedung Tanpa Nama',
+                                'penanggung_jawab' => $r['penanggung_jawab'],
+                                'jml_karyawan' => $r['jml_karyawan'],
+                                'created_by_name' => $userMap[$r['created_by']] ?? null,
+                                'updated_by_name' => $userMap[$r['updated_by']] ?? null,
+                                'created_at' => $r['created_at'],
+                                'updated_at' => $r['updated_at'],
+                            ]
+                        );
+                        $hsbuMapId[$r['id_prl_hsbu']] = $m->id;
+                    }
+                }
+
+                // Sync Inspeksi HSBU
+                $inspHsbuRows = $pdo->query("
+                    SELECT i.*, h.nama_gedung as hsbu_nama 
+                    FROM prl_inspeksi_hsbu i 
+                    LEFT JOIN prl_hsbu h ON h.id_prl_hsbu = i.id_prl_hsbu 
+                    ORDER BY i.id_prl_inspeksi_hsbu ASC
+                ")->fetchAll(PDO::FETCH_ASSOC);
+
+                foreach ($inspHsbuRows as $r) {
+                    $totalProcessed++;
+                    try {
+                        if ($skipDuplicate && !$truncateFirst && PrlInspeksiHsbu::where('source_id', $r['id_prl_inspeksi_hsbu'])->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $score = (float)$r['total'];
+                        $risk = match (true) {
+                            $score > 712.5 => 'Rendah',
+                            $score >= 475 => 'Sedang',
+                            default => 'Tinggi',
+                        };
+
+                        $komponen = [];
+                        $keys = [
+                            'lingkungan_luar_halaman', 'ruang_bangunan', 'penyehatan_air',
+                            'penyehatan_ruang_udara', 'pengelolaan_limbah', 'pencahayaan',
+                            'kebisingan_pada_ruang', 'getaran_di_ruang_kerja', 'pengendalian_vektor_penyakit',
+                            'instalasi', 'pemeliharaan_jamban_dan_kamar_mandi'
+                        ];
+                        foreach ($keys as $k) {
+                            if (!empty($r[$k])) {
+                                $unser = @unserialize($r[$k]);
+                                $komponen[$k] = $unser !== false ? $unser : $r[$k];
+                            }
+                        }
+
+                        if (!$dryRun) {
+                            PrlInspeksiHsbu::updateOrCreate(
+                                ['source_id' => $r['id_prl_inspeksi_hsbu']],
+                                [
+                                    'prl_hsbu_id' => $hsbuMapId[$r['id_prl_hsbu']] ?? null,
+                                    'wilker' => $wilkerName,
+                                    'tanggal_inspeksi' => $r['tanggal_inspeksi'],
+                                    'nama_gedung' => $r['hsbu_nama'] ?: ($r['penanggung_jawab_hsbu'] ?: 'Gedung/Bangunan'),
+                                    'penanggung_jawab_hsbu' => $r['penanggung_jawab_hsbu'],
+                                    'jml_karyawan_hsbu' => $r['jml_karyawan_hsbu'],
+                                    'nama_pemeriksa' => $resolvePemeriksa($r['id_data_pegawai']),
+                                    'komponen_penilaian' => $komponen,
+                                    'total' => $score,
+                                    'tingkat_risiko' => $risk,
+                                    'saran_rencana_tindakan' => $r['saran_rencana_tindakan'],
+                                    'catatan' => $r['catatan'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    } catch (Throwable $e) {
+                        $failedCount++;
+                        if (count($errors) < 5) $errors[] = "Inspeksi HSBU #{$r['id_prl_inspeksi_hsbu']}: " . $e->getMessage();
+                    }
+                }
+            } elseif ($module === 'prl_sivera') {
+                // Vector 1: Jentik Aedes
+                try {
+                    $rows = $pdo->query("SELECT * FROM prl_sivera_jentik ORDER BY id_jentik ASC")->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($rows as $r) {
+                        $totalProcessed++;
+                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_jentik'])->where('jenis_vektor', 'Jentik Aedes')->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $kontainer = (int)($r['jml_kontainer_diperiksa'] ?? 0);
+                        $positif = (int)($r['jml_kontainer_positif'] ?? 0);
+                        $ci = $kontainer > 0 ? round(($positif / $kontainer) * 100, 2) : 0;
+                        $abj = 100 - $ci;
+
+                        if (!$dryRun) {
+                            PrlSiveraVektor::updateOrCreate(
+                                ['source_id' => $r['id_jentik'], 'jenis_vektor' => 'Jentik Aedes'],
+                                [
+                                    'wilker' => $wilkerName,
+                                    'lokasi' => $r['lokasi'] ?: ($r['wilayah'] ?: 'Area Pelabuhan/Bandara'),
+                                    'tanggal' => $r['tanggal_mulai'] ?: $r['created_at'],
+                                    'parameter_utama' => "ABJ: {$abj}% (CI: {$ci}%)",
+                                    'nilai_indeks' => $abj,
+                                    'baku_mutu_status' => $abj >= 95 ? 'Memenuhi Syarat' : 'Di Atas Baku Mutu',
+                                    'detail_data' => $r,
+                                    'tindakan_pengendalian' => $this->cleanSiveraPengendalian($r['pengendalian'] ?? null),
+                                    'created_by_name' => $userMap[$r['created_by']] ?? $r['created_by'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    }
+                } catch (Throwable $e) {
+                    $errors[] = "Jentik: " . $e->getMessage();
+                }
+
+                // Vector 2: Lalat
+                try {
+                    $rows = $pdo->query("SELECT * FROM prl_sivera_lalat ORDER BY id_lalat ASC")->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($rows as $r) {
+                        $totalProcessed++;
+                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_lalat'])->where('jenis_vektor', 'Lalat')->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $fi = (float)($r['rata_rata'] ?? 0);
+
+                        if (!$dryRun) {
+                            PrlSiveraVektor::updateOrCreate(
+                                ['source_id' => $r['id_lalat'], 'jenis_vektor' => 'Lalat'],
+                                [
+                                    'wilker' => $wilkerName,
+                                    'lokasi' => $r['lokasi'] ?: 'Area Pelabuhan/Bandara',
+                                    'tanggal' => $r['tanggal'] ?: $r['created_at'],
+                                    'parameter_utama' => "Fly Index: {$fi}",
+                                    'nilai_indeks' => $fi,
+                                    'baku_mutu_status' => $fi <= 2 ? 'Memenuhi Syarat' : 'Di Atas Baku Mutu',
+                                    'detail_data' => $r,
+                                    'tindakan_pengendalian' => $this->cleanSiveraPengendalian($r['pengendalian'] ?? null),
+                                    'created_by_name' => $userMap[$r['created_by']] ?? $r['created_by'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    }
+                } catch (Throwable $e) {
+                    $errors[] = "Lalat: " . $e->getMessage();
+                }
+
+                // Vector 3: Kecoa
+                try {
+                    $rows = $pdo->query("SELECT * FROM prl_sivera_kecoa ORDER BY id_kecoa ASC")->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($rows as $r) {
+                        $totalProcessed++;
+                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_kecoa'])->where('jenis_vektor', 'Kecoa')->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $rt = (float)($r['rata_rata'] ?? 0);
+
+                        if (!$dryRun) {
+                            PrlSiveraVektor::updateOrCreate(
+                                ['source_id' => $r['id_kecoa'], 'jenis_vektor' => 'Kecoa'],
+                                [
+                                    'wilker' => $wilkerName,
+                                    'lokasi' => $r['lokasi'] ?: ($r['nama_ruangan'] ?: 'Area Bangunan/Gedung'),
+                                    'tanggal' => $r['tanggal'] ?: $r['created_at'],
+                                    'parameter_utama' => "Indeks Populasi: {$rt} ekor/trap",
+                                    'nilai_indeks' => $rt,
+                                    'baku_mutu_status' => $rt < 2 ? 'Memenuhi Syarat' : 'Di Atas Baku Mutu',
+                                    'detail_data' => $r,
+                                    'tindakan_pengendalian' => $this->cleanSiveraPengendalian($r['pengendalian'] ?? null),
+                                    'created_by_name' => $userMap[$r['created_by']] ?? $r['created_by'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    }
+                } catch (Throwable $e) {
+                    $errors[] = "Kecoa: " . $e->getMessage();
+                }
+
+                // Vector 4: Tikus
+                try {
+                    $rows = $pdo->query("SELECT * FROM prl_sivera_tikus ORDER BY id_tikus ASC")->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($rows as $r) {
+                        $totalProcessed++;
+                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_tikus'])->where('jenis_vektor', 'Tikus')->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $ts = (float)($r['success_trap'] ?? 0);
+
+                        if (!$dryRun) {
+                            PrlSiveraVektor::updateOrCreate(
+                                ['source_id' => $r['id_tikus'], 'jenis_vektor' => 'Tikus'],
+                                [
+                                    'wilker' => $wilkerName,
+                                    'lokasi' => $r['lokasi'] ?: ($r['lokasi_pemasangan'] ?: 'Area Pelabuhan/Bandara'),
+                                    'tanggal' => $r['tanggal'] ?: ($r['tanggal_mulai'] ?: $r['created_at']),
+                                    'parameter_utama' => "Trap Success: {$ts}%",
+                                    'nilai_indeks' => $ts,
+                                    'baku_mutu_status' => $ts <= 1 ? 'Memenuhi Syarat' : 'Di Atas Baku Mutu',
+                                    'detail_data' => $r,
+                                    'tindakan_pengendalian' => !empty($r['jml_perangkap_dipasang']) ? "Pemasangan {$r['jml_perangkap_dipasang']} perangkap" : 'Pemasangan perangkap',
+                                    'created_by_name' => $userMap[$r['created_by']] ?? $r['created_by'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    }
+                } catch (Throwable $e) {
+                    $errors[] = "Tikus: " . $e->getMessage();
+                }
+
+                // Vector 5: Pinjal
+                try {
+                    $rows = $pdo->query("SELECT * FROM prl_sivera_pinjal ORDER BY id_pinjal ASC")->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($rows as $r) {
+                        $totalProcessed++;
+                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_pinjal'])->where('jenis_vektor', 'Pinjal')->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $ip = (float)($r['indeks_pinjal_umum'] ?? 0);
+
+                        if (!$dryRun) {
+                            PrlSiveraVektor::updateOrCreate(
+                                ['source_id' => $r['id_pinjal'], 'jenis_vektor' => 'Pinjal'],
+                                [
+                                    'wilker' => $wilkerName,
+                                    'lokasi' => $r['lokasi'] ?: ($r['lokasi_tikus_tertangkap'] ?: 'Perimeter/Buffer'),
+                                    'tanggal' => $r['tanggal'] ?: $r['created_at'],
+                                    'parameter_utama' => "Indeks Pinjal: {$ip}",
+                                    'nilai_indeks' => $ip,
+                                    'baku_mutu_status' => $ip <= 1 ? 'Memenuhi Syarat' : 'Di Atas Baku Mutu',
+                                    'detail_data' => $r,
+                                    'tindakan_pengendalian' => 'Dusting insektisida liang tikus',
+                                    'created_by_name' => $userMap[$r['created_by']] ?? $r['created_by'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    }
+                } catch (Throwable $e) {
+                    $errors[] = "Pinjal: " . $e->getMessage();
+                }
+
+                // Vector 6: Anopheles Jentik
+                try {
+                    $rows = $pdo->query("SELECT * FROM prl_sivera_anopheles_jentik ORDER BY id_anopheles_jentik ASC")->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($rows as $r) {
+                        $totalProcessed++;
+                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_anopheles_jentik'])->where('jenis_vektor', 'Anopheles (Jentik)')->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $ih = (float)($r['indeks_habitat'] ?? 0);
+
+                        if (!$dryRun) {
+                            PrlSiveraVektor::updateOrCreate(
+                                ['source_id' => $r['id_anopheles_jentik'], 'jenis_vektor' => 'Anopheles (Jentik)'],
+                                [
+                                    'wilker' => $wilkerName,
+                                    'lokasi' => $r['lokasi'] ?: 'Habitat Perindukan Anopheles',
+                                    'tanggal' => $r['tanggal'] ?: $r['created_at'],
+                                    'parameter_utama' => "Indeks Habitat: {$ih}%",
+                                    'nilai_indeks' => $ih,
+                                    'baku_mutu_status' => $ih == 0 ? 'Memenuhi Syarat' : 'Di Atas Baku Mutu',
+                                    'detail_data' => $r,
+                                    'tindakan_pengendalian' => 'Larvasidasi biologi (BTI) / pembersihan lumut',
+                                    'created_by_name' => $userMap[$r['created_by']] ?? $r['created_by'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    }
+                } catch (Throwable $e) {
+                    $errors[] = "Anopheles Jentik: " . $e->getMessage();
+                }
+
+                // Vector 7: Anopheles Nyamuk Dewasa
+                try {
+                    $rows = $pdo->query("SELECT * FROM prl_sivera_anopheles_nyamuk ORDER BY id_anopheles_nyamuk ASC")->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($rows as $r) {
+                        $totalProcessed++;
+                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_anopheles_nyamuk'])->where('jenis_vektor', 'Anopheles (Nyamuk)')->exists()) {
+                            $skippedCount++;
+                            continue;
+                        }
+                        $wilkerName = $wilkerMap[$r['id_wilayah_kerja']] ?? 'Wilayah Kerja Patimban';
+                        $mbr = (float)($r['mbr'] ?? 0);
+
+                        if (!$dryRun) {
+                            PrlSiveraVektor::updateOrCreate(
+                                ['source_id' => $r['id_anopheles_nyamuk'], 'jenis_vektor' => 'Anopheles (Nyamuk)'],
+                                [
+                                    'wilker' => $wilkerName,
+                                    'lokasi' => $r['lokasi'] ?: 'Area Penangkapan Nyamuk',
+                                    'tanggal' => $r['tanggal'] ?: $r['created_at'],
+                                    'parameter_utama' => "MBR: {$mbr} gigitan/orang/malam",
+                                    'nilai_indeks' => $mbr,
+                                    'baku_mutu_status' => $mbr == 0 ? 'Memenuhi Syarat' : 'Di Atas Baku Mutu',
+                                    'detail_data' => $r,
+                                    'tindakan_pengendalian' => 'Indoor Residual Spraying (IRS)',
+                                    'created_by_name' => $userMap[$r['created_by']] ?? $r['created_by'],
+                                    'created_at' => $r['created_at'],
+                                    'updated_at' => $r['updated_at'],
+                                ]
+                            );
+                        }
+                        $importedCount++;
+                    }
+                } catch (Throwable $e) {
+                    $errors[] = "Anopheles Nyamuk: " . $e->getMessage();
+                }
+            }
+        } catch (Throwable $e) {
+            $errors[] = "Fatal: " . $e->getMessage();
+        }
+
+        $duration = round(microtime(true) - $startTime, 2);
+
+        return [
+            'success' => true,
+            'module' => $module,
+            'module_name' => $cfg['name'],
+            'total_processed' => $totalProcessed,
+            'imported' => $importedCount,
+            'skipped' => $skippedCount,
+            'failed' => $failedCount,
+            'duration' => $duration,
+            'errors' => $errors,
+        ];
+    }
+
+    /**
+     * Clean and format SIVERA tindakan pengendalian for human readability.
+     */
+    protected function cleanSiveraPengendalian(?string $raw): ?string
+    {
+        if (empty($raw)) return null;
+        if (str_starts_with(trim($raw), '{')) {
+            $data = json_decode($raw, true);
+            if (is_array($data)) {
+                $parts = [];
+                if (!empty($data['jentik_kimia']) || !empty($data['jentik_kimia_gram']) || !empty($data['jentik_kimia_sachet'])) {
+                    $p = [];
+                    if (!empty($data['jentik_kimia_gram'])) $p[] = $data['jentik_kimia_gram'] . ' gr';
+                    if (!empty($data['jentik_kimia_sachet'])) $p[] = $data['jentik_kimia_sachet'] . ' sachet';
+                    $parts[] = 'Larvasidasi' . (!empty($p) ? ' (' . implode(', ', $p) . ')' : '');
+                }
+                if (!empty($data['jentik_fisik'])) $parts[] = 'Fisik (3M Plus/Kuras)';
+                if (!empty($data['jentik_biologi'])) $parts[] = 'Biologi (BTI/Ikan)';
+                if (!empty($data['nyamuk_fogging']) || !empty($data['nyamuk_fogging_ml'])) {
+                    $f = [];
+                    if (!empty($data['nyamuk_fogging_ml'])) $f[] = $data['nyamuk_fogging_ml'] . ' ml';
+                    if (!empty($data['nyamuk_fogging_merk'])) $f[] = $data['nyamuk_fogging_merk'];
+                    $parts[] = 'Fogging' . (!empty($f) ? ' (' . implode(' ', $f) . ')' : '');
+                }
+                if (!empty($data['nyamuk_fisik'])) $parts[] = 'Fisik Nyamuk (Trap/Raket)';
+                if (!empty($data['spraying']) || !empty($data['spraying_ml'])) {
+                    $parts[] = 'Spraying' . (!empty($data['spraying_ml']) ? ' (' . $data['spraying_ml'] . ' ml)' : '');
+                }
+                if (!empty($data['granule']) || !empty($data['granule_gram'])) {
+                    $parts[] = 'Granule Bait' . (!empty($data['granule_gram']) ? ' (' . $data['granule_gram'] . ' gr)' : '');
+                }
+                if (!empty($data['retrapping']) || !empty($data['retrapping_trap'])) {
+                    $parts[] = 'Retrapping' . (!empty($data['retrapping_trap']) ? ' (' . $data['retrapping_trap'] . ' trap)' : '');
+                }
+                if (!empty($data['gel_bait']) || !empty($data['gel_bait_gram'])) {
+                    $parts[] = 'Gel Bait' . (!empty($data['gel_bait_gram']) ? ' (' . $data['gel_bait_gram'] . ' gr)' : '');
+                }
+                if (!empty($data['catatan'])) $parts[] = $data['catatan'];
+                if (!empty($parts)) return implode('; ', $parts);
+            }
+        }
+        return $raw;
     }
 }
 
