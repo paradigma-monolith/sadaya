@@ -1,14 +1,14 @@
 {
-  "__plugin-vue_export-helper-B77McF1a.js": {
-    "file": "assets/_plugin-vue_export-helper-B77McF1a.js",
+  "__plugin-vue_export-helper-DL-QBuGR.css": {
+    "file": "assets/_plugin-vue_export-helper-DL-QBuGR.css",
+    "src": "__plugin-vue_export-helper-DL-QBuGR.css"
+  },
+  "__plugin-vue_export-helper-DiWXyqV0.js": {
+    "file": "assets/_plugin-vue_export-helper-DiWXyqV0.js",
     "name": "_plugin-vue_export-helper",
     "css": [
       "assets/_plugin-vue_export-helper-DL-QBuGR.css"
     ]
-  },
-  "__plugin-vue_export-helper-DL-QBuGR.css": {
-    "file": "assets/_plugin-vue_export-helper-DL-QBuGR.css",
-    "src": "__plugin-vue_export-helper-DL-QBuGR.css"
   },
   "resources/css/app.css": {
     "file": "assets/app-CZr9gEzm.css",
@@ -20,24 +20,24 @@
     ]
   },
   "resources/js/inertia.js": {
-    "file": "assets/inertia-rt-V_vGL.js",
+    "file": "assets/inertia-CVgyh36t.js",
     "name": "inertia",
     "src": "resources/js/inertia.js",
     "isEntry": true,
     "imports": [
-      "__plugin-vue_export-helper-B77McF1a.js"
+      "__plugin-vue_export-helper-DiWXyqV0.js"
     ],
     "css": [
       "assets/inertia-UYk3t-1d.css"
     ]
   },
   "resources/js/spa.js": {
-    "file": "assets/spa-ZrcJiHLr.js",
+    "file": "assets/spa-B94mHvEf.js",
     "name": "spa",
     "src": "resources/js/spa.js",
     "isEntry": true,
     "imports": [
-      "__plugin-vue_export-helper-B77McF1a.js"
+      "__plugin-vue_export-helper-DiWXyqV0.js"
     ],
     "css": [
       "assets/spa-BoUyjSLR.css"

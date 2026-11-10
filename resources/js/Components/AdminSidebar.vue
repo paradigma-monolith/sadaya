@@ -193,7 +193,7 @@ const navSections = computed(() => {
       ],
     },
     {
-      title: 'PENGENDALIAN RISIKO LINGKUNGAN (KESLING)',
+      title: 'TIM KERJA PENGAWASAN FAKTOR RISIKO KESEHATAN LINGKUNGAN',
       items: [
         {
           name: 'Dashboard & Ringkasan PRL',
