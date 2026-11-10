@@ -86,6 +86,14 @@ const props = defineProps({
 const page = usePage();
 const { formatDate } = useDate();
 
+// Top Verifikator Leaderboard (Mengecualikan MOHAMAD DAHLAN FAZHRY)
+const filteredTopVerifikators = computed(() => {
+  return (props.top_verifikators || []).filter((ver) => {
+    const name = (ver?.verifier_name || '').toUpperCase().trim();
+    return !name.includes('MOHAMAD DAHLAN FAZHRY');
+  });
+});
+
 // Active Tab ('data' | 'laporan')
 const activeTab = ref('data');
 
@@ -885,7 +893,7 @@ onUnmounted(() => {
 
             <div class="space-y-3">
               <div
-                v-for="(ver, index) in top_verifikators"
+                v-for="(ver, index) in filteredTopVerifikators"
                 :key="index"
                 class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60"
               >
@@ -907,7 +915,7 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <div v-if="!top_verifikators || top_verifikators.length === 0" class="text-center py-6 text-xs text-slate-400">
+              <div v-if="!filteredTopVerifikators || filteredTopVerifikators.length === 0" class="text-center py-6 text-xs text-slate-400">
                 Belum ada data verifikasi kapal.
               </div>
             </div>

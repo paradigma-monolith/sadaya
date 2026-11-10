@@ -94,9 +94,10 @@ class ShipHealthSurveillanceController extends Controller
                 ];
             });
 
-        // Top Verifikator Leaderboard
+        // Top Verifikator Leaderboard (Kecualikan MOHAMAD DAHLAN FAZHRY)
         $topVerifikators = ShipHealthSurveillance::whereNotNull('verifier_name')
             ->where('status_verifikasi', 'verified')
+            ->whereRaw("UPPER(TRIM(verifier_name)) NOT LIKE '%MOHAMAD DAHLAN FAZHRY%'")
             ->selectRaw('verifier_name, COUNT(*) as jumlah_verifikasi')
             ->groupBy('verifier_name')
             ->orderByDesc('jumlah_verifikasi')
