@@ -25,10 +25,15 @@ class PrlController extends Controller
      */
     public function index(Request $request): Response
     {
-        $activeTab = $request->query('tab', 'overview');
+        $activeTab = $request->query('tab', 'tpp');
+        if ($activeTab === 'overview') {
+            $activeTab = 'tpp';
+        }
         $search = $request->query('search');
         $wilker = $request->query('wilker');
         $tingkatRisiko = $request->query('tingkat_risiko');
+        $tglMulai = $request->query('tgl_mulai', $request->query('tanggal_mulai'));
+        $tglSelesai = $request->query('tgl_selesai', $request->query('tanggal_selesai'));
         $tahun = $request->query('tahun');
         $bulan = $request->query('bulan');
 
@@ -176,6 +181,8 @@ class PrlController extends Controller
         }
         if ($wilker) $qTpp->where('wilker', $wilker);
         if ($tingkatRisiko) $qTpp->where('tingkat_risiko', $tingkatRisiko);
+        if ($tglMulai) $qTpp->whereDate('tanggal_inspeksi', '>=', $tglMulai);
+        if ($tglSelesai) $qTpp->whereDate('tanggal_inspeksi', '<=', $tglSelesai);
         if ($tahun) $qTpp->whereYear('tanggal_inspeksi', $tahun);
         if ($bulan) $qTpp->whereMonth('tanggal_inspeksi', $bulan);
         $inspeksiTpp = $qTpp->paginate($perPageTpp, ['*'], 'page_tpp')->withQueryString();
@@ -191,6 +198,8 @@ class PrlController extends Controller
         }
         if ($wilker) $qSab->where('wilker', $wilker);
         if ($tingkatRisiko) $qSab->where('tingkat_risiko', $tingkatRisiko);
+        if ($tglMulai) $qSab->whereDate('tanggal_inspeksi', '>=', $tglMulai);
+        if ($tglSelesai) $qSab->whereDate('tanggal_inspeksi', '<=', $tglSelesai);
         if ($tahun) $qSab->whereYear('tanggal_inspeksi', $tahun);
         if ($bulan) $qSab->whereMonth('tanggal_inspeksi', $bulan);
         $inspeksiSab = $qSab->paginate($perPageSab, ['*'], 'page_sab')->withQueryString();
@@ -206,6 +215,8 @@ class PrlController extends Controller
         }
         if ($wilker) $qHsbu->where('wilker', $wilker);
         if ($tingkatRisiko) $qHsbu->where('tingkat_risiko', $tingkatRisiko);
+        if ($tglMulai) $qHsbu->whereDate('tanggal_inspeksi', '>=', $tglMulai);
+        if ($tglSelesai) $qHsbu->whereDate('tanggal_inspeksi', '<=', $tglSelesai);
         if ($tahun) $qHsbu->whereYear('tanggal_inspeksi', $tahun);
         if ($bulan) $qHsbu->whereMonth('tanggal_inspeksi', $bulan);
         $inspeksiHsbu = $qHsbu->paginate($perPageHsbu, ['*'], 'page_hsbu')->withQueryString();
@@ -216,10 +227,22 @@ class PrlController extends Controller
             $qSivera->where(function ($q) use ($search) {
                 $q->where('jenis_vektor', 'like', "%{$search}%")
                   ->orWhere('lokasi', 'like', "%{$search}%")
+                  ->orWhere('wilker', 'like', "%{$search}%")
                   ->orWhere('parameter_utama', 'like', "%{$search}%");
             });
         }
         if ($wilker) $qSivera->where('wilker', $wilker);
+        if ($tingkatRisiko) {
+            if (in_array(strtolower($tingkatRisiko), ['rendah', 'ms', 'memenuhi syarat', 'aman'])) {
+                $qSivera->where('baku_mutu_status', 'Memenuhi Syarat');
+            } elseif (in_array(strtolower($tingkatRisiko), ['tinggi', 'tms', 'di atas baku mutu', 'sedang', 'bahaya'])) {
+                $qSivera->where('baku_mutu_status', '!=', 'Memenuhi Syarat');
+            } else {
+                $qSivera->where('baku_mutu_status', 'like', "%{$tingkatRisiko}%");
+            }
+        }
+        if ($tglMulai) $qSivera->whereDate('tanggal', '>=', $tglMulai);
+        if ($tglSelesai) $qSivera->whereDate('tanggal', '<=', $tglSelesai);
         if ($tahun) $qSivera->whereYear('tanggal', $tahun);
         if ($bulan) $qSivera->whereMonth('tanggal', $bulan);
 
@@ -278,6 +301,8 @@ class PrlController extends Controller
                 'search' => $search,
                 'wilker' => $wilker,
                 'tingkat_risiko' => $tingkatRisiko,
+                'tgl_mulai' => $tglMulai,
+                'tgl_selesai' => $tglSelesai,
                 'tahun' => $tahun,
                 'bulan' => $bulan,
                 'sivera_vektor' => $siveraVektor,

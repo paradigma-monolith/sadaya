@@ -53,7 +53,7 @@ import axios from 'axios';
 const props = defineProps({
   active_tab: {
     type: String,
-    default: 'overview',
+    default: 'tpp',
   },
   filters: {
     type: Object,
@@ -106,7 +106,7 @@ const props = defineProps({
 });
 
 // Active Tab State
-const currentTab = ref(props.active_tab || 'overview');
+const currentTab = ref(props.active_tab === 'overview' || !props.active_tab ? 'tpp' : props.active_tab);
 const siveraFilterVektor = ref(props.filters.sivera_vektor || 'Dashboard');
 
 // Per-page settings from filters
@@ -119,6 +119,8 @@ const perPageSivera = ref(props.filters.per_page_sivera || 25);
 const search = ref(props.filters.search || '');
 const selectedWilker = ref(props.filters.wilker || '');
 const selectedRisiko = ref(props.filters.tingkat_risiko || '');
+const tglMulai = ref(props.filters.tgl_mulai || '');
+const tglSelesai = ref(props.filters.tgl_selesai || '');
 const selectedTahun = ref(props.filters.tahun || '');
 const selectedBulan = ref(props.filters.bulan || '');
 
@@ -128,11 +130,14 @@ const switchTab = (tab) => {
 };
 
 const applyFilter = (targetTab = currentTab.value) => {
+  const chosenTab = targetTab === 'overview' ? 'tpp' : targetTab;
   router.get('/prl', {
-    tab: targetTab,
+    tab: chosenTab,
     search: search.value || undefined,
     wilker: selectedWilker.value || undefined,
     tingkat_risiko: selectedRisiko.value || undefined,
+    tgl_mulai: tglMulai.value || undefined,
+    tgl_selesai: tglSelesai.value || undefined,
     tahun: selectedTahun.value || undefined,
     bulan: selectedBulan.value || undefined,
     sivera_vektor: siveraFilterVektor.value !== 'Dashboard' ? siveraFilterVektor.value : undefined,
@@ -150,10 +155,13 @@ const resetFilter = () => {
   search.value = '';
   selectedWilker.value = '';
   selectedRisiko.value = '';
+  tglMulai.value = '';
+  tglSelesai.value = '';
   selectedTahun.value = '';
   selectedBulan.value = '';
   siveraFilterVektor.value = 'Dashboard';
-  router.get('/prl', { tab: currentTab.value }, { preserveState: true, replace: true });
+  const chosenTab = currentTab.value === 'overview' ? 'tpp' : currentTab.value;
+  router.get('/prl', { tab: chosenTab }, { preserveState: true, replace: true });
 };
 
 const switchSiveraVektor = (vTab) => {
@@ -164,6 +172,8 @@ const switchSiveraVektor = (vTab) => {
     search: search.value || undefined,
     wilker: selectedWilker.value || undefined,
     tingkat_risiko: selectedRisiko.value || undefined,
+    tgl_mulai: tglMulai.value || undefined,
+    tgl_selesai: tglSelesai.value || undefined,
     tahun: selectedTahun.value || undefined,
     bulan: selectedBulan.value || undefined,
     per_page_sivera: perPageSivera.value || undefined,
@@ -180,6 +190,8 @@ const changePerPage = (type, val) => {
     search: search.value || undefined,
     wilker: selectedWilker.value || undefined,
     tingkat_risiko: selectedRisiko.value || undefined,
+    tgl_mulai: tglMulai.value || undefined,
+    tgl_selesai: tglSelesai.value || undefined,
     tahun: selectedTahun.value || undefined,
     bulan: selectedBulan.value || undefined,
   };
@@ -1194,7 +1206,7 @@ const submitPengendalian = async () => {
 const openAddInspeksi = (type = null, vectorSub = null) => {
   isEditMode.value = false;
   editId.value = null;
-  const chosenType = type || (currentTab.value === 'overview' ? 'tpp' : currentTab.value);
+  const chosenType = type || currentTab.value;
   addInspeksiType.value = chosenType;
   if (vectorSub) {
     siveraActiveVektor.value = vectorSub;
@@ -1795,7 +1807,7 @@ const handleRunSync = async () => {
           </button>
 
           <a
-            :href="`/prl/export/${currentTab === 'overview' ? 'tpp' : currentTab}`"
+            :href="`/prl/export/${currentTab}`"
             class="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-xs font-bold text-slate-700 dark:text-slate-200 transition shadow-xs flex items-center gap-1.5 cursor-pointer"
             title="Export CSV / Excel"
           >
@@ -1805,96 +1817,8 @@ const handleRunSync = async () => {
         </div>
       </div>
 
-      <!-- ==================== KPI STATS CARDS ==================== -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1: Total Sarana -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Sarana Terdaftar</span>
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-[#00A99D]">
-              <Layers class="w-5 h-5" />
-            </div>
-          </div>
-          <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">{{ stats.total_sarana }}</span>
-            <span class="text-xs text-slate-400">Unit Sarana</span>
-          </div>
-          <div class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <span>{{ stats.total_tpp }} TPP</span> &bull; 
-            <span>{{ stats.total_sab }} SAB</span> &bull; 
-            <span>{{ stats.total_hsbu }} HSBU</span>
-          </div>
-        </div>
-
-        <!-- Card 2: Total Riwayat Inspeksi -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Riwayat Inspeksi</span>
-            <div class="w-9 h-9 rounded-xl bg-teal-50 dark:bg-teal-950/50 flex items-center justify-center text-[#005851] dark:text-teal-400">
-              <ShieldCheck class="w-5 h-5" />
-            </div>
-          </div>
-          <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">{{ stats.total_inspeksi }}</span>
-            <span class="text-xs text-slate-400">Inspeksi Sanitasi</span>
-          </div>
-          <div class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <span>{{ stats.total_insp_tpp }} TPP</span> &bull; 
-            <span>{{ stats.total_insp_sab }} SAB</span> &bull; 
-            <span>{{ stats.total_insp_hsbu }} HSBU</span>
-          </div>
-        </div>
-
-        <!-- Card 3: Kepatuhan Sanitasi -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Kepatuhan Sanitasi</span>
-            <div class="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/50 flex items-center justify-center text-amber-600">
-              <TrendingUp class="w-5 h-5" />
-            </div>
-          </div>
-          <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">{{ stats.kepatuhan_persen }}%</span>
-            <span class="text-xs text-emerald-600 font-semibold font-mono">Risiko Rendah</span>
-          </div>
-          <div class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <span class="text-emerald-600 font-semibold">{{ stats.risiko_rendah }} Rendah</span> &bull; 
-            <span class="text-amber-600 font-semibold">{{ stats.risiko_sedang }} Sedang</span> &bull; 
-            <span class="text-rose-600 font-semibold">{{ stats.risiko_tinggi }} Tinggi</span>
-          </div>
-        </div>
-
-        <!-- Card 4: SIVERA Vektor -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Surveilans Vektor (SIVERA)</span>
-            <div class="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-600">
-              <Bug class="w-5 h-5" />
-            </div>
-          </div>
-          <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white font-mono">{{ stats.sivera_total }}</span>
-            <span class="text-xs text-slate-400">Pemantauan</span>
-          </div>
-          <div class="mt-2 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <span class="text-emerald-600 font-semibold">{{ stats.sivera_memenuhi }} Sesuai Baku</span> &bull; 
-            <span class="text-rose-600 font-semibold">{{ stats.sivera_diatas_baku }} Di Atas Baku</span>
-          </div>
-        </div>
-      </div>
-
       <!-- ==================== SUB-TABS NAVIGATION ==================== -->
       <div class="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200 dark:border-slate-800">
-        <button
-          type="button"
-          @click="switchTab('overview')"
-          class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer"
-          :class="currentTab === 'overview' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
-        >
-          <Activity class="w-3.5 h-3.5" />
-          <span>Ringkasan &amp; Analitik PRL</span>
-        </button>
-
         <button
           type="button"
           @click="switchTab('tpp')"
@@ -1940,123 +1864,6 @@ const handleRunSync = async () => {
         </button>
       </div>
 
-      <!-- ==================== FILTER BAR ==================== -->
-      <div v-if="currentTab !== 'overview'" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 items-end">
-          <div class="md:col-span-2">
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Cari Sarana / Pemeriksa / Lokasi</label>
-            <div class="relative">
-              <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-              <input
-                type="text"
-                v-model="search"
-                @keyup.enter="applyFilter()"
-                placeholder="Ketik nama sarana, gedung, pemilik, lokasi..."
-                class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Wilayah Kerja</label>
-            <select
-              v-model="selectedWilker"
-              @change="applyFilter()"
-              class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
-            >
-              <option value="">Semua Wilker</option>
-              <option v-for="w in wilker_options" :key="w" :value="w">{{ w }}</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Tingkat Risiko / Status</label>
-            <select
-              v-model="selectedRisiko"
-              @change="applyFilter()"
-              class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
-            >
-              <option value="">Semua Kategori</option>
-              <option value="Rendah">Risiko Rendah / MS</option>
-              <option value="Sedang">Risiko Sedang</option>
-              <option value="Tinggi">Risiko Tinggi / TMS</option>
-            </select>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              @click="applyFilter()"
-              class="w-full py-2 px-3 rounded-xl bg-[#005851] hover:bg-[#004842] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-            >
-              <Filter class="w-3.5 h-3.5" />
-              <span>Saring</span>
-            </button>
-            <button
-              type="button"
-              @click="resetFilter()"
-              class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-500 transition cursor-pointer"
-              title="Reset Filter"
-            >
-              <RotateCcw class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ==================== TAB CONTENT: OVERVIEW ==================== -->
-      <div v-if="currentTab === 'overview'" class="space-y-6">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
-          <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
-            <div>
-              <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <MapPin class="w-4 h-4 text-[#00A99D]" />
-                <span>Sebaran Sarana &amp; Riwayat Inspeksi per Wilayah Kerja</span>
-              </h2>
-              <p class="text-xs text-slate-400 mt-0.5">Pemantauan kepatuhan higiene sanitasi pelabuhan dan bandara di bawah BKK Bandung.</p>
-            </div>
-          </div>
-
-          <div class="overflow-x-auto mt-4">
-            <table class="w-full text-xs text-left">
-              <thead>
-                <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                  <th class="py-3 px-3">Wilayah Kerja</th>
-                  <th class="py-3 px-3 text-center">Total Sarana</th>
-                  <th class="py-3 px-3 text-center">Total Inspeksi</th>
-                  <th class="py-3 px-3 text-center">TPP</th>
-                  <th class="py-3 px-3 text-center">SAB</th>
-                  <th class="py-3 px-3 text-center">HSBU</th>
-                  <th class="py-3 px-3 text-center">Aksi Cepat</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                <tr v-for="w in stats.wilker_stats" :key="w.wilker" class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                  <td class="py-3 px-3 font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                    <span>{{ w.wilker }}</span>
-                  </td>
-                  <td class="py-3 px-3 text-center font-mono font-bold text-emerald-600">{{ w.total_sarana }}</td>
-                  <td class="py-3 px-3 text-center font-mono font-bold text-slate-700 dark:text-slate-300">{{ w.total_inspeksi }}</td>
-                  <td class="py-3 px-3 text-center font-mono text-slate-500">{{ w.tpp }}</td>
-                  <td class="py-3 px-3 text-center font-mono text-slate-500">{{ w.sab }}</td>
-                  <td class="py-3 px-3 text-center font-mono text-slate-500">{{ w.hsbu }}</td>
-                  <td class="py-3 px-3 text-center">
-                    <button
-                      type="button"
-                      @click="selectedWilker = w.wilker; switchTab('tpp')"
-                      class="px-2.5 py-1 rounded-lg text-[11px] font-semibold border border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800 transition cursor-pointer"
-                    >
-                      Buka Data
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
       <!-- ==================== TAB CONTENT: TPP ==================== -->
       <div v-if="currentTab === 'tpp'" class="space-y-4">
         <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
@@ -2083,6 +1890,118 @@ const handleRunSync = async () => {
                 class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
               >
                 <span>+ Tambah Sarana TPP</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- FILTER KHUSUS MENU TPP -->
+          <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 mt-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+              <!-- Search -->
+              <div class="lg:col-span-4">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Cari Sarana TPP / Penanggung Jawab / Pemeriksa</label>
+                <div class="relative">
+                  <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    v-model="search"
+                    @keyup.enter="applyFilter()"
+                    placeholder="Ketik nama TPP, penanggung jawab, pemeriksa..."
+                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- Wilker -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Wilayah Kerja</label>
+                <select
+                  v-model="selectedWilker"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                >
+                  <option value="">Semua Wilker</option>
+                  <option v-for="w in wilker_options" :key="w" :value="w">{{ w }}</option>
+                </select>
+              </div>
+
+              <!-- Tingkat Risiko -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tingkat Risiko</label>
+                <select
+                  v-model="selectedRisiko"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                >
+                  <option value="">Semua Risiko</option>
+                  <option value="Rendah">Rendah (Skor &le; 5)</option>
+                  <option value="Sedang">Sedang (Skor 6 - 13)</option>
+                  <option value="Tinggi">Tinggi (Skor &gt; 13)</option>
+                </select>
+              </div>
+
+              <!-- Tanggal Mulai -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Mulai</label>
+                <input
+                  type="date"
+                  v-model="tglMulai"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                />
+              </div>
+
+              <!-- Tanggal Selesai & Actions -->
+              <div class="lg:col-span-2 flex items-end gap-1.5">
+                <div class="flex-1">
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Selesai</label>
+                  <input
+                    type="date"
+                    v-model="tglSelesai"
+                    @change="applyFilter()"
+                    class="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  @click="applyFilter()"
+                  class="p-2 rounded-xl bg-[#005851] hover:bg-[#004842] text-white transition cursor-pointer shadow-xs"
+                  title="Terapkan Filter"
+                >
+                  <Filter class="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  @click="resetFilter()"
+                  class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition cursor-pointer"
+                  title="Reset Semua Filter"
+                >
+                  <RotateCcw class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Active filter pills -->
+            <div v-if="search || selectedWilker || selectedRisiko || tglMulai || tglSelesai" class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/50 flex items-center gap-2 flex-wrap text-xs">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Filter Aktif:</span>
+              <span v-if="search" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-[11px]">
+                Kata Kunci: "{{ search }}"
+                <button type="button" @click="search = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="selectedWilker" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 text-[#005851] border border-teal-200 text-[11px]">
+                Wilker: {{ selectedWilker }}
+                <button type="button" @click="selectedWilker = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="selectedRisiko" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px]">
+                Risiko: {{ selectedRisiko }}
+                <button type="button" @click="selectedRisiko = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="tglMulai || tglSelesai" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px]">
+                Periode: {{ tglMulai || '...' }} s/d {{ tglSelesai || '...' }}
+                <button type="button" @click="tglMulai = ''; tglSelesai = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <button type="button" @click="resetFilter()" class="text-[11px] text-rose-600 hover:underline font-semibold ml-auto cursor-pointer">
+                Reset Semua
               </button>
             </div>
           </div>
@@ -2224,6 +2143,118 @@ const handleRunSync = async () => {
             </div>
           </div>
 
+          <!-- FILTER KHUSUS MENU SAB -->
+          <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 mt-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+              <!-- Search -->
+              <div class="lg:col-span-4">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Cari Sarana SAB / Penanggung Jawab / Sumber Air / Pemeriksa</label>
+                <div class="relative">
+                  <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    v-model="search"
+                    @keyup.enter="applyFilter()"
+                    placeholder="Ketik nama SAB, sumber air, penanggung jawab, pemeriksa..."
+                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- Wilker -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Wilayah Kerja</label>
+                <select
+                  v-model="selectedWilker"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                >
+                  <option value="">Semua Wilker</option>
+                  <option v-for="w in wilker_options" :key="w" :value="w">{{ w }}</option>
+                </select>
+              </div>
+
+              <!-- Tingkat Risiko -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tingkat Risiko</label>
+                <select
+                  v-model="selectedRisiko"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                >
+                  <option value="">Semua Risiko</option>
+                  <option value="Rendah">Rendah (Skor &le; 2)</option>
+                  <option value="Sedang">Sedang (Skor 3 - 5)</option>
+                  <option value="Tinggi">Tinggi (Skor &gt; 5)</option>
+                </select>
+              </div>
+
+              <!-- Tanggal Mulai -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Mulai</label>
+                <input
+                  type="date"
+                  v-model="tglMulai"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                />
+              </div>
+
+              <!-- Tanggal Selesai & Actions -->
+              <div class="lg:col-span-2 flex items-end gap-1.5">
+                <div class="flex-1">
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Selesai</label>
+                  <input
+                    type="date"
+                    v-model="tglSelesai"
+                    @change="applyFilter()"
+                    class="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  @click="applyFilter()"
+                  class="p-2 rounded-xl bg-[#005851] hover:bg-[#004842] text-white transition cursor-pointer shadow-xs"
+                  title="Terapkan Filter"
+                >
+                  <Filter class="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  @click="resetFilter()"
+                  class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition cursor-pointer"
+                  title="Reset Semua Filter"
+                >
+                  <RotateCcw class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Active filter pills -->
+            <div v-if="search || selectedWilker || selectedRisiko || tglMulai || tglSelesai" class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/50 flex items-center gap-2 flex-wrap text-xs">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Filter Aktif:</span>
+              <span v-if="search" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-cyan-50 text-cyan-800 border border-cyan-200 text-[11px]">
+                Kata Kunci: "{{ search }}"
+                <button type="button" @click="search = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="selectedWilker" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 text-[#005851] border border-teal-200 text-[11px]">
+                Wilker: {{ selectedWilker }}
+                <button type="button" @click="selectedWilker = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="selectedRisiko" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px]">
+                Risiko: {{ selectedRisiko }}
+                <button type="button" @click="selectedRisiko = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="tglMulai || tglSelesai" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px]">
+                Periode: {{ tglMulai || '...' }} s/d {{ tglSelesai || '...' }}
+                <button type="button" @click="tglMulai = ''; tglSelesai = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <button type="button" @click="resetFilter()" class="text-[11px] text-rose-600 hover:underline font-semibold ml-auto cursor-pointer">
+                Reset Semua
+              </button>
+            </div>
+          </div>
+
           <div class="overflow-x-auto mt-4">
             <table class="w-full text-xs text-left">
               <thead>
@@ -2359,6 +2390,118 @@ const handleRunSync = async () => {
                 class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer"
               >
                 <span>+ Tambah Gedung HSBU</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- FILTER KHUSUS MENU HSBU -->
+          <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 mt-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+              <!-- Search -->
+              <div class="lg:col-span-4">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Cari Gedung HSBU / Usaha / Penanggung Jawab / Pemeriksa</label>
+                <div class="relative">
+                  <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    v-model="search"
+                    @keyup.enter="applyFilter()"
+                    placeholder="Ketik nama gedung, jenis usaha, penanggung jawab, pemeriksa..."
+                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- Wilker -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Wilayah Kerja</label>
+                <select
+                  v-model="selectedWilker"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                >
+                  <option value="">Semua Wilker</option>
+                  <option v-for="w in wilker_options" :key="w" :value="w">{{ w }}</option>
+                </select>
+              </div>
+
+              <!-- Tingkat Risiko -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tingkat Risiko</label>
+                <select
+                  v-model="selectedRisiko"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                >
+                  <option value="">Semua Risiko</option>
+                  <option value="Rendah">Rendah / Sehat (Skor &ge; 70)</option>
+                  <option value="Sedang">Sedang / Cukup (Skor 60 - 69)</option>
+                  <option value="Tinggi">Tinggi / Kurang (Skor &lt; 60)</option>
+                </select>
+              </div>
+
+              <!-- Tanggal Mulai -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Mulai</label>
+                <input
+                  type="date"
+                  v-model="tglMulai"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                />
+              </div>
+
+              <!-- Tanggal Selesai & Actions -->
+              <div class="lg:col-span-2 flex items-end gap-1.5">
+                <div class="flex-1">
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Selesai</label>
+                  <input
+                    type="date"
+                    v-model="tglSelesai"
+                    @change="applyFilter()"
+                    class="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  @click="applyFilter()"
+                  class="p-2 rounded-xl bg-[#005851] hover:bg-[#004842] text-white transition cursor-pointer shadow-xs"
+                  title="Terapkan Filter"
+                >
+                  <Filter class="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  @click="resetFilter()"
+                  class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition cursor-pointer"
+                  title="Reset Semua Filter"
+                >
+                  <RotateCcw class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Active filter pills -->
+            <div v-if="search || selectedWilker || selectedRisiko || tglMulai || tglSelesai" class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/50 flex items-center gap-2 flex-wrap text-xs">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Filter Aktif:</span>
+              <span v-if="search" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-800 border border-purple-200 text-[11px]">
+                Kata Kunci: "{{ search }}"
+                <button type="button" @click="search = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="selectedWilker" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 text-[#005851] border border-teal-200 text-[11px]">
+                Wilker: {{ selectedWilker }}
+                <button type="button" @click="selectedWilker = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="selectedRisiko" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px]">
+                Risiko: {{ selectedRisiko }}
+                <button type="button" @click="selectedRisiko = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="tglMulai || tglSelesai" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px]">
+                Periode: {{ tglMulai || '...' }} s/d {{ tglSelesai || '...' }}
+                <button type="button" @click="tglMulai = ''; tglSelesai = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <button type="button" @click="resetFilter()" class="text-[11px] text-rose-600 hover:underline font-semibold ml-auto cursor-pointer">
+                Reset Semua
               </button>
             </div>
           </div>
@@ -2507,6 +2650,117 @@ const handleRunSync = async () => {
               <Activity v-if="vTab === 'Dashboard'" class="w-3.5 h-3.5" />
               <span>{{ vTab }}</span>
             </button>
+          </div>
+
+          <!-- FILTER KHUSUS MENU SIVERA -->
+          <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 my-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+              <!-- Search -->
+              <div class="lg:col-span-4">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Cari Lokasi / Titik Survei / Parameter SIVERA</label>
+                <div class="relative">
+                  <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    v-model="search"
+                    @keyup.enter="applyFilter()"
+                    placeholder="Ketik lokasi, titik survei, parameter..."
+                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <!-- Wilker -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Wilayah Kerja</label>
+                <select
+                  v-model="selectedWilker"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                >
+                  <option value="">Semua Wilker</option>
+                  <option v-for="w in wilker_options" :key="w" :value="w">{{ w }}</option>
+                </select>
+              </div>
+
+              <!-- Status Baku Mutu -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Status Baku Mutu</label>
+                <select
+                  v-model="selectedRisiko"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                >
+                  <option value="">Semua Status</option>
+                  <option value="Memenuhi Syarat">Memenuhi Syarat (MS)</option>
+                  <option value="Di Atas Baku Mutu">Di Atas Baku Mutu (TMS)</option>
+                </select>
+              </div>
+
+              <!-- Tanggal Mulai -->
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Mulai</label>
+                <input
+                  type="date"
+                  v-model="tglMulai"
+                  @change="applyFilter()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                />
+              </div>
+
+              <!-- Tanggal Selesai & Actions -->
+              <div class="lg:col-span-2 flex items-end gap-1.5">
+                <div class="flex-1">
+                  <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Selesai</label>
+                  <input
+                    type="date"
+                    v-model="tglSelesai"
+                    @change="applyFilter()"
+                    class="w-full px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  />
+                </div>
+                <button
+                  type="button"
+                  @click="applyFilter()"
+                  class="p-2 rounded-xl bg-[#005851] hover:bg-[#004842] text-white transition cursor-pointer shadow-xs"
+                  title="Terapkan Filter"
+                >
+                  <Filter class="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  @click="resetFilter()"
+                  class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500 transition cursor-pointer"
+                  title="Reset Semua Filter"
+                >
+                  <RotateCcw class="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Active filter pills -->
+            <div v-if="search || selectedWilker || selectedRisiko || tglMulai || tglSelesai" class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/50 flex items-center gap-2 flex-wrap text-xs">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Filter Aktif:</span>
+              <span v-if="search" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 text-[11px]">
+                Kata Kunci: "{{ search }}"
+                <button type="button" @click="search = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="selectedWilker" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 text-[#005851] border border-teal-200 text-[11px]">
+                Wilker: {{ selectedWilker }}
+                <button type="button" @click="selectedWilker = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="selectedRisiko" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 text-[11px]">
+                Status: {{ selectedRisiko }}
+                <button type="button" @click="selectedRisiko = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <span v-if="tglMulai || tglSelesai" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[11px]">
+                Periode: {{ tglMulai || '...' }} s/d {{ tglSelesai || '...' }}
+                <button type="button" @click="tglMulai = ''; tglSelesai = ''; applyFilter()" class="hover:text-rose-600 font-bold">&times;</button>
+              </span>
+              <button type="button" @click="resetFilter()" class="text-[11px] text-rose-600 hover:underline font-semibold ml-auto cursor-pointer">
+                Reset Semua
+              </button>
+            </div>
           </div>
 
           <!-- 1. SIVERA DASHBOARD VIEW -->

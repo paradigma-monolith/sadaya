@@ -250,20 +250,12 @@ const navSections = computed(() => {
       collapsible: true,
       items: [
         {
-          name: 'Dashboard & Ringkasan PRL',
-          path: '/prl',
-          url: getUrl('/prl'),
-          icon: Leaf,
-          iconColor: 'text-[#00A99D]',
-          active: props.currentRoute === 'prl' || currentPath === '/prl' || currentPath.endsWith('/prl'),
-        },
-        {
           name: 'TPP (Tempat Pengelolaan Pangan)',
           path: '/prl/tpp',
           url: getUrl('/prl/tpp'),
           icon: Utensils,
           iconColor: 'text-amber-500',
-          active: props.currentRoute === 'prl-tpp' || currentPath.includes('/prl/tpp'),
+          active: props.currentRoute === 'prl-tpp' || currentPath.includes('/prl/tpp') || currentPath === '/prl' || currentPath.endsWith('/prl'),
         },
         {
           name: 'SAB (Sarana Air Bersih)',
