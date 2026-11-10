@@ -124,6 +124,8 @@ class PrlController extends Controller
             }
         }
 
+        $siveraDashboardData = $this->computeSiveraDashboardData($wilkerOptions);
+
         $siveraDashboardMetrics = [
             'totalSurveilans' => $siveraAllCount,
             'totalMs' => $siveraMemenuhi,
@@ -332,6 +334,7 @@ class PrlController extends Controller
                 'wilker_stats' => $wilkerStats,
             ],
             'sivera_dashboard_metrics' => $siveraDashboardMetrics,
+            'sivera_dashboard_data' => $siveraDashboardData,
             'inspeksi_tpp' => $inspeksiTpp,
             'inspeksi_sab' => $inspeksiSab,
             'inspeksi_hsbu' => $inspeksiHsbu,
@@ -1159,5 +1162,327 @@ class PrlController extends Controller
             'details' => $results,
         ]);
     }
+
+    /**
+     * Compute comprehensive SIVERA dashboard dataset: summary KPIs, cross-tabulated charts, and wilker detail matrix.
+     */
+    protected function computeSiveraDashboardData(array $wilkerOptions): array
+    {
+        $records = PrlSiveraVektor::all();
+
+        $wilkerSet = [];
+        foreach ($wilkerOptions as $wo) {
+            $wo = trim($wo ?: '');
+            if ($wo !== '') {
+                $wilkerSet[$wo] = true;
+            }
+        }
+        foreach ($records as $r) {
+            $w = trim($r->wilker ?: '');
+            if ($w !== '') {
+                $wilkerSet[$w] = true;
+            }
+        }
+        $labels = array_keys($wilkerSet);
+        sort($labels);
+        if (empty($labels)) {
+            $labels = ['Wilayah Kerja Patimban', 'Wilayah Kerja Cirebon', 'Wilayah Kerja Indramayu', 'Wilayah Kerja Pelabuharatu'];
+        }
+
+        $summary = [
+            'total_surveilans' => $records->count(),
+            'jentik' => 0,
+            'kontainer_positif' => 0,
+            'kontainer_diperiksa' => 0,
+            'rumah_diperiksa' => 0,
+            'rumah_positif' => 0,
+            'abj_avg' => 100,
+            'lalat' => 0,
+            'avg_lalat' => 0,
+            'lalat_ms' => 0,
+            'lalat_tms' => 0,
+            'kecoa' => 0,
+            'kecoa_perangkap' => 0,
+            'kecoa_tertangkap' => 0,
+            'avg_kecoa' => 0,
+            'tikus' => 0,
+            'tikus_perangkap' => 0,
+            'tikus_tertangkap' => 0,
+            'avg_success_trap' => 0,
+            'pinjal' => 0,
+            'pinjal_umum' => 0,
+            'pinjal_khusus' => 0,
+            'anopheles_jentik' => 0,
+            'anopheles_nyamuk' => 0,
+            'avg_indeks_habitat' => 0,
+            'avg_mbr' => 0,
+            'total_ms' => 0,
+            'total_tms' => 0,
+            'kepatuhan_pct' => 100,
+        ];
+
+        $kecoaSpeciesList = [
+            'Periplatena americana' => 'P. americana',
+            'Blatella germanica' => 'B. germanica',
+            'Supella longipalpa' => 'S. longipalpa',
+            'Neostylopiga rhombifolia' => 'N. rhombifolia',
+            'Lain-Lain' => 'Lain-Lain',
+        ];
+
+        $kecoaChart = [];
+        foreach ($kecoaSpeciesList as $short) {
+            $kecoaChart[$short] = array_fill(0, count($labels), 0);
+        }
+
+        $lalatStatusChart = [
+            'MS' => array_fill(0, count($labels), 0),
+            'TMS' => array_fill(0, count($labels), 0),
+        ];
+
+        $jenisKontainerChart = [];
+
+        $tikusSpeciesList = [
+            'Rattus norvegicus' => 'R. norvegicus',
+            'Rattus tanezumi' => 'R. tanezumi',
+            'Mus musculus' => 'M. musculus',
+            'Suncus murinus' => 'S. murinus',
+            'Lain-Lain' => 'Lain-Lain',
+        ];
+
+        $spesiesTikusChart = [];
+        foreach ($tikusSpeciesList as $short) {
+            $spesiesTikusChart[$short] = array_fill(0, count($labels), 0);
+        }
+
+        $wilkerDetail = [];
+        foreach ($labels as $w) {
+            $wilkerDetail[$w] = [
+                'wilker' => $w,
+                'total_surveilans' => 0,
+                'jentik_survei' => 0,
+                'jentik_kontainer_diperiksa' => 0,
+                'jentik_kontainer_positif' => 0,
+                'jentik_rumah_diperiksa' => 0,
+                'jentik_rumah_positif' => 0,
+                'abj' => 100,
+                'lalat_survei' => 0,
+                'lalat_rata_sum' => 0,
+                'lalat_avg' => 0,
+                'lalat_ms' => 0,
+                'lalat_tms' => 0,
+                'kecoa_survei' => 0,
+                'kecoa_perangkap' => 0,
+                'kecoa_tertangkap' => 0,
+                'kecoa_kepadatan' => 0,
+                'tikus_survei' => 0,
+                'tikus_perangkap' => 0,
+                'tikus_tertangkap' => 0,
+                'tikus_success_trap_sum' => 0,
+                'tikus_success_trap_avg' => 0,
+                'pinjal_survei' => 0,
+                'pinjal_umum' => 0,
+                'pinjal_khusus' => 0,
+                'anopheles_jentik_survei' => 0,
+                'anopheles_habitat_sum' => 0,
+                'anopheles_habitat_avg' => 0,
+                'anopheles_nyamuk_survei' => 0,
+                'anopheles_mbr_sum' => 0,
+                'anopheles_mbr_avg' => 0,
+            ];
+        }
+
+        $lalatValues = [];
+        $tikusTrapValues = [];
+        $abjValues = [];
+        $anophelesHabitatValues = [];
+        $anophelesMbrValues = [];
+
+        foreach ($records as $r) {
+            $w = trim($r->wilker ?: $labels[0]);
+            $wIdx = array_search($w, $labels);
+            if ($wIdx === false) {
+                $w = $labels[0];
+                $wIdx = 0;
+            }
+
+            $jv = strtolower($r->jenis_vektor ?: '');
+            $dt = is_array($r->detail_data) ? $r->detail_data : (json_decode($r->detail_data, true) ?: []);
+
+            $wilkerDetail[$w]['total_surveilans']++;
+
+            if (str_contains($jv, 'jentik') && !str_contains($jv, 'anopheles')) {
+                $summary['jentik']++;
+                $kp = (int)($dt['jml_kontainer_positif'] ?? 0);
+                $kd = (int)($dt['jml_kontainer_diperiksa'] ?? 0);
+                $rp = (int)($dt['jml_rumah_positif'] ?? 0);
+                $rd = (int)($dt['jml_rumah_diperiksa'] ?? 0);
+
+                $summary['kontainer_positif'] += $kp;
+                $summary['kontainer_diperiksa'] += $kd;
+                $summary['rumah_positif'] += $rp;
+                $summary['rumah_diperiksa'] += $rd;
+
+                $abj = $r->nilai_indeks > 0 ? (float)$r->nilai_indeks : ($rd > 0 ? round((($rd - $rp) / $rd) * 100, 1) : 100);
+                $abjValues[] = $abj;
+
+                $wilkerDetail[$w]['jentik_survei']++;
+                $wilkerDetail[$w]['jentik_kontainer_positif'] += $kp;
+                $wilkerDetail[$w]['jentik_kontainer_diperiksa'] += $kd;
+                $wilkerDetail[$w]['jentik_rumah_positif'] += $rp;
+                $wilkerDetail[$w]['jentik_rumah_diperiksa'] += $rd;
+
+                $rawK = (string)($dt['jenis_kontainer'] ?? '');
+                $parts = array_filter(array_map('trim', explode(',', $rawK)));
+                foreach ($parts as $p) {
+                    $jenisKontainerChart[$p] = ($jenisKontainerChart[$p] ?? 0) + 1;
+                }
+            } elseif (str_contains($jv, 'lalat')) {
+                $summary['lalat']++;
+                $fi = (float)($r->nilai_indeks ?: ($dt['rata_rata'] ?? 0));
+                $lalatValues[] = $fi;
+                $isMs = $fi < 2.0;
+                if ($isMs) {
+                    $summary['lalat_ms']++;
+                    $lalatStatusChart['MS'][$wIdx]++;
+                    $wilkerDetail[$w]['lalat_ms']++;
+                } else {
+                    $summary['lalat_tms']++;
+                    $lalatStatusChart['TMS'][$wIdx]++;
+                    $wilkerDetail[$w]['lalat_tms']++;
+                }
+
+                $wilkerDetail[$w]['lalat_survei']++;
+                $wilkerDetail[$w]['lalat_rata_sum'] += $fi;
+            } elseif (str_contains($jv, 'kecoa')) {
+                $summary['kecoa']++;
+                $kt = (int)($dt['jml_kecoa_tertangkap'] ?? 0);
+                $kp = (int)($dt['perangkap_terpasang'] ?? 0);
+                $summary['kecoa_tertangkap'] += $kt;
+                $summary['kecoa_perangkap'] += $kp;
+
+                $wilkerDetail[$w]['kecoa_survei']++;
+                $wilkerDetail[$w]['kecoa_tertangkap'] += $kt;
+                $wilkerDetail[$w]['kecoa_perangkap'] += $kp;
+
+                $spesiesRaw = $dt['spesies_tertangkap'] ?? null;
+                if (is_string($spesiesRaw)) {
+                    $spesiesRaw = json_decode($spesiesRaw, true);
+                }
+                if (is_array($spesiesRaw)) {
+                    foreach ($spesiesRaw as $spName => $count) {
+                        $lbl = $kecoaSpeciesList[$spName] ?? 'Lain-Lain';
+                        $kecoaChart[$lbl][$wIdx] += (int)$count;
+                    }
+                }
+            } elseif (str_contains($jv, 'tikus')) {
+                $summary['tikus']++;
+                $tt = (int)($dt['jml_tikus_tertangkap'] ?? 0);
+                $tp = (int)($dt['jml_perangkap_dipasang'] ?? 0);
+                $trapPct = (float)($r->nilai_indeks ?: ($dt['success_trap'] ?? 0));
+                $tikusTrapValues[] = $trapPct;
+                $summary['tikus_tertangkap'] += $tt;
+                $summary['tikus_perangkap'] += $tp;
+
+                $wilkerDetail[$w]['tikus_survei']++;
+                $wilkerDetail[$w]['tikus_tertangkap'] += $tt;
+                $wilkerDetail[$w]['tikus_perangkap'] += $tp;
+                $wilkerDetail[$w]['tikus_success_trap_sum'] += $trapPct;
+
+                $rawSp = $dt['spesies'] ?? $dt['spesies_tikus'] ?? null;
+                if (is_string($rawSp) && str_starts_with(trim($rawSp), '{')) {
+                    $rawSp = json_decode($rawSp, true);
+                }
+                if (is_array($rawSp)) {
+                    foreach ($rawSp as $spName => $count) {
+                        $lbl = $tikusSpeciesList[$spName] ?? 'Lain-Lain';
+                        $spesiesTikusChart[$lbl][$wIdx] += (int)$count;
+                    }
+                } elseif (is_string($rawSp) && !empty(trim($rawSp))) {
+                    $lbl = $tikusSpeciesList[trim($rawSp)] ?? 'Lain-Lain';
+                    $spesiesTikusChart[$lbl][$wIdx] += 1;
+                }
+            } elseif (str_contains($jv, 'pinjal')) {
+                $summary['pinjal']++;
+                $pu = (int)($dt['pinjal_umum'] ?? 0);
+                $pk = (int)($dt['pinjal_khusus'] ?? 0);
+                $summary['pinjal_umum'] += $pu;
+                $summary['pinjal_khusus'] += $pk;
+
+                $wilkerDetail[$w]['pinjal_survei']++;
+                $wilkerDetail[$w]['pinjal_umum'] += $pu;
+                $wilkerDetail[$w]['pinjal_khusus'] += $pk;
+            } elseif (str_contains($jv, 'anopheles')) {
+                if (str_contains($jv, 'jentik')) {
+                    $summary['anopheles_jentik']++;
+                    $hi = (float)($r->nilai_indeks ?: ($dt['indeks_habitat'] ?? 0));
+                    $anophelesHabitatValues[] = $hi;
+                    $wilkerDetail[$w]['anopheles_jentik_survei']++;
+                    $wilkerDetail[$w]['anopheles_habitat_sum'] += $hi;
+                } else {
+                    $summary['anopheles_nyamuk']++;
+                    $mbr = (float)($r->nilai_indeks ?: ($dt['mbr'] ?? 0));
+                    $anophelesMbrValues[] = $mbr;
+                    $wilkerDetail[$w]['anopheles_nyamuk_survei']++;
+                    $wilkerDetail[$w]['anopheles_mbr_sum'] += $mbr;
+                }
+            }
+
+            if ($r->baku_mutu_status === 'Memenuhi Syarat') {
+                $summary['total_ms']++;
+            } else {
+                $summary['total_tms']++;
+            }
+        }
+
+        $summary['avg_lalat'] = count($lalatValues) > 0 ? round(array_sum($lalatValues) / count($lalatValues), 2) : 0;
+        $summary['avg_success_trap'] = count($tikusTrapValues) > 0 ? round(array_sum($tikusTrapValues) / count($tikusTrapValues), 2) : 0;
+        $summary['abj_avg'] = count($abjValues) > 0 ? round(array_sum($abjValues) / count($abjValues), 1) : 100;
+        $summary['avg_kecoa'] = $summary['kecoa_perangkap'] > 0 ? round($summary['kecoa_tertangkap'] / $summary['kecoa_perangkap'], 2) : 0;
+        $summary['avg_indeks_habitat'] = count($anophelesHabitatValues) > 0 ? round(array_sum($anophelesHabitatValues) / count($anophelesHabitatValues), 1) : 0;
+        $summary['avg_mbr'] = count($anophelesMbrValues) > 0 ? round(array_sum($anophelesMbrValues) / count($anophelesMbrValues), 2) : 0;
+        $summary['kepatuhan_pct'] = $summary['total_surveilans'] > 0 ? round(($summary['total_ms'] / $summary['total_surveilans']) * 100, 1) : 100;
+
+        // Sort jentik container positive frequencies descending
+        arsort($jenisKontainerChart);
+        $formattedKontainer = [];
+        $totalKontainerTemuan = array_sum($jenisKontainerChart);
+        foreach ($jenisKontainerChart as $name => $count) {
+            $formattedKontainer[] = [
+                'name' => $name,
+                'count' => $count,
+                'pct' => $totalKontainerTemuan > 0 ? round(($count / $totalKontainerTemuan) * 100, 1) : 0,
+            ];
+        }
+
+        foreach ($wilkerDetail as $w => &$item) {
+            $item['lalat_avg'] = $item['lalat_survei'] > 0 ? round($item['lalat_rata_sum'] / $item['lalat_survei'], 2) : 0;
+            $item['tikus_success_trap_avg'] = $item['tikus_survei'] > 0 ? round($item['tikus_success_trap_sum'] / $item['tikus_survei'], 2) : 0;
+            $item['kecoa_kepadatan'] = $item['kecoa_perangkap'] > 0 ? round($item['kecoa_tertangkap'] / $item['kecoa_perangkap'], 2) : 0;
+            if ($item['jentik_rumah_diperiksa'] > 0) {
+                $item['abj'] = round((($item['jentik_rumah_diperiksa'] - $item['jentik_rumah_positif']) / $item['jentik_rumah_diperiksa']) * 100, 1);
+            } elseif ($item['jentik_kontainer_diperiksa'] > 0) {
+                $item['abj'] = round((($item['jentik_kontainer_diperiksa'] - $item['jentik_kontainer_positif']) / $item['jentik_kontainer_diperiksa']) * 100, 1);
+            } else {
+                $item['abj'] = 100;
+            }
+            $item['anopheles_habitat_avg'] = $item['anopheles_jentik_survei'] > 0 ? round($item['anopheles_habitat_sum'] / $item['anopheles_jentik_survei'], 1) : 0;
+            $item['anopheles_mbr_avg'] = $item['anopheles_nyamuk_survei'] > 0 ? round($item['anopheles_mbr_sum'] / $item['anopheles_nyamuk_survei'], 2) : 0;
+        }
+        unset($item);
+
+        return [
+            'labels' => $labels,
+            'summary' => $summary,
+            'charts' => [
+                'kecoa' => $kecoaChart,
+                'lalat_status' => $lalatStatusChart,
+                'jentik_kontainer' => $formattedKontainer,
+                'jentik_kontainer_map' => $jenisKontainerChart,
+                'spesies_tikus' => $spesiesTikusChart,
+            ],
+            'wilker_detail' => array_values($wilkerDetail),
+        ];
+    }
 }
+
 
