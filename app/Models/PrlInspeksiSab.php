@@ -62,3 +62,4 @@ class PrlInspeksiSab extends Model
         return $this->belongsTo(PrlSab::class, 'prl_sab_id');
     }
 }
+

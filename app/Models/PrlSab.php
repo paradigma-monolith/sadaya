@@ -39,3 +39,4 @@ class PrlSab extends Model
         return $this->hasMany(PrlInspeksiSab::class, 'prl_sab_id');
     }
 }
+

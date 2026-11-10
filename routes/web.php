@@ -172,6 +172,12 @@ Route::middleware('auth')->group(function () {
         Route::post('/tpp', [\App\Http\Controllers\PrlController::class, 'storeTpp'])->name('storeTpp');
         Route::post('/sab', [\App\Http\Controllers\PrlController::class, 'storeSab'])->name('storeSab');
         Route::post('/hsbu', [\App\Http\Controllers\PrlController::class, 'storeHsbu'])->name('storeHsbu');
+        Route::post('/inspeksi/tpp', [\App\Http\Controllers\PrlController::class, 'storeInspeksiTpp'])->name('storeInspeksiTpp');
+        Route::post('/inspeksi/sab', [\App\Http\Controllers\PrlController::class, 'storeInspeksiSab'])->name('storeInspeksiSab');
+        Route::post('/inspeksi/hsbu', [\App\Http\Controllers\PrlController::class, 'storeInspeksiHsbu'])->name('storeInspeksiHsbu');
+        Route::post('/sivera', [\App\Http\Controllers\PrlController::class, 'storeSivera'])->name('storeSivera');
+        Route::delete('/inspeksi/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroyInspeksi'])->name('destroyInspeksi');
+        Route::delete('/sarana/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroySarana'])->name('destroySarana');
     });
 
     // System Data Exports (Excel, CSV, PDF)

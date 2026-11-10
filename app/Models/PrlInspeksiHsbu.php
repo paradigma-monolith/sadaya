@@ -49,3 +49,4 @@ class PrlInspeksiHsbu extends Model
         return $this->belongsTo(PrlHsbu::class, 'prl_hsbu_id');
     }
 }
+

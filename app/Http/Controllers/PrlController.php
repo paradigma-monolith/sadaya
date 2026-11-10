@@ -153,10 +153,29 @@ class PrlController extends Controller
         if ($wilker) $qSivera->where('wilker', $wilker);
         $siveraList = $qSivera->paginate(10, ['*'], 'page_sivera')->withQueryString();
 
-        // Master Sarana Lists (for quick lookup / registers)
-        $masterTpp = PrlTpp::latest()->take(50)->get();
-        $masterSab = PrlSab::latest()->take(50)->get();
-        $masterHsbu = PrlHsbu::latest()->take(50)->get();
+        // Master Sarana Lists (for quick lookup / registers / forms)
+        $masterTpp = PrlTpp::orderBy('nama_tpp')->get(['id', 'nama_tpp', 'wilker', 'penanggung_jawab', 'jml_karyawan', 'kapasitas_produksi']);
+        $masterSab = PrlSab::orderBy('nama_sab')->get(['id', 'nama_sab', 'wilker', 'penanggung_jawab', 'penanggung_jawab_no_hp', 'sumber_air', 'kapasitas_penampungan']);
+        $masterHsbu = PrlHsbu::orderBy('nama_gedung')->get(['id', 'nama_gedung', 'wilker', 'penanggung_jawab', 'jml_karyawan']);
+
+        // Pemeriksa / Inspector Options
+        $usersList = \App\Models\User::orderBy('name')->pluck('name')->toArray();
+        $inspList = array_merge(
+            PrlInspeksiTpp::distinct()->whereNotNull('nama_pemeriksa')->pluck('nama_pemeriksa')->toArray(),
+            PrlInspeksiSab::distinct()->whereNotNull('nama_pemeriksa')->pluck('nama_pemeriksa')->toArray(),
+            PrlInspeksiHsbu::distinct()->whereNotNull('nama_pemeriksa')->pluck('nama_pemeriksa')->toArray()
+        );
+        $pemeriksaAgg = [];
+        foreach (array_merge($usersList, $inspList) as $raw) {
+            foreach (preg_split('/[,|]/', (string)$raw) as $part) {
+                $trimmed = trim($part);
+                if ($trimmed !== '' && !is_numeric($trimmed)) {
+                    $pemeriksaAgg[$trimmed] = true;
+                }
+            }
+        }
+        $pemeriksaOptions = array_keys($pemeriksaAgg);
+        sort($pemeriksaOptions);
 
         return Inertia::render('Prl/Index', [
             'active_tab' => $activeTab,
@@ -168,6 +187,7 @@ class PrlController extends Controller
                 'bulan' => $bulan,
             ],
             'wilker_options' => $wilkerOptions,
+            'pemeriksa_options' => $pemeriksaOptions,
             'stats' => [
                 'total_sarana' => $totalSarana,
                 'total_inspeksi' => $totalInspeksi,
@@ -383,4 +403,227 @@ class PrlController extends Controller
             'data' => $hsbu,
         ]);
     }
+
+    /**
+     * Store new Inspeksi TPP record.
+     */
+    public function storeInspeksiTpp(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'wilker' => 'required|string|max:255',
+            'tanggal_inspeksi' => 'required|date',
+            'nama_tpp' => 'required|string|max:255',
+            'prl_tpp_id' => 'nullable|integer',
+            'penanggung_jawab_tpp' => 'nullable|string|max:255',
+            'jml_karyawan_tpp' => 'nullable|string|max:255',
+            'kapasitas_produksi_tpp' => 'nullable|string|max:255',
+            'nama_pemeriksa' => 'nullable|string|max:255',
+            'sec_a_satu' => 'nullable|string|max:10',
+            'sec_a_dua' => 'nullable|string|max:10',
+            'sec_a_tiga' => 'nullable|string|max:10',
+            'sec_a_skor' => 'nullable|integer',
+            'sec_b_satu' => 'nullable|string|max:10',
+            'sec_b_dua' => 'nullable|string|max:10',
+            'sec_b_tiga' => 'nullable|string|max:10',
+            'sec_b_skor' => 'nullable|integer',
+            'sec_c_skor' => 'nullable|integer',
+            'sec_c_keterangan' => 'nullable|string|max:255',
+            'sec_d_nilai_inspeksi_sebelumnya' => 'nullable|integer',
+            'sec_d_skor' => 'nullable|integer',
+            'hasil' => 'required|integer',
+            'tingkat_risiko' => 'required|string|in:Rendah,Sedang,Tinggi',
+            'kesimpulan' => 'nullable|string',
+            'makanan' => 'nullable|string',
+            'saran_rencana_tindakan' => 'nullable|string',
+        ]);
+
+        if (empty($validated['prl_tpp_id'])) {
+            $tpp = PrlTpp::firstOrCreate(
+                ['nama_tpp' => $validated['nama_tpp'], 'wilker' => $validated['wilker']],
+                [
+                    'penanggung_jawab' => $validated['penanggung_jawab_tpp'] ?? null,
+                    'jml_karyawan' => $validated['jml_karyawan_tpp'] ?? null,
+                    'kapasitas_produksi' => $validated['kapasitas_produksi_tpp'] ?? null,
+                    'created_by_name' => $request->user()?->name,
+                ]
+            );
+            $validated['prl_tpp_id'] = $tpp->id;
+        }
+
+        $inspeksi = PrlInspeksiTpp::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Inspeksi Higiene Sanitasi TPP berhasil disimpan.',
+            'data' => $inspeksi,
+        ]);
+    }
+
+    /**
+     * Store new Inspeksi SAB record.
+     */
+    public function storeInspeksiSab(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'wilker' => 'required|string|max:255',
+            'tanggal_inspeksi' => 'required|date',
+            'nama_sab' => 'required|string|max:255',
+            'prl_sab_id' => 'nullable|integer',
+            'penanggung_jawab_sab' => 'nullable|string|max:255',
+            'penanggung_jawab_no_hp_sab' => 'nullable|string|max:30',
+            'sumber_air_sab' => 'nullable|string|max:255',
+            'kapasitas_penampungan_sab' => 'nullable|string|max:255',
+            'nama_pemeriksa' => 'nullable|string|max:255',
+            'sec_b_satu' => 'nullable|string|max:10',
+            'sec_b_dua' => 'nullable|string|max:10',
+            'sec_b_tiga' => 'nullable|string|max:10',
+            'sec_b_empat' => 'nullable|string|max:10',
+            'sec_c_satu' => 'nullable|string|max:10',
+            'sec_c_dua' => 'nullable|string|max:10',
+            'sec_c_tiga' => 'nullable|string|max:10',
+            'sec_c_empat' => 'nullable|string|max:10',
+            'sec_c_lima' => 'nullable|string|max:10',
+            'sec_c_enam' => 'nullable|string|max:10',
+            'sec_c_tujuh' => 'nullable|string|max:10',
+            'sec_c_delapan' => 'nullable|string|max:10',
+            'sec_c_sembilan' => 'nullable|string|max:10',
+            'sec_c_sepuluh' => 'nullable|string|max:10',
+            'hasil' => 'required|integer',
+            'tingkat_risiko' => 'required|string',
+            'saran_rencana_tindakan' => 'nullable|string',
+        ]);
+
+        if (empty($validated['prl_sab_id'])) {
+            $sab = PrlSab::firstOrCreate(
+                ['nama_sab' => $validated['nama_sab'], 'wilker' => $validated['wilker']],
+                [
+                    'penanggung_jawab' => $validated['penanggung_jawab_sab'] ?? null,
+                    'penanggung_jawab_no_hp' => $validated['penanggung_jawab_no_hp_sab'] ?? null,
+                    'sumber_air' => $validated['sumber_air_sab'] ?? null,
+                    'kapasitas_penampungan' => $validated['kapasitas_penampungan_sab'] ?? null,
+                    'created_by_name' => $request->user()?->name,
+                ]
+            );
+            $validated['prl_sab_id'] = $sab->id;
+        }
+
+        $inspeksi = PrlInspeksiSab::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Inspeksi Kualitas Sanitasi SAB berhasil disimpan.',
+            'data' => $inspeksi,
+        ]);
+    }
+
+    /**
+     * Store new Inspeksi HSBU record.
+     */
+    public function storeInspeksiHsbu(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'wilker' => 'required|string|max:255',
+            'tanggal_inspeksi' => 'required|date',
+            'nama_gedung' => 'required|string|max:255',
+            'prl_hsbu_id' => 'nullable|integer',
+            'penanggung_jawab_hsbu' => 'nullable|string|max:255',
+            'jml_karyawan_hsbu' => 'nullable|string|max:255',
+            'nama_pemeriksa' => 'nullable|string|max:255',
+            'komponen_penilaian' => 'nullable|array',
+            'total' => 'required|numeric',
+            'tingkat_risiko' => 'required|string|in:Rendah,Sedang,Tinggi',
+            'saran_rencana_tindakan' => 'nullable|string',
+            'catatan' => 'nullable|string',
+        ]);
+
+        if (empty($validated['prl_hsbu_id'])) {
+            $hsbu = PrlHsbu::firstOrCreate(
+                ['nama_gedung' => $validated['nama_gedung'], 'wilker' => $validated['wilker']],
+                [
+                    'penanggung_jawab' => $validated['penanggung_jawab_hsbu'] ?? null,
+                    'jml_karyawan' => $validated['jml_karyawan_hsbu'] ?? null,
+                    'created_by_name' => $request->user()?->name,
+                ]
+            );
+            $validated['prl_hsbu_id'] = $hsbu->id;
+        }
+
+        $inspeksi = PrlInspeksiHsbu::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Inspeksi Higiene Sanitasi Gedung HSBU berhasil disimpan.',
+            'data' => $inspeksi,
+        ]);
+    }
+
+    /**
+     * Store new SIVERA Vektor record.
+     */
+    public function storeSivera(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'jenis_vektor' => 'required|string|max:50',
+            'wilker' => 'required|string|max:255',
+            'lokasi' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'parameter_utama' => 'required|string|max:255',
+            'nilai_indeks' => 'required|numeric',
+            'baku_mutu_status' => 'required|string|max:50',
+            'tindakan_pengendalian' => 'nullable|string',
+            'detail_data' => 'nullable|array',
+        ]);
+
+        $validated['created_by_name'] = $request->user()?->name;
+        $sivera = PrlSiveraVektor::create($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Surveilans Vektor (SIVERA) berhasil disimpan.',
+            'data' => $sivera,
+        ]);
+    }
+
+    /**
+     * Delete an inspection record.
+     */
+    public function destroyInspeksi(Request $request, string $type, int $id): JsonResponse
+    {
+        $deleted = false;
+        if ($type === 'tpp') {
+            $deleted = PrlInspeksiTpp::findOrFail($id)->delete();
+        } elseif ($type === 'sab') {
+            $deleted = PrlInspeksiSab::findOrFail($id)->delete();
+        } elseif ($type === 'hsbu') {
+            $deleted = PrlInspeksiHsbu::findOrFail($id)->delete();
+        } elseif ($type === 'sivera') {
+            $deleted = PrlSiveraVektor::findOrFail($id)->delete();
+        }
+
+        return response()->json([
+            'success' => (bool)$deleted,
+            'message' => 'Data riwayat inspeksi berhasil dihapus.',
+        ]);
+    }
+
+    /**
+     * Delete a master sarana record.
+     */
+    public function destroySarana(Request $request, string $type, int $id): JsonResponse
+    {
+        $deleted = false;
+        if ($type === 'tpp') {
+            $deleted = PrlTpp::findOrFail($id)->delete();
+        } elseif ($type === 'sab') {
+            $deleted = PrlSab::findOrFail($id)->delete();
+        } elseif ($type === 'hsbu') {
+            $deleted = PrlHsbu::findOrFail($id)->delete();
+        }
+
+        return response()->json([
+            'success' => (bool)$deleted,
+            'message' => 'Data master sarana berhasil dihapus.',
+        ]);
+    }
 }
+

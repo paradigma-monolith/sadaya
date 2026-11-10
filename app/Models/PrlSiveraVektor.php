@@ -42,3 +42,4 @@ class PrlSiveraVektor extends Model
             ->useLogName('prl_sivera_vektor');
     }
 }
+

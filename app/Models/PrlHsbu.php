@@ -37,3 +37,4 @@ class PrlHsbu extends Model
         return $this->hasMany(PrlInspeksiHsbu::class, 'prl_hsbu_id');
     }
 }
+

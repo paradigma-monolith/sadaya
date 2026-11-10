@@ -38,3 +38,4 @@ class PrlTpp extends Model
         return $this->hasMany(PrlInspeksiTpp::class, 'prl_tpp_id');
     }
 }
+

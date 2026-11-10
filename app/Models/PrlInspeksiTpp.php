@@ -65,3 +65,4 @@ class PrlInspeksiTpp extends Model
         return $this->belongsTo(PrlTpp::class, 'prl_tpp_id');
     }
 }
+

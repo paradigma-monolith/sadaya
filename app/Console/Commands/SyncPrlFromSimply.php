@@ -411,3 +411,4 @@ class SyncPrlFromSimply extends Command
         return self::SUCCESS;
     }
 }
+

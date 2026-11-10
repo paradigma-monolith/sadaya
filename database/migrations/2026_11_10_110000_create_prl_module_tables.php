@@ -190,3 +190,4 @@ return new class extends Migration
         Schema::dropIfExists('prl_tpp');
     }
 };
+
