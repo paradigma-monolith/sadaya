@@ -1780,16 +1780,6 @@ const handleRunSync = async () => {
         <div class="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            @click="openSyncModal"
-            class="px-3.5 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 text-xs font-bold text-indigo-700 dark:text-indigo-300 transition shadow-xs flex items-center gap-1.5 cursor-pointer"
-            title="Konfigurasi &amp; Sinkronisasi Data dari Simply CI4"
-          >
-            <Database class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>Migrasi Data Simply</span>
-          </button>
-
-          <button
-            type="button"
             @click="openAddInspeksi()"
             class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#00A99D] to-[#005851] hover:brightness-105 text-xs font-bold text-white transition shadow-sm flex items-center gap-2 cursor-pointer"
           >
