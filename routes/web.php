@@ -173,6 +173,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/sivera', [\App\Http\Controllers\PrlController::class, 'siveraTab'])->name('sivera');
         Route::get('/export/{type}', [\App\Http\Controllers\PrlController::class, 'exportExcel'])->name('export');
         Route::get('/inspeksi/{type}/{id}/pdf', [\App\Http\Controllers\PrlController::class, 'printPdf'])->name('pdf');
+        Route::get('/sivera/{id}/pdf/{tipe?}', [\App\Http\Controllers\PrlController::class, 'printSiveraPdf'])->name('sivera.pdf');
+        Route::get('/sivera_jentik/pdf/{id}/{tipe?}', [\App\Http\Controllers\PrlController::class, 'printSiveraJentikPdf'])->name('sivera.jentik.pdf');
+        Route::get('/sivera_lalat/pdf/{id}', [\App\Http\Controllers\PrlController::class, 'printSiveraLalatPdf'])->name('sivera.lalat.pdf');
         Route::post('/tpp', [\App\Http\Controllers\PrlController::class, 'storeTpp'])->name('storeTpp');
         Route::post('/sab', [\App\Http\Controllers\PrlController::class, 'storeSab'])->name('storeSab');
         Route::post('/hsbu', [\App\Http\Controllers\PrlController::class, 'storeHsbu'])->name('storeHsbu');

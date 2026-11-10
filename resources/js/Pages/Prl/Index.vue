@@ -2368,28 +2368,89 @@ const getRiskBadgeClass = (risk) => {
                     </span>
                   </td>
                   <td class="py-3 px-3">
-                    <div class="flex flex-col gap-0.5">
-                      <span
+                    <div class="flex flex-col gap-1 min-w-[190px] max-w-[240px]">
+                      <!-- Status Pill -->
+                      <div v-if="(item.baku_mutu_status || '').toLowerCase().includes('tidak') || (item.baku_mutu_status || '').toLowerCase().includes('atas')">
+                        <span
+                          v-if="item.tindakan_pengendalian"
+                          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                        >
+                          <CheckCircle2 class="w-3 h-3 text-emerald-600" />
+                          <span>Sudah Dikendalikan</span>
+                        </span>
+                        <span
+                          v-else
+                          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800"
+                        >
+                          <AlertTriangle class="w-3 h-3 text-rose-600" />
+                          <span>Perlu Pengendalian</span>
+                        </span>
+                      </div>
+                      <div v-else>
+                        <span
+                          v-if="item.tindakan_pengendalian"
+                          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800"
+                        >
+                          <ShieldCheck class="w-3 h-3 text-teal-600" />
+                          <span>Pengendalian Rutin</span>
+                        </span>
+                        <span
+                          v-else
+                          class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700"
+                        >
+                          <Check class="w-3 h-3 text-slate-500" />
+                          <span>Baku Mutu Aman</span>
+                        </span>
+                      </div>
+
+                      <!-- Action Description Snippet -->
+                      <p
                         v-if="item.tindakan_pengendalian"
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold w-fit bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                        class="text-[11px] text-slate-600 dark:text-slate-300 truncate"
+                        :title="item.tindakan_pengendalian"
                       >
-                        <CheckCircle2 class="w-3 h-3 text-emerald-600" />
-                        <span>Sudah Dikendalikan</span>
-                      </span>
-                      <span
+                        {{ item.tindakan_pengendalian }}
+                      </p>
+                      <p
                         v-else
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold w-fit bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                        class="text-[10px] text-slate-400 italic"
                       >
-                        <AlertTriangle class="w-3 h-3 text-amber-600" />
-                        <span>Perlu Pengendalian</span>
-                      </span>
-                      <span class="text-[11px] text-slate-500 max-w-[200px] truncate" :title="item.tindakan_pengendalian">
-                        {{ item.tindakan_pengendalian || 'Belum ada tindakan tercatat' }}
-                      </span>
+                        {{ (item.baku_mutu_status || '').toLowerCase().includes('tidak') ? 'Menunggu intervensi petugas' : 'Kondisi vektor terkendali' }}
+                      </p>
                     </div>
                   </td>
                   <td class="py-3 px-3 text-center">
                     <div class="inline-flex items-center gap-1">
+                      <!-- PDF Download / Preview Button (Sesuai Simply CI4) -->
+                      <div v-if="(item.jenis_vektor || '').includes('Jentik Aedes')" class="inline-flex items-center gap-0.5">
+                        <a
+                          :href="`/prl/sivera/${item.id}/pdf/jentik`"
+                          target="_blank"
+                          class="p-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-400 transition cursor-pointer"
+                          title="Cetak PDF Form Pengendalian Jentik"
+                        >
+                          <Printer class="w-3.5 h-3.5" />
+                        </a>
+                        <a
+                          :href="`/prl/sivera/${item.id}/pdf/fogging`"
+                          target="_blank"
+                          class="px-1.5 py-1 rounded-lg border border-orange-200 bg-orange-50 hover:bg-orange-100 text-orange-600 dark:border-orange-900/40 dark:bg-orange-950/40 dark:text-orange-400 text-[10px] font-bold transition cursor-pointer"
+                          title="Cetak PDF Form Pengendalian Fogging"
+                        >
+                          Fogging
+                        </a>
+                      </div>
+                      <a
+                        v-else
+                        :href="`/prl/sivera/${item.id}/pdf`"
+                        target="_blank"
+                        class="p-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:border-rose-900/40 dark:bg-rose-950/40 dark:text-rose-400 transition cursor-pointer"
+                        title="Cetak Laporan PDF Pengendalian & Surveilans"
+                      >
+                        <Printer class="w-3.5 h-3.5" />
+                      </a>
+
+                      <!-- Kendalikan Action Button -->
                       <button
                         type="button"
                         @click="openPengendalian(item)"
@@ -4149,7 +4210,25 @@ const getRiskBadgeClass = (risk) => {
               <Printer class="w-4 h-4" />
               <span>Cetak PDF Lembar Pengawasan</span>
             </a>
-            <div v-else></div>
+            <div v-else class="flex items-center gap-2">
+              <a
+                :href="`/prl/sivera/${detailItem.id}/pdf`"
+                target="_blank"
+                class="px-4 py-2 text-xs font-bold rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition shadow-xs flex items-center gap-2 cursor-pointer"
+              >
+                <Printer class="w-4 h-4" />
+                <span>Cetak Laporan PDF SIVERA</span>
+              </a>
+              <a
+                v-if="(detailItem.jenis_vektor || '').includes('Jentik Aedes')"
+                :href="`/prl/sivera/${detailItem.id}/pdf/fogging`"
+                target="_blank"
+                class="px-3.5 py-2 text-xs font-bold rounded-xl bg-orange-600 text-white hover:bg-orange-700 transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                <Printer class="w-4 h-4" />
+                <span>PDF Form Fogging</span>
+              </a>
+            </div>
 
             <button type="button" @click="closeDetail()" class="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 transition cursor-pointer">
               Tutup

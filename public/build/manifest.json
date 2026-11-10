@@ -11,7 +11,7 @@
     ]
   },
   "resources/css/app.css": {
-    "file": "assets/app-t5Vvnbdk.css",
+    "file": "assets/app-CB3fmuUM.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -20,7 +20,7 @@
     ]
   },
   "resources/js/inertia.js": {
-    "file": "assets/inertia-C1I8Rx_0.js",
+    "file": "assets/inertia-DXzRKOyV.js",
     "name": "inertia",
     "src": "resources/js/inertia.js",
     "isEntry": true,

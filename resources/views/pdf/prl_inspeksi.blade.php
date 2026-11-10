@@ -74,15 +74,21 @@
 </head>
 <body>
 
-  <table class="header-table">
-    <tr>
-      <td style="width: 100%; text-align: center;">
-        <div style="font-size: 13px; font-weight: bold; color: #005851; text-transform: uppercase;">KEMENTERIAN KESEHATAN REPUBLIK INDONESIA</div>
-        <div style="font-size: 15px; font-weight: 800; color: #00A99D; text-transform: uppercase;">BALAI KEKARANTINAAN KESEHATAN KELAS I BANDUNG</div>
-        <div style="font-size: 9px; color: #64748b; margin-top: 2px;">Sistem Informasi Satu Pintu Sadaya &bull; Substansi Pengendalian Risiko Lingkungan (PRL)</div>
-      </td>
-    </tr>
-  </table>
+  @if(!empty($kop))
+    <div style="width: 100%; text-align: center; margin-bottom: 15px;">
+      <img src="{{ $kop }}" style="width: 100%; max-height: 110px;" alt="Kop Surat">
+    </div>
+  @else
+    <table class="header-table">
+      <tr>
+        <td style="width: 100%; text-align: center;">
+          <div style="font-size: 13px; font-weight: bold; color: #005851; text-transform: uppercase;">KEMENTERIAN KESEHATAN REPUBLIK INDONESIA</div>
+          <div style="font-size: 15px; font-weight: 800; color: #00A99D; text-transform: uppercase;">BALAI KEKARANTINAAN KESEHATAN KELAS I BANDUNG</div>
+          <div style="font-size: 9px; color: #64748b; margin-top: 2px;">Sistem Informasi Satu Pintu Sadaya &bull; Substansi Pengendalian Risiko Lingkungan (PRL)</div>
+        </td>
+      </tr>
+    </table>
+  @endif
 
   <div class="title">{{ $title }}</div>
   <div class="subtitle">Nomor Registrasi Sistem: PRL-{{ strtoupper($type) }}-{{ str_pad($item->id, 5, '0', STR_PAD_LEFT) }}</div>
