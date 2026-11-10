@@ -37,7 +37,6 @@ import {
   ArrowRight,
   Info,
   Sliders,
-  Sparkles,
   Save,
 } from 'lucide-vue-next';
 import axios from 'axios';
@@ -661,8 +660,9 @@ const deleteInspection = async (item, type) => {
             <Leaf class="w-3.5 h-3.5 text-emerald-600" />
             <span>Pengawasan Faktor Risiko Kesehatan Lingkungan &bull; BKK Kelas I Bandung</span>
           </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            Sanitasi Lingkungan
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <ClipboardCheck class="w-7 h-7 sm:w-8 sm:h-8 text-emerald-600 shrink-0" />
+            <span>Sanitasi Lingkungan</span>
           </h1>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
             Pusat terpadu pengawasan Tempat Pengelolaan Pangan (TPP), Sarana Air Bersih (SAB), serta Higiene Sanitasi Bangunan dan Usaha (HSBU) di seluruh wilayah kerja.
