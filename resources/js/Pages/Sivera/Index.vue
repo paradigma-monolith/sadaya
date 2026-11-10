@@ -589,6 +589,12 @@ const flyIndexRata = computed(() => {
   return Number((sum / items.length).toFixed(2));
 });
 
+const flyIndexMax = computed(() => {
+  const items = formSiveraLalat.value.lokasi_items;
+  if (!items || items.length === 0) return 0;
+  return Math.max(...items.map(it => getLokasiLalatRata(it)));
+});
+
 const statusLalat = computed(() => {
   const anyTms = formSiveraLalat.value.lokasi_items.some((it) => getLokasiLalatRata(it) >= 2.0);
   return anyTms || flyIndexRata.value >= 2.0 ? 'Tidak Memenuhi Syarat' : 'Memenuhi Syarat';

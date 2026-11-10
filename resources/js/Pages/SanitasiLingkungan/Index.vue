@@ -1,6 +1,6 @@
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
 import {
