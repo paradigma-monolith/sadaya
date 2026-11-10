@@ -350,7 +350,7 @@ const navSections = computed(() => {
       class="fixed top-0 bottom-0 left-0 z-40 bg-white border-r border-slate-200/80 flex flex-col transition-all duration-300 font-sans shadow-xl lg:shadow-none"
       :class="[
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-        isCollapsed ? 'w-16' : 'w-64 max-w-[85vw]',
+        isCollapsed ? 'w-16' : 'w-72 max-w-[85vw]',
       ]"
     >
       <!-- Sidebar Header -->
@@ -412,32 +412,32 @@ const navSections = computed(() => {
             v-else
             type="button"
             @click="toggleSection(section.title)"
-            class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer group text-left select-none"
+            class="w-full flex items-start justify-between px-2.5 py-2 rounded-lg text-[10.5px] font-bold uppercase tracking-wider transition-all cursor-pointer group text-left select-none"
             :class="[
               isSectionOpen(section) 
-                ? 'bg-slate-100/70 text-slate-800' 
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                ? 'bg-slate-100/80 text-slate-800' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
             ]"
             :title="`Klik untuk ${isSectionOpen(section) ? 'menutup' : 'membuka'} menu`"
           >
-            <div class="flex items-center gap-2 min-w-0 pr-1">
+            <div class="flex items-start gap-2 min-w-0 flex-1 pr-1.5">
               <component 
                 v-if="section.icon"
                 :is="section.icon"
-                class="w-3.5 h-3.5 shrink-0 transition-colors"
+                class="w-3.5 h-3.5 shrink-0 transition-colors mt-0.5"
                 :class="section.iconColor || 'text-slate-500'"
               />
-              <span class="truncate leading-tight font-bold">{{ section.title }}</span>
+              <span class="leading-snug font-bold break-words whitespace-normal text-slate-700 group-hover:text-slate-900">{{ section.title }}</span>
               <span 
                 v-if="section.items && section.items.some(i => i.active)"
-                class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0"
+                class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0 mt-1"
                 title="Bagian ini berisi menu yang sedang aktif"
               ></span>
             </div>
-            <div class="flex items-center gap-1 shrink-0 ml-1">
+            <div class="flex items-center gap-1 shrink-0 ml-1.5 mt-0.5">
               <span 
                 v-if="section.items?.length"
-                class="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-200/70 text-slate-600 group-hover:bg-slate-300 group-hover:text-slate-800 transition-colors"
+                class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-600 group-hover:bg-slate-300 group-hover:text-slate-800 transition-colors"
               >
                 {{ section.items.length }}
               </span>
@@ -472,7 +472,7 @@ const navSections = computed(() => {
                 :target="item.external ? '_blank' : '_self'"
                 :rel="item.external ? 'noopener noreferrer' : null"
                 @click="handleNavClick(item.path, item.external, $event)"
-                class="flex items-center rounded-lg text-xs transition-all group relative cursor-pointer"
+                class="flex items-start rounded-lg text-xs transition-all group relative cursor-pointer"
                 :class="[
                   isCollapsed ? 'justify-center py-2.5 px-2' : 'gap-2.5 px-2.5 py-2',
                   item.active 
@@ -486,14 +486,14 @@ const navSections = computed(() => {
 
                 <component 
                   :is="item.icon" 
-                  class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105"
+                  class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105 mt-0.5"
                   :class="item.active ? item.iconColor : `${item.iconColor} opacity-80 group-hover:opacity-100`"
                 />
 
                 <!-- Label -->
-                <div v-if="!isCollapsed" class="flex-1 flex items-center justify-between overflow-hidden">
-                  <span class="truncate">{{ item.name }}</span>
-                  <div v-if="item.badge || item.external" class="flex items-center gap-1.5 shrink-0 ml-1.5">
+                <div v-if="!isCollapsed" class="flex-1 flex items-start justify-between min-w-0">
+                  <span class="leading-snug break-words whitespace-normal">{{ item.name }}</span>
+                  <div v-if="item.badge || item.external" class="flex items-center gap-1.5 shrink-0 ml-1.5 mt-0.5">
                     <span 
                       v-if="item.badge" 
                       class="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6] uppercase tracking-wider"

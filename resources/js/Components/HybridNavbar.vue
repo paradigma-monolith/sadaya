@@ -371,7 +371,7 @@ const handleLogout = () => {
     <!-- Main Layout Wrapper (Auto-offset for persistent desktop sidebar) -->
     <div 
       class="flex-1 flex flex-col transition-all duration-300 w-full"
-      :class="isCollapsed ? 'lg:pl-16' : 'lg:pl-64'"
+      :class="isCollapsed ? 'lg:pl-16' : 'lg:pl-72'"
     >
       <!-- Top Navbar Header (Clean White Executive Style matching Reference Image 1) -->
       <header class="sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80">
