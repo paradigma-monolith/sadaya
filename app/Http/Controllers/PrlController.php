@@ -21,12 +21,24 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class PrlController extends Controller
 {
     /**
-     * Display the central Pengendalian Risiko Lingkungan (PRL) portal & analytics dashboard.
+     * Entrypoint for backward compatibility. Dispatches to Sanitasi Lingkungan or SIVERA.
      */
     public function index(Request $request): Response
     {
+        $tab = $request->query('tab');
+        if ($tab === 'sivera' || $request->is('*/sivera*')) {
+            return $this->siveraIndex($request);
+        }
+        return $this->sanitasiIndex($request);
+    }
+
+    /**
+     * Display the Sanitasi Lingkungan portal (TPP, SAB, HSBU).
+     */
+    public function sanitasiIndex(Request $request): Response
+    {
         $activeTab = $request->query('tab', 'tpp');
-        if ($activeTab === 'overview') {
+        if ($activeTab === 'overview' || $activeTab === 'sivera') {
             $activeTab = 'tpp';
         }
         $search = $request->query('search');
@@ -297,7 +309,7 @@ class PrlController extends Controller
         $pemeriksaOptions = array_keys($pemeriksaAgg);
         sort($pemeriksaOptions);
 
-        return Inertia::render('Prl/Index', [
+        return Inertia::render('SanitasiLingkungan/Index', [
             'active_tab' => $activeTab,
             'filters' => [
                 'search' => $search,
@@ -307,11 +319,9 @@ class PrlController extends Controller
                 'tgl_selesai' => $tglSelesai,
                 'tahun' => $tahun,
                 'bulan' => $bulan,
-                'sivera_vektor' => $siveraVektor,
                 'per_page_tpp' => $perPageTpp,
                 'per_page_sab' => $perPageSab,
                 'per_page_hsbu' => $perPageHsbu,
-                'per_page_sivera' => $perPageSivera,
             ],
             'wilker_options' => $wilkerOptions,
             'pemeriksa_options' => $pemeriksaOptions,
@@ -328,21 +338,193 @@ class PrlController extends Controller
                 'risiko_sedang' => $risikoSedang,
                 'risiko_tinggi' => $risikoTinggi,
                 'kepatuhan_persen' => $kepatuhanPersen,
-                'sivera_total' => $siveraAllCount,
-                'sivera_memenuhi' => $siveraMemenuhi,
-                'sivera_diatas_baku' => $siveraDiatasBaku,
                 'wilker_stats' => $wilkerStats,
             ],
-            'sivera_dashboard_metrics' => $siveraDashboardMetrics,
-            'sivera_dashboard_data' => $siveraDashboardData,
             'inspeksi_tpp' => $inspeksiTpp,
             'inspeksi_sab' => $inspeksiSab,
             'inspeksi_hsbu' => $inspeksiHsbu,
-            'sivera_list' => $siveraList,
             'master_tpp' => $masterTpp,
             'master_sab' => $masterSab,
             'master_hsbu' => $masterHsbu,
         ]);
+    }
+
+    /**
+     * Display the dedicated SIVERA (Surveilans Vektor dan Reservoar) portal.
+     */
+    public function siveraIndex(Request $request): Response
+    {
+        $search = $request->query('search');
+        $wilker = $request->query('wilker');
+        $tingkatRisiko = $request->query('tingkat_risiko');
+        $tglMulai = $request->query('tgl_mulai', $request->query('tanggal_mulai'));
+        $tglSelesai = $request->query('tgl_selesai', $request->query('tanggal_selesai'));
+        $tahun = $request->query('tahun');
+        $bulan = $request->query('bulan');
+        $perPageSivera = min(1000, max(5, (int)$request->input('per_page_sivera', 25)));
+        $siveraVektor = $request->input('sivera_vektor', $request->input('vektor', $request->input('jenis_vektor', 'Dashboard')));
+
+        // Available Wilker List
+        try {
+            $officialWilkers = KantorWilker::pluck('nama')->toArray();
+        } catch (\Throwable $e) {
+            $officialWilkers = [];
+        }
+        $observedWilkers = PrlSiveraVektor::distinct()->pluck('wilker')->toArray();
+        $wilkerOptions = array_values(array_unique(array_filter(array_merge($officialWilkers, $observedWilkers))));
+
+        // SIVERA Global Stats & Dashboard Metrics
+        $siveraAllCount = PrlSiveraVektor::count();
+        $siveraMemenuhi = PrlSiveraVektor::where('baku_mutu_status', 'Memenuhi Syarat')->count();
+        $siveraDiatasBaku = PrlSiveraVektor::where('baku_mutu_status', '!=', 'Memenuhi Syarat')->count();
+        $siveraKepatuhan = $siveraAllCount > 0 ? round(($siveraMemenuhi / $siveraAllCount) * 100, 1) : 0;
+
+        $siveraDashboardData = $this->computeSiveraDashboardData($wilkerOptions);
+
+        $siveraDashboardMetrics = [
+            'totalSurveilans' => $siveraAllCount,
+            'totalMs' => $siveraMemenuhi,
+            'totalTms' => $siveraDiatasBaku,
+            'kepatuhanPct' => $siveraKepatuhan,
+            'jentikCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Jentik Aedes%')->count(),
+            'jentikMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Jentik Aedes%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
+            'jentikAbjAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Jentik Aedes%')->avg('nilai_indeks'), 1),
+            'lalatCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Lalat%')->count(),
+            'lalatMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Lalat%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
+            'lalatFiAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Lalat%')->avg('nilai_indeks'), 1),
+            'kecoaCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Kecoa%')->count(),
+            'kecoaMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Kecoa%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
+            'kecoaIdxAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Kecoa%')->avg('nilai_indeks'), 1),
+            'tikusCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Tikus%')->count(),
+            'tikusMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Tikus%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
+            'tikusTrapAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Tikus%')->avg('nilai_indeks'), 1),
+            'pinjalCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Pinjal%')->count(),
+            'pinjalMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Pinjal%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
+            'anophelesJentikCount' => PrlSiveraVektor::where(function ($q) {
+                $q->where('jenis_vektor', 'like', '%anopheles%jentik%')
+                  ->orWhere('jenis_vektor', 'like', '%jentik%anopheles%')
+                  ->orWhere('jenis_vektor', 'Anopheles (Jentik)')
+                  ->orWhere('jenis_vektor', 'Jentik Anopheles');
+            })->count(),
+            'anophelesJentikMs' => PrlSiveraVektor::where(function ($q) {
+                $q->where('jenis_vektor', 'like', '%anopheles%jentik%')
+                  ->orWhere('jenis_vektor', 'like', '%jentik%anopheles%')
+                  ->orWhere('jenis_vektor', 'Anopheles (Jentik)')
+                  ->orWhere('jenis_vektor', 'Jentik Anopheles');
+            })->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
+            'anophelesNyamukCount' => PrlSiveraVektor::where(function ($q) {
+                $q->where('jenis_vektor', 'like', '%anopheles%nyamuk%')
+                  ->orWhere('jenis_vektor', 'like', '%nyamuk%anopheles%')
+                  ->orWhere('jenis_vektor', 'Anopheles (Nyamuk)')
+                  ->orWhere('jenis_vektor', 'Nyamuk Anopheles');
+            })->count(),
+            'anophelesNyamukMs' => PrlSiveraVektor::where(function ($q) {
+                $q->where('jenis_vektor', 'like', '%anopheles%nyamuk%')
+                  ->orWhere('jenis_vektor', 'like', '%nyamuk%anopheles%')
+                  ->orWhere('jenis_vektor', 'Anopheles (Nyamuk)')
+                  ->orWhere('jenis_vektor', 'Nyamuk Anopheles');
+            })->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
+        ];
+
+        // SIVERA Vektor Query
+        $qSivera = PrlSiveraVektor::query()->latest('tanggal')->latest('id');
+        if ($search) {
+            $qSivera->where(function ($q) use ($search) {
+                $q->where('jenis_vektor', 'like', "%{$search}%")
+                  ->orWhere('lokasi', 'like', "%{$search}%")
+                  ->orWhere('wilker', 'like', "%{$search}%")
+                  ->orWhere('parameter_utama', 'like', "%{$search}%");
+            });
+        }
+        if ($wilker) $qSivera->where('wilker', $wilker);
+        if ($tingkatRisiko) {
+            if (in_array(strtolower($tingkatRisiko), ['rendah', 'ms', 'memenuhi syarat', 'aman'])) {
+                $qSivera->where('baku_mutu_status', 'Memenuhi Syarat');
+            } elseif (in_array(strtolower($tingkatRisiko), ['tinggi', 'tms', 'di atas baku mutu', 'sedang', 'bahaya'])) {
+                $qSivera->where('baku_mutu_status', '!=', 'Memenuhi Syarat');
+            } else {
+                $qSivera->where('baku_mutu_status', 'like', "%{$tingkatRisiko}%");
+            }
+        }
+        if ($tglMulai) $qSivera->whereDate('tanggal', '>=', $tglMulai);
+        if ($tglSelesai) $qSivera->whereDate('tanggal', '<=', $tglSelesai);
+        if ($tahun) $qSivera->whereYear('tanggal', $tahun);
+        if ($bulan) $qSivera->whereMonth('tanggal', $bulan);
+
+        if ($siveraVektor && !in_array(strtolower($siveraVektor), ['dashboard', 'semua data', 'semua', 'all'])) {
+            if (strtolower($siveraVektor) === 'jentik' || strtolower($siveraVektor) === 'jentik aedes') {
+                $qSivera->where('jenis_vektor', 'like', '%Jentik Aedes%');
+            } elseif (strtolower($siveraVektor) === 'lalat') {
+                $qSivera->where('jenis_vektor', 'like', '%Lalat%');
+            } elseif (strtolower($siveraVektor) === 'kecoa') {
+                $qSivera->where('jenis_vektor', 'like', '%Kecoa%');
+            } elseif (strtolower($siveraVektor) === 'tikus') {
+                $qSivera->where('jenis_vektor', 'like', '%Tikus%');
+            } elseif (strtolower($siveraVektor) === 'pinjal') {
+                $qSivera->where('jenis_vektor', 'like', '%Pinjal%');
+            } elseif (str_contains(strtolower($siveraVektor), 'jentik anopheles') || str_contains(strtolower($siveraVektor), 'anopheles jentik')) {
+                $qSivera->where(function ($q) {
+                    $q->where('jenis_vektor', 'like', '%anopheles%jentik%')
+                      ->orWhere('jenis_vektor', 'like', '%jentik%anopheles%')
+                      ->orWhere('jenis_vektor', 'Anopheles (Jentik)')
+                      ->orWhere('jenis_vektor', 'Jentik Anopheles');
+                });
+            } elseif (str_contains(strtolower($siveraVektor), 'nyamuk anopheles') || str_contains(strtolower($siveraVektor), 'anopheles nyamuk')) {
+                $qSivera->where(function ($q) {
+                    $q->where('jenis_vektor', 'like', '%anopheles%nyamuk%')
+                      ->orWhere('jenis_vektor', 'like', '%nyamuk%anopheles%')
+                      ->orWhere('jenis_vektor', 'Anopheles (Nyamuk)')
+                      ->orWhere('jenis_vektor', 'Nyamuk Anopheles');
+                });
+            } else {
+                $qSivera->where('jenis_vektor', 'like', "%{$siveraVektor}%");
+            }
+        }
+        $siveraList = $qSivera->paginate($perPageSivera, ['*'], 'page_sivera')->withQueryString();
+
+        // Pemeriksa Options
+        $usersList = \App\Models\User::orderBy('name')->pluck('name')->toArray();
+        $inspList = PrlSiveraVektor::distinct()->whereNotNull('created_by_name')->pluck('created_by_name')->toArray();
+        $pemeriksaAgg = [];
+        foreach (array_merge($usersList, $inspList) as $raw) {
+            foreach (preg_split('/[,|]/', (string)$raw) as $part) {
+                $trimmed = trim($part);
+                if ($trimmed !== '' && !is_numeric($trimmed)) {
+                    $pemeriksaAgg[$trimmed] = true;
+                }
+            }
+        }
+        $pemeriksaOptions = array_keys($pemeriksaAgg);
+        sort($pemeriksaOptions);
+
+        return Inertia::render('Sivera/Index', [
+            'filters' => [
+                'search' => $search,
+                'wilker' => $wilker,
+                'tingkat_risiko' => $tingkatRisiko,
+                'tgl_mulai' => $tglMulai,
+                'tgl_selesai' => $tglSelesai,
+                'tahun' => $tahun,
+                'bulan' => $bulan,
+                'sivera_vektor' => $siveraVektor,
+                'per_page_sivera' => $perPageSivera,
+            ],
+            'wilker_options' => $wilkerOptions,
+            'pemeriksa_options' => $pemeriksaOptions,
+            'sivera_dashboard_metrics' => $siveraDashboardMetrics,
+            'sivera_dashboard_data' => $siveraDashboardData,
+            'sivera_list' => $siveraList,
+        ]);
+    }
+
+    public function exportSiveraExcel(Request $request): StreamedResponse
+    {
+        return $this->exportExcel($request, 'sivera');
+    }
+
+    public function destroySiveraRecord(Request $request, int $id): JsonResponse
+    {
+        return $this->destroyInspeksi($request, 'sivera', $id);
     }
 
     /**
@@ -949,25 +1131,24 @@ class PrlController extends Controller
     public function tppTab(Request $request): Response
     {
         $request->merge(['tab' => 'tpp']);
-        return $this->index($request);
+        return $this->sanitasiIndex($request);
     }
 
     public function sabTab(Request $request): Response
     {
         $request->merge(['tab' => 'sab']);
-        return $this->index($request);
+        return $this->sanitasiIndex($request);
     }
 
     public function hsbuTab(Request $request): Response
     {
         $request->merge(['tab' => 'hsbu']);
-        return $this->index($request);
+        return $this->sanitasiIndex($request);
     }
 
     public function siveraTab(Request $request): Response
     {
-        $request->merge(['tab' => 'sivera']);
-        return $this->index($request);
+        return $this->siveraIndex($request);
     }
 
     /**

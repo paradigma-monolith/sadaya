@@ -164,7 +164,40 @@ Route::middleware('auth')->group(function () {
         Route::post('/import', [SinkarkesController::class, 'importExcel'])->name('import');
     });
 
-    // Pengendalian Risiko Lingkungan (PRL / KESLING - TPP, SAB, HSBU, SIVERA)
+    // Sanitasi Lingkungan (Pengawasan TPP, SAB, HSBU)
+    Route::prefix('sanitasi-lingkungan')->name('sanitasi.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PrlController::class, 'sanitasiIndex'])->name('index');
+        Route::get('/tpp', [\App\Http\Controllers\PrlController::class, 'tppTab'])->name('tpp');
+        Route::get('/sab', [\App\Http\Controllers\PrlController::class, 'sabTab'])->name('sab');
+        Route::get('/hsbu', [\App\Http\Controllers\PrlController::class, 'hsbuTab'])->name('hsbu');
+        Route::get('/export/{type}', [\App\Http\Controllers\PrlController::class, 'exportExcel'])->name('export');
+        Route::get('/inspeksi/{type}/{id}/pdf', [\App\Http\Controllers\PrlController::class, 'printPdf'])->name('pdf');
+        Route::post('/tpp', [\App\Http\Controllers\PrlController::class, 'storeTpp'])->name('storeTpp');
+        Route::post('/sab', [\App\Http\Controllers\PrlController::class, 'storeSab'])->name('storeSab');
+        Route::post('/hsbu', [\App\Http\Controllers\PrlController::class, 'storeHsbu'])->name('storeHsbu');
+        Route::post('/inspeksi/tpp', [\App\Http\Controllers\PrlController::class, 'storeInspeksiTpp'])->name('storeInspeksiTpp');
+        Route::post('/inspeksi/sab', [\App\Http\Controllers\PrlController::class, 'storeInspeksiSab'])->name('storeInspeksiSab');
+        Route::post('/inspeksi/hsbu', [\App\Http\Controllers\PrlController::class, 'storeInspeksiHsbu'])->name('storeInspeksiHsbu');
+        Route::delete('/inspeksi/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroyInspeksi'])->name('destroyInspeksi');
+        Route::delete('/sarana/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroySarana'])->name('destroySarana');
+    });
+
+    // Surveilans Vektor dan Reservoar (SIVERA)
+    Route::prefix('sivera')->name('sivera.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PrlController::class, 'siveraIndex'])->name('index');
+        Route::get('/dashboard', [\App\Http\Controllers\PrlController::class, 'siveraIndex'])->name('dashboard');
+        Route::get('/vektor/{vektor}', [\App\Http\Controllers\PrlController::class, 'siveraIndex'])->name('vektor');
+        Route::get('/export', [\App\Http\Controllers\PrlController::class, 'exportSiveraExcel'])->name('export');
+        Route::get('/{id}/pdf/{tipe?}', [\App\Http\Controllers\PrlController::class, 'printSiveraPdf'])->name('pdf');
+        Route::get('/jentik/pdf/{id}/{tipe?}', [\App\Http\Controllers\PrlController::class, 'printSiveraJentikPdf'])->name('jentik.pdf');
+        Route::get('/lalat/pdf/{id}', [\App\Http\Controllers\PrlController::class, 'printSiveraLalatPdf'])->name('lalat.pdf');
+        Route::post('/', [\App\Http\Controllers\PrlController::class, 'storeSivera'])->name('store');
+        Route::put('/{id}', [\App\Http\Controllers\PrlController::class, 'updateSivera'])->name('update');
+        Route::post('/{id}/pengendalian', [\App\Http\Controllers\PrlController::class, 'updatePengendalianSivera'])->name('pengendalian');
+        Route::delete('/{id}', [\App\Http\Controllers\PrlController::class, 'destroySiveraRecord'])->name('destroy');
+    });
+
+    // Pengendalian Risiko Lingkungan (PRL / KESLING - Backwards Compatibility Aliases)
     Route::prefix('prl')->name('prl.')->group(function () {
         Route::get('/', [\App\Http\Controllers\PrlController::class, 'index'])->name('index');
         Route::get('/tpp', [\App\Http\Controllers\PrlController::class, 'tppTab'])->name('tpp');

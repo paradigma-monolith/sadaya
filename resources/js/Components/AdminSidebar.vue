@@ -116,13 +116,14 @@ const handleLogout = () => {
   window.location.href = getUrl('/logout');
 };
 
-// Collapsible dropdown state for sidebar sections
+// Collapsible dropdown state for sidebar sections & submenus
 const openSections = ref({});
+const openSubMenus = ref({});
 
 const isSectionOpen = (section) => {
   if (section.collapsible === false) return true;
   if (openSections.value[section.title] === undefined) {
-    const hasActive = section.items && section.items.some(i => i.active);
+    const hasActive = section.items && section.items.some(i => i.active || (i.children && i.children.some(c => c.active)));
     openSections.value[section.title] = hasActive ? true : false;
   }
   return !!openSections.value[section.title];
@@ -135,6 +136,22 @@ const toggleSection = (title) => {
   } catch (e) {}
 };
 
+const isSubMenuOpen = (item) => {
+  if (openSubMenus.value[item.name] !== undefined) {
+    return !!openSubMenus.value[item.name];
+  }
+  const hasActive = item.children && item.children.some(c => c.active);
+  openSubMenus.value[item.name] = hasActive ? true : false;
+  return !!openSubMenus.value[item.name];
+};
+
+const toggleSubMenu = (name) => {
+  openSubMenus.value[name] = !openSubMenus.value[name];
+  try {
+    localStorage.setItem('sadaya_sidebar_submenus', JSON.stringify(openSubMenus.value));
+  } catch (e) {}
+};
+
 onMounted(() => {
   try {
     const saved = localStorage.getItem('sadaya_sidebar_sections');
@@ -144,12 +161,27 @@ onMounted(() => {
         openSections.value = { ...openSections.value, ...parsed };
       }
     }
+    const savedSubs = localStorage.getItem('sadaya_sidebar_submenus');
+    if (savedSubs) {
+      const parsedSubs = JSON.parse(savedSubs);
+      if (parsedSubs && typeof parsedSubs === 'object') {
+        openSubMenus.value = { ...openSubMenus.value, ...parsedSubs };
+      }
+    }
   } catch (e) {}
 
-  // Ensure section containing active route is always expanded
+  // Ensure section & submenu containing active route is always expanded
   navSections.value.forEach((sec) => {
-    if (sec.items && sec.items.some(i => i.active)) {
-      openSections.value[sec.title] = true;
+    if (sec.items) {
+      const secHasActive = sec.items.some(i => i.active || (i.children && i.children.some(c => c.active)));
+      if (secHasActive) {
+        openSections.value[sec.title] = true;
+      }
+      sec.items.forEach((item) => {
+        if (item.children && item.children.some(c => c.active)) {
+          openSubMenus.value[item.name] = true;
+        }
+      });
     }
   });
 });
@@ -250,36 +282,46 @@ const navSections = computed(() => {
       collapsible: true,
       items: [
         {
-          name: 'TPP (Tempat Pengelolaan Pangan)',
-          path: '/prl/tpp',
-          url: getUrl('/prl/tpp'),
-          icon: Utensils,
-          iconColor: 'text-amber-500',
-          active: props.currentRoute === 'prl-tpp' || currentPath.includes('/prl/tpp') || currentPath === '/prl' || currentPath.endsWith('/prl'),
-        },
-        {
-          name: 'SAB (Sarana Air Bersih)',
-          path: '/prl/sab',
-          url: getUrl('/prl/sab'),
-          icon: Droplets,
-          iconColor: 'text-sky-500',
-          active: props.currentRoute === 'prl-sab' || currentPath.includes('/prl/sab'),
-        },
-        {
-          name: 'HSBU (Hygiene Sanitasi Bangunan)',
-          path: '/prl/hsbu',
-          url: getUrl('/prl/hsbu'),
-          icon: Building2,
-          iconColor: 'text-purple-500',
-          active: props.currentRoute === 'prl-hsbu' || currentPath.includes('/prl/hsbu'),
+          name: 'Sanitasi Lingkungan',
+          path: '/sanitasi-lingkungan',
+          url: getUrl('/sanitasi-lingkungan'),
+          icon: Sparkles,
+          iconColor: 'text-emerald-600',
+          active: props.currentRoute?.startsWith('sanitasi') || currentPath.includes('/sanitasi-lingkungan') || (currentPath.includes('/prl') && !currentPath.includes('/prl/sivera')),
+          children: [
+            {
+              name: 'Tempat Pengelolaan Pangan (TPP)',
+              path: '/sanitasi-lingkungan/tpp',
+              url: getUrl('/sanitasi-lingkungan/tpp'),
+              icon: Utensils,
+              iconColor: 'text-amber-500',
+              active: props.currentRoute === 'sanitasi-tpp' || props.currentRoute === 'prl-tpp' || currentPath.includes('/sanitasi-lingkungan/tpp') || currentPath.includes('/prl/tpp') || currentPath === '/sanitasi-lingkungan' || currentPath.endsWith('/sanitasi-lingkungan'),
+            },
+            {
+              name: 'Sarana Air Bersih (SAB)',
+              path: '/sanitasi-lingkungan/sab',
+              url: getUrl('/sanitasi-lingkungan/sab'),
+              icon: Droplets,
+              iconColor: 'text-sky-500',
+              active: props.currentRoute === 'sanitasi-sab' || props.currentRoute === 'prl-sab' || currentPath.includes('/sanitasi-lingkungan/sab') || currentPath.includes('/prl/sab'),
+            },
+            {
+              name: 'Hygiene Sanitasi Bangunan (HSBU)',
+              path: '/sanitasi-lingkungan/hsbu',
+              url: getUrl('/sanitasi-lingkungan/hsbu'),
+              icon: Building2,
+              iconColor: 'text-purple-500',
+              active: props.currentRoute === 'sanitasi-hsbu' || props.currentRoute === 'prl-hsbu' || currentPath.includes('/sanitasi-lingkungan/hsbu') || currentPath.includes('/prl/hsbu'),
+            },
+          ],
         },
         {
           name: 'SIVERA (Vektor & Reservoar)',
-          path: '/prl/sivera',
-          url: getUrl('/prl/sivera'),
+          path: '/sivera',
+          url: getUrl('/sivera'),
           icon: Bug,
           iconColor: 'text-rose-500',
-          active: props.currentRoute === 'prl-sivera' || currentPath.includes('/prl/sivera'),
+          active: props.currentRoute === 'sivera' || props.currentRoute === 'prl-sivera' || currentPath.includes('/sivera') || currentPath.includes('/prl/sivera'),
         },
       ],
     },
@@ -457,56 +499,126 @@ const navSections = computed(() => {
                   : 'space-y-0.5'
               ]"
             >
-              <a
-                v-for="(item, iIndex) in section.items"
-                :key="iIndex"
-                :href="item.url"
-                :target="item.external ? '_blank' : '_self'"
-                :rel="item.external ? 'noopener noreferrer' : null"
-                @click="handleNavClick(item.path, item.external, $event)"
-                class="flex items-start rounded-lg text-xs transition-all group relative cursor-pointer"
-                :class="[
-                  isCollapsed ? 'justify-center py-2.5 px-2' : 'gap-2.5 px-2.5 py-2',
-                  item.active 
-                    ? 'bg-[#E6F7F5] text-[#005851] font-bold border border-[#99DFD6] shadow-2xs'
-                    : 'text-slate-600 hover:text-[#005851] hover:bg-[#F0FDFB] font-medium border border-transparent'
-                ]"
-                :title="isCollapsed ? item.name : ''"
-              >
-                <!-- Left Active Indicator Bar -->
-                <span v-if="item.active" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#00A99D] rounded-r-full"></span>
+              <template v-for="(item, iIndex) in section.items" :key="iIndex">
+                <!-- Dropdown Item with Submenu Children (Expanded Mode) -->
+                <div v-if="item.children && item.children.length && !isCollapsed" class="space-y-0.5">
+                  <button
+                    type="button"
+                    @click="toggleSubMenu(item.name)"
+                    class="w-full flex items-center justify-between rounded-lg text-xs transition-all group relative cursor-pointer px-2.5 py-2 text-left select-none"
+                    :class="[
+                      (item.active || item.children.some(c => c.active))
+                        ? 'bg-[#E6F7F5] text-[#005851] font-bold border border-[#99DFD6]'
+                        : 'text-slate-600 hover:text-[#005851] hover:bg-[#F0FDFB] font-medium border border-transparent'
+                    ]"
+                  >
+                    <!-- Left Active Indicator Bar -->
+                    <span v-if="item.active || item.children.some(c => c.active)" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#00A99D] rounded-r-full"></span>
 
-                <component 
-                  :is="item.icon" 
-                  class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105 mt-0.5"
-                  :class="item.active ? item.iconColor : `${item.iconColor} opacity-80 group-hover:opacity-100`"
-                />
+                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                      <component 
+                        :is="item.icon" 
+                        class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105"
+                        :class="(item.active || item.children.some(c => c.active)) ? item.iconColor : `${item.iconColor} opacity-80 group-hover:opacity-100`"
+                      />
+                      <span class="leading-snug break-words whitespace-normal text-xs">{{ item.name }}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 ml-1.5">
+                      <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-600 group-hover:bg-slate-300">
+                        {{ item.children.length }}
+                      </span>
+                      <ChevronDown 
+                        class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200"
+                        :class="isSubMenuOpen(item) ? 'rotate-180 text-emerald-700' : ''"
+                      />
+                    </div>
+                  </button>
 
-                <!-- Label -->
-                <div v-if="!isCollapsed" class="flex-1 flex items-start justify-between min-w-0">
-                  <span class="leading-snug break-words whitespace-normal">{{ item.name }}</span>
-                  <div v-if="item.badge || item.external" class="flex items-center gap-1.5 shrink-0 ml-1.5 mt-0.5">
-                    <span 
-                      v-if="item.badge" 
-                      class="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6] uppercase tracking-wider"
-                    >
-                      {{ item.badge }}
-                    </span>
-                    <ExternalLink 
-                      v-if="item.external" 
-                      class="w-3 h-3 text-slate-400 group-hover:text-slate-600" 
-                    />
-                  </div>
+                  <!-- Indented Submenu Items -->
+                  <transition
+                    enter-active-class="transition-all duration-200 ease-out overflow-hidden"
+                    enter-from-class="max-h-0 opacity-0 -translate-y-1"
+                    enter-to-class="max-h-[300px] opacity-100 translate-y-0"
+                    leave-active-class="transition-all duration-150 ease-in overflow-hidden"
+                    leave-from-class="max-h-[300px] opacity-100 translate-y-0"
+                    leave-to-class="max-h-0 opacity-0 -translate-y-1"
+                  >
+                    <div v-show="isSubMenuOpen(item)" class="ml-3 pl-2.5 border-l-2 border-emerald-200/80 space-y-0.5 my-1">
+                      <a
+                        v-for="(child, cIndex) in item.children"
+                        :key="cIndex"
+                        :href="child.url"
+                        @click="handleNavClick(child.path, false, $event)"
+                        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[11px] transition-all group relative cursor-pointer"
+                        :class="[
+                          child.active
+                            ? 'bg-[#E6F7F5] text-[#005851] font-bold border border-[#99DFD6]'
+                            : 'text-slate-600 hover:text-[#005851] hover:bg-[#F0FDFB] font-medium border border-transparent'
+                        ]"
+                      >
+                        <span v-if="child.active" class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0"></span>
+                        <component 
+                          :is="child.icon" 
+                          class="w-3.5 h-3.5 flex-shrink-0"
+                          :class="child.active ? child.iconColor : `${child.iconColor} opacity-75 group-hover:opacity-100`"
+                        />
+                        <span class="leading-tight break-words whitespace-normal">{{ child.name }}</span>
+                      </a>
+                    </div>
+                  </transition>
                 </div>
 
-                <!-- Tooltip Popup when collapsed -->
-                <div 
-                  v-if="isCollapsed" 
-                  class="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-medium rounded-lg shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50"
+                <!-- Single Link Item (or when collapsed) -->
+                <a
+                  v-else
+                  :href="item.url"
+                  :target="item.external ? '_blank' : '_self'"
+                  :rel="item.external ? 'noopener noreferrer' : null"
+                  @click="handleNavClick(item.path, item.external, $event)"
+                  class="flex items-start rounded-lg text-xs transition-all group relative cursor-pointer"
+                  :class="[
+                    isCollapsed ? 'justify-center py-2.5 px-2' : 'gap-2.5 px-2.5 py-2',
+                    item.active 
+                      ? 'bg-[#E6F7F5] text-[#005851] font-bold border border-[#99DFD6] shadow-2xs'
+                      : 'text-slate-600 hover:text-[#005851] hover:bg-[#F0FDFB] font-medium border border-transparent'
+                  ]"
+                  :title="isCollapsed ? item.name : ''"
                 >
-                  {{ item.name }}
-                </div>
-              </a>
+                  <!-- Left Active Indicator Bar -->
+                  <span v-if="item.active" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#00A99D] rounded-r-full"></span>
+
+                  <component 
+                    :is="item.icon" 
+                    class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105 mt-0.5"
+                    :class="item.active ? item.iconColor : `${item.iconColor} opacity-80 group-hover:opacity-100`"
+                  />
+
+                  <!-- Label -->
+                  <div v-if="!isCollapsed" class="flex-1 flex items-start justify-between min-w-0">
+                    <span class="leading-snug break-words whitespace-normal">{{ item.name }}</span>
+                    <div v-if="item.badge || item.external" class="flex items-center gap-1.5 shrink-0 ml-1.5 mt-0.5">
+                      <span 
+                        v-if="item.badge" 
+                        class="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6] uppercase tracking-wider"
+                      >
+                        {{ item.badge }}
+                      </span>
+                      <ExternalLink 
+                        v-if="item.external" 
+                        class="w-3 h-3 text-slate-400 group-hover:text-slate-600" 
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Tooltip Popup when collapsed -->
+                  <div 
+                    v-if="isCollapsed" 
+                    class="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-medium rounded-lg shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50"
+                  >
+                    {{ item.name }}
+                  </div>
+                </a>
+              </template>
             </div>
           </transition>
         </div>
