@@ -68,6 +68,10 @@ const activeNav = computed(() => {
   if (p.includes('/ship-inspections')) return 'ship-inspections';
   if (p.includes('/sinkarkes/dashboard')) return 'sinkarkes-dashboard';
   if (p.includes('/sinkarkes')) return 'sinkarkes';
+  if (p.includes('/prl/tpp')) return 'prl-tpp';
+  if (p.includes('/prl/sab')) return 'prl-sab';
+  if (p.includes('/prl/hsbu')) return 'prl-hsbu';
+  if (p.includes('/prl/sivera')) return 'prl-sivera';
   if (p.includes('/prl')) return 'prl';
   if (p.includes('/audit-logs')) return 'audit';
   if (p.includes('/profile')) return 'profile';

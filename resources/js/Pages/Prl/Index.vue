@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   XCircle,
   ShieldCheck,
+  ShieldAlert,
   Calendar,
   MapPin,
   User,
@@ -32,6 +33,7 @@ import {
   ClipboardCheck,
   FileText,
   Trash2,
+  Edit,
   ArrowRight,
   Info,
   Sliders,
@@ -97,7 +99,7 @@ const props = defineProps({
 
 // Active Tab State
 const currentTab = ref(props.active_tab || 'overview');
-const siveraFilterVektor = ref('Semua');
+const siveraFilterVektor = ref('Dashboard');
 
 // Filter States
 const search = ref(props.filters.search || '');
@@ -131,19 +133,89 @@ const resetFilter = () => {
   selectedRisiko.value = '';
   selectedTahun.value = '';
   selectedBulan.value = '';
-  siveraFilterVektor.value = 'Semua';
+  siveraFilterVektor.value = 'Dashboard';
   router.get('/prl', { tab: currentTab.value }, { preserveState: true, replace: true });
 };
 
 // Filtered Sivera List based on vector sub-filter
 const filteredSiveraData = computed(() => {
   const data = props.sivera_list?.data || [];
-  if (siveraFilterVektor.value === 'Semua') return data;
+  if (siveraFilterVektor.value === 'Dashboard' || siveraFilterVektor.value === 'Semua Data') return data;
   return data.filter((item) => {
     const jv = (item.jenis_vektor || '').toLowerCase();
     const filter = siveraFilterVektor.value.toLowerCase();
     return jv.includes(filter) || filter.includes(jv);
   });
+});
+
+// SIVERA Dashboard Metrics
+const siveraDashboardMetrics = computed(() => {
+  const all = props.sivera_list?.data || [];
+  const jentik = all.filter((x) => (x.jenis_vektor || '').includes('Jentik Aedes'));
+  const lalat = all.filter((x) => (x.jenis_vektor || '').includes('Lalat'));
+  const kecoa = all.filter((x) => (x.jenis_vektor || '').includes('Kecoa'));
+  const tikus = all.filter((x) => (x.jenis_vektor || '').includes('Tikus'));
+  const pinjal = all.filter((x) => (x.jenis_vektor || '').includes('Pinjal'));
+  const anophelesJentik = all.filter((x) => (x.jenis_vektor || '').includes('Jentik Anopheles'));
+  const anophelesNyamuk = all.filter((x) => (x.jenis_vektor || '').includes('Nyamuk Anopheles'));
+
+  const totalMs = all.filter((x) => (x.baku_mutu_status || '').toLowerCase().includes('memenuhi')).length;
+  const totalTms = all.length - totalMs;
+  const kepatuhanPct = all.length > 0 ? ((totalMs / all.length) * 100).toFixed(1) : '100.0';
+
+  const lalatMs = lalat.filter((x) => (x.baku_mutu_status || '').toLowerCase().includes('memenuhi')).length;
+  const lalatTms = lalat.length - lalatMs;
+  const lalatAvg = lalat.length > 0 ? (lalat.reduce((a, b) => a + Number(b.nilai_indeks || 0), 0) / lalat.length).toFixed(2) : '0.00';
+
+  const jentikMs = jentik.filter((x) => (x.baku_mutu_status || '').toLowerCase().includes('memenuhi')).length;
+  const jentikAbjAvg = jentik.length > 0 ? (jentik.reduce((a, b) => a + Number(b.nilai_indeks || 0), 0) / jentik.length).toFixed(2) : '0.00';
+
+  const kecoaMs = kecoa.filter((x) => (x.baku_mutu_status || '').toLowerCase().includes('memenuhi')).length;
+  const tikusMs = tikus.filter((x) => (x.baku_mutu_status || '').toLowerCase().includes('memenuhi')).length;
+  const tikusTrapAvg = tikus.length > 0 ? (tikus.reduce((a, b) => a + Number(b.nilai_indeks || 0), 0) / tikus.length).toFixed(2) : '0.00';
+
+  const pinjalMs = pinjal.filter((x) => (x.baku_mutu_status || '').toLowerCase().includes('memenuhi')).length;
+  const ajMs = anophelesJentik.filter((x) => (x.baku_mutu_status || '').toLowerCase().includes('memenuhi')).length;
+  const anMs = anophelesNyamuk.filter((x) => (x.baku_mutu_status || '').toLowerCase().includes('memenuhi')).length;
+
+  const wilkerMap = {};
+  all.forEach((item) => {
+    const w = item.wilker || 'Wilayah Kerja';
+    if (!wilkerMap[w]) wilkerMap[w] = { wilker: w, total: 0, ms: 0, tms: 0 };
+    wilkerMap[w].total += 1;
+    if ((item.baku_mutu_status || '').toLowerCase().includes('memenuhi')) {
+      wilkerMap[w].ms += 1;
+    } else {
+      wilkerMap[w].tms += 1;
+    }
+  });
+  const wilkerBreakdown = Object.values(wilkerMap);
+
+  return {
+    totalSurveilans: all.length,
+    totalMs,
+    totalTms,
+    kepatuhanPct,
+    jentikCount: jentik.length,
+    jentikAbjAvg,
+    jentikMs,
+    lalatCount: lalat.length,
+    lalatAvg,
+    lalatMs,
+    lalatTms,
+    kecoaCount: kecoa.length,
+    kecoaMs,
+    tikusCount: tikus.length,
+    tikusTrapAvg,
+    tikusMs,
+    pinjalCount: pinjal.length,
+    pinjalMs,
+    anophelesJentikCount: anophelesJentik.length,
+    anophelesJentikMs: ajMs,
+    anophelesNyamukCount: anophelesNyamuk.length,
+    anophelesNyamukMs: anMs,
+    wilkerBreakdown,
+  };
 });
 
 // Modal Detail State
@@ -481,26 +553,64 @@ const statusJentik = computed(() => {
   return (hiJentik.value === 0 && ciJentik.value === 0 && biJentik.value === 0) ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat';
 });
 
-// 2. SIVERA LALAT
+// 2. SIVERA LALAT (Multi-Lokasi Sesuai Simply CI4)
 const formSiveraLalat = ref({
   wilker: '',
   tanggal: todayStr,
   musim: 'Hujan',
-  lokasi: 'Dapur & Kantin Dermaga',
   temperatur: 28.5,
   kelembapan: 70,
   kecepatan_angin: 0.5,
-  t: [1, 0, 2, 1, 0, 1, 0, 2, 1, 0],
+  lokasi_items: [
+    {
+      lokasi: 'Dapur & Kantin Dermaga',
+      t: [1, 0, 2, 1, 0, 1, 0, 2, 1, 0],
+    },
+  ],
   tindakan_pengendalian: 'Pemasangan fly trap dan sanitasi tempat pembuangan sampah.',
 });
 
-const top5Lalat = computed(() => {
-  const sorted = [...formSiveraLalat.value.t].map(Number).sort((a, b) => b - a);
+const addLokasiLalat = () => {
+  formSiveraLalat.value.lokasi_items.push({
+    lokasi: `Lokasi ${formSiveraLalat.value.lokasi_items.length + 1}`,
+    t: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  });
+};
+
+const removeLokasiLalat = (idx) => {
+  if (formSiveraLalat.value.lokasi_items.length > 1) {
+    formSiveraLalat.value.lokasi_items.splice(idx, 1);
+  }
+};
+
+const getLokasiLalatTop5 = (item) => {
+  const sorted = [...(item.t || [])].map(Number).sort((a, b) => b - a);
   return sorted.slice(0, 5);
+};
+
+const getLokasiLalatTotalTop5 = (item) => {
+  return getLokasiLalatTop5(item).reduce((acc, curr) => acc + curr, 0);
+};
+
+const getLokasiLalatRata = (item) => {
+  return Number((getLokasiLalatTotalTop5(item) / 5).toFixed(2));
+};
+
+const getLokasiLalatStatus = (item) => {
+  return getLokasiLalatRata(item) < 2.0 ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat';
+};
+
+const flyIndexRata = computed(() => {
+  const items = formSiveraLalat.value.lokasi_items;
+  if (!items || items.length === 0) return 0;
+  const sum = items.reduce((acc, it) => acc + getLokasiLalatRata(it), 0);
+  return Number((sum / items.length).toFixed(2));
 });
-const totalTop5Lalat = computed(() => top5Lalat.value.reduce((acc, curr) => acc + curr, 0));
-const flyIndexRata = computed(() => Number((totalTop5Lalat.value / 5).toFixed(2)));
-const statusLalat = computed(() => (flyIndexRata.value < 2.0 ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'));
+
+const statusLalat = computed(() => {
+  const anyTms = formSiveraLalat.value.lokasi_items.some((it) => getLokasiLalatRata(it) >= 2.0);
+  return anyTms || flyIndexRata.value >= 2.0 ? 'Tidak Memenuhi Syarat' : 'Memenuhi Syarat';
+});
 
 // 3. SIVERA KECOA
 const formSiveraKecoa = ref({
@@ -596,15 +706,20 @@ const statusPinjal = computed(() => {
 });
 
 // 6. SIVERA JENTIK ANOPHELES
+const standardHabitatAnopheles = [
+  'Lagun', 'Tambak', 'Sawah', 'Rawa', 'Genangan',
+  'Kolam', 'Sungai', 'Saluran Air', 'Muara', 'Tambak Terbengkalai'
+];
+
 const formSiveraAnophelesJentik = ref({
   wilker: '',
   tanggal: todayStr,
   lokasi: 'PPI Karangsong Indramayu',
-  jenis_habitat: ['Parit/Saluran', 'Kolam/Tambak'],
+  jenis_habitat: ['Tambak', 'Saluran Air'],
   jenis_habitat_lainnya: '',
-  kondisi_pencahayaan: 'Terbuka',
-  kondisi_vegetasi: 'Ada',
-  kondisi_air: 'Payau',
+  kondisi_pencahayaan: ['Terkena sinar matahari'],
+  kondisi_vegetasi: ['Ada vegetasi'],
+  kondisi_air: ['Payau', 'Tergenang'],
   jml_habitat_disurvei: 10,
   jml_habitat_positif: 0,
   keterangan: 'Survei habitat perkembangbiakan malaria di pesisir.',
@@ -618,7 +733,22 @@ const indeksHabitatAnopheles = computed(() => {
 });
 const statusAnophelesJentik = computed(() => (indeksHabitatAnopheles.value < 1.0 ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'));
 
-// 7. SIVERA NYAMUK ANOPHELES (DEWASA)
+// 7. SIVERA NYAMUK ANOPHELES (DEWASA - MATRIX 12 JAM)
+const anophelesJamSlots = [
+  { key: '18_19', label: '18⁰⁰-19⁰⁰' },
+  { key: '19_20', label: '19⁰⁰-20⁰⁰' },
+  { key: '20_21', label: '20⁰⁰-21⁰⁰' },
+  { key: '21_22', label: '21⁰⁰-22⁰⁰' },
+  { key: '22_23', label: '22⁰⁰-23⁰⁰' },
+  { key: '23_24', label: '23⁰⁰-24⁰⁰' },
+  { key: '24_01', label: '24⁰⁰-01⁰⁰' },
+  { key: '01_02', label: '01⁰⁰-02⁰⁰' },
+  { key: '02_03', label: '02⁰⁰-03⁰⁰' },
+  { key: '03_04', label: '03⁰⁰-04⁰⁰' },
+  { key: '04_05', label: '04⁰⁰-05⁰⁰' },
+  { key: '05_06', label: '05⁰⁰-06⁰⁰' },
+];
+
 const formSiveraAnophelesNyamuk = ref({
   wilker: '',
   tanggal: todayStr,
@@ -630,25 +760,361 @@ const formSiveraAnophelesNyamuk = ref({
   kelembaban: 78,
   kecepatan_angin: 1.2,
   cuaca: 'Cerah Berawan',
-  tangkapan_dalam: 0,
-  tangkapan_luar: 0,
+  tangkapan_dalam: {
+    '18_19': 0, '19_20': 0, '20_21': 0, '21_22': 0, '22_23': 0, '23_24': 0,
+    '24_01': 0, '01_02': 0, '02_03': 0, '03_04': 0, '04_05': 0, '05_06': 0
+  },
+  tangkapan_luar: {
+    '18_19': 0, '19_20': 0, '20_21': 0, '21_22': 0, '22_23': 0, '23_24': 0,
+    '24_01': 0, '01_02': 0, '02_03': 0, '03_04': 0, '04_05': 0, '05_06': 0
+  },
   keterangan: 'Penangkapan malam hari 18.00 - 06.00 WIB.',
+  interpretasi: 'Kepadatan vektor dalam batas aman.',
   tindakan_pengendalian: 'Indoor Residual Spraying (IRS) dan pembagian kelambu berinsektisida.',
 });
 
-const totalTertangkapNyamuk = computed(() => {
-  return Number(formSiveraAnophelesNyamuk.value.tangkapan_dalam || 0) + Number(formSiveraAnophelesNyamuk.value.tangkapan_luar || 0);
+const totalDalamNyamuk = computed(() => {
+  return Object.values(formSiveraAnophelesNyamuk.value.tangkapan_dalam || {}).reduce((a, b) => Number(a) + Number(b), 0);
 });
+
+const totalLuarNyamuk = computed(() => {
+  return Object.values(formSiveraAnophelesNyamuk.value.tangkapan_luar || {}).reduce((a, b) => Number(a) + Number(b), 0);
+});
+
+const totalTertangkapNyamuk = computed(() => {
+  return totalDalamNyamuk.value + totalLuarNyamuk.value;
+});
+
 const manHours = computed(() => {
   return Number(formSiveraAnophelesNyamuk.value.jml_penangkap || 1) * Number(formSiveraAnophelesNyamuk.value.lama_penangkapan || 12);
 });
+
+const mhdDalam = computed(() => {
+  return manHours.value > 0 ? Number((totalDalamNyamuk.value / manHours.value).toFixed(4)) : 0;
+});
+
+const mhdLuar = computed(() => {
+  return manHours.value > 0 ? Number((totalLuarNyamuk.value / manHours.value).toFixed(4)) : 0;
+});
+
 const mbrAnopheles = computed(() => {
   return manHours.value > 0 ? Number((totalTertangkapNyamuk.value / manHours.value).toFixed(4)) : 0;
 });
+
+const adaAnopheles = computed(() => {
+  return totalTertangkapNyamuk.value > 0 ? 'Ya' : 'Tidak';
+});
+
 const statusAnophelesNyamuk = computed(() => (totalTertangkapNyamuk.value === 0 ? 'Memenuhi Syarat' : 'Tidak Memenuhi Syarat'));
+
+// Edit Mode State
+const isEditMode = ref(false);
+const editId = ref(null);
+
+const editSivera = (item) => {
+  isEditMode.value = true;
+  editId.value = item.id;
+  addInspeksiType.value = 'sivera';
+
+  const jv = item.jenis_vektor || '';
+  if (jv.includes('Jentik Aedes')) {
+    siveraActiveVektor.value = 'Jentik Aedes sp.';
+    const d = item.detail_data || {};
+    formSiveraJentik.value = {
+      wilker: item.wilker || '',
+      lokasi: item.lokasi || '',
+      bulan_pelaksanaan: d.bulan_pelaksanaan || currentMonthStr,
+      kondisi_musim: d.kondisi_musim || 'Hujan',
+      tanggal_mulai: d.tanggal_mulai || item.tanggal,
+      tanggal_selesai: d.tanggal_selesai || item.tanggal,
+      wilayah: d.wilayah || 'Perimeter',
+      jml_rumah_diperiksa: Number(d.jml_rumah_diperiksa || 50),
+      jml_kontainer_diperiksa: Number(d.jml_kontainer_diperiksa || 150),
+      jml_rumah_positif: Number(d.jml_rumah_positif || 0),
+      jml_kontainer_positif: Number(d.jml_kontainer_positif || 0),
+      jenis_kontainer: Array.isArray(d.jenis_kontainer) ? d.jenis_kontainer : (d.jenis_kontainer ? d.jenis_kontainer.split(',') : ['Ember']),
+      jenis_kontainer_lainnya: d.jenis_kontainer_lainnya || '',
+      tindakan_pengendalian: item.tindakan_pengendalian || '',
+    };
+  } else if (jv.includes('Lalat')) {
+    siveraActiveVektor.value = 'Lalat';
+    const d = item.detail_data || {};
+    let lokItems = [];
+    if (d.detail_lokasi && Array.isArray(d.detail_lokasi) && d.detail_lokasi.length > 0) {
+      lokItems = d.detail_lokasi.map((dl) => ({
+        lokasi: dl.lokasi || 'Lokasi',
+        t: dl.t || [0,0,0,0,0,0,0,0,0,0],
+      }));
+    } else {
+      lokItems = [{
+        lokasi: item.lokasi || 'Dapur / Kantin',
+        t: d.t || [1,0,2,1,0,1,0,2,1,0],
+      }];
+    }
+    formSiveraLalat.value = {
+      wilker: item.wilker || '',
+      tanggal: item.tanggal,
+      musim: d.musim || 'Hujan',
+      temperatur: Number(d.temperatur || 28.5),
+      kelembapan: Number(d.kelembapan || 70),
+      kecepatan_angin: Number(d.kecepatan_angin || 0.5),
+      lokasi_items: lokItems,
+      tindakan_pengendalian: item.tindakan_pengendalian || '',
+    };
+  } else if (jv.includes('Kecoa')) {
+    siveraActiveVektor.value = 'Kecoa';
+    const d = item.detail_data || {};
+    formSiveraKecoa.value = {
+      wilker: item.wilker || '',
+      tanggal: item.tanggal,
+      lokasi: item.lokasi || '',
+      nama_ruangan: d.nama_ruangan || '',
+      perangkap_terpasang: Number(d.perangkap_terpasang || 10),
+      sp_americana: Number(d.sp_americana || 0),
+      sp_germanica: Number(d.sp_germanica || 0),
+      sp_lainnya_nama: d.sp_lainnya_nama || '',
+      sp_lainnya_jml: Number(d.sp_lainnya_jml || 0),
+      tindakan_pengendalian: item.tindakan_pengendalian || '',
+    };
+  } else if (jv.includes('Tikus')) {
+    siveraActiveVektor.value = 'Tikus';
+    const d = item.detail_data || {};
+    let spList = [];
+    if (d.spesies_list && Array.isArray(d.spesies_list)) {
+      spList = d.spesies_list;
+    } else if (d.spesies_tertangkap && typeof d.spesies_tertangkap === 'object') {
+      spList = Object.entries(d.spesies_tertangkap).map(([k, v]) => ({
+        nama: k,
+        custom: '',
+        jumlah: Number(v),
+      }));
+    } else {
+      spList = [{ nama: 'Rattus tanezumi', custom: '', jumlah: 0 }];
+    }
+    formSiveraTikus.value = {
+      wilker: item.wilker || '',
+      tanggal_mulai: d.tanggal_mulai || item.tanggal,
+      tanggal_selesai: d.tanggal_selesai || item.tanggal,
+      lokasi: item.lokasi || '',
+      lokasi_pemasangan: d.lokasi_pemasangan || '',
+      jenis_umpan: d.jenis_umpan || 'Kelapa bakar',
+      jml_perangkap_dipasang: Number(d.jml_perangkap_dipasang || 50),
+      jml_perangkap_hilang: Number(d.jml_perangkap_hilang || 0),
+      spesies_list: spList,
+      tindakan_pengendalian: item.tindakan_pengendalian || '',
+    };
+  } else if (jv.includes('Pinjal')) {
+    siveraActiveVektor.value = 'Pinjal';
+    const d = item.detail_data || {};
+    formSiveraPinjal.value = {
+      wilker: item.wilker || '',
+      tanggal: item.tanggal,
+      lokasi: item.lokasi || '',
+      jml_tikus_tertangkap: Number(d.jml_tikus_tertangkap || 1),
+      pinjal_umum: Number(d.pinjal_umum || 0),
+      pinjal_khusus: Number(d.pinjal_khusus || 0),
+      tindakan_pengendalian: item.tindakan_pengendalian || '',
+    };
+  } else if (jv.includes('Jentik Anopheles')) {
+    siveraActiveVektor.value = 'Jentik Anopheles';
+    const d = item.detail_data || {};
+    formSiveraAnophelesJentik.value = {
+      wilker: item.wilker || '',
+      tanggal: item.tanggal,
+      lokasi: item.lokasi || '',
+      jenis_habitat: Array.isArray(d.jenis_habitat) ? d.jenis_habitat : (d.jenis_habitat ? d.jenis_habitat.split(',') : ['Tambak']),
+      jenis_habitat_lainnya: d.jenis_habitat_lainnya || '',
+      kondisi_pencahayaan: Array.isArray(d.kondisi_pencahayaan) ? d.kondisi_pencahayaan : [d.kondisi_pencahayaan || 'Terkena sinar matahari'],
+      kondisi_vegetasi: Array.isArray(d.kondisi_vegetasi) ? d.kondisi_vegetasi : [d.kondisi_vegetasi || 'Ada vegetasi'],
+      kondisi_air: Array.isArray(d.kondisi_air) ? d.kondisi_air : [d.kondisi_air || 'Jernih'],
+      jml_habitat_disurvei: Number(d.jml_habitat_disurvei || 10),
+      jml_habitat_positif: Number(d.jml_habitat_positif || 0),
+      keterangan: d.keterangan || '',
+      tindakan_pengendalian: item.tindakan_pengendalian || '',
+    };
+  } else if (jv.includes('Nyamuk Anopheles')) {
+    siveraActiveVektor.value = 'Nyamuk Anopheles';
+    const d = item.detail_data || {};
+    formSiveraAnophelesNyamuk.value = {
+      wilker: item.wilker || '',
+      tanggal: item.tanggal,
+      lokasi: item.lokasi || '',
+      spesies: d.spesies || 'Anopheles sp',
+      jml_penangkap: Number(d.jml_penangkap || 5),
+      lama_penangkapan: Number(d.lama_penangkapan || 12),
+      suhu: Number(d.suhu || 27),
+      kelembaban: Number(d.kelembaban || 78),
+      kecepatan_angin: Number(d.kecepatan_angin || 1.2),
+      cuaca: d.cuaca || 'Cerah Berawan',
+      tangkapan_dalam: d.tangkapan_dalam || {},
+      tangkapan_luar: d.tangkapan_luar || {},
+      keterangan: d.keterangan || '',
+      interpretasi: d.interpretasi || '',
+      tindakan_pengendalian: item.tindakan_pengendalian || '',
+    };
+  }
+
+  showAddInspeksiModal.value = true;
+};
+
+// Modal Tindakan Pengendalian
+const showPengendalianModal = ref(false);
+const pengendalianItem = ref(null);
+const isSubmittingPengendalian = ref(false);
+const activePengendalianTab = ref('jentik');
+
+const pengendalianForm = ref({
+  tanggal: todayStr,
+  persiapan: '',
+  jentik_kimia: false,
+  jentik_kimia_gram: '',
+  jentik_kimia_sachet: '',
+  jentik_fisik: false,
+  jentik_biologi: false,
+  nyamuk_fogging: false,
+  nyamuk_fogging_mesin: '',
+  nyamuk_fogging_ml: '',
+  nyamuk_fogging_golongan: 'Sintetik Piretroid',
+  nyamuk_fogging_bahan: '',
+  nyamuk_fogging_merk: '',
+  nyamuk_fisik: false,
+  nyamuk_lokasi: '',
+  lalat_spraying: false,
+  lalat_spraying_ml: '',
+  lalat_granule: false,
+  lalat_granule_gram: '',
+  lalat_lokasi: '',
+  kecoa_retrapping: false,
+  kecoa_retrapping_trap: '',
+  kecoa_gel_bait: false,
+  kecoa_gel_bait_gram: '',
+  kecoa_lokasi: '',
+  catatan: '',
+});
+
+const openPengendalian = (item) => {
+  pengendalianItem.value = item;
+  activePengendalianTab.value = 'jentik';
+
+  const d = item.detail_data?.pengendalian || {};
+  pengendalianForm.value = {
+    tanggal: d.tanggal || todayStr,
+    persiapan: d.persiapan || '',
+    jentik_kimia: Boolean(d.jentik_kimia),
+    jentik_kimia_gram: d.jentik_kimia_gram || '',
+    jentik_kimia_sachet: d.jentik_kimia_sachet || '',
+    jentik_fisik: Boolean(d.jentik_fisik),
+    jentik_biologi: Boolean(d.jentik_biologi),
+    nyamuk_fogging: Boolean(d.nyamuk_fogging),
+    nyamuk_fogging_mesin: d.nyamuk_fogging_mesin || '',
+    nyamuk_fogging_ml: d.nyamuk_fogging_ml || '',
+    nyamuk_fogging_golongan: d.nyamuk_fogging_golongan || 'Sintetik Piretroid',
+    nyamuk_fogging_bahan: d.nyamuk_fogging_bahan || '',
+    nyamuk_fogging_merk: d.nyamuk_fogging_merk || '',
+    nyamuk_fisik: Boolean(d.nyamuk_fisik),
+    nyamuk_lokasi: d.nyamuk_lokasi || item.lokasi || '',
+    lalat_spraying: Boolean(d.spraying),
+    lalat_spraying_ml: d.spraying_ml || '',
+    lalat_granule: Boolean(d.granule),
+    lalat_granule_gram: d.granule_gram || '',
+    lalat_lokasi: d.lokasi || item.lokasi || '',
+    kecoa_retrapping: Boolean(d.retrapping),
+    kecoa_retrapping_trap: d.retrapping_trap || '',
+    kecoa_gel_bait: Boolean(d.gel_bait),
+    kecoa_gel_bait_gram: d.gel_bait_gram || '',
+    kecoa_lokasi: d.lokasi || item.lokasi || '',
+    catatan: item.tindakan_pengendalian || '',
+  };
+
+  showPengendalianModal.value = true;
+};
+
+const submitPengendalian = async () => {
+  if (!pengendalianItem.value) return;
+  isSubmittingPengendalian.value = true;
+  try {
+    const pf = pengendalianForm.value;
+    const jv = pengendalianItem.value.jenis_vektor || '';
+    let summaryParts = [];
+    let detailObj = { tanggal: pf.tanggal };
+
+    if (jv.includes('Jentik')) {
+      detailObj.persiapan = pf.persiapan;
+      if (pf.jentik_kimia) {
+        detailObj.jentik_kimia = '1';
+        detailObj.jentik_kimia_gram = pf.jentik_kimia_gram;
+        detailObj.jentik_kimia_sachet = pf.jentik_kimia_sachet;
+        summaryParts.push(`Larvasidasi (${pf.jentik_kimia_gram || 0} gr, ${pf.jentik_kimia_sachet || 0} sachet)`);
+      }
+      if (pf.jentik_fisik) {
+        detailObj.jentik_fisik = '1';
+        summaryParts.push('Fisik (Kuras/Buang Air)');
+      }
+      if (pf.jentik_biologi) {
+        detailObj.jentik_biologi = '1';
+        summaryParts.push('Biologi (Ikan/BTI)');
+      }
+      if (pf.nyamuk_fogging) {
+        detailObj.nyamuk_fogging = '1';
+        detailObj.nyamuk_fogging_mesin = pf.nyamuk_fogging_mesin;
+        detailObj.nyamuk_fogging_ml = pf.nyamuk_fogging_ml;
+        detailObj.nyamuk_fogging_golongan = pf.nyamuk_fogging_golongan;
+        detailObj.nyamuk_fogging_bahan = pf.nyamuk_fogging_bahan;
+        detailObj.nyamuk_fogging_merk = pf.nyamuk_fogging_merk;
+        summaryParts.push(`Fogging (${pf.nyamuk_fogging_ml || 0} ml ${pf.nyamuk_fogging_merk || ''})`);
+      }
+      if (pf.nyamuk_fisik) {
+        detailObj.nyamuk_fisik = '1';
+        summaryParts.push('Fisik Nyamuk (Trap/Raket)');
+      }
+    } else if (jv.includes('Lalat')) {
+      detailObj.lokasi = pf.lalat_lokasi;
+      if (pf.lalat_spraying) {
+        detailObj.spraying = '1';
+        detailObj.spraying_ml = pf.lalat_spraying_ml;
+        summaryParts.push(`Spraying (${pf.lalat_spraying_ml || 0} ml)`);
+      }
+      if (pf.lalat_granule) {
+        detailObj.granule = '1';
+        detailObj.granule_gram = pf.lalat_granule_gram;
+        summaryParts.push(`Granule (${pf.lalat_granule_gram || 0} gr)`);
+      }
+    } else if (jv.includes('Kecoa')) {
+      detailObj.lokasi = pf.kecoa_lokasi;
+      if (pf.kecoa_retrapping) {
+        detailObj.retrapping = '1';
+        detailObj.retrapping_trap = pf.kecoa_retrapping_trap;
+        summaryParts.push(`Retrapping (${pf.kecoa_retrapping_trap || 0} trap)`);
+      }
+      if (pf.kecoa_gel_bait) {
+        detailObj.gel_bait = '1';
+        detailObj.gel_bait_gram = pf.kecoa_gel_bait_gram;
+        summaryParts.push(`Gel Bait (${pf.kecoa_gel_bait_gram || 0} gr)`);
+      }
+    } else {
+      summaryParts.push(pf.catatan || 'Pengendalian terpadu');
+    }
+
+    const payload = {
+      tindakan_pengendalian: summaryParts.length > 0 ? summaryParts.join('; ') : (pf.catatan || 'Pengendalian surveilans'),
+      pengendalian_detail: detailObj,
+    };
+
+    const res = await axios.post(`/prl/sivera/${pengendalianItem.value.id}/pengendalian`, payload);
+    alert(res.data.message);
+    showPengendalianModal.value = false;
+    router.reload();
+  } catch (err) {
+    alert(err.response?.data?.message || 'Gagal menyimpan tindakan pengendalian.');
+  } finally {
+    isSubmittingPengendalian.value = false;
+  }
+};
 
 // Open Add Inspection Modal with specified or active tab
 const openAddInspeksi = (type = null, vectorSub = null) => {
+  isEditMode.value = false;
+  editId.value = null;
   const chosenType = type || (currentTab.value === 'overview' ? 'tpp' : currentTab.value);
   addInspeksiType.value = chosenType;
   if (vectorSub) {
@@ -784,7 +1250,7 @@ const submitInspeksi = async () => {
     } else if (addInspeksiType.value === 'sivera') {
       let payload = {};
 
-      if (siveraActiveVektor.value === 'Jentik Aedes sp.') {
+      if (siveraActiveVektor.value === 'Jentik Aedes sp.' || siveraActiveVektor.value === 'Jentik Aedes') {
         payload = {
           jenis_vektor: 'Jentik Aedes',
           wilker: formSiveraJentik.value.wilker,
@@ -804,21 +1270,42 @@ const submitInspeksi = async () => {
           },
         };
       } else if (siveraActiveVektor.value === 'Lalat') {
+        const formattedLokasiItems = formSiveraLalat.value.lokasi_items.map((it) => {
+          const top5 = getLokasiLalatTop5(it);
+          const total5 = getLokasiLalatTotalTop5(it);
+          const rata = getLokasiLalatRata(it);
+          const st = getLokasiLalatStatus(it);
+          return {
+            lokasi: it.lokasi,
+            t: (it.t || []).map(Number),
+            top_5: top5,
+            total_n: total5,
+            rata_rata: rata,
+            status: st,
+          };
+        });
+        const summaryLokasiNames = formSiveraLalat.value.lokasi_items.map((it) => it.lokasi).filter(Boolean).join(', ');
         payload = {
           jenis_vektor: 'Lalat',
           wilker: formSiveraLalat.value.wilker,
-          lokasi: formSiveraLalat.value.lokasi || 'Dapur / Kantin',
+          lokasi: summaryLokasiNames || 'Dapur / Kantin',
           tanggal: formSiveraLalat.value.tanggal,
-          parameter_utama: `Fly Index: ${flyIndexRata.value} (Top 5: ${top5Lalat.value.join(', ')})`,
+          parameter_utama: `Fly Index: ${flyIndexRata.value} (${formattedLokasiItems.length} Titik)`,
           nilai_indeks: flyIndexRata.value,
           baku_mutu_status: statusLalat.value,
           tindakan_pengendalian: formSiveraLalat.value.tindakan_pengendalian,
           detail_data: {
-            ...formSiveraLalat.value,
-            top_5: top5Lalat.value,
-            total_top5: totalTop5Lalat.value,
-            rata_rata: flyIndexRata.value,
+            wilker: formSiveraLalat.value.wilker,
+            tanggal: formSiveraLalat.value.tanggal,
+            musim: formSiveraLalat.value.musim,
+            temperatur: formSiveraLalat.value.temperatur,
+            kelembapan: formSiveraLalat.value.kelembapan,
+            kecepatan_angin: formSiveraLalat.value.kecepatan_angin,
+            lokasi_items: formattedLokasiItems,
+            detail_lokasi: formattedLokasiItems,
+            fly_index_rata: flyIndexRata.value,
             status: statusLalat.value,
+            tindakan_pengendalian: formSiveraLalat.value.tindakan_pengendalian,
           },
         };
       } else if (siveraActiveVektor.value === 'Kecoa') {
@@ -902,25 +1389,37 @@ const submitInspeksi = async () => {
           wilker: formSiveraAnophelesNyamuk.value.wilker,
           lokasi: formSiveraAnophelesNyamuk.value.lokasi || 'Pesisir',
           tanggal: formSiveraAnophelesNyamuk.value.tanggal,
-          parameter_utama: `MBR/MHD: ${mbrAnopheles.value} (Tertangkap: ${totalTertangkapNyamuk.value} ekor)`,
+          parameter_utama: `MBR: ${mbrAnopheles.value} | MHD D: ${mhdDalam.value}, L: ${mhdLuar.value} (${totalTertangkapNyamuk.value} ekor)`,
           nilai_indeks: mbrAnopheles.value,
           baku_mutu_status: statusAnophelesNyamuk.value,
           tindakan_pengendalian: formSiveraAnophelesNyamuk.value.tindakan_pengendalian,
           detail_data: {
             ...formSiveraAnophelesNyamuk.value,
+            total_dalam: totalDalamNyamuk.value,
+            total_luar: totalLuarNyamuk.value,
             total_tertangkap: totalTertangkapNyamuk.value,
             man_hours: manHours.value,
+            mhd_dalam: mhdDalam.value,
+            mhd_luar: mhdLuar.value,
             mbr: mbrAnopheles.value,
+            ada_vektor: adaAnopheles.value,
             status: statusAnophelesNyamuk.value,
           },
         };
       }
 
-      const res = await axios.post('/prl/sivera', payload);
+      let res;
+      if (isEditMode.value && editId.value) {
+        res = await axios.put(`/prl/sivera/${editId.value}`, payload);
+      } else {
+        res = await axios.post('/prl/sivera', payload);
+      }
       alert(res.data.message);
     }
 
     showAddInspeksiModal.value = false;
+    isEditMode.value = false;
+    editId.value = null;
     router.reload();
   } catch (err) {
     alert(err.response?.data?.message || 'Gagal menyimpan data.');
@@ -1574,11 +2073,11 @@ const getRiskBadgeClass = (risk) => {
             <div class="flex items-center gap-2">
               <button
                 type="button"
-                @click="openAddInspeksi('sivera', siveraFilterVektor !== 'Semua' ? siveraFilterVektor : 'Jentik Aedes sp.')"
+                @click="openAddInspeksi('sivera', siveraFilterVektor !== 'Semua Data' && siveraFilterVektor !== 'Dashboard' ? siveraFilterVektor : 'Jentik Aedes sp.')"
                 class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:brightness-105 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
               >
                 <Plus class="w-3.5 h-3.5" />
-                <span>+ Catat Data Surveilans {{ siveraFilterVektor !== 'Semua' ? siveraFilterVektor : 'Baru' }}</span>
+                <span>+ Catat Data Surveilans {{ siveraFilterVektor !== 'Semua Data' && siveraFilterVektor !== 'Dashboard' ? siveraFilterVektor : 'Baru' }}</span>
               </button>
             </div>
           </div>
@@ -1586,19 +2085,256 @@ const getRiskBadgeClass = (risk) => {
           <!-- SIVERA Sub-Vektor Filter Navigation Pills -->
           <div class="flex items-center gap-1.5 overflow-x-auto py-3 border-b border-slate-100 dark:border-slate-800 text-xs">
             <button
-              v-for="vTab in ['Semua', 'Jentik Aedes', 'Lalat', 'Kecoa', 'Tikus', 'Pinjal', 'Jentik Anopheles', 'Nyamuk Anopheles']"
+              v-for="vTab in ['Dashboard', 'Semua Data', 'Jentik Aedes', 'Lalat', 'Kecoa', 'Tikus', 'Pinjal', 'Jentik Anopheles', 'Nyamuk Anopheles']"
               :key="vTab"
               type="button"
               @click="siveraFilterVektor = vTab"
-              class="px-3 py-1.5 rounded-full font-semibold transition shrink-0 cursor-pointer"
+              class="px-3 py-1.5 rounded-full font-semibold transition shrink-0 cursor-pointer flex items-center gap-1.5"
               :class="siveraFilterVektor === vTab ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
             >
-              {{ vTab }}
+              <Activity v-if="vTab === 'Dashboard'" class="w-3.5 h-3.5" />
+              <span>{{ vTab }}</span>
             </button>
           </div>
 
-          <!-- SIVERA Records Table -->
-          <div class="overflow-x-auto mt-4">
+          <!-- 1. SIVERA DASHBOARD VIEW -->
+          <div v-if="siveraFilterVektor === 'Dashboard'" class="space-y-6 mt-4">
+            <!-- Top Metric Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div class="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-800/50">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-indigo-700 dark:text-indigo-400">Total Surveilans</span>
+                  <Bug class="w-4 h-4 text-indigo-500" />
+                </div>
+                <div class="text-2xl font-black text-slate-900 dark:text-white mt-2 font-mono">
+                  {{ siveraDashboardMetrics.totalSurveilans }}
+                </div>
+                <span class="text-[11px] text-slate-500">Seluruh data surveilans vektor</span>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/50">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-emerald-700 dark:text-emerald-400">Memenuhi Syarat (MS)</span>
+                  <CheckCircle2 class="w-4 h-4 text-emerald-500" />
+                </div>
+                <div class="text-2xl font-black text-emerald-700 dark:text-emerald-400 mt-2 font-mono">
+                  {{ siveraDashboardMetrics.totalMs }}
+                </div>
+                <span class="text-[11px] text-slate-500">Indeks di bawah batas baku mutu</span>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800/50">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-rose-700 dark:text-rose-400">Tidak Memenuhi Syarat</span>
+                  <AlertTriangle class="w-4 h-4 text-rose-500" />
+                </div>
+                <div class="text-2xl font-black text-rose-700 dark:text-rose-400 mt-2 font-mono">
+                  {{ siveraDashboardMetrics.totalTms }}
+                </div>
+                <span class="text-[11px] text-slate-500">Perlu tindakan pengendalian</span>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-amber-700 dark:text-amber-400">Kepatuhan Baku Mutu</span>
+                  <TrendingUp class="w-4 h-4 text-amber-500" />
+                </div>
+                <div class="text-2xl font-black text-amber-700 dark:text-amber-400 mt-2 font-mono">
+                  {{ siveraDashboardMetrics.kepatuhanPct }}%
+                </div>
+                <span class="text-[11px] text-slate-500">Persentase status aman</span>
+              </div>
+            </div>
+
+            <!-- 7 Vectors Breakdown Grid -->
+            <div>
+              <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <ShieldCheck class="w-4 h-4 text-indigo-500" />
+                <span>Rangkuman 7 Vektor &amp; Binatang Pembawa Penyakit</span>
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <!-- 1. Jentik Aedes -->
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-indigo-300 transition flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Jentik Aedes sp.</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">{{ siveraDashboardMetrics.jentikCount }} Survei</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Rata-rata ABJ: <strong class="text-indigo-600 font-mono">{{ siveraDashboardMetrics.jentikAbjAvg }}%</strong> (Baku Mutu &ge; 95%)</p>
+                    <div class="mt-2 text-[11px] text-emerald-600 font-semibold">{{ siveraDashboardMetrics.jentikMs }} Lokasi Memenuhi Syarat</div>
+                  </div>
+                  <button
+                    type="button"
+                    @click="siveraFilterVektor = 'Jentik Aedes'"
+                    class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Lihat Rincian</span>
+                    <ChevronRight class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <!-- 2. Lalat -->
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-amber-300 transition flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Lalat</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">{{ siveraDashboardMetrics.lalatCount }} Survei</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Rata Fly Index: <strong class="text-amber-600 font-mono">{{ siveraDashboardMetrics.lalatAvg }}</strong> (Baku Mutu &lt; 2)</p>
+                    <div class="mt-2 text-[11px] text-emerald-600 font-semibold">{{ siveraDashboardMetrics.lalatMs }} Lokasi MS &bull; <span class="text-rose-600">{{ siveraDashboardMetrics.lalatTms }} TMS</span></div>
+                  </div>
+                  <button
+                    type="button"
+                    @click="siveraFilterVektor = 'Lalat'"
+                    class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-amber-50 dark:bg-slate-800 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Lihat Rincian</span>
+                    <ChevronRight class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <!-- 3. Kecoa -->
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-rose-300 transition flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Kecoa</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-700 border border-rose-200">{{ siveraDashboardMetrics.kecoaCount }} Survei</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Metode: Sticky Trap (Baku Mutu &lt; 2 ekor/trap)</p>
+                    <div class="mt-2 text-[11px] text-emerald-600 font-semibold">{{ siveraDashboardMetrics.kecoaMs }} Lokasi Memenuhi Syarat</div>
+                  </div>
+                  <button
+                    type="button"
+                    @click="siveraFilterVektor = 'Kecoa'"
+                    class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Lihat Rincian</span>
+                    <ChevronRight class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <!-- 4. Tikus -->
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-slate-400 transition flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Tikus</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">{{ siveraDashboardMetrics.tikusCount }} Survei</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Rata Success Trap: <strong class="text-slate-800 dark:text-slate-200 font-mono">{{ siveraDashboardMetrics.tikusTrapAvg }}%</strong> (&lt; 1% MS)</p>
+                    <div class="mt-2 text-[11px] text-emerald-600 font-semibold">{{ siveraDashboardMetrics.tikusMs }} Lokasi Memenuhi Syarat</div>
+                  </div>
+                  <button
+                    type="button"
+                    @click="siveraFilterVektor = 'Tikus'"
+                    class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Lihat Rincian</span>
+                    <ChevronRight class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <!-- 5. Pinjal -->
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-cyan-300 transition flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Pinjal Tikus</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-cyan-50 text-cyan-700 border border-cyan-200">{{ siveraDashboardMetrics.pinjalCount }} Survei</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Indeks Umum (&lt; 2) &amp; Khusus X. cheopis (&lt; 1)</p>
+                    <div class="mt-2 text-[11px] text-emerald-600 font-semibold">{{ siveraDashboardMetrics.pinjalMs }} Lokasi Memenuhi Syarat</div>
+                  </div>
+                  <button
+                    type="button"
+                    @click="siveraFilterVektor = 'Pinjal'"
+                    class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-cyan-50 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Lihat Rincian</span>
+                    <ChevronRight class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <!-- 6. Jentik Anopheles -->
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-teal-300 transition flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Jentik Anopheles</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200">{{ siveraDashboardMetrics.anophelesJentikCount }} Survei</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Indeks Habitat Pesisir &amp; Payau (Baku Mutu &lt; 1%)</p>
+                    <div class="mt-2 text-[11px] text-emerald-600 font-semibold">{{ siveraDashboardMetrics.anophelesJentikMs }} Lokasi Memenuhi Syarat</div>
+                  </div>
+                  <button
+                    type="button"
+                    @click="siveraFilterVektor = 'Jentik Anopheles'"
+                    class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-teal-50 dark:bg-slate-800 text-teal-600 dark:text-teal-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Lihat Rincian</span>
+                    <ChevronRight class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <!-- 7. Nyamuk Anopheles Dewasa -->
+                <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs hover:border-purple-300 transition flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                      <span class="text-xs font-bold text-slate-800 dark:text-slate-200">Nyamuk Anopheles</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">{{ siveraDashboardMetrics.anophelesNyamukCount }} Survei</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">Matriks 12 Jam (18.00-06.00) &bull; MBR / MHD</p>
+                    <div class="mt-2 text-[11px] text-emerald-600 font-semibold">{{ siveraDashboardMetrics.anophelesNyamukMs }} Lokasi Memenuhi Syarat</div>
+                  </div>
+                  <button
+                    type="button"
+                    @click="siveraFilterVektor = 'Nyamuk Anopheles'"
+                    class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-purple-50 dark:bg-slate-800 text-purple-600 dark:text-purple-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>Lihat Rincian</span>
+                    <ChevronRight class="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Wilayah Kerja Summary Table -->
+            <div class="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+              <h3 class="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <MapPin class="w-4 h-4 text-emerald-600" />
+                <span>Distribusi Pemantauan Vektor Berdasarkan Wilayah Kerja (Wilker)</span>
+              </h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                  <thead>
+                    <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+                      <th class="py-2.5 px-3">Wilayah Kerja</th>
+                      <th class="py-2.5 px-3 text-center">Total Surveilans</th>
+                      <th class="py-2.5 px-3 text-center">Memenuhi Syarat (MS)</th>
+                      <th class="py-2.5 px-3 text-center">Tidak Memenuhi Syarat (TMS)</th>
+                      <th class="py-2.5 px-3 text-center">Persentase Kepatuhan</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    <tr v-for="w in siveraDashboardMetrics.wilkerBreakdown" :key="w.wilker" class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                      <td class="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-200">{{ w.wilker }}</td>
+                      <td class="py-2.5 px-3 text-center font-mono font-bold">{{ w.total }}</td>
+                      <td class="py-2.5 px-3 text-center font-mono text-emerald-600 font-semibold">{{ w.ms }}</td>
+                      <td class="py-2.5 px-3 text-center font-mono text-rose-600 font-semibold">{{ w.tms }}</td>
+                      <td class="py-2.5 px-3 text-center font-mono font-bold">
+                        <span class="px-2 py-0.5 rounded-full text-[10px]" :class="w.tms === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'">
+                          {{ w.total > 0 ? ((w.ms / w.total) * 100).toFixed(0) : 100 }}%
+                        </span>
+                      </td>
+                    </tr>
+                    <tr v-if="siveraDashboardMetrics.wilkerBreakdown.length === 0">
+                      <td colspan="5" class="py-4 text-center text-slate-400">Belum ada data surveilans vektor SIVERA yang tercatat.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. SIVERA RECORDS TABLE VIEW -->
+          <div v-else class="overflow-x-auto mt-4">
             <table class="w-full text-xs text-left">
               <thead>
                 <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
@@ -1609,7 +2345,7 @@ const getRiskBadgeClass = (risk) => {
                   <th class="py-3 px-3">Lokasi / Titik</th>
                   <th class="py-3 px-3">Hasil Indeks &amp; Parameter</th>
                   <th class="py-3 px-3 text-center">Baku Mutu</th>
-                  <th class="py-3 px-3">Tindakan Pengendalian</th>
+                  <th class="py-3 px-3">Status Pengendalian</th>
                   <th class="py-3 px-3 text-center">Aksi</th>
                 </tr>
               </thead>
@@ -1631,11 +2367,46 @@ const getRiskBadgeClass = (risk) => {
                       {{ item.baku_mutu_status }}
                     </span>
                   </td>
-                  <td class="py-3 px-3 text-slate-500 max-w-[220px] truncate" :title="item.tindakan_pengendalian">
-                    {{ item.tindakan_pengendalian || '-' }}
+                  <td class="py-3 px-3">
+                    <div class="flex flex-col gap-0.5">
+                      <span
+                        v-if="item.tindakan_pengendalian"
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold w-fit bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800"
+                      >
+                        <CheckCircle2 class="w-3 h-3 text-emerald-600" />
+                        <span>Sudah Dikendalikan</span>
+                      </span>
+                      <span
+                        v-else
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold w-fit bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800"
+                      >
+                        <AlertTriangle class="w-3 h-3 text-amber-600" />
+                        <span>Perlu Pengendalian</span>
+                      </span>
+                      <span class="text-[11px] text-slate-500 max-w-[200px] truncate" :title="item.tindakan_pengendalian">
+                        {{ item.tindakan_pengendalian || 'Belum ada tindakan tercatat' }}
+                      </span>
+                    </div>
                   </td>
                   <td class="py-3 px-3 text-center">
                     <div class="inline-flex items-center gap-1">
+                      <button
+                        type="button"
+                        @click="openPengendalian(item)"
+                        class="px-2 py-1 rounded-lg border border-teal-200 bg-teal-50 hover:bg-teal-100 text-teal-700 dark:border-teal-800 dark:bg-teal-950/40 dark:text-teal-300 text-[10px] font-bold flex items-center gap-1 transition cursor-pointer"
+                        title="Input / Update Tindakan Pengendalian"
+                      >
+                        <ShieldCheck class="w-3 h-3" />
+                        <span>Kendalikan</span>
+                      </button>
+                      <button
+                        type="button"
+                        @click="editSivera(item)"
+                        class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-indigo-600 dark:text-indigo-400 transition cursor-pointer"
+                        title="Edit Data"
+                      >
+                        <Edit class="w-3.5 h-3.5" />
+                      </button>
                       <button
                         type="button"
                         @click="openDetail(item, 'sivera')"
@@ -1676,7 +2447,7 @@ const getRiskBadgeClass = (risk) => {
           <div class="px-6 py-4 bg-gradient-to-r from-[#005851] to-[#00A99D] text-white flex items-center justify-between">
             <div class="flex items-center gap-2">
               <ClipboardCheck class="w-5 h-5" />
-              <h3 class="text-base font-bold">Input Inspeksi Sanitasi &amp; Surveilans Baru</h3>
+              <h3 class="text-base font-bold">{{ isEditMode ? 'Edit Catatan Surveilans Vektor (SIVERA)' : 'Input Inspeksi Sanitasi &amp; Surveilans Baru' }}</h3>
             </div>
             <button
               type="button"
@@ -2254,16 +3025,16 @@ const getRiskBadgeClass = (risk) => {
                 </div>
               </div>
 
-              <!-- 4.2 SIVERA FORM: LALAT -->
+              <!-- 4.2 SIVERA FORM: LALAT (MULTI-LOKASI DENGAN METODE FLY GRILL) -->
               <div v-if="siveraActiveVektor === 'Lalat'" class="space-y-4">
                 <div class="p-3 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60">
                   <span class="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
                     <Bug class="w-4 h-4 text-amber-600" />
-                    <span>Surveilans Kepadatan Lalat (Metode Fly Grill - 10 Pengamatan 30 Detik)</span>
+                    <span>Surveilans Kepadatan Lalat (Metode Fly Grill - Multi-Lokasi &amp; Top 5 Tertinggi)</span>
                   </span>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Wilayah Kerja *</label>
                     <select v-model="formSiveraLalat.wilker" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
@@ -2280,10 +3051,6 @@ const getRiskBadgeClass = (risk) => {
                       <option value="Hujan">Hujan</option>
                       <option value="Kemarau">Kemarau</option>
                     </select>
-                  </div>
-                  <div>
-                    <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Nama Lokasi</label>
-                    <input type="text" v-model="formSiveraLalat.lokasi" placeholder="Contoh: Dapur, TPS, Kantin..." class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
                   </div>
                 </div>
 
@@ -2302,29 +3069,93 @@ const getRiskBadgeClass = (risk) => {
                   </div>
                 </div>
 
-                <!-- 10 Fly Grill Inputs -->
-                <div class="p-4 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200 space-y-3">
+                <!-- Dynamic Multi-Location Cards -->
+                <div class="space-y-4">
                   <div class="flex items-center justify-between">
-                    <h4 class="text-xs font-bold text-amber-900 dark:text-amber-300">Pengamatan Lalat (T1 s/d T10 per 30 Detik)</h4>
-                    <span class="text-xs font-mono font-bold text-slate-500">Nilai 5 Tertinggi Otomatis: {{ top5Lalat.join(', ') }}</span>
+                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <MapPin class="w-4 h-4 text-amber-500" />
+                      <span>Titik Lokasi Survei Fly Grill (10 Hitungan x 30 Detik)</span>
+                    </h4>
+                    <button
+                      type="button"
+                      @click="addLokasiLalat"
+                      class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1 shadow-xs cursor-pointer"
+                    >
+                      <Plus class="w-3.5 h-3.5" />
+                      <span>+ Tambah Titik Lokasi</span>
+                    </button>
                   </div>
-                  <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
-                    <div v-for="idx in 10" :key="idx" class="text-center">
-                      <label class="block text-[10px] text-slate-500 mb-0.5">T-{{ idx }}</label>
-                      <input type="number" min="0" v-model.number="formSiveraLalat.t[idx - 1]" class="w-full py-1 text-center font-mono font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs" />
+
+                  <div
+                    v-for="(locItem, lIdx) in formSiveraLalat.lokasi_items"
+                    :key="lIdx"
+                    class="p-4 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 space-y-3"
+                  >
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2 flex-1 max-w-sm">
+                        <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center shrink-0">{{ lIdx + 1 }}</span>
+                        <input
+                          type="text"
+                          v-model="locItem.lokasi"
+                          placeholder="Nama Titik Lokasi (misal: Dapur, TPS, Kantin)"
+                          class="w-full px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                        />
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-mono font-bold text-slate-500 hidden sm:inline">
+                          Top 5: {{ getLokasiLalatTop5(locItem).join(', ') }}
+                        </span>
+                        <button
+                          v-if="formSiveraLalat.lokasi_items.length > 1"
+                          type="button"
+                          @click="removeLokasiLalat(lIdx)"
+                          class="p-1 rounded-lg hover:bg-rose-100 text-rose-500 transition cursor-pointer"
+                          title="Hapus Titik Ini"
+                        >
+                          <Trash2 class="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- 10 Fly Grill Inputs -->
+                    <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
+                      <div v-for="tIdx in 10" :key="tIdx" class="text-center">
+                        <label class="block text-[10px] text-slate-500 mb-0.5">T-{{ tIdx }}</label>
+                        <input
+                          type="number"
+                          min="0"
+                          v-model.number="locItem.t[tIdx - 1]"
+                          class="w-full py-1 text-center font-mono font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Location Sub-Calculation Box -->
+                    <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-amber-900 flex items-center justify-between text-xs">
+                      <div>
+                        <span class="text-slate-500">Total Top 5: <strong class="font-mono text-dark">{{ getLokasiLalatTotalTop5(locItem) }}</strong></span>
+                        <span class="mx-2">&bull;</span>
+                        <span class="text-slate-700 dark:text-slate-300 font-semibold">Fly Index: <strong class="text-amber-600 font-mono text-sm">{{ getLokasiLalatRata(locItem) }}</strong></span>
+                      </div>
+                      <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="getRiskBadgeClass(getLokasiLalatStatus(locItem))">
+                        {{ getLokasiLalatStatus(locItem) }} (&lt; 2 MS)
+                      </span>
                     </div>
                   </div>
 
-                  <!-- Live Calculation Box -->
-                  <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-amber-200 flex items-center justify-between text-xs">
+                  <!-- Combined Calculation Summary Box -->
+                  <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border border-amber-300 dark:border-amber-800 flex items-center justify-between text-xs">
                     <div>
-                      <span class="text-slate-500">Total 5 Tertinggi (N): <strong class="font-mono text-dark">{{ totalTop5Lalat }}</strong></span>
-                      <span class="mx-2">&bull;</span>
-                      <span class="text-slate-700 dark:text-slate-300 font-semibold">Rata-Rata Fly Index: <strong class="text-amber-600 font-mono text-base">{{ flyIndexRata }}</strong></span>
+                      <span class="text-slate-600 dark:text-slate-400 font-semibold">Total {{ formSiveraLalat.lokasi_items.length }} Titik Disurvei &bull; Rata-Rata Fly Index Gabungan:</span>
+                      <div class="text-lg font-mono font-extrabold text-amber-700 dark:text-amber-400 mt-0.5">
+                        {{ flyIndexRata }} <span class="text-xs font-normal text-slate-500">ekor / block grill</span>
+                      </div>
                     </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold border" :class="getRiskBadgeClass(statusLalat)">
-                      {{ statusLalat }} (&lt; 2 MS)
-                    </span>
+                    <div class="text-right">
+                      <span class="px-3 py-1 rounded-full text-xs font-bold border" :class="getRiskBadgeClass(statusLalat)">
+                        Status Keseluruhan: {{ statusLalat }}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
@@ -2565,12 +3396,12 @@ const getRiskBadgeClass = (risk) => {
                 </div>
               </div>
 
-              <!-- 4.6 SIVERA FORM: JENTIK ANOPHELES -->
+              <!-- 4.6 SIVERA FORM: JENTIK ANOPHELES (10 HABITAT & KONDISI AIR) -->
               <div v-if="siveraActiveVektor === 'Jentik Anopheles'" class="space-y-4">
                 <div class="p-3 rounded-2xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200/60">
                   <span class="text-xs font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1.5">
                     <Bug class="w-4 h-4 text-teal-600" />
-                    <span>Surveilans Jentik Anopheles (Vektor Malaria &amp; Karakteristik Habitat)</span>
+                    <span>Surveilans Jentik Anopheles (Vektor Malaria &amp; 10 Tipe Habitat Air)</span>
                   </span>
                 </div>
 
@@ -2591,30 +3422,61 @@ const getRiskBadgeClass = (risk) => {
                   </div>
                 </div>
 
-                <!-- Habitat Characteristics -->
+                <!-- 10 Habitat Types Multi-select Checkboxes -->
+                <div class="p-4 rounded-2xl bg-teal-50/30 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800/60 space-y-2">
+                  <label class="block text-xs font-bold text-teal-900 dark:text-teal-300">Tipe Habitat Perkembangbiakan Disurvei (Pilih yang sesuai):</label>
+                  <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                    <label
+                      v-for="hab in standardHabitatAnopheles"
+                      :key="hab"
+                      class="flex items-center gap-2 p-2 rounded-xl border transition cursor-pointer text-xs"
+                      :class="formSiveraAnophelesJentik.jenis_habitat.includes(hab) ? 'bg-teal-50 dark:bg-teal-900/40 border-teal-500 font-bold text-teal-800 dark:text-teal-200' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'"
+                    >
+                      <input
+                        type="checkbox"
+                        :value="hab"
+                        v-model="formSiveraAnophelesJentik.jenis_habitat"
+                        class="rounded text-teal-600 focus:ring-teal-500"
+                      />
+                      <span>{{ hab }}</span>
+                    </label>
+                  </div>
+                  <div class="pt-1">
+                    <input
+                      type="text"
+                      v-model="formSiveraAnophelesJentik.jenis_habitat_lainnya"
+                      placeholder="Ketik tipe habitat lainnya jika ada..."
+                      class="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                    />
+                  </div>
+                </div>
+
+                <!-- Environmental Characteristics -->
                 <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
-                  <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Karakteristik &amp; Kondisi Habitat Air</h4>
-                  <div class="grid grid-cols-3 gap-3 text-xs">
+                  <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Karakteristik &amp; Kondisi Lingkungan Perindukan Air</h4>
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
                     <div>
-                      <label class="block text-[11px] text-slate-500 mb-1">Kondisi Pencahayaan</label>
-                      <select v-model="formSiveraAnophelesJentik.kondisi_pencahayaan" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-                        <option value="Terbuka">Terbuka / Terpapar Matahari</option>
-                        <option value="Terlindung">Terlindung / Teduh</option>
+                      <label class="block text-[11px] text-slate-500 mb-1">Pencahayaan</label>
+                      <select v-model="formSiveraAnophelesJentik.kondisi_pencahayaan[0]" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                        <option value="Terkena sinar matahari">Terkena sinar matahari</option>
+                        <option value="Terlindung / Teduh">Terlindung / Teduh</option>
                       </select>
                     </div>
                     <div>
-                      <label class="block text-[11px] text-slate-500 mb-1">Kondisi Vegetasi</label>
-                      <select v-model="formSiveraAnophelesJentik.kondisi_vegetasi" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-                        <option value="Ada">Ada Vegetasi / Lumut</option>
-                        <option value="Tidak">Tidak Ada Vegetasi</option>
+                      <label class="block text-[11px] text-slate-500 mb-1">Vegetasi / Lumut</label>
+                      <select v-model="formSiveraAnophelesJentik.kondisi_vegetasi[0]" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                        <option value="Ada vegetasi">Ada Vegetasi / Lumut</option>
+                        <option value="Tidak ada vegetasi">Tidak Ada Vegetasi</option>
                       </select>
                     </div>
                     <div>
-                      <label class="block text-[11px] text-slate-500 mb-1">Kondisi Air</label>
-                      <select v-model="formSiveraAnophelesJentik.kondisi_air" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-                        <option value="Payau">Payau / Salin</option>
-                        <option value="Jernih">Tawar Jernih</option>
-                        <option value="Keruh">Keruh</option>
+                      <label class="block text-[11px] text-slate-500 mb-1">Sifat &amp; Salinitas Air</label>
+                      <select v-model="formSiveraAnophelesJentik.kondisi_air[0]" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                        <option value="Payau">Payau / Salin (Pesisir)</option>
+                        <option value="Tawar Jernih">Tawar Jernih</option>
+                        <option value="Keruh">Keruh / Berlumpur</option>
+                        <option value="Tergenang">Tergenang</option>
+                        <option value="Mengalir Lambat">Mengalir Lambat</option>
                       </select>
                     </div>
                   </div>
@@ -2625,7 +3487,7 @@ const getRiskBadgeClass = (risk) => {
                       <input type="number" min="1" v-model.number="formSiveraAnophelesJentik.jml_habitat_disurvei" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
                     </div>
                     <div>
-                      <label class="block text-[11px] text-slate-500 mb-1">Jumlah Habitat Positif</label>
+                      <label class="block text-[11px] text-slate-500 mb-1">Jumlah Habitat Positif Jentik Anopheles</label>
                       <input type="number" min="0" v-model.number="formSiveraAnophelesJentik.jml_habitat_positif" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-rose-600 font-bold" />
                     </div>
                   </div>
@@ -2647,12 +3509,12 @@ const getRiskBadgeClass = (risk) => {
                 </div>
               </div>
 
-              <!-- 4.7 SIVERA FORM: NYAMUK ANOPHELES DEWASA -->
+              <!-- 4.7 SIVERA FORM: NYAMUK ANOPHELES DEWASA (MATRIKS 12 JAM 18.00 - 06.00 WIB) -->
               <div v-if="siveraActiveVektor === 'Nyamuk Anopheles'" class="space-y-4">
                 <div class="p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200/60">
                   <span class="text-xs font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
                     <Bug class="w-4 h-4 text-purple-600" />
-                    <span>Surveilans Nyamuk Anopheles Dewasa (Penangkapan Umpan Orang Malam)</span>
+                    <span>Surveilans Nyamuk Anopheles Dewasa (Penangkapan Umpan Orang Malam - Matriks 12 Jam)</span>
                   </span>
                 </div>
 
@@ -2677,33 +3539,107 @@ const getRiskBadgeClass = (risk) => {
                   </div>
                 </div>
 
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
                   <div>
                     <label class="block text-[11px] text-slate-500 mb-1">Kolektor Penangkap</label>
                     <input type="number" min="1" v-model.number="formSiveraAnophelesNyamuk.jml_penangkap" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
                   </div>
                   <div>
-                    <label class="block text-[11px] text-slate-500 mb-1">Lama Penangkapan (Jam)</label>
+                    <label class="block text-[11px] text-slate-500 mb-1">Lama Survei (Jam)</label>
                     <input type="number" min="1" v-model.number="formSiveraAnophelesNyamuk.lama_penangkapan" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
                   </div>
                   <div>
-                    <label class="block text-[11px] text-slate-500 mb-1">Tangkapan Dalam (ekor)</label>
-                    <input type="number" min="0" v-model.number="formSiveraAnophelesNyamuk.tangkapan_dalam" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
+                    <label class="block text-[11px] text-slate-500 mb-1">Suhu (°C)</label>
+                    <input type="number" step="0.1" v-model.number="formSiveraAnophelesNyamuk.suhu" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
                   </div>
                   <div>
-                    <label class="block text-[11px] text-slate-500 mb-1">Tangkapan Luar (ekor)</label>
-                    <input type="number" min="0" v-model.number="formSiveraAnophelesNyamuk.tangkapan_luar" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
+                    <label class="block text-[11px] text-slate-500 mb-1">Kelembaban (%)</label>
+                    <input type="number" step="0.1" v-model.number="formSiveraAnophelesNyamuk.kelembaban" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] text-slate-500 mb-1">Kondisi Cuaca</label>
+                    <input type="text" v-model="formSiveraAnophelesNyamuk.cuaca" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" />
                   </div>
                 </div>
 
-                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 flex items-center justify-between text-xs">
-                  <div>
-                    <span class="text-slate-500">Total Tertangkap: <strong class="font-mono text-dark">{{ totalTertangkapNyamuk }}</strong> ekor &bull;</span>
-                    <span class="ml-1 text-slate-700 dark:text-slate-300 font-semibold">MBR: <strong class="text-purple-600 font-mono text-base">{{ mbrAnopheles }}</strong></span>
+                <!-- 12-Hour Penangkapan Matrix Table -->
+                <div class="p-4 rounded-2xl bg-purple-50/40 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 space-y-3">
+                  <div class="flex items-center justify-between">
+                    <h4 class="text-xs font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
+                      <Clock class="w-4 h-4 text-purple-600" />
+                      <span>Matriks Penangkapan Nyamuk 12 Jam (18.00 - 06.00 WIB)</span>
+                    </h4>
+                    <span class="text-xs font-mono font-bold text-slate-500">
+                      Total Man-Hours: {{ manHours }} jam-orang
+                    </span>
                   </div>
-                  <span class="px-3 py-1 rounded-full text-xs font-bold border" :class="getRiskBadgeClass(statusAnophelesNyamuk)">
-                    {{ statusAnophelesNyamuk }}
-                  </span>
+
+                  <div class="overflow-x-auto rounded-xl border border-purple-200 dark:border-purple-800">
+                    <table class="w-full text-xs text-center bg-white dark:bg-slate-900">
+                      <thead>
+                        <tr class="bg-purple-100/70 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 text-[11px] font-bold">
+                          <th class="py-2 px-3 text-left">Jam Penangkapan</th>
+                          <th class="py-2 px-3">Dalam Rumah (D)</th>
+                          <th class="py-2 px-3">Luar Rumah (L)</th>
+                          <th class="py-2 px-3">Total Jam (D+L)</th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-purple-100 dark:divide-purple-900/40 font-mono">
+                        <tr v-for="slot in anophelesJamSlots" :key="slot.key" class="hover:bg-purple-50/50 dark:hover:bg-purple-950/30">
+                          <td class="py-1.5 px-3 text-left font-sans font-semibold text-slate-700 dark:text-slate-300 text-xs">{{ slot.label }}</td>
+                          <td class="py-1 px-3">
+                            <input
+                              type="number"
+                              min="0"
+                              v-model.number="formSiveraAnophelesNyamuk.tangkapan_dalam[slot.key]"
+                              class="w-16 py-1 text-center font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs"
+                            />
+                          </td>
+                          <td class="py-1 px-3">
+                            <input
+                              type="number"
+                              min="0"
+                              v-model.number="formSiveraAnophelesNyamuk.tangkapan_luar[slot.key]"
+                              class="w-16 py-1 text-center font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs"
+                            />
+                          </td>
+                          <td class="py-1.5 px-3 font-bold text-slate-800 dark:text-slate-200">
+                            {{ Number(formSiveraAnophelesNyamuk.tangkapan_dalam[slot.key] || 0) + Number(formSiveraAnophelesNyamuk.tangkapan_luar[slot.key] || 0) }}
+                          </td>
+                        </tr>
+                        <tr class="bg-purple-50 dark:bg-purple-950/80 font-bold border-t-2 border-purple-200 dark:border-purple-800 text-xs">
+                          <td class="py-2.5 px-3 text-left font-sans">TOTAL TERTANGKAP</td>
+                          <td class="py-2.5 px-3 text-purple-700 dark:text-purple-300 font-extrabold">{{ totalDalamNyamuk }} ekor</td>
+                          <td class="py-2.5 px-3 text-purple-700 dark:text-purple-300 font-extrabold">{{ totalLuarNyamuk }} ekor</td>
+                          <td class="py-2.5 px-3 text-purple-900 dark:text-purple-100 font-black">{{ totalTertangkapNyamuk }} ekor</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <!-- Live Calculation Box: MHD Dalam, MHD Luar, MBR -->
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 text-xs">
+                    <div>
+                      <span class="text-slate-500 block text-[11px]">MHD Dalam Rumah (D):</span>
+                      <strong class="text-purple-700 dark:text-purple-300 font-mono text-base">{{ mhdDalam }}</strong>
+                      <span class="text-[10px] text-slate-400 block">(Total D / Man-Hours)</span>
+                    </div>
+                    <div>
+                      <span class="text-slate-500 block text-[11px]">MHD Luar Rumah (L):</span>
+                      <strong class="text-purple-700 dark:text-purple-300 font-mono text-base">{{ mhdLuar }}</strong>
+                      <span class="text-[10px] text-slate-400 block">(Total L / Man-Hours)</span>
+                    </div>
+                    <div>
+                      <span class="text-slate-500 block text-[11px]">MBR (Man Biting Rate):</span>
+                      <div class="flex items-center justify-between">
+                        <strong class="text-purple-700 dark:text-purple-300 font-mono text-base">{{ mbrAnopheles }}</strong>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border" :class="getRiskBadgeClass(statusAnophelesNyamuk)">
+                          {{ statusAnophelesNyamuk }}
+                        </span>
+                      </div>
+                      <span class="text-[10px] text-slate-400 block">Temuan Nyamuk: <strong>{{ adaAnopheles }}</strong></span>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
@@ -2864,6 +3800,214 @@ const getRiskBadgeClass = (risk) => {
       </div>
 
       <!-- ============================================================== -->
+      <!-- MODAL TINDAKAN PENGENDALIAN VEKTOR (SIMPLY CI4 PARITY)          -->
+      <!-- ============================================================== -->
+      <div
+        v-if="showPengendalianModal && pengendalianItem"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+      >
+        <div class="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-8">
+          <div class="px-6 py-4 bg-gradient-to-r from-teal-600 to-[#005851] text-white flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <ShieldCheck class="w-5 h-5" />
+              <div>
+                <h3 class="text-sm font-bold">Catat Tindakan Pengendalian Vektor</h3>
+                <p class="text-[11px] text-teal-100">{{ pengendalianItem.jenis_vektor }} &bull; {{ pengendalianItem.wilker }} &bull; {{ pengendalianItem.lokasi || '-' }}</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              @click="showPengendalianModal = false"
+              class="p-1 rounded-lg hover:bg-white/20 transition cursor-pointer"
+            >
+              <X class="w-5 h-5" />
+            </button>
+          </div>
+
+          <div class="p-6 space-y-4 text-xs max-h-[75vh] overflow-y-auto">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal Tindakan</label>
+                <input
+                  type="date"
+                  v-model="pengendalianForm.tanggal"
+                  class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Status Hasil Surveilans</label>
+                <div class="px-3 py-2 rounded-xl border font-bold text-xs" :class="getRiskBadgeClass(pengendalianItem.baku_mutu_status)">
+                  {{ pengendalianItem.baku_mutu_status }} ({{ pengendalianItem.parameter_utama }})
+                </div>
+              </div>
+            </div>
+
+            <!-- 1. JENTIK AEDES & NYAMUK ANOPHELES -->
+            <div v-if="(pengendalianItem.jenis_vektor || '').includes('Jentik') || (pengendalianItem.jenis_vektor || '').includes('Nyamuk')" class="space-y-3">
+              <div class="p-3.5 rounded-2xl bg-teal-50/50 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800 space-y-3">
+                <h4 class="text-xs font-bold text-teal-900 dark:text-teal-200 flex items-center gap-1.5">
+                  <Bug class="w-4 h-4 text-teal-600" />
+                  <span>Pengendalian Jentik / Nyamuk (Sesuai Permenkes 50/2017)</span>
+                </h4>
+
+                <div class="space-y-2">
+                  <!-- Kimia / Larvasidasi -->
+                  <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
+                      <input type="checkbox" v-model="pengendalianForm.jentik_kimia" class="rounded text-teal-600" />
+                      <span>Larvasidasi Kimia (Abatisasi / Temephos)</span>
+                    </label>
+                    <div v-if="pengendalianForm.jentik_kimia" class="grid grid-cols-2 gap-2 pl-6 pt-1">
+                      <div>
+                        <label class="block text-[10px] text-slate-400">Jumlah Gram</label>
+                        <input type="number" v-model="pengendalianForm.jentik_kimia_gram" placeholder="Gram" class="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] text-slate-400">Jumlah Sachet</label>
+                        <input type="number" v-model="pengendalianForm.jentik_kimia_sachet" placeholder="Sachet" class="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Fisik & Biologi -->
+                  <div class="grid grid-cols-2 gap-2">
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer font-semibold text-slate-800 dark:text-slate-200">
+                      <input type="checkbox" v-model="pengendalianForm.jentik_fisik" class="rounded text-teal-600" />
+                      <span>Pengendalian Fisik (3M Plus / Kuras / Tutup)</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer font-semibold text-slate-800 dark:text-slate-200">
+                      <input type="checkbox" v-model="pengendalianForm.jentik_biologi" class="rounded text-teal-600" />
+                      <span>Biologi (BTI / Ikan Pemakan Jentik)</span>
+                    </label>
+                  </div>
+
+                  <!-- Fogging / ULV -->
+                  <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
+                      <input type="checkbox" v-model="pengendalianForm.nyamuk_fogging" class="rounded text-teal-600" />
+                      <span>Pengasapan / Fogging / ULV Nyamuk Dewasa</span>
+                    </label>
+                    <div v-if="pengendalianForm.nyamuk_fogging" class="grid grid-cols-3 gap-2 pl-6 pt-1">
+                      <div>
+                        <label class="block text-[10px] text-slate-400">Dosis Insektisida (ml)</label>
+                        <input type="number" v-model="pengendalianForm.nyamuk_fogging_ml" placeholder="ml" class="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] text-slate-400">Merk Insektisida</label>
+                        <input type="text" v-model="pengendalianForm.nyamuk_fogging_merk" placeholder="Merk" class="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] text-slate-400">Golongan</label>
+                        <input type="text" v-model="pengendalianForm.nyamuk_fogging_golongan" class="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. LALAT -->
+            <div v-else-if="(pengendalianItem.jenis_vektor || '').includes('Lalat')" class="space-y-3">
+              <div class="p-3.5 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 space-y-3">
+                <h4 class="text-xs font-bold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                  <Bug class="w-4 h-4 text-amber-600" />
+                  <span>Pengendalian Kepadatan Lalat</span>
+                </h4>
+
+                <div class="space-y-2">
+                  <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
+                      <input type="checkbox" v-model="pengendalianForm.lalat_spraying" class="rounded text-amber-600" />
+                      <span>Residual Spraying Lalat</span>
+                    </label>
+                    <div v-if="pengendalianForm.lalat_spraying" class="pl-6 pt-1">
+                      <label class="block text-[10px] text-slate-400">Dosis Insektisida (ml)</label>
+                      <input type="number" v-model="pengendalianForm.lalat_spraying_ml" placeholder="Jumlah ml" class="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
+                    </div>
+                  </div>
+
+                  <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
+                      <input type="checkbox" v-model="pengendalianForm.lalat_granule" class="rounded text-amber-600" />
+                      <span>Umpan Granule / Fly Bait</span>
+                    </label>
+                    <div v-if="pengendalianForm.lalat_granule" class="pl-6 pt-1">
+                      <label class="block text-[10px] text-slate-400">Dosis Granule (gram)</label>
+                      <input type="number" v-model="pengendalianForm.lalat_granule_gram" placeholder="Jumlah gram" class="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. KECOA -->
+            <div v-else-if="(pengendalianItem.jenis_vektor || '').includes('Kecoa')" class="space-y-3">
+              <div class="p-3.5 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-200 dark:border-rose-800 space-y-3">
+                <h4 class="text-xs font-bold text-rose-900 dark:text-rose-200 flex items-center gap-1.5">
+                  <Bug class="w-4 h-4 text-rose-600" />
+                  <span>Pengendalian Kepadatan Kecoa</span>
+                </h4>
+
+                <div class="space-y-2">
+                  <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
+                      <input type="checkbox" v-model="pengendalianForm.kecoa_retrapping" class="rounded text-rose-600" />
+                      <span>Pemasangan Retrapping Perangkap Kecoa Baru</span>
+                    </label>
+                    <div v-if="pengendalianForm.kecoa_retrapping" class="pl-6 pt-1">
+                      <label class="block text-[10px] text-slate-400">Jumlah Perangkap (Trap)</label>
+                      <input type="number" v-model="pengendalianForm.kecoa_retrapping_trap" placeholder="Jumlah trap" class="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
+                    </div>
+                  </div>
+
+                  <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
+                    <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
+                      <input type="checkbox" v-model="pengendalianForm.kecoa_gel_bait" class="rounded text-rose-600" />
+                      <span>Aplikasi Gel Baiting Kecoa</span>
+                    </label>
+                    <div v-if="pengendalianForm.kecoa_gel_bait" class="pl-6 pt-1">
+                      <label class="block text-[10px] text-slate-400">Dosis Gel Bait (gram)</label>
+                      <input type="number" v-model="pengendalianForm.kecoa_gel_bait_gram" placeholder="Jumlah gram" class="w-full px-2.5 py-1 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Catatan & Rangkuman Pengendalian -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Catatan Tambahan / Rekomendasi Khusus</label>
+              <textarea
+                v-model="pengendalianForm.catatan"
+                rows="2"
+                placeholder="Deskripsi langkah pengendalian yang dilakukan petugas..."
+                class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              @click="showPengendalianModal = false"
+              class="px-4 py-2 text-xs font-semibold rounded-xl text-slate-600 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700 transition cursor-pointer"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              @click="submitPengendalian()"
+              :disabled="isSubmittingPengendalian"
+              class="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-teal-600 to-[#005851] text-white hover:brightness-105 transition shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            >
+              <Check class="w-4 h-4" />
+              <span>{{ isSubmittingPengendalian ? 'Menyimpan...' : 'Simpan Tindakan Pengendalian' }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================================== -->
       <!-- MODAL DETAIL RINCIAN INSPEKSI / SIVERA                         -->
       <!-- ============================================================== -->
       <div
@@ -2930,6 +4074,56 @@ const getRiskBadgeClass = (risk) => {
                 <p class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
                   {{ detailItem.saran_rencana_tindakan || detailItem.tindakan_pengendalian }}
                 </p>
+              </div>
+
+              <!-- SIVERA Lalat Multi-Lokasi Detail Display -->
+              <div v-if="detailType === 'sivera' && (detailItem.jenis_vektor || '').includes('Lalat') && detailItem.detail_data?.detail_lokasi" class="space-y-3">
+                <span class="font-bold text-slate-700 dark:text-slate-300 block">Rincian Titik Survei Fly Grill (10 Pengamatan x 30 Detik):</span>
+                <div class="grid grid-cols-1 gap-2.5">
+                  <div
+                    v-for="(loc, idx) in detailItem.detail_data.detail_lokasi"
+                    :key="idx"
+                    class="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60"
+                  >
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="font-bold text-slate-800 dark:text-slate-200 text-xs">{{ idx + 1 }}. {{ loc.lokasi || 'Titik ' + (idx + 1) }}</span>
+                      <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border" :class="getRiskBadgeClass(loc.status || (loc.rata_rata < 2 ? 'MS' : 'TMS'))">
+                        Fly Index: {{ loc.rata_rata }} ({{ loc.status || (loc.rata_rata < 2 ? 'MS' : 'TMS') }})
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-1.5 overflow-x-auto text-[11px] font-mono">
+                      <span class="text-slate-400 text-[10px] mr-1">T1-T10:</span>
+                      <span v-for="(val, tI) in (loc.t || [])" :key="tI" class="px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                        {{ val }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SIVERA Nyamuk Anopheles 12-Hour Matrix Detail Display -->
+              <div v-if="detailType === 'sivera' && (detailItem.jenis_vektor || '').includes('Nyamuk') && detailItem.detail_data?.tangkapan_dalam" class="space-y-2">
+                <span class="font-bold text-slate-700 dark:text-slate-300 block">Matriks Penangkapan Umpan Orang Malam (18.00 - 06.00 WIB):</span>
+                <div class="overflow-x-auto rounded-xl border border-purple-200 dark:border-purple-800">
+                  <table class="w-full text-center text-xs bg-white dark:bg-slate-900 font-mono">
+                    <thead>
+                      <tr class="bg-purple-100/70 dark:bg-purple-950/60 font-sans font-bold text-[11px] text-purple-900 dark:text-purple-200">
+                        <th class="py-1.5 px-2 text-left">Jam</th>
+                        <th class="py-1.5 px-2">Dalam (D)</th>
+                        <th class="py-1.5 px-2">Luar (L)</th>
+                        <th class="py-1.5 px-2">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-purple-100 dark:divide-purple-900/40">
+                      <tr v-for="slot in anophelesJamSlots" :key="slot.key">
+                        <td class="py-1 px-2 text-left font-sans text-slate-600 dark:text-slate-300">{{ slot.label }}</td>
+                        <td class="py-1 px-2">{{ detailItem.detail_data.tangkapan_dalam[slot.key] || 0 }}</td>
+                        <td class="py-1 px-2">{{ detailItem.detail_data.tangkapan_luar[slot.key] || 0 }}</td>
+                        <td class="py-1 px-2 font-bold">{{ Number(detailItem.detail_data.tangkapan_dalam[slot.key] || 0) + Number(detailItem.detail_data.tangkapan_luar[slot.key] || 0) }}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               <!-- SIVERA Detail Parameters JSON if any -->

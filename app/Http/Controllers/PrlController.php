@@ -557,6 +557,30 @@ class PrlController extends Controller
         ]);
     }
 
+    public function tppTab(Request $request): Response
+    {
+        $request->merge(['tab' => 'tpp']);
+        return $this->index($request);
+    }
+
+    public function sabTab(Request $request): Response
+    {
+        $request->merge(['tab' => 'sab']);
+        return $this->index($request);
+    }
+
+    public function hsbuTab(Request $request): Response
+    {
+        $request->merge(['tab' => 'hsbu']);
+        return $this->index($request);
+    }
+
+    public function siveraTab(Request $request): Response
+    {
+        $request->merge(['tab' => 'sivera']);
+        return $this->index($request);
+    }
+
     /**
      * Store new SIVERA Vektor record.
      */
@@ -580,6 +604,63 @@ class PrlController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Data Surveilans Vektor (SIVERA) berhasil disimpan.',
+            'data' => $sivera,
+        ]);
+    }
+
+    /**
+     * Update an existing SIVERA record.
+     */
+    public function updateSivera(Request $request, int $id): JsonResponse
+    {
+        $sivera = PrlSiveraVektor::findOrFail($id);
+
+        $validated = $request->validate([
+            'jenis_vektor' => 'required|string|max:50',
+            'wilker' => 'required|string|max:255',
+            'lokasi' => 'required|string|max:255',
+            'tanggal' => 'required|date',
+            'parameter_utama' => 'required|string|max:255',
+            'nilai_indeks' => 'required|numeric',
+            'baku_mutu_status' => 'required|string|max:50',
+            'tindakan_pengendalian' => 'nullable|string',
+            'detail_data' => 'nullable|array',
+        ]);
+
+        $sivera->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Surveilans Vektor (SIVERA) berhasil diperbarui.',
+            'data' => $sivera,
+        ]);
+    }
+
+    /**
+     * Update tindakan pengendalian for SIVERA record.
+     */
+    public function updatePengendalianSivera(Request $request, int $id): JsonResponse
+    {
+        $sivera = PrlSiveraVektor::findOrFail($id);
+
+        $validated = $request->validate([
+            'tindakan_pengendalian' => 'required|string',
+            'pengendalian_detail' => 'nullable|array',
+        ]);
+
+        $detail = $sivera->detail_data ?? [];
+        if (!empty($validated['pengendalian_detail'])) {
+            $detail['pengendalian'] = $validated['pengendalian_detail'];
+        }
+
+        $sivera->update([
+            'tindakan_pengendalian' => $validated['tindakan_pengendalian'],
+            'detail_data' => $detail,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tindakan pengendalian berhasil disimpan.',
             'data' => $sivera,
         ]);
     }

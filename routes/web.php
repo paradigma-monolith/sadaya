@@ -164,9 +164,13 @@ Route::middleware('auth')->group(function () {
         Route::post('/import', [SinkarkesController::class, 'importExcel'])->name('import');
     });
 
-    // Pengendalian Risiko Lingkungan (PRL - TPP, SAB, HSBU, SIVERA)
+    // Pengendalian Risiko Lingkungan (PRL / KESLING - TPP, SAB, HSBU, SIVERA)
     Route::prefix('prl')->name('prl.')->group(function () {
         Route::get('/', [\App\Http\Controllers\PrlController::class, 'index'])->name('index');
+        Route::get('/tpp', [\App\Http\Controllers\PrlController::class, 'tppTab'])->name('tpp');
+        Route::get('/sab', [\App\Http\Controllers\PrlController::class, 'sabTab'])->name('sab');
+        Route::get('/hsbu', [\App\Http\Controllers\PrlController::class, 'hsbuTab'])->name('hsbu');
+        Route::get('/sivera', [\App\Http\Controllers\PrlController::class, 'siveraTab'])->name('sivera');
         Route::get('/export/{type}', [\App\Http\Controllers\PrlController::class, 'exportExcel'])->name('export');
         Route::get('/inspeksi/{type}/{id}/pdf', [\App\Http\Controllers\PrlController::class, 'printPdf'])->name('pdf');
         Route::post('/tpp', [\App\Http\Controllers\PrlController::class, 'storeTpp'])->name('storeTpp');
@@ -176,6 +180,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/inspeksi/sab', [\App\Http\Controllers\PrlController::class, 'storeInspeksiSab'])->name('storeInspeksiSab');
         Route::post('/inspeksi/hsbu', [\App\Http\Controllers\PrlController::class, 'storeInspeksiHsbu'])->name('storeInspeksiHsbu');
         Route::post('/sivera', [\App\Http\Controllers\PrlController::class, 'storeSivera'])->name('storeSivera');
+        Route::put('/sivera/{id}', [\App\Http\Controllers\PrlController::class, 'updateSivera'])->name('updateSivera');
+        Route::post('/sivera/{id}/pengendalian', [\App\Http\Controllers\PrlController::class, 'updatePengendalianSivera'])->name('updatePengendalianSivera');
         Route::delete('/inspeksi/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroyInspeksi'])->name('destroyInspeksi');
         Route::delete('/sarana/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroySarana'])->name('destroySarana');
     });

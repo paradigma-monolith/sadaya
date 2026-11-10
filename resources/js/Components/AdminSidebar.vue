@@ -29,7 +29,11 @@ import {
   Pill,
   ExternalLink,
   Database,
-  Leaf
+  Leaf,
+  Utensils,
+  Droplets,
+  Building2,
+  Bug
 } from 'lucide-vue-next';
 import { useSidebar } from '@/composables/useSidebar';
 
@@ -189,15 +193,47 @@ const navSections = computed(() => {
       ],
     },
     {
-      title: 'PENGENDALIAN RISIKO LINGKUNGAN (PRL)',
+      title: 'PENGENDALIAN RISIKO LINGKUNGAN (KESLING)',
       items: [
         {
-          name: 'Sanitasi Lingkungan (PRL)',
+          name: 'Dashboard & Ringkasan PRL',
           path: '/prl',
           url: getUrl('/prl'),
           icon: Leaf,
           iconColor: 'text-[#00A99D]',
           active: props.currentRoute === 'prl',
+        },
+        {
+          name: 'TPP (Tempat Pengelolaan Pangan)',
+          path: '/prl/tpp',
+          url: getUrl('/prl/tpp'),
+          icon: Utensils,
+          iconColor: 'text-amber-500',
+          active: props.currentRoute === 'prl-tpp',
+        },
+        {
+          name: 'SAB (Sarana Air Bersih)',
+          path: '/prl/sab',
+          url: getUrl('/prl/sab'),
+          icon: Droplets,
+          iconColor: 'text-sky-500',
+          active: props.currentRoute === 'prl-sab',
+        },
+        {
+          name: 'HSBU (Hygiene Sanitasi Bangunan)',
+          path: '/prl/hsbu',
+          url: getUrl('/prl/hsbu'),
+          icon: Building2,
+          iconColor: 'text-purple-500',
+          active: props.currentRoute === 'prl-hsbu',
+        },
+        {
+          name: 'SIVERA (Vektor & Reservoar)',
+          path: '/prl/sivera',
+          url: getUrl('/prl/sivera'),
+          icon: Bug,
+          iconColor: 'text-rose-500',
+          active: props.currentRoute === 'prl-sivera',
         },
       ],
     },
