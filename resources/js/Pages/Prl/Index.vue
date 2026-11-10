@@ -519,6 +519,13 @@ const tikusChartAgg = computed(() => {
   return { chart, labels, species, speciesTotals, grandTotal, wilkerTotals, maxWilkerTotal };
 });
 
+const jentikKontainerData = computed(() => {
+  const list = siveraDashData.value.charts?.jentik_kontainer || [];
+  const total = list.reduce((a, b) => a + Number(b.count || 0), 0);
+  const top = list.length > 0 ? `${list[0].name} (${list[0].count})` : '-';
+  return { list, total, top };
+});
+
 // Modal Detail State
 const showDetailModal = ref(false);
 const detailItem = ref(null);
