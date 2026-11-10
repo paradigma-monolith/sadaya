@@ -87,6 +87,10 @@ const props = defineProps({
     type: Object,
     default: () => ({ data: [] }),
   },
+  sivera_dashboard_metrics: {
+    type: Object,
+    default: () => ({}),
+  },
   master_tpp: {
     type: Array,
     default: () => [],
@@ -103,7 +107,13 @@ const props = defineProps({
 
 // Active Tab State
 const currentTab = ref(props.active_tab || 'overview');
-const siveraFilterVektor = ref('Dashboard');
+const siveraFilterVektor = ref(props.filters.sivera_vektor || 'Dashboard');
+
+// Per-page settings from filters
+const perPageTpp = ref(props.filters.per_page_tpp || 25);
+const perPageSab = ref(props.filters.per_page_sab || 25);
+const perPageHsbu = ref(props.filters.per_page_hsbu || 25);
+const perPageSivera = ref(props.filters.per_page_sivera || 25);
 
 // Filter States
 const search = ref(props.filters.search || '');
@@ -125,6 +135,11 @@ const applyFilter = (targetTab = currentTab.value) => {
     tingkat_risiko: selectedRisiko.value || undefined,
     tahun: selectedTahun.value || undefined,
     bulan: selectedBulan.value || undefined,
+    sivera_vektor: siveraFilterVektor.value !== 'Dashboard' ? siveraFilterVektor.value : undefined,
+    per_page_tpp: perPageTpp.value !== 25 ? perPageTpp.value : undefined,
+    per_page_sab: perPageSab.value !== 25 ? perPageSab.value : undefined,
+    per_page_hsbu: perPageHsbu.value !== 25 ? perPageHsbu.value : undefined,
+    per_page_sivera: perPageSivera.value !== 25 ? perPageSivera.value : undefined,
   }, {
     preserveState: true,
     replace: true,
@@ -141,19 +156,76 @@ const resetFilter = () => {
   router.get('/prl', { tab: currentTab.value }, { preserveState: true, replace: true });
 };
 
+const switchSiveraVektor = (vTab) => {
+  siveraFilterVektor.value = vTab;
+  router.get('/prl', {
+    tab: 'sivera',
+    sivera_vektor: vTab !== 'Dashboard' ? vTab : undefined,
+    search: search.value || undefined,
+    wilker: selectedWilker.value || undefined,
+    tingkat_risiko: selectedRisiko.value || undefined,
+    tahun: selectedTahun.value || undefined,
+    bulan: selectedBulan.value || undefined,
+    per_page_sivera: perPageSivera.value || undefined,
+  }, {
+    preserveState: true,
+    replace: true,
+  });
+};
+
+const changePerPage = (type, val) => {
+  const p = Number(val);
+  const params = {
+    tab: currentTab.value,
+    search: search.value || undefined,
+    wilker: selectedWilker.value || undefined,
+    tingkat_risiko: selectedRisiko.value || undefined,
+    tahun: selectedTahun.value || undefined,
+    bulan: selectedBulan.value || undefined,
+  };
+  if (type === 'tpp') {
+    perPageTpp.value = p;
+    params.per_page_tpp = p;
+  } else if (type === 'sab') {
+    perPageSab.value = p;
+    params.per_page_sab = p;
+  } else if (type === 'hsbu') {
+    perPageHsbu.value = p;
+    params.per_page_hsbu = p;
+  } else if (type === 'sivera') {
+    perPageSivera.value = p;
+    params.per_page_sivera = p;
+    if (siveraFilterVektor.value !== 'Dashboard') {
+      params.sivera_vektor = siveraFilterVektor.value;
+    }
+  }
+  router.get('/prl', params, {
+    preserveState: true,
+    replace: true,
+  });
+};
+
 // Filtered Sivera List based on vector sub-filter
 const filteredSiveraData = computed(() => {
   const data = props.sivera_list?.data || [];
   if (siveraFilterVektor.value === 'Dashboard' || siveraFilterVektor.value === 'Semua Data') return data;
+  const filter = siveraFilterVektor.value.toLowerCase();
   return data.filter((item) => {
     const jv = (item.jenis_vektor || '').toLowerCase();
-    const filter = siveraFilterVektor.value.toLowerCase();
+    if (filter.includes('anopheles')) {
+      if (filter.includes('jentik')) return jv.includes('anopheles') && jv.includes('jentik');
+      if (filter.includes('nyamuk')) return jv.includes('anopheles') && jv.includes('nyamuk');
+      return jv.includes('anopheles');
+    }
     return jv.includes(filter) || filter.includes(jv);
   });
 });
 
-// SIVERA Dashboard Metrics
+// SIVERA Dashboard Metrics (uses backend full dataset calculations with fallback)
 const siveraDashboardMetrics = computed(() => {
+  if (props.sivera_dashboard_metrics && props.sivera_dashboard_metrics.totalSurveilans !== undefined) {
+    return props.sivera_dashboard_metrics;
+  }
   const all = props.sivera_list?.data || [];
   const jentik = all.filter((x) => (x.jenis_vektor || '').includes('Jentik Aedes'));
   const lalat = all.filter((x) => (x.jenis_vektor || '').includes('Lalat'));
@@ -1478,6 +1550,17 @@ const summarizePengendalianObj = (data) => {
   if (!data || typeof data !== 'object') return '';
   const parts = [];
 
+  // Tanggal Pelaksanaan
+  if (data.tanggal) {
+    const d = new Date(data.tanggal);
+    if (!isNaN(d.getTime())) {
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      parts.push(`Tgl: ${dd}/${mm}/${yyyy}`);
+    }
+  }
+
   // Jentik
   if (data.jentik_kimia || data.jentik_kimia_gram || data.jentik_kimia_sachet) {
     const p = [];
@@ -1535,8 +1618,13 @@ const formatTindakanPengendalian = (val) => {
     return summarizePengendalianObj(val);
   }
   if (typeof val === 'string') {
-    const trimmed = val.trim();
-    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    let trimmed = val.trim();
+    if ((trimmed.startsWith('"{') && trimmed.endsWith('}"')) || (trimmed.startsWith('\'{"') && trimmed.endsWith('"}\''))) {
+      try {
+        trimmed = JSON.parse(trimmed);
+      } catch (e) {}
+    }
+    if (typeof trimmed === 'string' && trimmed.startsWith('{') && trimmed.endsWith('}')) {
       try {
         const parsed = JSON.parse(trimmed);
         return summarizePengendalianObj(parsed);
@@ -1544,6 +1632,7 @@ const formatTindakanPengendalian = (val) => {
         return val;
       }
     }
+    return trimmed;
   }
   return val;
 };
@@ -2060,6 +2149,48 @@ const handleRunSync = async () => {
               </tbody>
             </table>
           </div>
+
+          <!-- Pagination & Per-Page Controls (TPP) -->
+          <div
+            v-if="inspeksi_tpp?.total > 0"
+            class="px-4 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 rounded-b-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          >
+            <div class="text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+              <span>Menampilkan <strong class="text-slate-700 dark:text-slate-200">{{ inspeksi_tpp.from || 0 }}</strong> - <strong class="text-slate-700 dark:text-slate-200">{{ inspeksi_tpp.to || 0 }}</strong> dari <strong class="text-slate-700 dark:text-slate-200">{{ inspeksi_tpp.total || 0 }}</strong> data</span>
+              <span class="text-slate-300 dark:text-slate-600">|</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] text-slate-400">Tampilkan:</span>
+                <select
+                  :value="perPageTpp"
+                  @change="changePerPage('tpp', $event.target.value)"
+                  class="py-1 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00A99D]"
+                >
+                  <option :value="10">10 / hal</option>
+                  <option :value="25">25 / hal</option>
+                  <option :value="50">50 / hal</option>
+                  <option :value="100">100 / hal</option>
+                  <option :value="1000">Semua</option>
+                </select>
+              </div>
+            </div>
+            <div v-if="inspeksi_tpp.links && inspeksi_tpp.links.length > 3" class="flex items-center gap-1 flex-wrap">
+              <template v-for="(link, i) in inspeksi_tpp.links" :key="i">
+                <Link
+                  v-if="link.url"
+                  :href="link.url"
+                  v-html="link.label"
+                  preserve-state
+                  class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer"
+                  :class="link.active ? 'bg-[#00A99D] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                />
+                <span
+                  v-else
+                  v-html="link.label"
+                  class="px-2.5 py-1 text-slate-300 dark:text-slate-600 text-xs select-none"
+                />
+              </template>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2157,6 +2288,48 @@ const handleRunSync = async () => {
               </tbody>
             </table>
           </div>
+
+          <!-- Pagination & Per-Page Controls (SAB) -->
+          <div
+            v-if="inspeksi_sab?.total > 0"
+            class="px-4 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 rounded-b-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          >
+            <div class="text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+              <span>Menampilkan <strong class="text-slate-700 dark:text-slate-200">{{ inspeksi_sab.from || 0 }}</strong> - <strong class="text-slate-700 dark:text-slate-200">{{ inspeksi_sab.to || 0 }}</strong> dari <strong class="text-slate-700 dark:text-slate-200">{{ inspeksi_sab.total || 0 }}</strong> data</span>
+              <span class="text-slate-300 dark:text-slate-600">|</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] text-slate-400">Tampilkan:</span>
+                <select
+                  :value="perPageSab"
+                  @change="changePerPage('sab', $event.target.value)"
+                  class="py-1 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00A99D]"
+                >
+                  <option :value="10">10 / hal</option>
+                  <option :value="25">25 / hal</option>
+                  <option :value="50">50 / hal</option>
+                  <option :value="100">100 / hal</option>
+                  <option :value="1000">Semua</option>
+                </select>
+              </div>
+            </div>
+            <div v-if="inspeksi_sab.links && inspeksi_sab.links.length > 3" class="flex items-center gap-1 flex-wrap">
+              <template v-for="(link, i) in inspeksi_sab.links" :key="i">
+                <Link
+                  v-if="link.url"
+                  :href="link.url"
+                  v-html="link.label"
+                  preserve-state
+                  class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer"
+                  :class="link.active ? 'bg-[#00A99D] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                />
+                <span
+                  v-else
+                  v-html="link.label"
+                  class="px-2.5 py-1 text-slate-300 dark:text-slate-600 text-xs select-none"
+                />
+              </template>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2252,6 +2425,48 @@ const handleRunSync = async () => {
               </tbody>
             </table>
           </div>
+
+          <!-- Pagination & Per-Page Controls (HSBU) -->
+          <div
+            v-if="inspeksi_hsbu?.total > 0"
+            class="px-4 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 rounded-b-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          >
+            <div class="text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+              <span>Menampilkan <strong class="text-slate-700 dark:text-slate-200">{{ inspeksi_hsbu.from || 0 }}</strong> - <strong class="text-slate-700 dark:text-slate-200">{{ inspeksi_hsbu.to || 0 }}</strong> dari <strong class="text-slate-700 dark:text-slate-200">{{ inspeksi_hsbu.total || 0 }}</strong> data</span>
+              <span class="text-slate-300 dark:text-slate-600">|</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] text-slate-400">Tampilkan:</span>
+                <select
+                  :value="perPageHsbu"
+                  @change="changePerPage('hsbu', $event.target.value)"
+                  class="py-1 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00A99D]"
+                >
+                  <option :value="10">10 / hal</option>
+                  <option :value="25">25 / hal</option>
+                  <option :value="50">50 / hal</option>
+                  <option :value="100">100 / hal</option>
+                  <option :value="1000">Semua</option>
+                </select>
+              </div>
+            </div>
+            <div v-if="inspeksi_hsbu.links && inspeksi_hsbu.links.length > 3" class="flex items-center gap-1 flex-wrap">
+              <template v-for="(link, i) in inspeksi_hsbu.links" :key="i">
+                <Link
+                  v-if="link.url"
+                  :href="link.url"
+                  v-html="link.label"
+                  preserve-state
+                  class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer"
+                  :class="link.active ? 'bg-[#00A99D] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                />
+                <span
+                  v-else
+                  v-html="link.label"
+                  class="px-2.5 py-1 text-slate-300 dark:text-slate-600 text-xs select-none"
+                />
+              </template>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2285,7 +2500,7 @@ const handleRunSync = async () => {
               v-for="vTab in ['Dashboard', 'Semua Data', 'Jentik Aedes', 'Lalat', 'Kecoa', 'Tikus', 'Pinjal', 'Jentik Anopheles', 'Nyamuk Anopheles']"
               :key="vTab"
               type="button"
-              @click="siveraFilterVektor = vTab"
+              @click="switchSiveraVektor(vTab)"
               class="px-3 py-1.5 rounded-full font-semibold transition shrink-0 cursor-pointer flex items-center gap-1.5"
               :class="siveraFilterVektor === vTab ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
             >
@@ -2362,7 +2577,7 @@ const handleRunSync = async () => {
                   </div>
                   <button
                     type="button"
-                    @click="siveraFilterVektor = 'Jentik Aedes'"
+                    @click="switchSiveraVektor('Jentik Aedes')"
                     class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-indigo-50 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <span>Lihat Rincian</span>
@@ -2382,7 +2597,7 @@ const handleRunSync = async () => {
                   </div>
                   <button
                     type="button"
-                    @click="siveraFilterVektor = 'Lalat'"
+                    @click="switchSiveraVektor('Lalat')"
                     class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-amber-50 dark:bg-slate-800 text-amber-600 dark:text-amber-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <span>Lihat Rincian</span>
@@ -2402,7 +2617,7 @@ const handleRunSync = async () => {
                   </div>
                   <button
                     type="button"
-                    @click="siveraFilterVektor = 'Kecoa'"
+                    @click="switchSiveraVektor('Kecoa')"
                     class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-rose-50 dark:bg-slate-800 text-rose-600 dark:text-rose-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <span>Lihat Rincian</span>
@@ -2422,7 +2637,7 @@ const handleRunSync = async () => {
                   </div>
                   <button
                     type="button"
-                    @click="siveraFilterVektor = 'Tikus'"
+                    @click="switchSiveraVektor('Tikus')"
                     class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <span>Lihat Rincian</span>
@@ -2442,7 +2657,7 @@ const handleRunSync = async () => {
                   </div>
                   <button
                     type="button"
-                    @click="siveraFilterVektor = 'Pinjal'"
+                    @click="switchSiveraVektor('Pinjal')"
                     class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-cyan-50 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <span>Lihat Rincian</span>
@@ -2462,7 +2677,7 @@ const handleRunSync = async () => {
                   </div>
                   <button
                     type="button"
-                    @click="siveraFilterVektor = 'Jentik Anopheles'"
+                    @click="switchSiveraVektor('Jentik Anopheles')"
                     class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-teal-50 dark:bg-slate-800 text-teal-600 dark:text-teal-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <span>Lihat Rincian</span>
@@ -2482,7 +2697,7 @@ const handleRunSync = async () => {
                   </div>
                   <button
                     type="button"
-                    @click="siveraFilterVektor = 'Nyamuk Anopheles'"
+                    @click="switchSiveraVektor('Nyamuk Anopheles')"
                     class="mt-3 w-full py-1.5 rounded-xl bg-slate-50 hover:bg-purple-50 dark:bg-slate-800 text-purple-600 dark:text-purple-400 text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
                   >
                     <span>Lihat Rincian</span>
@@ -2601,18 +2816,20 @@ const handleRunSync = async () => {
                       </div>
 
                       <!-- Action Description Snippet -->
-                      <p
+                      <div
                         v-if="item.tindakan_pengendalian"
-                        class="text-[11px] text-slate-600 dark:text-slate-300 truncate"
+                        class="text-[11px] text-slate-700 dark:text-slate-300"
                         :title="formatTindakanPengendalian(item.tindakan_pengendalian)"
                       >
-                        {{ formatTindakanPengendalian(item.tindakan_pengendalian) }}
-                      </p>
+                        <span class="inline-block px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10.5px] leading-tight font-medium text-slate-700 dark:text-slate-200 line-clamp-2">
+                          {{ formatTindakanPengendalian(item.tindakan_pengendalian) }}
+                        </span>
+                      </div>
                       <p
                         v-else
                         class="text-[10px] text-slate-400 italic"
                       >
-                        {{ (item.baku_mutu_status || '').toLowerCase().includes('tidak') ? 'Menunggu intervensi petugas' : 'Kondisi vektor terkendali' }}
+                        {{ (item.baku_mutu_status || '').toLowerCase().includes('tidak') || (item.baku_mutu_status || '').toLowerCase().includes('atas') ? 'Menunggu intervensi petugas' : 'Kondisi vektor terkendali' }}
                       </p>
                     </div>
                   </td>
@@ -2689,6 +2906,48 @@ const handleRunSync = async () => {
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- Pagination & Per-Page Controls (SIVERA) -->
+          <div
+            v-if="sivera_list?.total > 0 && siveraFilterVektor !== 'Dashboard'"
+            class="px-4 py-3.5 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 rounded-b-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs"
+          >
+            <div class="text-slate-500 dark:text-slate-400 flex items-center gap-2 flex-wrap">
+              <span>Menampilkan <strong class="text-slate-700 dark:text-slate-200">{{ sivera_list.from || 0 }}</strong> - <strong class="text-slate-700 dark:text-slate-200">{{ sivera_list.to || 0 }}</strong> dari <strong class="text-slate-700 dark:text-slate-200">{{ sivera_list.total || 0 }}</strong> data</span>
+              <span class="text-slate-300 dark:text-slate-600">|</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] text-slate-400">Tampilkan:</span>
+                <select
+                  :value="perPageSivera"
+                  @change="changePerPage('sivera', $event.target.value)"
+                  class="py-1 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option :value="10">10 / hal</option>
+                  <option :value="25">25 / hal</option>
+                  <option :value="50">50 / hal</option>
+                  <option :value="100">100 / hal</option>
+                  <option :value="1000">Semua</option>
+                </select>
+              </div>
+            </div>
+            <div v-if="sivera_list.links && sivera_list.links.length > 3" class="flex items-center gap-1 flex-wrap">
+              <template v-for="(link, i) in sivera_list.links" :key="i">
+                <Link
+                  v-if="link.url"
+                  :href="link.url"
+                  v-html="link.label"
+                  preserve-state
+                  class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer"
+                  :class="link.active ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
+                />
+                <span
+                  v-else
+                  v-html="link.label"
+                  class="px-2.5 py-1 text-slate-300 dark:text-slate-600 text-xs select-none"
+                />
+              </template>
+            </div>
           </div>
         </div>
       </div>

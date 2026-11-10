@@ -151,7 +151,7 @@ class SimplyDataMigrationService
                 'id' => 'prl_sivera',
                 'name' => 'Surveilans Vektor SIVERA',
                 'source_db' => 'bkkr3927_simply',
-                'source_table' => 'prl_sivera_jentik',
+                'source_table' => 'prl_sivera_* (7 Vektor)',
                 'target_model' => PrlSiveraVektor::class,
                 'target_table' => 'prl_sivera_vektor',
                 'description' => 'Surveilans kepadatan 7 jenis vektor (Jentik, Lalat, Kecoa, Tikus, Pinjal, Anopheles) dan pengendalian.',
@@ -341,6 +341,54 @@ class SimplyDataMigrationService
                 'table_exists' => false,
                 'count' => 0,
                 'error' => $e->getMessage(),
+            ];
+        }
+
+        // Khusus modul SIVERA yang terdiri dari 7 tabel vektor terpisah di Simply MySQL
+        if ($module === 'prl_sivera') {
+            $siveraTables = [
+                'prl_sivera_jentik',
+                'prl_sivera_lalat',
+                'prl_sivera_kecoa',
+                'prl_sivera_tikus',
+                'prl_sivera_pinjal',
+                'prl_sivera_anopheles_jentik',
+                'prl_sivera_anopheles_nyamuk',
+            ];
+            $cnt = 0;
+            $minDates = [];
+            $maxDates = [];
+            $existingTables = [];
+            foreach ($siveraTables as $st) {
+                try {
+                    $chk = $pdo->query("SHOW TABLES LIKE '{$st}'")->fetchAll();
+                    if (!empty($chk)) {
+                        $existingTables[] = $st;
+                        $cnt += (int)$pdo->query("SELECT COUNT(*) FROM `{$st}`")->fetchColumn();
+                        $dRow = $pdo->query("SELECT MIN(created_at) as min_d, MAX(created_at) as max_d FROM `{$st}`")->fetch(PDO::FETCH_ASSOC);
+                        if (!empty($dRow['min_d'])) $minDates[] = $dRow['min_d'];
+                        if (!empty($dRow['max_d'])) $maxDates[] = $dRow['max_d'];
+                    }
+                } catch (Throwable) {}
+            }
+            sort($minDates);
+            sort($maxDates);
+            $minDate = !empty($minDates) ? date('d/m/Y', strtotime($minDates[0])) : null;
+            $maxDate = !empty($maxDates) ? date('d/m/Y', strtotime(end($maxDates))) : null;
+
+            return [
+                'module' => $module,
+                'name' => $cfg['name'],
+                'host' => $host,
+                'port' => $port,
+                'database' => $dbName,
+                'table' => '7 Tabel Vektor',
+                'connected' => true,
+                'table_exists' => !empty($existingTables),
+                'count' => $cnt,
+                'min_date' => $minDate,
+                'max_date' => $maxDate,
+                'error' => empty($existingTables) ? "Tabel SIVERA belum ditemukan di database {$dbName}." : null,
             ];
         }
 
@@ -1711,7 +1759,7 @@ class SimplyDataMigrationService
                     $rows = $pdo->query("SELECT * FROM prl_sivera_anopheles_jentik ORDER BY id_anopheles_jentik ASC")->fetchAll(PDO::FETCH_ASSOC);
                     foreach ($rows as $r) {
                         $totalProcessed++;
-                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_anopheles_jentik'])->where('jenis_vektor', 'Anopheles (Jentik)')->exists()) {
+                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_anopheles_jentik'])->whereIn('jenis_vektor', ['Jentik Anopheles', 'Anopheles (Jentik)'])->exists()) {
                             $skippedCount++;
                             continue;
                         }
@@ -1720,7 +1768,7 @@ class SimplyDataMigrationService
 
                         if (!$dryRun) {
                             PrlSiveraVektor::updateOrCreate(
-                                ['source_id' => $r['id_anopheles_jentik'], 'jenis_vektor' => 'Anopheles (Jentik)'],
+                                ['source_id' => $r['id_anopheles_jentik'], 'jenis_vektor' => 'Jentik Anopheles'],
                                 [
                                     'wilker' => $wilkerName,
                                     'lokasi' => $r['lokasi'] ?: 'Habitat Perindukan Anopheles',
@@ -1747,7 +1795,7 @@ class SimplyDataMigrationService
                     $rows = $pdo->query("SELECT * FROM prl_sivera_anopheles_nyamuk ORDER BY id_anopheles_nyamuk ASC")->fetchAll(PDO::FETCH_ASSOC);
                     foreach ($rows as $r) {
                         $totalProcessed++;
-                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_anopheles_nyamuk'])->where('jenis_vektor', 'Anopheles (Nyamuk)')->exists()) {
+                        if ($skipDuplicate && !$truncateFirst && PrlSiveraVektor::where('source_id', $r['id_anopheles_nyamuk'])->whereIn('jenis_vektor', ['Nyamuk Anopheles', 'Anopheles (Nyamuk)'])->exists()) {
                             $skippedCount++;
                             continue;
                         }
@@ -1756,7 +1804,7 @@ class SimplyDataMigrationService
 
                         if (!$dryRun) {
                             PrlSiveraVektor::updateOrCreate(
-                                ['source_id' => $r['id_anopheles_nyamuk'], 'jenis_vektor' => 'Anopheles (Nyamuk)'],
+                                ['source_id' => $r['id_anopheles_nyamuk'], 'jenis_vektor' => 'Nyamuk Anopheles'],
                                 [
                                     'wilker' => $wilkerName,
                                     'lokasi' => $r['lokasi'] ?: 'Area Penangkapan Nyamuk',
@@ -1803,10 +1851,14 @@ class SimplyDataMigrationService
     protected function cleanSiveraPengendalian(?string $raw): ?string
     {
         if (empty($raw)) return null;
-        if (str_starts_with(trim($raw), '{')) {
-            $data = json_decode($raw, true);
+        $trimmed = trim($raw);
+        if (str_starts_with($trimmed, '{')) {
+            $data = json_decode($trimmed, true);
             if (is_array($data)) {
                 $parts = [];
+                if (!empty($data['tanggal'])) {
+                    $parts[] = 'Tgl: ' . date('d/m/Y', strtotime($data['tanggal']));
+                }
                 if (!empty($data['jentik_kimia']) || !empty($data['jentik_kimia_gram']) || !empty($data['jentik_kimia_sachet'])) {
                     $p = [];
                     if (!empty($data['jentik_kimia_gram'])) $p[] = $data['jentik_kimia_gram'] . ' gr';
@@ -1834,7 +1886,25 @@ class SimplyDataMigrationService
                 if (!empty($data['gel_bait']) || !empty($data['gel_bait_gram'])) {
                     $parts[] = 'Gel Bait' . (!empty($data['gel_bait_gram']) ? ' (' . $data['gel_bait_gram'] . ' gr)' : '');
                 }
+                if (!empty($data['perangkap']) || !empty($data['trap'])) {
+                    $parts[] = 'Pemasangan Perangkap (' . ($data['perangkap'] ?? $data['trap']) . ' unit)';
+                }
+                if (!empty($data['dusting']) || !empty($data['dusting_gram'])) {
+                    $parts[] = 'Dusting Insektisida' . (!empty($data['dusting_gram']) ? ' (' . $data['dusting_gram'] . ' gr)' : '');
+                }
+                if (!empty($data['lokasi'])) {
+                    $parts[] = 'Lokasi: ' . $data['lokasi'];
+                }
                 if (!empty($data['catatan'])) $parts[] = $data['catatan'];
+
+                if (empty($parts)) {
+                    foreach ($data as $k => $v) {
+                        if (!empty($v) && is_scalar($v)) {
+                            $parts[] = ucwords(str_replace('_', ' ', $k)) . ': ' . $v;
+                        }
+                    }
+                }
+
                 if (!empty($parts)) return implode('; ', $parts);
             }
         }
