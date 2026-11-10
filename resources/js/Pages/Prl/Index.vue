@@ -996,7 +996,10 @@ const openPengendalian = (item) => {
   pengendalianItem.value = item;
   activePengendalianTab.value = 'jentik';
 
-  const d = item.detail_data?.pengendalian || {};
+  let d = item.detail_data?.pengendalian || {};
+  if (typeof d === 'string') {
+    try { d = JSON.parse(d); } catch (e) { d = {}; }
+  }
   pengendalianForm.value = {
     tanggal: d.tanggal || todayStr,
     persiapan: d.persiapan || '',
@@ -1023,7 +1026,7 @@ const openPengendalian = (item) => {
     kecoa_gel_bait: Boolean(d.gel_bait),
     kecoa_gel_bait_gram: d.gel_bait_gram || '',
     kecoa_lokasi: d.lokasi || item.lokasi || '',
-    catatan: item.tindakan_pengendalian || '',
+    catatan: formatTindakanPengendalian(item.tindakan_pengendalian) || '',
   };
 
   showPengendalianModal.value = true;
@@ -1465,6 +1468,80 @@ const getRiskBadgeClass = (risk) => {
     default:
       return 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700';
   }
+};
+
+const summarizePengendalianObj = (data) => {
+  if (!data || typeof data !== 'object') return '';
+  const parts = [];
+
+  // Jentik
+  if (data.jentik_kimia || data.jentik_kimia_gram || data.jentik_kimia_sachet) {
+    const p = [];
+    if (data.jentik_kimia_gram) p.push(`${data.jentik_kimia_gram} gr`);
+    if (data.jentik_kimia_sachet) p.push(`${data.jentik_kimia_sachet} sachet`);
+    parts.push(`Larvasidasi${p.length ? ' (' + p.join(', ') + ')' : ''}`);
+  }
+  if (data.jentik_fisik) parts.push('Fisik (3M Plus/Kuras)');
+  if (data.jentik_biologi) parts.push('Biologi (BTI/Ikan)');
+
+  // Nyamuk / Fogging
+  if (data.nyamuk_fogging || data.nyamuk_fogging_ml || data.fogging_ml) {
+    const f = [];
+    const ml = data.nyamuk_fogging_ml || data.fogging_ml;
+    if (ml) f.push(`${ml} ml`);
+    const merk = data.nyamuk_fogging_merk || data.fogging_insektisida;
+    if (merk) f.push(merk);
+    parts.push(`Fogging${f.length ? ' (' + f.join(' ') + ')' : ''}`);
+  }
+  if (data.nyamuk_fisik) parts.push('Fisik Nyamuk (Trap/Raket)');
+
+  // Lalat / Kecoa
+  if (data.spraying || data.spraying_ml) parts.push(`Spraying${data.spraying_ml ? ' (' + data.spraying_ml + ' ml)' : ''}`);
+  if (data.granule || data.granule_gram) parts.push(`Granule Bait${data.granule_gram ? ' (' + data.granule_gram + ' gr)' : ''}`);
+  if (data.retrapping || data.retrapping_trap) parts.push(`Retrapping${data.retrapping_trap ? ' (' + data.retrapping_trap + ' trap)' : ''}`);
+  if (data.gel_bait || data.gel_bait_gram) parts.push(`Gel Bait${data.gel_bait_gram ? ' (' + data.gel_bait_gram + ' gr)' : ''}`);
+
+  // Tikus / Pinjal
+  if (data.perangkap || data.trap) parts.push(`Pemasangan Perangkap (${data.perangkap || data.trap} unit)`);
+  if (data.dusting || data.dusting_gram) parts.push(`Dusting Insektisida${data.dusting_gram ? ' (' + data.dusting_gram + ' gr)' : ''}`);
+  if (data.rodentisida || data.umpan_gram) parts.push(`Rodentisida${data.umpan_gram ? ' (' + data.umpan_gram + ' gr)' : ''}`);
+
+  // Lokasi note if present
+  if (data.lokasi) parts.push(`Lokasi: ${data.lokasi}`);
+  if (data.catatan) parts.push(data.catatan);
+
+  if (parts.length > 0) {
+    return parts.join('; ');
+  }
+
+  // Fallback if none of the specific keys matched: format key-value pairs cleanly
+  const fallbackParts = [];
+  for (const [k, v] of Object.entries(data)) {
+    if (v && typeof v !== 'object') {
+      const cleanKey = k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+      fallbackParts.push(`${cleanKey}: ${v}`);
+    }
+  }
+  return fallbackParts.length > 0 ? fallbackParts.join(', ') : '';
+};
+
+const formatTindakanPengendalian = (val) => {
+  if (!val) return '';
+  if (typeof val === 'object') {
+    return summarizePengendalianObj(val);
+  }
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        return summarizePengendalianObj(parsed);
+      } catch (e) {
+        return val;
+      }
+    }
+  }
+  return val;
 };
 </script>
 
@@ -2407,9 +2484,9 @@ const getRiskBadgeClass = (risk) => {
                       <p
                         v-if="item.tindakan_pengendalian"
                         class="text-[11px] text-slate-600 dark:text-slate-300 truncate"
-                        :title="item.tindakan_pengendalian"
+                        :title="formatTindakanPengendalian(item.tindakan_pengendalian)"
                       >
-                        {{ item.tindakan_pengendalian }}
+                        {{ formatTindakanPengendalian(item.tindakan_pengendalian) }}
                       </p>
                       <p
                         v-else
@@ -4133,7 +4210,7 @@ const getRiskBadgeClass = (risk) => {
               <div v-if="detailItem.saran_rencana_tindakan || detailItem.tindakan_pengendalian">
                 <span class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Saran &amp; Tindakan Pengendalian:</span>
                 <p class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
-                  {{ detailItem.saran_rencana_tindakan || detailItem.tindakan_pengendalian }}
+                  {{ formatTindakanPengendalian(detailItem.saran_rencana_tindakan || detailItem.tindakan_pengendalian) }}
                 </p>
               </div>
 

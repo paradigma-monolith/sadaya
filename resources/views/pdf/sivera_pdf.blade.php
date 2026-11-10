@@ -199,7 +199,7 @@
         </td>
       </tr>
     </table>
-  @else
+  @elseif(!empty($alat_dan_bahan))
     <ul class="bullet-list">
       @foreach($alat_dan_bahan as $ab)
         <li>{{ $ab }}</li>
