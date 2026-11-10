@@ -68,6 +68,7 @@ const activeNav = computed(() => {
   if (p.includes('/ship-inspections')) return 'ship-inspections';
   if (p.includes('/sinkarkes/dashboard')) return 'sinkarkes-dashboard';
   if (p.includes('/sinkarkes')) return 'sinkarkes';
+  if (p.includes('/prl')) return 'prl';
   if (p.includes('/audit-logs')) return 'audit';
   if (p.includes('/profile')) return 'profile';
   if (p.includes('/inertia/dashboard') || p === '/' || p.endsWith('/public') || p.endsWith('/public/')) return 'dashboard';

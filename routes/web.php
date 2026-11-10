@@ -164,6 +164,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/import', [SinkarkesController::class, 'importExcel'])->name('import');
     });
 
+    // Pengendalian Risiko Lingkungan (PRL - TPP, SAB, HSBU, SIVERA)
+    Route::prefix('prl')->name('prl.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\PrlController::class, 'index'])->name('index');
+        Route::get('/export/{type}', [\App\Http\Controllers\PrlController::class, 'exportExcel'])->name('export');
+        Route::get('/inspeksi/{type}/{id}/pdf', [\App\Http\Controllers\PrlController::class, 'printPdf'])->name('pdf');
+        Route::post('/tpp', [\App\Http\Controllers\PrlController::class, 'storeTpp'])->name('storeTpp');
+        Route::post('/sab', [\App\Http\Controllers\PrlController::class, 'storeSab'])->name('storeSab');
+        Route::post('/hsbu', [\App\Http\Controllers\PrlController::class, 'storeHsbu'])->name('storeHsbu');
+    });
+
     // System Data Exports (Excel, CSV, PDF)
     Route::prefix('exports/audit-logs')->name('exports.audit.')->group(function () {
         Route::get('/excel', [ExportController::class, 'exportExcel'])->name('excel');

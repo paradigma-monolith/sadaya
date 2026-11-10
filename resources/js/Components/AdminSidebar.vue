@@ -28,7 +28,8 @@ import {
   BriefcaseMedical,
   Pill,
   ExternalLink,
-  Database
+  Database,
+  Leaf
 } from 'lucide-vue-next';
 import { useSidebar } from '@/composables/useSidebar';
 
@@ -184,6 +185,19 @@ const navSections = computed(() => {
           icon: FileSpreadsheet,
           iconColor: 'text-[#005851]',
           active: props.currentRoute === 'sinkarkes',
+        },
+      ],
+    },
+    {
+      title: 'PENGENDALIAN RISIKO LINGKUNGAN (PRL)',
+      items: [
+        {
+          name: 'Sanitasi Lingkungan (PRL)',
+          path: '/prl',
+          url: getUrl('/prl'),
+          icon: Leaf,
+          iconColor: 'text-[#00A99D]',
+          active: props.currentRoute === 'prl',
         },
       ],
     },
