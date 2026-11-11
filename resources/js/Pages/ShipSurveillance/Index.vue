@@ -734,94 +734,6 @@ const resetDefaultRedZones = async () => {
         </div>
       </div>
 
-      <!-- Quick KPI Counter Cards -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        <!-- Total Kapal -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span class="text-xs font-medium uppercase tracking-wider">Total Kapal</span>
-            <Ship class="w-4 h-4 text-cyan-600" />
-          </div>
-          <div class="mt-2">
-            <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {{ formatNumber(summary.total_kapal) }}
-            </span>
-            <span class="text-xs text-slate-400 ml-1">Kpl</span>
-          </div>
-        </div>
-
-        <!-- Kapal LN -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span class="text-xs font-medium uppercase tracking-wider">Luar Negeri</span>
-            <Flag class="w-4 h-4 text-amber-500" />
-          </div>
-          <div class="mt-2">
-            <span class="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
-              {{ formatNumber(summary.kapal_luar_negeri) }}
-            </span>
-            <span class="text-xs text-slate-400 ml-1">Kpl ({{ summary.total_kapal ? Math.round((summary.kapal_luar_negeri / summary.total_kapal) * 100) : 0 }}%)</span>
-          </div>
-        </div>
-
-        <!-- Kapal DN -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span class="text-xs font-medium uppercase tracking-wider">Dalam Negeri</span>
-            <Compass class="w-4 h-4 text-emerald-600" />
-          </div>
-          <div class="mt-2">
-            <span class="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
-              {{ formatNumber(summary.kapal_dalam_negeri) }}
-            </span>
-            <span class="text-xs text-slate-400 ml-1">Kpl</span>
-          </div>
-        </div>
-
-        <!-- Total GT -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span class="text-xs font-medium uppercase tracking-wider">Total Bobot GT</span>
-            <Anchor class="w-4 h-4 text-[#00A99D]" />
-          </div>
-          <div class="mt-2">
-            <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-              {{ formatNumber(summary.total_gt) }}
-            </span>
-            <span class="text-xs text-slate-400 ml-1">GT</span>
-          </div>
-        </div>
-
-        <!-- Estimasi PNBP -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span class="text-xs font-medium uppercase tracking-wider">Estimasi PNBP</span>
-            <DollarSign class="w-4 h-4 text-emerald-600" />
-          </div>
-          <div class="mt-2">
-            <span class="text-lg font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
-              {{ formatCurrency(summary.total_pnbp) }}
-            </span>
-          </div>
-        </div>
-
-        <!-- High Risk Alert -->
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
-          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
-            <span class="text-xs font-medium uppercase tracking-wider">Risiko Tinggi</span>
-            <AlertTriangle class="w-4 h-4 text-rose-500" />
-          </div>
-          <div class="mt-2 flex items-baseline gap-2">
-            <span class="text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
-              {{ formatNumber(summary.kresiko_tinggi) }}
-            </span>
-            <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20">
-              Karantina
-            </span>
-          </div>
-        </div>
-      </div>
-
       <!-- ========================================== -->
       <!-- TAB 1: DATA PENGAWASAN KEDATANGAN KAPAL -->
       <!-- ========================================== -->
@@ -1150,6 +1062,94 @@ const resetDefaultRedZones = async () => {
       <!-- TAB 2: LAPORAN & ANALITIK KINERJA -->
       <!-- ========================================== -->
       <div v-show="activeTab === 'laporan'" class="space-y-6">
+
+        <!-- Quick KPI Counter Cards (Hanya di Tab Laporan & Analitik Kinerja) -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+          <!-- Total Kapal -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Total Kapal</span>
+              <Ship class="w-4 h-4 text-cyan-600" />
+            </div>
+            <div class="mt-2">
+              <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                {{ formatNumber(summary.total_kapal) }}
+              </span>
+              <span class="text-xs text-slate-400 ml-1">Kpl</span>
+            </div>
+          </div>
+
+          <!-- Kapal LN -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Luar Negeri</span>
+              <Flag class="w-4 h-4 text-amber-500" />
+            </div>
+            <div class="mt-2">
+              <span class="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                {{ formatNumber(summary.kapal_luar_negeri) }}
+              </span>
+              <span class="text-xs text-slate-400 ml-1">Kpl ({{ summary.total_kapal ? Math.round((summary.kapal_luar_negeri / summary.total_kapal) * 100) : 0 }}%)</span>
+            </div>
+          </div>
+
+          <!-- Kapal DN -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Dalam Negeri</span>
+              <Compass class="w-4 h-4 text-emerald-600" />
+            </div>
+            <div class="mt-2">
+              <span class="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {{ formatNumber(summary.kapal_dalam_negeri) }}
+              </span>
+              <span class="text-xs text-slate-400 ml-1">Kpl</span>
+            </div>
+          </div>
+
+          <!-- Total GT -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Total Bobot GT</span>
+              <Anchor class="w-4 h-4 text-[#00A99D]" />
+            </div>
+            <div class="mt-2">
+              <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                {{ formatNumber(summary.total_gt) }}
+              </span>
+              <span class="text-xs text-slate-400 ml-1">GT</span>
+            </div>
+          </div>
+
+          <!-- Estimasi PNBP -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Estimasi PNBP</span>
+              <DollarSign class="w-4 h-4 text-emerald-600" />
+            </div>
+            <div class="mt-2">
+              <span class="text-lg font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {{ formatCurrency(summary.total_pnbp) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- High Risk Alert -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+            <div class="flex items-center justify-between text-slate-500 dark:text-slate-400">
+              <span class="text-xs font-medium uppercase tracking-wider">Risiko Tinggi</span>
+              <AlertTriangle class="w-4 h-4 text-rose-500" />
+            </div>
+            <div class="mt-2 flex items-baseline gap-2">
+              <span class="text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
+                {{ formatNumber(summary.kresiko_tinggi) }}
+              </span>
+              <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/20">
+                Karantina
+              </span>
+            </div>
+          </div>
+        </div>
 
         <!-- Laporan Overview & Top Verifikator -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
