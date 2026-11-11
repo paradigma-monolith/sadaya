@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\ShipHealthSurveillance;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ShipSurveillanceAssessmentTest extends TestCase
@@ -151,6 +153,43 @@ class ShipSurveillanceAssessmentTest extends TestCase
         $receipt = $this->get(route('ship-surveillance.receipt', $record->registration_no));
         $receipt->assertStatus(200);
         $receipt->assertSee('Viet Nam, United States');
+    }
+
+    public function test_tangkap_dashboard_supports_clean_active_tab_query_parameter(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get('/ship-surveillance')
+            ->assertStatus(200)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('ShipSurveillance/Index')
+                ->where('active_tab', 'data')
+            );
+
+        $this->actingAs($user)
+            ->get('/ship-surveillance?tab=laporan')
+            ->assertStatus(200)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('ShipSurveillance/Index')
+                ->where('active_tab', 'laporan')
+            );
+
+        $this->actingAs($user)
+            ->get('/ship-surveillance?tab=red-zones')
+            ->assertStatus(200)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('ShipSurveillance/Index')
+                ->where('active_tab', 'red-zones')
+            );
+
+        $this->actingAs($user)
+            ->get('/ship-surveillance?tab=unknown-tab')
+            ->assertStatus(200)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('ShipSurveillance/Index')
+                ->where('active_tab', 'data')
+            );
     }
 }
 

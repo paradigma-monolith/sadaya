@@ -33,6 +33,10 @@ class ShipHealthSurveillanceController extends Controller
         $selectedMonth = (int)$request->input('bulan', date('n'));
         $selectedQuarter = (int)$request->input('triwulan', ceil(date('n') / 3));
         $selectedYear = (int)$request->input('tahun', date('Y'));
+        $activeTab = $request->input('tab', 'data');
+        if (!in_array($activeTab, ['data', 'laporan', 'red-zones'], true)) {
+            $activeTab = 'data';
+        }
 
         $query = ShipHealthSurveillance::with('verifier')
             ->latest('tanggal_kedatangan')
@@ -158,6 +162,7 @@ class ShipHealthSurveillanceController extends Controller
         $ports = array_values(array_unique(array_filter(array_merge($officialPorts, $dbPorts))));
 
         return Inertia::render('ShipSurveillance/Index', [
+            'active_tab' => $activeTab,
             'surveillances' => $surveillances,
             'filters' => [
                 'search' => $search,
