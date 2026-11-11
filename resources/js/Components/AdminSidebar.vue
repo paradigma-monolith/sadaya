@@ -5,7 +5,6 @@ import { useRouter } from 'vue-router';
 import { 
   Home, 
   LayoutDashboard, 
-  Globe,
   Boxes, 
   ShoppingBag, 
   Compass, 
@@ -18,16 +17,13 @@ import {
   ChevronRight, 
   ChevronDown,
   ClipboardCheck,
+  FileCheck,
   Layers,
   X,
   ShieldCheck,
   FileSpreadsheet,
-  Plane,
   BarChart3,
   Ship,
-  Anchor,
-  BriefcaseMedical,
-  Pill,
   ExternalLink,
   Database,
   Leaf,
@@ -217,21 +213,22 @@ const navSections = computed(() => {
       collapsible: true,
       items: [
         {
-          name: 'Portal Travel Consent',
-          path: '/travelconsent/home',
-          url: getUrl('/travelconsent/home'),
-          icon: Globe,
-          iconColor: 'text-[#005851]',
-          external: true,
-          active: false,
-        },
-        {
-          name: 'Data Inspeksi Pesawat',
-          path: '/aircraft-inspections',
-          url: getUrl('/aircraft-inspections'),
-          icon: Plane,
+          name: 'Travel Consent',
+          path: '/travel-consent',
+          url: getUrl('/travel-consent'),
+          icon: FileCheck,
           iconColor: 'text-[#00A99D]',
-          active: props.currentRoute === 'aircraft-inspections' || currentPath.includes('/aircraft-inspections'),
+          active:
+            props.currentRoute?.startsWith('travel-consent') ||
+            props.currentRoute === 'aircraft-inspections' ||
+            props.currentRoute === 'aircraft-index' ||
+            props.currentRoute === 'ship-inspections' ||
+            props.currentRoute === 'flight-medical-alat' ||
+            props.currentRoute === 'flight-medical-obat' ||
+            currentPath.includes('/travel-consent') ||
+            currentPath.includes('/aircraft-inspections') ||
+            currentPath.includes('/ship-inspections') ||
+            currentPath.includes('/flight-medical-inspections'),
         },
         {
           name: 'Pengawasan Kapal (TANGKAP)',
@@ -240,30 +237,6 @@ const navSections = computed(() => {
           icon: Ship,
           iconColor: 'text-[#00A99D]',
           active: props.currentRoute === 'ship-surveillance' || currentPath.includes('/ship-surveillance'),
-        },
-        {
-          name: 'Inspeksi Sanitasi Kapal',
-          path: '/ship-inspections',
-          url: getUrl('/ship-inspections'),
-          icon: Anchor,
-          iconColor: 'text-[#005851]',
-          active: props.currentRoute === 'ship-inspections' || currentPath.includes('/ship-inspections'),
-        },
-        {
-          name: 'Pemakaian Alkes P3K',
-          path: '/flight-medical-inspections/alat',
-          url: getUrl('/flight-medical-inspections/alat'),
-          icon: BriefcaseMedical,
-          iconColor: 'text-[#7CA622]',
-          active: props.currentRoute === 'flight-medical-alat' || currentPath.includes('/flight-medical-inspections/alat'),
-        },
-        {
-          name: 'Pemakaian Obat P3K',
-          path: '/flight-medical-inspections/obat',
-          url: getUrl('/flight-medical-inspections/obat'),
-          icon: Pill,
-          iconColor: 'text-[#00A99D]',
-          active: props.currentRoute === 'flight-medical-obat' || currentPath.includes('/flight-medical-inspections/obat'),
         },
         {
           name: 'Form Input SINKARKES',

@@ -63,9 +63,12 @@ const activeNav = computed(() => {
   if (typeof window === 'undefined') return '';
   const p = window.location.pathname;
   if (p.endsWith('/spa') || p.includes('/spa/')) return 'spa';
+  if (p.includes('/travel-consent')) return 'travel-consent';
   if (p.includes('/aircraft-inspections/dashboard')) return 'aircraft-dashboard';
   if (p.includes('/aircraft-inspections')) return 'aircraft-index';
   if (p.includes('/ship-inspections')) return 'ship-inspections';
+  if (p.includes('/flight-medical-inspections/alat')) return 'flight-medical-alat';
+  if (p.includes('/flight-medical-inspections/obat')) return 'flight-medical-obat';
   if (p.includes('/sinkarkes/dashboard')) return 'sinkarkes-dashboard';
   if (p.includes('/sinkarkes')) return 'sinkarkes';
   if (p.includes('/sanitasi-lingkungan/tpp') || p.includes('/prl/tpp')) return 'sanitasi-tpp';

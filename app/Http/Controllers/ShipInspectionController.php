@@ -3,89 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ShipInspectionsExport;
-use App\Models\KantorWilker;
 use App\Models\ShipSanitationInspection;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ShipInspectionController extends Controller
 {
     /**
-     * Display data management table for ship sanitation inspections (SSCC / SSCEC).
+     * Display data management table for ship sanitation inspections (SSCC / SSCEC)
+     * inside the unified Travel Consent multi-tab hub.
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        $pelabuhan = $request->input('pelabuhan');
-        $sertifikat = $request->input('sertifikat');
-        $status = $request->input('status');
-
-        $query = ShipSanitationInspection::with('verifier')
-            ->latest('tanggal')
-            ->latest('id');
-
-        if ($search) {
-            $query->search($search);
-        }
-
-        if ($pelabuhan) {
-            $query->filterPelabuhan($pelabuhan);
-        }
-
-        if ($sertifikat) {
-            $query->filterSertifikat($sertifikat);
-        }
-
-        if ($status) {
-            $query->filterStatus($status);
-        }
-
-        $inspections = $query->paginate($request->input('per_page', 10))->withQueryString();
-
-        // Calculate KPI summary counters
-        $total = ShipSanitationInspection::count();
-        $pembebasanCount = ShipSanitationInspection::where('sertifikat_mencatat', 'Pembebasan')->count();
-        $pengendalianCount = ShipSanitationInspection::where('sertifikat_mencatat', 'Pengendalian')->count();
-        $approvedCount = ShipSanitationInspection::where('status', 'approved')->count();
-        $pendingCount = ShipSanitationInspection::whereIn('status', ['submitted', 'verified'])->count();
-        $todayCount = ShipSanitationInspection::whereDate('tanggal', now()->toDateString())->count();
-
-        // Available Ports / Wilker Laut for Filter (standardized from KantorWilker master data)
-        try {
-            $officialPorts = KantorWilker::laut()->pluck('nama')->toArray();
-        } catch (\Throwable $e) {
-            $officialPorts = collect(KantorWilker::DEFAULT_OFFICES)
-                ->filter(fn ($o) => in_array($o['kode'], ['WLK-PTB-06', 'WLK-CBN-03', 'WLK-IDM-04', 'WLK-PLR-07', 'BKK-BDG-01']))
-                ->pluck('nama')->toArray();
-        }
-
-        $dbPorts = ShipSanitationInspection::whereNotNull('pelabuhan')
-            ->distinct()
-            ->pluck('pelabuhan')
-            ->toArray();
-
-        $ports = array_values(array_unique(array_filter(array_merge($officialPorts, $dbPorts))));
-
-        return Inertia::render('ShipInspection/Index', [
-            'inspections' => $inspections,
-            'filters' => [
-                'search' => $search,
-                'pelabuhan' => $pelabuhan,
-                'sertifikat' => $sertifikat,
-                'status' => $status,
-            ],
-            'stats' => [
-                'total' => $total,
-                'pembebasan_count' => $pembebasanCount,
-                'pengendalian_count' => $pengendalianCount,
-                'approved_count' => $approvedCount,
-                'pending_count' => $pendingCount,
-                'today_count' => $todayCount,
-            ],
-            'ports' => $ports,
-        ]);
+        return app(TravelConsentHubController::class)->shipTab($request);
     }
 
     /**

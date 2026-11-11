@@ -4,157 +4,27 @@ namespace App\Http\Controllers;
 
 use App\Exports\FlightMedicalInspectionsExport;
 use App\Models\FlightMedicalInspection;
-use App\Models\KantorWilker;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 
 class FlightMedicalInspectionController extends Controller
 {
     /**
-     * Display data management table for Alat Kesehatan P3K & Emergensi.
+     * Display data management table for Alat Kesehatan P3K & Emergensi
+     * inside the unified Travel Consent multi-tab hub.
      */
     public function indexAlat(Request $request)
     {
-        $search = $request->input('search');
-        $embarkasi = $request->input('embarkasi');
-        $status = $request->input('status');
-
-        $query = FlightMedicalInspection::alat()
-            ->with('verifier')
-            ->latest('id');
-
-        if ($search) {
-            $query->search($search);
-        }
-
-        if ($embarkasi) {
-            $query->filterEmbarkasi($embarkasi);
-        }
-
-        if ($status) {
-            $query->filterStatus($status);
-        }
-
-        $inspections = $query->paginate($request->input('per_page', 10))->withQueryString();
-
-        // Calculate statistics
-        $allAlat = FlightMedicalInspection::alat()->get();
-        $total = $allAlat->count();
-        $approvedCount = $allAlat->where('status', 'approved')->count();
-        $submittedCount = $allAlat->where('status', 'submitted')->count();
-        $distinctKloter = $allAlat->pluck('nomor_kloter')->unique()->count();
-
-        $totalItemsUsed = 0;
-        foreach ($allAlat as $row) {
-            if (is_array($row->items_p3k)) {
-                foreach ($row->items_p3k as $item) {
-                    $totalItemsUsed += (int)($item['terpakai'] ?? 0);
-                }
-            }
-            if (is_array($row->items_emergensi)) {
-                foreach ($row->items_emergensi as $item) {
-                    $totalItemsUsed += (int)($item['terpakai'] ?? 0);
-                }
-            }
-        }
-
-        $officialEmbarkasi = KantorWilker::udara()->pluck('nama')->toArray();
-        $dbEmbarkasi = FlightMedicalInspection::alat()
-            ->distinct()
-            ->pluck('embarkasi')
-            ->toArray();
-        $embarkasiList = array_values(array_unique(array_filter(array_merge($officialEmbarkasi, $dbEmbarkasi))));
-
-        return Inertia::render('FlightMedicalInspection/IndexAlat', [
-            'inspections' => $inspections,
-            'filters' => [
-                'search' => $search,
-                'embarkasi' => $embarkasi,
-                'status' => $status,
-            ],
-            'stats' => [
-                'total' => $total,
-                'approved_count' => $approvedCount,
-                'submitted_count' => $submittedCount,
-                'total_kloter' => $distinctKloter,
-                'total_items_used' => $totalItemsUsed,
-            ],
-            'embarkasiList' => $embarkasiList,
-        ]);
+        return app(TravelConsentHubController::class)->alatTab($request);
     }
 
     /**
-     * Display data management table for Obat-obatan P3K & Emergensi.
+     * Display data management table for Obat-obatan P3K & Emergensi
+     * inside the unified Travel Consent multi-tab hub.
      */
     public function indexObat(Request $request)
     {
-        $search = $request->input('search');
-        $embarkasi = $request->input('embarkasi');
-        $status = $request->input('status');
-
-        $query = FlightMedicalInspection::obat()
-            ->with('verifier')
-            ->latest('id');
-
-        if ($search) {
-            $query->search($search);
-        }
-
-        if ($embarkasi) {
-            $query->filterEmbarkasi($embarkasi);
-        }
-
-        if ($status) {
-            $query->filterStatus($status);
-        }
-
-        $inspections = $query->paginate($request->input('per_page', 10))->withQueryString();
-
-        // Calculate statistics
-        $allObat = FlightMedicalInspection::obat()->get();
-        $total = $allObat->count();
-        $approvedCount = $allObat->where('status', 'approved')->count();
-        $submittedCount = $allObat->where('status', 'submitted')->count();
-        $distinctKloter = $allObat->pluck('nomor_kloter')->unique()->count();
-
-        $totalItemsUsed = 0;
-        foreach ($allObat as $row) {
-            if (is_array($row->items_p3k)) {
-                foreach ($row->items_p3k as $item) {
-                    $totalItemsUsed += (int)($item['terpakai'] ?? 0);
-                }
-            }
-            if (is_array($row->items_emergensi)) {
-                foreach ($row->items_emergensi as $item) {
-                    $totalItemsUsed += (int)($item['terpakai'] ?? 0);
-                }
-            }
-        }
-
-        $officialEmbarkasi = KantorWilker::udara()->pluck('nama')->toArray();
-        $dbEmbarkasi = FlightMedicalInspection::obat()
-            ->distinct()
-            ->pluck('embarkasi')
-            ->toArray();
-        $embarkasiList = array_values(array_unique(array_filter(array_merge($officialEmbarkasi, $dbEmbarkasi))));
-
-        return Inertia::render('FlightMedicalInspection/IndexObat', [
-            'inspections' => $inspections,
-            'filters' => [
-                'search' => $search,
-                'embarkasi' => $embarkasi,
-                'status' => $status,
-            ],
-            'stats' => [
-                'total' => $total,
-                'approved_count' => $approvedCount,
-                'submitted_count' => $submittedCount,
-                'total_kloter' => $distinctKloter,
-                'total_items_used' => $totalItemsUsed,
-            ],
-            'embarkasiList' => $embarkasiList,
-        ]);
+        return app(TravelConsentHubController::class)->obatTab($request);
     }
 
     /**

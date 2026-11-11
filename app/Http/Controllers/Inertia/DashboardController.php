@@ -207,10 +207,10 @@ class DashboardController extends Controller
     ];
 
     protected const MODULE_META = [
-        'aircraft' => ['label' => 'Sanitasi Pesawat', 'moda' => 'udara', 'url' => '/aircraft-inspections'],
-        'ship' => ['label' => 'Sanitasi Kapal', 'moda' => 'laut', 'url' => '/ship-inspections'],
-        'alat' => ['label' => 'Alkes Pesawat', 'moda' => 'udara', 'url' => '/flight-medical-inspections/alat'],
-        'obat' => ['label' => 'Obat P3K Pesawat', 'moda' => 'udara', 'url' => '/flight-medical-inspections/obat'],
+        'aircraft' => ['label' => 'Sanitasi Pesawat', 'moda' => 'udara', 'url' => '/travel-consent/aircraft'],
+        'ship' => ['label' => 'Sanitasi Kapal', 'moda' => 'laut', 'url' => '/travel-consent/ship'],
+        'alat' => ['label' => 'Alkes Pesawat', 'moda' => 'udara', 'url' => '/travel-consent/alat'],
+        'obat' => ['label' => 'Obat P3K Pesawat', 'moda' => 'udara', 'url' => '/travel-consent/obat'],
     ];
 
     /**

@@ -13,6 +13,7 @@ use App\Http\Controllers\ShipHealthSurveillanceController;
 use App\Http\Controllers\ShipInspectionController;
 use App\Http\Controllers\SinkarkesController;
 use App\Http\Controllers\TravelConsentController;
+use App\Http\Controllers\TravelConsentHubController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -113,6 +114,16 @@ Route::middleware('auth')->group(function () {
 
     // System Activity & Audit Trail
     Route::get('/audit-logs', [ActivityLogController::class, 'index'])->name('audit.index');
+
+    // Unified Travel Consent Multi-Tab Hub
+    Route::prefix('travel-consent')->name('travel-consent.')->group(function () {
+        Route::get('/', [TravelConsentHubController::class, 'index'])->name('index');
+        Route::get('/portal', [TravelConsentHubController::class, 'portalTab'])->name('portal');
+        Route::get('/aircraft', [TravelConsentHubController::class, 'aircraftTab'])->name('aircraft');
+        Route::get('/ship', [TravelConsentHubController::class, 'shipTab'])->name('ship');
+        Route::get('/alat', [TravelConsentHubController::class, 'alatTab'])->name('alat');
+        Route::get('/obat', [TravelConsentHubController::class, 'obatTab'])->name('obat');
+    });
 
     // Aircraft Sanitation Inspection Management
     Route::prefix('aircraft-inspections')->name('aircraft-inspections.')->group(function () {

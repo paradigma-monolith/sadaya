@@ -13,56 +13,12 @@ use Maatwebsite\Excel\Facades\Excel;
 class AircraftInspectionController extends Controller
 {
     /**
-     * Display data management table for aircraft sanitation inspections.
+     * Display data management table for aircraft sanitation inspections
+     * inside the unified Travel Consent multi-tab hub.
      */
     public function index(Request $request)
     {
-        $search = $request->input('search');
-        $kesimpulan = $request->input('kesimpulan');
-        $status = $request->input('status');
-
-        $query = AircraftSanitationInspection::with('verifier')
-            ->latest('tanggal')
-            ->latest('id');
-
-        if ($search) {
-            $query->search($search);
-        }
-
-        if ($kesimpulan) {
-            $query->filterKesimpulan($kesimpulan);
-        }
-
-        if ($status) {
-            $query->filterStatus($status);
-        }
-
-        $inspections = $query->paginate($request->input('per_page', 10))->withQueryString();
-
-        // Calculate summary counters
-        $total = AircraftSanitationInspection::count();
-        $layakCount = AircraftSanitationInspection::where('kesimpulan', 'layak')->count();
-        $tidakLayakCount = AircraftSanitationInspection::where('kesimpulan', 'tidak_layak')->count();
-        $needActionCount = AircraftSanitationInspection::whereNotNull('tindakan')->count();
-        $todayCount = AircraftSanitationInspection::whereDate('tanggal', now()->toDateString())->count();
-        $complianceRate = $total > 0 ? round(($layakCount / $total) * 100, 1) : 100;
-
-        return Inertia::render('AircraftInspection/Index', [
-            'inspections' => $inspections,
-            'filters' => [
-                'search' => $search,
-                'kesimpulan' => $kesimpulan,
-                'status' => $status,
-            ],
-            'stats' => [
-                'total' => $total,
-                'layak_count' => $layakCount,
-                'tidak_layak_count' => $tidakLayakCount,
-                'need_action_count' => $needActionCount,
-                'today_count' => $todayCount,
-                'compliance_rate' => $complianceRate,
-            ],
-        ]);
+        return app(TravelConsentHubController::class)->aircraftTab($request);
     }
 
     /**
