@@ -12,7 +12,7 @@ use Inertia\Response;
 
 class TravelConsentHubController extends Controller
 {
-    public const VALID_TABS = ['portal', 'aircraft', 'ship', 'alat', 'obat'];
+    public const VALID_TABS = ['aircraft', 'ship', 'alat', 'obat'];
 
     /**
      * Unified Multi-Tab Travel Consent Hub entrypoint.
@@ -20,11 +20,6 @@ class TravelConsentHubController extends Controller
     public function index(Request $request): Response
     {
         return $this->renderTab($request);
-    }
-
-    public function portalTab(Request $request): Response
-    {
-        return $this->renderTab($request, 'portal');
     }
 
     public function aircraftTab(Request $request): Response
@@ -52,9 +47,9 @@ class TravelConsentHubController extends Controller
      */
     public function renderTab(Request $request, ?string $forcedTab = null): Response
     {
-        $activeTab = $forcedTab ?: (string) $request->query('tab', 'portal');
+        $activeTab = $forcedTab ?: (string) $request->query('tab', 'aircraft');
         if (!in_array($activeTab, self::VALID_TABS, true)) {
-            $activeTab = 'portal';
+            $activeTab = 'aircraft';
         }
 
         $aircraftData = $this->buildAircraftData($request, $activeTab);

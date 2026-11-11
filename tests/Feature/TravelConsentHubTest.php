@@ -36,7 +36,7 @@ class TravelConsentHubTest extends TestCase
             ->assertStatus(200)
             ->assertInertia(fn (Assert $page) => $page
                 ->component('TravelConsent/Index')
-                ->where('active_tab', 'portal')
+                ->where('active_tab', 'aircraft')
                 ->has('aircraft.inspections.data')
                 ->has('aircraft.stats')
                 ->has('ship.inspections.data')
@@ -48,7 +48,7 @@ class TravelConsentHubTest extends TestCase
                 ->has('summary')
             );
 
-        foreach (['portal', 'aircraft', 'ship', 'alat', 'obat'] as $tab) {
+        foreach (['aircraft', 'ship', 'alat', 'obat'] as $tab) {
             $this->actingAs($this->admin)
                 ->get("/travel-consent/{$tab}")
                 ->assertStatus(200)
@@ -57,6 +57,19 @@ class TravelConsentHubTest extends TestCase
                     ->where('active_tab', $tab)
                 );
         }
+
+        // Legacy portal tab query/route gracefully falls back to aircraft tab
+        $this->actingAs($this->admin)
+            ->get('/travel-consent?tab=portal')
+            ->assertStatus(200)
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('TravelConsent/Index')
+                ->where('active_tab', 'aircraft')
+            );
+
+        $this->actingAs($this->admin)
+            ->get('/travel-consent/portal')
+            ->assertRedirect('/travel-consent');
     }
 
     public function test_legacy_routes_open_corresponding_tab_in_travel_consent_hub(): void

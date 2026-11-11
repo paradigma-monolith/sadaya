@@ -2,7 +2,6 @@
 import { ref, computed, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
-import PortalTab from './tabs/PortalTab.vue';
 import AircraftTab from './tabs/AircraftTab.vue';
 import ShipTab from './tabs/ShipTab.vue';
 import FlightMedicalTab from './tabs/FlightMedicalTab.vue';
@@ -20,7 +19,7 @@ import {
 const props = defineProps({
   active_tab: {
     type: String,
-    default: 'portal',
+    default: 'aircraft',
   },
   aircraft: {
     type: Object,
@@ -44,8 +43,8 @@ const props = defineProps({
   },
 });
 
-const VALID_TABS = ['portal', 'aircraft', 'ship', 'alat', 'obat'];
-const currentTab = ref(VALID_TABS.includes(props.active_tab) ? props.active_tab : 'portal');
+const VALID_TABS = ['aircraft', 'ship', 'alat', 'obat'];
+const currentTab = ref(VALID_TABS.includes(props.active_tab) ? props.active_tab : 'aircraft');
 
 watch(
   () => props.active_tab,
@@ -67,13 +66,6 @@ const switchTab = (tab) => {
 };
 
 const tabs = computed(() => [
-  {
-    id: 'portal',
-    label: 'Portal Travel Consent',
-    icon: Globe,
-    count: '4 Layanan',
-    pending: 0,
-  },
   {
     id: 'aircraft',
     label: 'Data Inspeksi Pesawat',
@@ -123,7 +115,7 @@ const tabs = computed(() => [
             <span>Travel Consent</span>
           </h1>
           <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
-            Pusat layanan terpadu Portal Travel Consent, Inspeksi Sanitasi Pesawat, Inspeksi Sanitasi Kapal (SSCC/SSCEC), serta Pemakaian Alkes &amp; Obat P3K Penerbangan.
+            Pusat layanan terpadu Data Inspeksi Pesawat, Inspeksi Sanitasi Kapal (SSCC/SSCEC), serta Pemakaian Alkes &amp; Obat P3K Penerbangan.
           </p>
         </div>
 
@@ -166,18 +158,8 @@ const tabs = computed(() => [
       </div>
 
       <!-- ==================== ACTIVE TAB CONTENT ==================== -->
-      <PortalTab
-        v-if="currentTab === 'portal'"
-        :aircraft-stats="aircraft.stats"
-        :ship-stats="ship.stats"
-        :alat-stats="alat.stats"
-        :obat-stats="obat.stats"
-        :summary="summary"
-        @switch-tab="switchTab"
-      />
-
       <AircraftTab
-        v-else-if="currentTab === 'aircraft'"
+        v-if="currentTab === 'aircraft'"
         :inspections="aircraft.inspections"
         :filters="aircraft.filters"
         :stats="aircraft.stats"

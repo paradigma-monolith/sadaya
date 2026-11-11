@@ -79,11 +79,11 @@ const defaultActions = [
   },
   {
     id: 'nav-public-home',
-    title: 'Travel Consent — Portal Layanan Publik',
-    subtitle: 'Tab Portal Travel Consent, formulir publik, & salin tautan cepat',
+    title: 'Portal Publik Travel Consent',
+    subtitle: 'Buka halaman portal layanan publik inspeksi sanitasi & P3K',
     category: 'Pengawasan Alat Angkut & Barang',
     icon: Globe,
-    action: () => navigateTo('/travel-consent/portal'),
+    action: () => window.open('/travelconsent/home', '_blank'),
   },
   {
     id: 'nav-aircraft',
