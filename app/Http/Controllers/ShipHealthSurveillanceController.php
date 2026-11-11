@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\KantorWilker;
+use App\Models\QuarantineCountry;
+use App\Models\QuarantineCountryImportLog;
 use App\Models\ShipHealthSurveillance;
+use App\Services\RedZonePdfImportService;
 use App\Services\ShipSurveillanceImportService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -205,6 +209,7 @@ class ShipHealthSurveillanceController extends Controller
                 ],
             ],
             'quarantine_questions' => ShipHealthSurveillance::QUARANTINE_QUESTIONS,
+            'red_zones_data' => $this->buildRedZonesPayload(),
         ]);
     }
 
@@ -403,7 +408,7 @@ class ShipHealthSurveillanceController extends Controller
     public function publicInternational()
     {
         return view('ship_surveillance.form_international', [
-            'countries' => ShipHealthSurveillance::QUARANTINE_COUNTRIES,
+            'countries' => ShipHealthSurveillance::getCountriesMap(),
         ]);
     }
 
@@ -593,6 +598,231 @@ class ShipHealthSurveillanceController extends Controller
         $result = $service->importFromFile($request->file('file'), $options);
 
         return response()->json($result);
+    }
+
+    /**
+     * Build shared payload for red zone countries management UI.
+     */
+    protected function buildRedZonesPayload(): array
+    {
+        if (!Schema::hasTable('quarantine_countries')) {
+            $countries = [];
+            foreach (ShipHealthSurveillance::QUARANTINE_COUNTRIES as $name => $isRed) {
+                $countries[] = [
+                    'id' => null,
+                    'name' => $name,
+                    'is_red_zone' => (bool) $isRed,
+                    'source_label' => null,
+                    'last_imported_at' => null,
+                ];
+            }
+            $redCount = count(array_filter($countries, static fn ($c) => $c['is_red_zone']));
+
+            return [
+                'countries' => $countries,
+                'summary' => [
+                    'total' => count($countries),
+                    'red_count' => $redCount,
+                    'safe_count' => count($countries) - $redCount,
+                ],
+                'logs' => [],
+            ];
+        }
+
+        $countries = QuarantineCountry::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'is_red_zone', 'source_label', 'last_imported_at'])
+            ->map(static fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+                'is_red_zone' => (bool) $c->is_red_zone,
+                'source_label' => $c->source_label,
+                'last_imported_at' => $c->last_imported_at?->toIso8601String(),
+            ])
+            ->values()
+            ->all();
+
+        $redCount = count(array_filter($countries, static fn ($c) => $c['is_red_zone']));
+
+        $logs = Schema::hasTable('quarantine_country_import_logs')
+            ? QuarantineCountryImportLog::with('importer:id,name')
+                ->latest('id')
+                ->take(10)
+                ->get()
+                ->map(static fn ($log) => [
+                    'id' => $log->id,
+                    'filename' => $log->filename,
+                    'mode' => $log->mode,
+                    'total_extracted' => $log->total_extracted,
+                    'matched_count' => $log->matched_count,
+                    'newly_flagged_count' => $log->newly_flagged_count,
+                    'unflagged_count' => $log->unflagged_count,
+                    'added_countries_count' => $log->added_countries_count,
+                    'importer_name' => $log->importer?->name ?? 'Sistem',
+                    'created_at' => $log->created_at?->toIso8601String(),
+                ])
+                ->values()
+                ->all()
+            : [];
+
+        return [
+            'countries' => $countries,
+            'summary' => [
+                'total' => count($countries),
+                'red_count' => $redCount,
+                'safe_count' => count($countries) - $redCount,
+            ],
+            'logs' => $logs,
+        ];
+    }
+
+    /**
+     * List current quarantine countries and recent PDF update logs.
+     */
+    public function redZonesIndex(): JsonResponse
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $this->buildRedZonesPayload(),
+        ]);
+    }
+
+    /**
+     * Parse an uploaded Kemenkes/Emerging Disease PDF and preview country red-zone diff.
+     */
+    public function previewRedZonePdf(Request $request, RedZonePdfImportService $service): JsonResponse
+    {
+        $validated = $request->validate([
+            'file' => ['required', 'file', 'mimes:pdf', 'max:10240'],
+            'mode' => ['nullable', 'string', 'in:replace,merge'],
+        ]);
+
+        $file = $request->file('file');
+        $path = $file->getRealPath() ?: $file->getPathname();
+        $mode = $validated['mode'] ?? 'replace';
+
+        try {
+            $preview = $service->buildPreviewFromPdf($path, $file->getClientOriginalName(), $mode);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal membaca berkas PDF: ' . $e->getMessage(),
+            ], 422);
+        }
+
+        if ($preview['total_extracted'] === 0) {
+            return response()->json([
+                'success' => false,
+                'message' => $preview['warnings'][0] ?? 'Kolom NEGARA tidak ditemukan atau tidak memiliki teks terbaca di PDF.',
+                'preview' => $preview,
+            ], 422);
+        }
+
+        return response()->json([
+            'success' => true,
+            'preview' => $preview,
+        ]);
+    }
+
+    /**
+     * Apply approved country red-zone changes extracted from PDF.
+     */
+    public function applyRedZoneUpdate(Request $request, RedZonePdfImportService $service): JsonResponse
+    {
+        $validated = $request->validate([
+            'red_countries' => ['present', 'array'],
+            'red_countries.*' => ['string', 'max:150'],
+            'new_countries' => ['nullable', 'array'],
+            'new_countries.*' => ['string', 'max:150'],
+            'mode' => ['required', 'string', 'in:replace,merge'],
+            'source_filename' => ['required', 'string', 'max:255'],
+            'extracted_countries' => ['nullable', 'array'],
+            'extracted_countries.*' => ['string', 'max:150'],
+            'source_label_map' => ['nullable', 'array'],
+        ]);
+
+        $result = $service->applyUpdate(
+            $validated['red_countries'],
+            $validated['new_countries'] ?? [],
+            $validated['mode'],
+            $validated['source_filename'],
+            $request->user()?->id,
+            $validated['extracted_countries'] ?? [],
+            $validated['source_label_map'] ?? []
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => sprintf(
+                'Berhasil memperbarui daftar Zona Merah (%d baru ditandai merah, %d keluar zona merah, %d negara/wilayah baru ditambahkan).',
+                count($result['newly_flagged']),
+                count($result['unflagged']),
+                $result['added_count']
+            ),
+            'result' => $result,
+            'data' => $this->buildRedZonesPayload(),
+        ]);
+    }
+
+    /**
+     * Manually toggle red-zone status for a single country.
+     */
+    public function toggleRedZoneCountry(Request $request, int $country): JsonResponse
+    {
+        $item = QuarantineCountry::findOrFail($country);
+        $nextStatus = $request->has('is_red_zone')
+            ? (bool) $request->boolean('is_red_zone')
+            : !$item->is_red_zone;
+
+        $item->update([
+            'is_red_zone' => $nextStatus,
+            'updated_by' => $request->user()?->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "{$item->name} diubah menjadi " . ($nextStatus ? 'Zona Merah (+20 skor)' : 'Zona Aman (0 skor)') . '.',
+            'data' => $this->buildRedZonesPayload(),
+        ]);
+    }
+
+    /**
+     * Manually add a new country/territory into TANGKAP quarantine list.
+     */
+    public function storeRedZoneCountry(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:150', 'unique:quarantine_countries,name'],
+            'is_red_zone' => ['nullable', 'boolean'],
+        ]);
+
+        $item = QuarantineCountry::create([
+            'name' => trim($validated['name']),
+            'is_red_zone' => (bool) ($validated['is_red_zone'] ?? true),
+            'source_label' => 'Manual Input',
+            'last_imported_at' => now(),
+            'updated_by' => $request->user()?->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Negara/wilayah {$item->name} berhasil ditambahkan.",
+            'data' => $this->buildRedZonesPayload(),
+        ]);
+    }
+
+    /**
+     * Reset all baseline countries back to default SHIP_SURVEILLANCE reference.
+     */
+    public function resetRedZoneDefaults(Request $request, RedZonePdfImportService $service): JsonResponse
+    {
+        $service->resetToDefaults($request->user()?->id);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Daftar negara Zona Merah dikembalikan ke data referensi awal.',
+            'data' => $this->buildRedZonesPayload(),
+        ]);
     }
 }
 

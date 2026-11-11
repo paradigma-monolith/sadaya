@@ -145,14 +145,25 @@ Route::middleware('auth')->group(function () {
     // Pengawasan Kekarantinaan Kedatangan Kapal (Maritime Declaration of Health / MDH)
     Route::prefix('ship-surveillance')->name('ship-surveillance.')->group(function () {
         Route::get('/', [ShipHealthSurveillanceController::class, 'index'])->name('index');
-        Route::get('/{id}', [ShipHealthSurveillanceController::class, 'show'])->name('show');
-        Route::patch('/{id}/gross-tonnage', [ShipHealthSurveillanceController::class, 'updateGrossTonnage'])->name('updateGrossTonnage');
-        Route::put('/{id}/verify', [ShipHealthSurveillanceController::class, 'verify'])->name('verify');
-        Route::delete('/{id}', [ShipHealthSurveillanceController::class, 'destroy'])->name('destroy');
         Route::get('/export/csv', [ShipHealthSurveillanceController::class, 'export'])->name('export');
         Route::post('/import/test-connection', [ShipHealthSurveillanceController::class, 'testImportConnection'])->name('import.test');
         Route::post('/import/direct', [ShipHealthSurveillanceController::class, 'importDirect'])->name('import.direct');
         Route::post('/import/file', [ShipHealthSurveillanceController::class, 'importFile'])->name('import.file');
+
+        // Manajemen & Import Negara Zona Merah (PDF Kemenkes)
+        Route::prefix('red-zones')->name('red-zones.')->group(function () {
+            Route::get('/', [ShipHealthSurveillanceController::class, 'redZonesIndex'])->name('index');
+            Route::post('/preview-pdf', [ShipHealthSurveillanceController::class, 'previewRedZonePdf'])->name('preview');
+            Route::post('/apply', [ShipHealthSurveillanceController::class, 'applyRedZoneUpdate'])->name('apply');
+            Route::post('/country', [ShipHealthSurveillanceController::class, 'storeRedZoneCountry'])->name('store');
+            Route::patch('/{country}/toggle', [ShipHealthSurveillanceController::class, 'toggleRedZoneCountry'])->whereNumber('country')->name('toggle');
+            Route::post('/reset', [ShipHealthSurveillanceController::class, 'resetRedZoneDefaults'])->name('reset');
+        });
+
+        Route::get('/{id}', [ShipHealthSurveillanceController::class, 'show'])->whereNumber('id')->name('show');
+        Route::patch('/{id}/gross-tonnage', [ShipHealthSurveillanceController::class, 'updateGrossTonnage'])->whereNumber('id')->name('updateGrossTonnage');
+        Route::put('/{id}/verify', [ShipHealthSurveillanceController::class, 'verify'])->whereNumber('id')->name('verify');
+        Route::delete('/{id}', [ShipHealthSurveillanceController::class, 'destroy'])->whereNumber('id')->name('destroy');
     });
 
     // SINKARKES - Laporan Karantina Kesehatan Terpadu BKK Kelas I Bandung

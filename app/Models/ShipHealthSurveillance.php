@@ -280,12 +280,35 @@ class ShipHealthSurveillance extends Model
     ];
 
     /**
+     * Ambil peta daftar negara beserta status zona merah [country => bool] dari database (dengan fallback konstanta).
+     */
+    public static function getCountriesMap(): array
+    {
+        return QuarantineCountry::getCountriesMap();
+    }
+
+    /**
      * Cek apakah terdapat negara zona merah dalam daftar negara yang dikunjungi.
      */
     public static function hasRedZoneCountry(array $countries): bool
     {
+        $map = self::getCountriesMap();
+        $knownNames = array_keys($map);
+
         foreach ($countries as $country) {
-            if ((self::QUARANTINE_COUNTRIES[$country] ?? false) === true) {
+            $trimmed = trim((string) $country);
+            if ($trimmed === '') {
+                continue;
+            }
+            if (array_key_exists($trimmed, $map)) {
+                if ($map[$trimmed] === true) {
+                    return true;
+                }
+                continue;
+            }
+
+            $resolved = \App\Services\RedZonePdfImportService::resolveCanonicalName($trimmed, $knownNames);
+            if ($resolved !== null && ($map[$resolved] ?? false) === true) {
                 return true;
             }
         }

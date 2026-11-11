@@ -112,7 +112,7 @@
 </head>
 <body>
 @php
-  $countryOptions = $countries ?? \App\Models\ShipHealthSurveillance::QUARANTINE_COUNTRIES;
+  $countryOptions = $countries ?? \App\Models\ShipHealthSurveillance::getCountriesMap();
 @endphp
 
 <div class="container max-w-5xl py-4">
