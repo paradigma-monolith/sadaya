@@ -268,6 +268,62 @@ const getStatusBadgeClass = (status) => {
   }
 };
 
+const getQuestionDisplay = (item, qNo) => {
+  const no = Number(qNo);
+  const questions = item?.questions || {};
+  const entry = questions[no] ?? questions[String(no)] ?? null;
+
+  if (entry && typeof entry === 'object' && 'answer' in entry) {
+    const score = Number(entry.score || 0);
+    const isNeutral = no === 1 && (entry.answer === 'Tidak Berlaku (Domestik)' || entry.answer === '-');
+    const isRisk = !isNeutral && (score > 0 || entry.answer === 'Ya' || (no === 19 && entry.answer === 'Tidak'));
+    return {
+      text: entry.answer || '-',
+      badgeClass: isRisk
+        ? 'bg-red-500/10 text-red-600 border border-red-500/30'
+        : isNeutral
+          ? 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+          : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30',
+    };
+  }
+
+  if (no === 1) {
+    if (item?.kategori === 'Dalam Negeri' && !item?.negara_singgah_14_hari) {
+      return {
+        text: 'Tidak Berlaku (Domestik)',
+        badgeClass: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700',
+      };
+    }
+    if (item?.negara_singgah_14_hari) {
+      const legacyScore = Number(questions.Q1 ?? questions.q1 ?? 0);
+      return {
+        text: item.negara_singgah_14_hari,
+        badgeClass: legacyScore > 0
+          ? 'bg-red-500/10 text-red-600 border border-red-500/30'
+          : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30',
+      };
+    }
+  }
+
+  const rawVal = questions[`Q${no}`] ?? questions[`q${no}`];
+  if (rawVal !== undefined && rawVal !== null) {
+    const numVal = Number(rawVal);
+    const isRisk = numVal > 0;
+    const text = no === 19 ? (numVal === 0 ? 'Ya' : 'Tidak') : (numVal > 0 ? 'Ya' : 'Tidak');
+    return {
+      text,
+      badgeClass: isRisk
+        ? 'bg-red-500/10 text-red-600 border border-red-500/30'
+        : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30',
+    };
+  }
+
+  return {
+    text: no === 1 && item?.kategori === 'Dalam Negeri' ? 'Tidak Berlaku (Domestik)' : 'Tidak',
+    badgeClass: 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700',
+  };
+};
+
 // Portal Pelayanan TANGKAP Dropdown State
 const showPortalDropdown = ref(false);
 const portalDropdownRef = ref(null);
@@ -1222,6 +1278,10 @@ onUnmounted(() => {
               <div class="text-slate-400 font-medium">Estimasi PNBP</div>
               <div class="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">{{ formatCurrency(activeItem.estimasi_pnbp) }}</div>
             </div>
+            <div v-if="activeItem.negara_singgah_14_hari" class="col-span-2 sm:col-span-4 pt-2 border-t border-slate-200 dark:border-slate-700/60">
+              <div class="text-slate-400 font-medium">Negara Singgah (14 Hari Terakhir)</div>
+              <div class="font-bold text-slate-900 dark:text-white mt-0.5">{{ activeItem.negara_singgah_14_hari }}</div>
+            </div>
           </div>
 
           <!-- Quarantine Questions List -->
@@ -1243,19 +1303,10 @@ onUnmounted(() => {
                   </span>
                   <span class="text-slate-800 dark:text-slate-200">{{ qText }}</span>
                 </div>
-                <div class="shrink-0 font-bold">
-                  <span
-                    v-if="activeItem.questions && activeItem.questions[qNo]"
-                    :class="[
-                      'px-2.5 py-0.5 rounded text-[11px]',
-                      activeItem.questions[qNo].answer === 'Ya'
-                        ? 'bg-red-500/10 text-red-600 border border-red-500/30'
-                        : 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/30'
-                    ]"
-                  >
-                    {{ activeItem.questions[qNo].answer }}
+                <div class="shrink-0 font-bold text-right max-w-[240px]">
+                  <span :class="['inline-block px-2.5 py-0.5 rounded text-[11px]', getQuestionDisplay(activeItem, qNo).badgeClass]">
+                    {{ getQuestionDisplay(activeItem, qNo).text }}
                   </span>
-                  <span v-else class="text-slate-400">Tidak</span>
                 </div>
               </div>
             </div>

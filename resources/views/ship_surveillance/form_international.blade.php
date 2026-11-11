@@ -10,9 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
   
-  <!-- Font Awesome & Bootstrap 5 -->
+  <!-- Font Awesome & Bootstrap 5 & Select2 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 
   <style>
     body {
@@ -62,9 +63,57 @@
       padding: 14px 20px;
       backdrop-filter: blur(10px);
     }
+    .select2-container--default .select2-selection--single {
+      height: 48px;
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      font-size: 1.05rem;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+      line-height: normal;
+      color: #212529;
+      padding-left: 4px;
+    }
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+      height: 46px;
+      right: 8px;
+    }
+    .select2-container--default .select2-selection--multiple {
+      min-height: 46px;
+      border: 1px solid #cbd5e1;
+      border-radius: 0.5rem;
+      padding: 4px 8px;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--multiple,
+    .select2-container--default.select2-container--focus .select2-selection--single {
+      border-color: #86b7fe;
+      box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+      background-color: #e0f2fe;
+      border: 1px solid #7dd3fc;
+      color: #0369a1;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 2px 10px 2px 22px;
+      margin-top: 3px;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+      color: #0369a1;
+      border-right: none;
+      left: 6px;
+      top: 1px;
+    }
   </style>
 </head>
 <body>
+@php
+  $countryOptions = $countries ?? \App\Models\ShipHealthSurveillance::QUARANTINE_COUNTRIES;
+@endphp
 
 <div class="container max-w-5xl py-4">
 
@@ -177,29 +226,11 @@
         <!-- Country of Origin -->
         <div class="col-md-3">
           <label class="form-label fw-semibold text-secondary small">Country of Origin <span class="text-danger">*</span></label>
-          <select name="origin_country" id="originCountry" class="form-select form-select-lg" required>
+          <select name="origin_country" id="originCountry" class="form-select form-select-lg select2" style="width: 100%" required>
             <option value="">-- Select Country --</option>
-            <option value="Singapore">Singapore</option>
-            <option value="Malaysia">Malaysia</option>
-            <option value="China">China</option>
-            <option value="Japan">Japan</option>
-            <option value="South Korea">South Korea</option>
-            <option value="Philippines">Philippines</option>
-            <option value="Thailand">Thailand</option>
-            <option value="Vietnam">Vietnam</option>
-            <option value="India">India</option>
-            <option value="Australia">Australia</option>
-            <option value="Panama">Panama</option>
-            <option value="Liberia">Liberia</option>
-            <option value="Marshall Islands">Marshall Islands</option>
-            <option value="United States">United States</option>
-            <option value="United Kingdom">United Kingdom</option>
-            <option value="Netherlands">Netherlands</option>
-            <option value="Germany">Germany</option>
-            <option value="Hong Kong">Hong Kong</option>
-            <option value="United Arab Emirates">United Arab Emirates</option>
-            <option value="Saudi Arabia">Saudi Arabia</option>
-            <option value="Other">Other Country</option>
+            @foreach($countryOptions as $country => $isRed)
+              <option value="{{ $country }}" data-merah="{{ $isRed ? 'true' : 'false' }}" {{ old('origin_country') === $country ? 'selected' : '' }}>{{ $country }}</option>
+            @endforeach
           </select>
         </div>
 
@@ -263,29 +294,39 @@
 
     <!-- Section 2: Health Questions (IHR 2005) -->
     <div class="card-box">
-      <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center border-bottom pb-2 mb-3 gap-1">
         <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
           <i class="fas fa-file-medical text-primary"></i>
           <span>2. Maritime Health Declaration Questions (WHO IHR 2005)</span>
         </h5>
-        <span class="small text-muted">Please answer YES or NO according to actual vessel conditions</span>
+        <span class="small text-muted">Select visited countries for Q1 and answer YES or NO for Q2–Q19</span>
       </div>
 
       <!-- Question 1 -->
-      <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+      <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">1.</span>
-          <span class="text-secondary">Have you visited any countries with reported infectious disease outbreaks in the last 14 days?</span>
+          <div>
+            <span class="fw-bold text-dark">1.</span>
+            <span class="text-secondary">Have you visited any countries in the last 14 days?</span>
+          </div>
+          <div class="d-flex flex-wrap align-items-center gap-2 mt-1">
+            <span class="small text-muted">Auto-synced from Country of Origin; additional port-of-call countries can be added.</span>
+            <span id="q1RiskBadge" class="badge bg-light text-secondary border d-none"></span>
+          </div>
         </div>
-        <div class="d-flex gap-4 shrink-0">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input q-radio" type="radio" name="Q1" id="Q1_ya" value="20" onchange="calculateTotal()">
-            <label class="form-check-label fw-semibold" for="Q1_ya">Yes</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input q-radio" type="radio" name="Q1" id="Q1_tidak" value="0" checked onchange="calculateTotal()">
-            <label class="form-check-label fw-semibold" for="Q1_tidak">No</label>
-          </div>
+        <div class="shrink-0 w-100" style="max-width: 400px; min-width: 260px;">
+          <select
+            multiple
+            name="Q1[]"
+            id="negaraSinggahSelect"
+            class="form-select select2 negaraSelect"
+            style="width: 100%"
+            onchange="calculateTotal()"
+          >
+            @foreach($countryOptions as $country => $isRed)
+              <option value="{{ $country }}" data-merah="{{ $isRed ? 'true' : 'false' }}" {{ in_array($country, old('Q1', []), true) ? 'selected' : '' }}>{{ $country }}</option>
+            @endforeach
+          </select>
         </div>
       </div>
 
@@ -716,6 +757,9 @@
 
 </div>
 
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
   // Sync Ship & Captain Name
   const namaKapalInput = document.getElementById('namaKapal');
@@ -728,16 +772,48 @@
     shipLabel.innerText = val;
   });
 
-  // Calculate Total Score
+  // Update Question 1 Red-Zone badge
+  function updateQ1RiskBadge(selectedOptions, hasRedZone) {
+    const badge = document.getElementById('q1RiskBadge');
+    if (!badge) return;
+
+    if (selectedOptions.length === 0) {
+      badge.className = 'badge bg-light text-secondary border d-none';
+      badge.innerText = '';
+      return;
+    }
+
+    if (hasRedZone) {
+      badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle';
+      badge.innerText = '+20 Red Zone Country';
+    } else {
+      badge.className = 'badge bg-success-subtle text-success border border-success-subtle';
+      badge.innerText = '0 Non-Outbreak Country';
+    }
+  }
+
+  // Calculate Total Score (Q1 red-zone countries + Q2-Q19 radios)
   function calculateTotal() {
     let total = 0;
-    const questions = ['Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8','Q9','Q10','Q11','Q12','Q13','Q14','Q15','Q16','Q17','Q18','Q19'];
-    
+
+    // Q1: Check if any visited country in the last 14 days is flagged red zone (data-merah="true")
+    const negaraSelect = document.getElementById('negaraSinggahSelect');
+    if (negaraSelect) {
+      const selectedOptions = Array.from(negaraSelect.selectedOptions || []);
+      const hasRedZone = selectedOptions.some(opt => opt.dataset.merah === 'true');
+      if (hasRedZone) {
+        total += 20;
+      }
+      updateQ1RiskBadge(selectedOptions, hasRedZone);
+    }
+
+    const questions = ['Q2','Q3','Q4','Q5','Q6','Q7','Q8','Q9','Q10','Q11','Q12','Q13','Q14','Q15','Q16','Q17','Q18','Q19'];
+
     questions.forEach(q => {
       const selected = document.querySelector(`input[name="${q}"]:checked`);
       if (selected) {
         const val = parseInt(selected.value) || 0;
-        
+
         // Dynamic Question 8 visibility based on Q7
         if (q === 'Q7') {
           const wrapperQ8 = document.getElementById('wrapperQ8');
@@ -751,7 +827,7 @@
             if (q8Tidak) q8Tidak.checked = true;
           }
         }
-        
+
         total += val;
       }
     });
@@ -793,6 +869,21 @@
     }
   }
 
+  function syncOriginToQ1(selectedCountry) {
+    const negaraSelect = document.getElementById('negaraSinggahSelect');
+    if (!negaraSelect) return;
+
+    Array.from(negaraSelect.options).forEach(opt => {
+      opt.selected = Boolean(selectedCountry && opt.value === selectedCountry);
+    });
+
+    if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+      window.jQuery('#negaraSinggahSelect').val(selectedCountry ? [selectedCountry] : []).trigger('change.select2');
+    }
+
+    calculateTotal();
+  }
+
   function toggleSubmitButton() {
     const check = document.getElementById('setujuCheck');
     const btn = document.getElementById('btnSubmit');
@@ -800,7 +891,41 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
-    calculateTotal();
+    if (window.jQuery && window.jQuery.fn && window.jQuery.fn.select2) {
+      const $ = window.jQuery;
+      $('#originCountry').select2({
+        width: '100%',
+        placeholder: '-- Select Country --'
+      });
+      $('#negaraSinggahSelect').select2({
+        width: '100%',
+        placeholder: 'Select visited countries...',
+        closeOnSelect: false
+      });
+
+      $('#originCountry').on('change', function() {
+        syncOriginToQ1($(this).val());
+      });
+      $('#negaraSinggahSelect').on('change', function() {
+        calculateTotal();
+      });
+    } else {
+      const originSelect = document.getElementById('originCountry');
+      const negaraSelect = document.getElementById('negaraSinggahSelect');
+      originSelect?.addEventListener('change', function() {
+        syncOriginToQ1(this.value);
+      });
+      negaraSelect?.addEventListener('change', calculateTotal);
+    }
+
+    // If Country of Origin already has a preselected old() value and Q1[] is empty, sync it
+    const originVal = document.getElementById('originCountry')?.value;
+    const negaraValCount = document.getElementById('negaraSinggahSelect')?.selectedOptions?.length || 0;
+    if (originVal && negaraValCount === 0) {
+      syncOriginToQ1(originVal);
+    } else {
+      calculateTotal();
+    }
   });
 </script>
 

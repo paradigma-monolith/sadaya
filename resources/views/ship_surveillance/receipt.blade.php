@@ -128,6 +128,13 @@
           <span class="fw-semibold text-dark">{{ $surveillance->pelabuhan }}</span>
         </div>
 
+        @if($surveillance->negara_singgah_14_hari)
+        <div class="col-12">
+          <span class="text-muted small d-block">Negara Singgah (14 Hari Terakhir)</span>
+          <span class="fw-semibold text-dark">{{ $surveillance->negara_singgah_14_hari }}</span>
+        </div>
+        @endif
+
         <div class="col-sm-4">
           <span class="text-muted small d-block">Tanggal Kedatangan</span>
           <span class="fw-semibold text-dark">{{ $surveillance->tanggal_kedatangan?->format('d/m/Y') ?? date('d/m/Y') }}</span>

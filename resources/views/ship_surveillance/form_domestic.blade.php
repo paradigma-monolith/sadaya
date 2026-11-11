@@ -232,7 +232,7 @@
       </div>
     </div>
 
-    <!-- Section 2: 19 Pertanyaan Karantina Kesehatan -->
+    <!-- Section 2: Daftar Pertanyaan Karantina Kesehatan -->
     <div class="card-box">
       <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
         <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
@@ -242,28 +242,12 @@
         <span class="small text-muted">Jawab "Ya" atau "Tidak" sesuai kondisi sebenarnya</span>
       </div>
 
-      <!-- Question 1 -->
+      <!-- Q1 hanya berlaku pada formulir Kedatangan Luar Negeri (daftar negara singgah 14 hari) -->
+
+      <!-- Question 1 (Q2) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
           <span class="fw-bold text-dark">1.</span>
-          <span class="text-secondary">Apakah mengunjungi negara lain dalam 14 hari terakhir?</span>
-        </div>
-        <div class="d-flex gap-4 shrink-0">
-          <div class="form-check form-check-inline">
-            <input class="form-check-input q-radio" type="radio" name="Q1" id="Q1_ya" value="20" onchange="calculateTotal()">
-            <label class="form-check-label fw-semibold" for="Q1_ya">Ya</label>
-          </div>
-          <div class="form-check form-check-inline">
-            <input class="form-check-input q-radio" type="radio" name="Q1" id="Q1_tidak" value="0" checked onchange="calculateTotal()">
-            <label class="form-check-label fw-semibold" for="Q1_tidak">Tidak</label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Question 2 -->
-      <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
-        <div class="pe-md-4">
-          <span class="fw-bold text-dark">2.</span>
           <span class="text-secondary">Apakah ada orang yang meninggal di atas kapal selama dalam perjalanan yang bukan diakibatkan oleh kecelakaan?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -278,10 +262,10 @@
         </div>
       </div>
 
-      <!-- Question 3 -->
+      <!-- Question 2 (Q3) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">3.</span>
+          <span class="fw-bold text-dark">2.</span>
           <span class="text-secondary">Apakah dalam perjalanan ada crew dievakuasi karena sakit atau meninggal?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -296,10 +280,10 @@
         </div>
       </div>
 
-      <!-- Question 4 -->
+      <!-- Question 3 (Q4) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">4.</span>
+          <span class="fw-bold text-dark">3.</span>
           <span class="text-secondary">Apakah di atas kapal selama dalam perjalanan terdapat kasus penyakit yang diduga karena penyakit menular?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -314,10 +298,10 @@
         </div>
       </div>
 
-      <!-- Question 5 -->
+      <!-- Question 4 (Q5) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">5.</span>
+          <span class="fw-bold text-dark">4.</span>
           <span class="text-secondary">Apakah jumlah orang sakit saat ini lebih banyak dari biasanya?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -332,10 +316,10 @@
         </div>
       </div>
 
-      <!-- Question 6 -->
+      <!-- Question 5 (Q6) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">6.</span>
+          <span class="fw-bold text-dark">5.</span>
           <span class="text-secondary">Apakah ada orang sakit di atas kapal saat ini?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -350,10 +334,10 @@
         </div>
       </div>
 
-      <!-- Question 7 -->
+      <!-- Question 6 (Q7) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">7.</span>
+          <span class="fw-bold text-dark">6.</span>
           <span class="text-secondary">Apakah dokter kapal dipanggil untuk mengobati sakit tersebut?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -368,10 +352,10 @@
         </div>
       </div>
 
-      <!-- Question 8 (Conditional based on Q7) -->
+      <!-- Question 7 (Q8 - Conditional based on Q7) -->
       <div id="wrapperQ8" class="question-row d-none bg-warning-subtle/30 justify-content-between align-items-md-center gap-2 ps-3 border-start border-warning border-3">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">8.</span>
+          <span class="fw-bold text-dark">7.</span>
           <span class="text-secondary">Apakah ada kondisi di atas kapal yang dapat menyebabkan infeksi atau penyebaran penyakit?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -386,10 +370,10 @@
         </div>
       </div>
 
-      <!-- Question 9 -->
+      <!-- Question 8 (Q9) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">9.</span>
+          <span class="fw-bold text-dark">8.</span>
           <span class="text-secondary">Apakah dilakukan tindakan penyehatan selama dalam perjalanan (desinfeksi, desinseksi, deratisasi)?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -404,10 +388,10 @@
         </div>
       </div>
 
-      <!-- Question 10 -->
+      <!-- Question 9 (Q10) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">10.</span>
+          <span class="fw-bold text-dark">9.</span>
           <span class="text-secondary">Apakah ditemukan binatang pembawa penyakit (tikus, pinjal, lalat, nyamuk) di atas kapal?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -422,10 +406,10 @@
         </div>
       </div>
 
-      <!-- Question 11 -->
+      <!-- Question 10 (Q11) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">11.</span>
+          <span class="fw-bold text-dark">10.</span>
           <span class="text-secondary">Apakah ditemukan orang sakit dengan gejala demam (suhu &ge; 38&deg;C) disertai batuk/pilek/sesak nafas?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -440,10 +424,10 @@
         </div>
       </div>
 
-      <!-- Question 12 -->
+      <!-- Question 11 (Q12) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">12.</span>
+          <span class="fw-bold text-dark">11.</span>
           <span class="text-secondary">Apakah ditemukan orang sakit dengan gejala ruam/bintik merah pada kulit?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -458,10 +442,10 @@
         </div>
       </div>
 
-      <!-- Question 13 -->
+      <!-- Question 12 (Q13) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">13.</span>
+          <span class="fw-bold text-dark">12.</span>
           <span class="text-secondary">Apakah ditemukan orang sakit dengan gejala diare akut?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -476,10 +460,10 @@
         </div>
       </div>
 
-      <!-- Question 14 -->
+      <!-- Question 13 (Q14) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">14.</span>
+          <span class="fw-bold text-dark">13.</span>
           <span class="text-secondary">Apakah ditemukan orang sakit dengan gejala muntah terus menerus?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -494,10 +478,10 @@
         </div>
       </div>
 
-      <!-- Question 15 -->
+      <!-- Question 14 (Q15) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">15.</span>
+          <span class="fw-bold text-dark">14.</span>
           <span class="text-secondary">Apakah ditemukan orang sakit dengan gejala penyakit kuning (mata/kulit kuning)?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -512,10 +496,10 @@
         </div>
       </div>
 
-      <!-- Question 16 -->
+      <!-- Question 15 (Q16) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">16.</span>
+          <span class="fw-bold text-dark">15.</span>
           <span class="text-secondary">Apakah ditemukan orang sakit dengan gejala pembesaran kelenjar leher/ketiak/selangkangan?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -530,10 +514,10 @@
         </div>
       </div>
 
-      <!-- Question 17 -->
+      <!-- Question 16 (Q17) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">17.</span>
+          <span class="fw-bold text-dark">16.</span>
           <span class="text-secondary">Apakah ditemukan orang sakit dengan pendarahan spontan (hidung, gusi, muntah darah, BAB darah)?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -548,10 +532,10 @@
         </div>
       </div>
 
-      <!-- Question 18 -->
+      <!-- Question 17 (Q18) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">18.</span>
+          <span class="fw-bold text-dark">17.</span>
           <span class="text-secondary">Apakah ditemukan orang sakit dengan penurunan kesadaran/koma?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -566,10 +550,10 @@
         </div>
       </div>
 
-      <!-- Question 19 (ICV Certificate) -->
+      <!-- Question 18 (Q19 - ICV Certificate) -->
       <div class="question-row d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 border-bottom-0">
         <div class="pe-md-4">
-          <span class="fw-bold text-dark">19.</span>
+          <span class="fw-bold text-dark">18.</span>
           <span class="text-secondary">Apakah seluruh ABK memiliki Sertifikat Vaksinasi Internasional (ICV) yang masih berlaku?</span>
         </div>
         <div class="d-flex gap-4 shrink-0">
@@ -659,7 +643,7 @@
   // Realtime Scoring Calculation Function
   function calculateTotal() {
     let total = 0;
-    const questions = ['Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8','Q9','Q10','Q11','Q12','Q13','Q14','Q15','Q16','Q17','Q18','Q19'];
+    const questions = ['Q2','Q3','Q4','Q5','Q6','Q7','Q8','Q9','Q10','Q11','Q12','Q13','Q14','Q15','Q16','Q17','Q18','Q19'];
     
     questions.forEach(q => {
       const selected = document.querySelector(`input[name="${q}"]:checked`);

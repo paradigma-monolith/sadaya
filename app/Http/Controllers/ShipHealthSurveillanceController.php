@@ -402,7 +402,9 @@ class ShipHealthSurveillanceController extends Controller
      */
     public function publicInternational()
     {
-        return view('ship_surveillance.form_international');
+        return view('ship_surveillance.form_international', [
+            'countries' => ShipHealthSurveillance::QUARANTINE_COUNTRIES,
+        ]);
     }
 
     /**
@@ -432,17 +434,66 @@ class ShipHealthSurveillanceController extends Controller
             $suratPath = $request->file('surat_pernyataan_nahkoda')->store('surveillance_docs', 'public');
         }
 
-        // Collect question answers (Q1 through Q19)
-        $questions = [];
-        for ($i = 1; $i <= 19; $i++) {
-            $key = "Q{$i}";
-            if ($request->has($key)) {
-                $questions[$key] = $request->input($key);
+        $isInternational = $validated['kategori'] === 'Luar Negeri';
+        $selectedCountries = [];
+        $q1Score = 0;
+        $negaraSinggah = null;
+
+        if ($isInternational) {
+            $rawQ1 = $request->input('Q1');
+            if (is_array($rawQ1)) {
+                $selectedCountries = array_values(array_filter(array_map('trim', $rawQ1), fn ($v) => $v !== ''));
+            } elseif (is_string($rawQ1) && !is_numeric($rawQ1) && trim($rawQ1) !== '') {
+                $selectedCountries = [trim($rawQ1)];
+            } elseif (!$request->has('Q1') && !empty($validated['origin_country'])) {
+                $selectedCountries = [trim($validated['origin_country'])];
+            }
+
+            if (!empty($selectedCountries)) {
+                $negaraSinggah = mb_substr(implode(', ', $selectedCountries), 0, 255);
+                $q1Score = ShipHealthSurveillance::hasRedZoneCountry($selectedCountries) ? 20 : 0;
+            } elseif (is_numeric($rawQ1)) {
+                $q1Score = (int)$rawQ1;
             }
         }
 
-        // Calculate score, risk, and status dynamically
-        $score = (int)$request->input('skoring', 0);
+        // Collect structured question answers (1 through 19) & compute authoritative score
+        $questions = [];
+        $q7Score = (int)$request->input('Q7', 0);
+        $totalScore = 0;
+
+        foreach (ShipHealthSurveillance::QUARANTINE_QUESTIONS as $i => $questionText) {
+            if ($i === 1) {
+                $answerLabel = $isInternational
+                    ? (!empty($selectedCountries) ? implode(', ', $selectedCountries) : '-')
+                    : 'Tidak Berlaku (Domestik)';
+                $questions[$i] = [
+                    'text' => $questionText,
+                    'answer' => $answerLabel,
+                    'score' => $q1Score,
+                ];
+                $totalScore += $q1Score;
+                continue;
+            }
+
+            $val = (int)$request->input("Q{$i}", 0);
+            if ($i === 8 && $q7Score <= 0) {
+                $val = 0;
+            }
+
+            $answerLabel = $i === 19
+                ? ($val === 0 ? 'Ya' : 'Tidak')
+                : ($val > 0 ? 'Ya' : 'Tidak');
+
+            $questions[$i] = [
+                'text' => $questionText,
+                'answer' => $answerLabel,
+                'score' => $val,
+            ];
+            $totalScore += $val;
+        }
+
+        $score = $totalScore;
         $riskData = ShipHealthSurveillance::calculateRisk($score);
         $gt = (int)$validated['gross_tonnage'];
         $pnbp = ShipHealthSurveillance::calculatePnbp($gt);
@@ -458,6 +509,7 @@ class ShipHealthSurveillanceController extends Controller
             'tanggal_kedatangan' => $validated['tanggal_kedatangan'],
             'gross_tonnage' => $gt,
             'jml_crew' => (int)$validated['jml_crew'],
+            'negara_singgah_14_hari' => $negaraSinggah,
             'kategori' => $validated['kategori'],
             'questions' => $questions,
             'skoring' => $score,
