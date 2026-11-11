@@ -29,7 +29,8 @@ import {
   Pill,
   FileSpreadsheet,
   BarChart3,
-  Globe
+  Globe,
+  CalendarDays
 } from 'lucide-vue-next';
 import { router as inertiaRouter } from '@inertiajs/vue3';
 import { useRouter } from 'vue-router';
@@ -140,6 +141,14 @@ const defaultActions = [
     category: 'Laporan & Dokumen',
     icon: FileSpreadsheet,
     action: () => navigateTo('/sinkarkes'),
+  },
+  {
+    id: 'nav-sinkarkes-daily',
+    title: 'Rekap Harian Kapal & Pesawat (SINKARKES)',
+    subtitle: 'Input data harian kapal & pesawat yang otomatis terakumulasi ke Formulir SINKARKES',
+    category: 'Laporan & Dokumen',
+    icon: CalendarDays,
+    action: () => navigateTo('/sinkarkes-daily'),
   },
   {
     id: 'nav-ship-sanitasi',

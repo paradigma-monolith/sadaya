@@ -69,6 +69,7 @@ const activeNav = computed(() => {
   if (p.includes('/ship-inspections')) return 'ship-inspections';
   if (p.includes('/flight-medical-inspections/alat')) return 'flight-medical-alat';
   if (p.includes('/flight-medical-inspections/obat')) return 'flight-medical-obat';
+  if (p.includes('/sinkarkes-daily')) return 'sinkarkes-daily';
   if (p.includes('/sinkarkes/dashboard')) return 'sinkarkes-dashboard';
   if (p.includes('/sinkarkes')) return 'sinkarkes';
   if (p.includes('/sanitasi-lingkungan/tpp') || p.includes('/prl/tpp')) return 'sanitasi-tpp';

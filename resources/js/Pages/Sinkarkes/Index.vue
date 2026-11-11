@@ -558,6 +558,17 @@ onUnmounted(() => {
               </select>
             </div>
 
+            <!-- Rekap Harian Button -->
+            <Link
+              :href="`/sinkarkes-daily?wilker=${encodeURIComponent(selectedWilker)}&year=${selectedYear}&month=${activeMonth}`"
+              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/60 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800/60 transition-colors shadow-2xs"
+              title="Input Data Harian Kapal & Pesawat (Terakumulasi Otomatis ke SINKARKES)"
+            >
+              <Calendar class="w-4 h-4" />
+              <span class="hidden sm:inline">Rekap Harian</span>
+              <span class="sm:hidden">Harian</span>
+            </Link>
+
             <!-- Dashboard Utama Button -->
             <Link
               :href="`/dashboard?year=${selectedYear}&wilker=${encodeURIComponent(selectedWilker)}#sinkarkes-section`"

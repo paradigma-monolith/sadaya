@@ -12,6 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShipHealthSurveillanceController;
 use App\Http\Controllers\ShipInspectionController;
 use App\Http\Controllers\SinkarkesController;
+use App\Http\Controllers\SinkarkesDailyController;
 use App\Http\Controllers\TravelConsentController;
 use App\Http\Controllers\TravelConsentHubController;
 use Illuminate\Support\Facades\Route;
@@ -184,6 +185,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/', [SinkarkesController::class, 'store'])->name('store');
         Route::get('/export', [SinkarkesController::class, 'exportExcel'])->name('export');
         Route::post('/import', [SinkarkesController::class, 'importExcel'])->name('import');
+    });
+
+    // SINKARKES Harian - Rekap Data Harian Kapal & Pesawat (akumulasi ke SINKARKES)
+    Route::prefix('sinkarkes-daily')->name('sinkarkes-daily.')->group(function () {
+        Route::get('/', [SinkarkesDailyController::class, 'index'])->name('index');
+        Route::post('/', [SinkarkesDailyController::class, 'store'])->name('store');
+        Route::delete('/{id}', [SinkarkesDailyController::class, 'destroy'])->whereNumber('id')->name('destroy');
+        Route::post('/sync', [SinkarkesDailyController::class, 'sync'])->name('sync');
+        Route::post('/import', [SinkarkesDailyController::class, 'importExcel'])->name('import');
+        Route::get('/export', [SinkarkesDailyController::class, 'exportExcel'])->name('export');
     });
 
     // Sanitasi Lingkungan (Pengawasan TPP, SAB, HSBU)

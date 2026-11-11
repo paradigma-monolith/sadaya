@@ -30,7 +30,8 @@ import {
   Utensils,
   Droplets,
   Building2,
-  Bug
+  Bug,
+  CalendarDays
 } from 'lucide-vue-next';
 import { useSidebar } from '@/composables/useSidebar';
 
@@ -239,12 +240,20 @@ const navSections = computed(() => {
           active: props.currentRoute === 'ship-surveillance' || currentPath.includes('/ship-surveillance'),
         },
         {
+          name: 'Rekap Harian Kapal & Pesawat',
+          path: '/sinkarkes-daily',
+          url: getUrl('/sinkarkes-daily'),
+          icon: CalendarDays,
+          iconColor: 'text-teal-600',
+          active: props.currentRoute === 'sinkarkes-daily' || currentPath.includes('/sinkarkes-daily'),
+        },
+        {
           name: 'Form Input SINKARKES',
           path: '/sinkarkes',
           url: getUrl('/sinkarkes'),
           icon: FileSpreadsheet,
           iconColor: 'text-[#005851]',
-          active: props.currentRoute === 'sinkarkes' || (currentPath.includes('/sinkarkes') && !currentPath.includes('/sinkarkes/dashboard')),
+          active: props.currentRoute === 'sinkarkes' || (currentPath.includes('/sinkarkes') && !currentPath.includes('/sinkarkes/dashboard') && !currentPath.includes('/sinkarkes-daily')),
         },
       ],
     },
