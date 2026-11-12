@@ -479,7 +479,7 @@ const handleLogout = () => {
               </a>
             </nav>
 
-            <!-- Right Side: Search, Generate Report Pill, Notifications & User Avatar -->
+            <!-- Right Side: Search, Notifications & User Avatar -->
             <div class="flex items-center gap-1.5 shrink-0">
 
               <!-- Command Palette Trigger Button (Ctrl + K) -->
@@ -493,14 +493,6 @@ const handleLogout = () => {
                 <span class="hidden md:inline text-[11px] font-medium">Cari modul...</span>
                 <kbd class="hidden md:inline-flex items-center px-1 py-0.2 text-[10px] font-mono bg-white border border-slate-200 rounded text-slate-400">⌘K</kbd>
               </button>
-
-              <!-- Generate Report Button -->
-              <a
-                :href="getUrl('/exports/audit-logs/pdf')"
-                class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#005851] hover:bg-[#004640] text-white text-[11px] font-semibold transition-colors"
-              >
-                <span>Export PDF</span>
-              </a>
 
               <!-- Notification Bell Dropdown -->
               <div class="relative" ref="notifDropdownRef">
