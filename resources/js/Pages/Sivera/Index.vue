@@ -1344,41 +1344,47 @@ const closeDetail = () => {
   <Head title="Surveilans Vektor dan Reservoar (SIVERA) &bull; BKK Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="sivera">
-    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+    <main class="clinical-main">
+
+      <!-- ==================== SIVERA HEADER BAR ==================== -->
+      <div class="clinical-header flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-[#002B27] border border-[#00A99D]/40 text-[#99CC33] flex items-center justify-center shrink-0">
+            <Bug class="w-4 h-4" />
+          </div>
+          <div class="min-w-0">
+            <h1 class="text-sm sm:text-[15px] font-bold text-white tracking-tight">
+              Surveilans Vektor dan Reservoar (SIVERA)
+            </h1>
+            <p class="text-[11px] text-slate-200/85 truncate mt-0.5">
+              Pemantauan 7 jenis vektor &amp; binatang pembawa penyakit di area perimeter dan buffer BKK Bandung.
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            @click="openAddInspeksi('sivera', siveraFilterVektor !== 'Semua Data' && siveraFilterVektor !== 'Dashboard' ? siveraFilterVektor : 'Jentik Aedes sp.')"
+            class="px-3 py-1.5 rounded-lg bg-[#00A99D] hover:bg-[#009388] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            <span>+ Catat {{ siveraFilterVektor !== 'Semua Data' && siveraFilterVektor !== 'Dashboard' ? siveraFilterVektor : 'Data Surveilans' }}</span>
+          </button>
+        </div>
+      </div>
 
       <!-- ==================== SIVERA TAB / SYSTEM CONTENT ==================== -->
-      <div v-if="currentTab === 'sivera'" class="space-y-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
-          <!-- Header SIVERA -->
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
-            <div>
-              <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Bug class="w-4 h-4 text-indigo-500" />
-                <span>Surveilans Vektor dan Reservoar (SIVERA)</span>
-              </h2>
-              <p class="text-xs text-slate-400 mt-0.5">Pemantauan 7 jenis vektor &amp; binatang pembawa penyakit (Jentik Aedes, Lalat, Kecoa, Tikus, Pinjal, Anopheles) di perimeter dan buffer.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                @click="openAddInspeksi('sivera', siveraFilterVektor !== 'Semua Data' && siveraFilterVektor !== 'Dashboard' ? siveraFilterVektor : 'Jentik Aedes sp.')"
-                class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:brightness-105 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
-              >
-                <Plus class="w-3.5 h-3.5" />
-                <span>+ Catat Data Surveilans {{ siveraFilterVektor !== 'Semua Data' && siveraFilterVektor !== 'Dashboard' ? siveraFilterVektor : 'Baru' }}</span>
-              </button>
-            </div>
-          </div>
-
+      <div v-if="currentTab === 'sivera'" class="space-y-3">
+        <div class="clinical-surface p-4">
           <!-- SIVERA Sub-Vektor Filter Navigation Pills -->
-          <div class="flex items-center gap-1.5 overflow-x-auto py-3 border-b border-slate-100 dark:border-slate-800 text-xs">
+          <div class="flex items-center gap-1 overflow-x-auto pb-2.5 border-b border-slate-200/80 text-xs">
             <button
               v-for="vTab in ['Dashboard', 'Semua Data', 'Jentik Aedes', 'Lalat', 'Kecoa', 'Tikus', 'Pinjal', 'Jentik Anopheles', 'Nyamuk Anopheles']"
               :key="vTab"
               type="button"
               @click="switchSiveraVektor(vTab)"
-              class="px-3 py-1.5 rounded-full font-semibold transition shrink-0 cursor-pointer flex items-center gap-1.5"
-              :class="siveraFilterVektor === vTab ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'"
+              class="px-2.5 py-1 rounded-lg font-semibold transition-colors shrink-0 cursor-pointer flex items-center gap-1.5"
+              :class="siveraFilterVektor === vTab ? 'bg-[#005851] text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-[#005851]'"
             >
               <Activity v-if="vTab === 'Dashboard'" class="w-3.5 h-3.5" />
               <span>{{ vTab }}</span>
@@ -1386,30 +1392,30 @@ const closeDetail = () => {
           </div>
 
           <!-- FILTER KHUSUS MENU SIVERA -->
-          <div class="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 my-3">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3 items-end">
+          <div class="p-3 rounded-lg bg-slate-50/80 border border-slate-200/80 my-3">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 items-end">
               <!-- Search -->
               <div class="lg:col-span-4">
-                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Cari Lokasi / Titik Survei / Parameter SIVERA</label>
+                <label class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Cari Lokasi / Titik / Parameter</label>
                 <div class="relative">
-                  <Search class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                  <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     v-model="search"
                     @keyup.enter="applyFilter()"
                     placeholder="Ketik lokasi, titik survei, parameter..."
-                    class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                    class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 focus:border-[#00A99D] focus:ring-2 focus:ring-[#00A99D]/15 focus:outline-none"
                   />
                 </div>
               </div>
 
               <!-- Wilker -->
               <div class="lg:col-span-2">
-                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Wilayah Kerja</label>
+                <label class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Wilayah Kerja</label>
                 <select
                   v-model="selectedWilker"
                   @change="applyFilter()"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:border-[#00A99D] focus:outline-none"
                 >
                   <option value="">Semua Wilker</option>
                   <option v-for="w in wilker_options" :key="w" :value="w">{{ w }}</option>
@@ -1418,11 +1424,11 @@ const closeDetail = () => {
 
               <!-- Status Baku Mutu -->
               <div class="lg:col-span-2">
-                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Status Baku Mutu</label>
+                <label class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Status Baku Mutu</label>
                 <select
                   v-model="selectedRisiko"
                   @change="applyFilter()"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:border-[#00A99D] focus:outline-none"
                 >
                   <option value="">Semua Status</option>
                   <option value="Memenuhi Syarat">Memenuhi Syarat (MS)</option>
@@ -1432,12 +1438,12 @@ const closeDetail = () => {
 
               <!-- Tanggal Mulai -->
               <div class="lg:col-span-2">
-                <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Tanggal Mulai</label>
+                <label class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Tanggal Mulai</label>
                 <input
                   type="date"
                   v-model="tglMulai"
                   @change="applyFilter()"
-                  class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+                  class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-800 focus:border-[#00A99D] focus:outline-none"
                 />
               </div>
 

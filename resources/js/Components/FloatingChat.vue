@@ -436,10 +436,10 @@ onUnmounted(() => {
         <!-- Send Error Alert Banner -->
         <div 
           v-if="sendError" 
-          class="px-3.5 py-2 bg-rose-50 border-t border-rose-200 text-[11px] text-rose-700 flex items-center justify-between gap-2"
+          class="px-3 py-1.5 bg-rose-50 border-t border-rose-200 text-[11px] text-rose-700 flex items-center justify-between gap-2"
         >
           <div class="flex items-center gap-1.5 flex-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping"></span>
+            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
             <span>{{ sendError }}</span>
           </div>
           <button 
@@ -454,14 +454,14 @@ onUnmounted(() => {
         <!-- Chat Input Footer -->
         <form 
           @submit.prevent="sendMessage()" 
-          class="p-2.5 bg-white border-t border-slate-100 flex items-center gap-2 font-sans"
+          class="p-2 bg-white border-t border-slate-200/80 flex items-center gap-1.5 font-sans"
         >
           <input
             v-model="inputMessage"
             type="text"
             maxlength="1000"
             placeholder="Ketik pesan koordinasi..."
-            class="flex-1 bg-slate-50 border border-slate-200 focus:border-[#00A99D] focus:bg-white rounded-xl px-3 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none transition-all"
+            class="flex-1 clinical-input px-2.5 py-1.5"
             :disabled="isSending"
             @keydown.enter.exact.prevent="sendMessage()"
           />
@@ -469,7 +469,7 @@ onUnmounted(() => {
           <button
             type="submit"
             :disabled="!inputMessage.trim() || isSending"
-            class="px-3.5 py-2 rounded-xl bg-[#005851] hover:bg-[#003B36] disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-semibold shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            class="clinical-btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <span v-if="isSending" class="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
             <Send v-else class="w-3.5 h-3.5" />
@@ -479,38 +479,35 @@ onUnmounted(() => {
       </div>
     </transition>
 
-    <!-- Floating Toggle Pill (Clean White Pill at Bottom-Right) -->
+    <!-- Floating Toggle Pill -->
     <div class="flex justify-end font-sans">
       <button
         type="button"
         @click="toggleChat"
-        class="group relative flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-white hover:bg-[#E6F7F5] text-slate-900 border border-slate-200/90 hover:border-[#99DFD6] shadow-lg shadow-[#005851]/10 transition-all duration-200 transform hover:scale-102 active:scale-98 cursor-pointer"
-        :class="isOpen ? 'ring-2 ring-[#005851] ring-offset-2' : ''"
-        title="Buka Live Chat Reverb (Kanan Bawah)"
+        class="group relative flex items-center gap-2 px-3 py-1.5 rounded-full bg-white hover:bg-[#E6F7F5]/60 text-slate-900 border border-slate-200/90 hover:border-[#00A99D]/60 shadow-md transition-colors cursor-pointer"
+        :class="isOpen ? 'ring-2 ring-[#005851] ring-offset-1' : ''"
+        title="Buka Live Chat Reverb"
       >
-        <!-- Chat Icon -->
-        <div class="relative flex items-center justify-center w-7 h-7 rounded-full bg-[#005851] text-white shadow-xs transition-all">
+        <div class="relative flex items-center justify-center w-6 h-6 rounded-full bg-[#005851] text-white">
           <MessageSquare class="w-3.5 h-3.5" />
           <span 
-            class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white"
+            class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-1 ring-white"
             :class="wsConnected ? 'bg-[#99CC33]' : 'bg-[#00A99D]'"
           ></span>
         </div>
 
-        <!-- Text Label -->
-        <div class="text-left pr-1">
-          <span class="block text-xs font-bold text-slate-900 tracking-tight">
+        <div class="text-left pr-0.5">
+          <span class="block text-[11px] font-bold text-slate-900 tracking-tight leading-tight">
             Live Chat
           </span>
-          <span class="block text-[9px] font-mono leading-none text-emerald-600 font-semibold">
+          <span class="block text-[9px] font-mono leading-none text-emerald-700 font-medium">
             {{ wsConnected ? 'Reverb Active' : 'Online' }}
           </span>
         </div>
 
-        <!-- Unread Badge -->
         <span 
           v-if="unreadCount > 0" 
-          class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-bounce shadow-xs"
+          class="ml-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-rose-500 text-white tabular-nums"
         >
           {{ unreadCount > 9 ? '9+' : unreadCount }}
         </span>

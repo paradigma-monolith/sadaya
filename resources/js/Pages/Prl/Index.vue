@@ -1980,107 +1980,113 @@ const handleRunSync = async () => {
   <Head title="Pengendalian Risiko Lingkungan (PRL) &bull; BKK Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="prl">
-    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+    <main class="clinical-main">
 
       <!-- ==================== HEADER BAR ==================== -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
-        <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 mb-2">
-            <Leaf class="w-3.5 h-3.5 text-emerald-600" />
-            <span>Substansi Pengendalian Risiko Lingkungan (PRL) &bull; BKK Kelas I Bandung</span>
+      <div class="clinical-header flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-[#002B27] border border-[#00A99D]/40 text-[#99CC33] flex items-center justify-center shrink-0">
+            <Leaf class="w-4 h-4" />
           </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            Sanitasi Lingkungan Pelabuhan &amp; Bandara
-          </h1>
-          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
-            Pusat terpadu pengawasan Tempat Pengelolaan Pangan (TPP), Sarana Air Bersih (SAB), Higiene Sanitasi Bangunan dan Usaha (HSBU), serta Surveilans Vektor &amp; Reservoar (SIVERA) di seluruh wilayah kerja.
-          </p>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-sm sm:text-[15px] font-bold text-white tracking-tight">
+                Pengendalian Risiko Lingkungan (PRL)
+              </h1>
+              <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#002B27]/80 text-[#99DFD6] border border-[#00A99D]/30">
+                Pelabuhan &amp; Bandara
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-200/85 truncate mt-0.5">
+              Pengawasan TPP, Sarana Air Bersih (SAB), HSBU, serta Surveilans Vektor &amp; Reservoar (SIVERA).
+            </p>
+          </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-1.5 shrink-0">
           <button
             type="button"
             @click="openAddInspeksi()"
-            class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#00A99D] to-[#005851] hover:brightness-105 text-xs font-bold text-white transition shadow-sm flex items-center gap-2 cursor-pointer"
+            class="px-3 py-1.5 rounded-lg bg-[#00A99D] hover:bg-[#009388] text-xs font-semibold text-white transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <ClipboardCheck class="w-4 h-4" />
-            <span>+ Input Inspeksi Baru</span>
+            <ClipboardCheck class="w-3.5 h-3.5" />
+            <span>+ Input Inspeksi</span>
           </button>
 
           <button
             type="button"
             @click="openAddSarana('tpp')"
-            class="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-xs font-bold text-slate-700 dark:text-slate-200 transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg border border-white/15 bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors flex items-center gap-1 cursor-pointer"
           >
-            <Plus class="w-3.5 h-3.5 text-emerald-600" />
-            <span>+ Tambah Sarana Baru</span>
+            <Plus class="w-3.5 h-3.5 text-[#99CC33]" />
+            <span>+ Sarana</span>
           </button>
 
           <a
             :href="`/prl/export/${currentTab}`"
-            class="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-xs font-bold text-slate-700 dark:text-slate-200 transition shadow-xs flex items-center gap-1.5 cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg border border-white/15 bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors flex items-center gap-1 cursor-pointer"
             title="Export CSV / Excel"
           >
-            <Download class="w-3.5 h-3.5 text-slate-500" />
-            <span>Export CSV</span>
+            <Download class="w-3.5 h-3.5 text-[#99DFD6]" />
+            <span>CSV</span>
           </a>
         </div>
       </div>
 
       <!-- ==================== SUB-TABS NAVIGATION ==================== -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200 dark:border-slate-800">
+      <div class="clinical-tabs">
         <button
           type="button"
           @click="switchTab('tpp')"
-          class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer"
-          :class="currentTab === 'tpp' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+          class="clinical-tab"
+          :class="currentTab === 'tpp' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
         >
           <Utensils class="w-3.5 h-3.5" />
           <span>Tempat Pengelolaan Pangan (TPP)</span>
-          <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 font-mono">{{ stats.total_insp_tpp }}</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] font-mono clinical-num" :class="currentTab === 'tpp' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'">{{ stats.total_insp_tpp }}</span>
         </button>
 
         <button
           type="button"
           @click="switchTab('sab')"
-          class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer"
-          :class="currentTab === 'sab' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+          class="clinical-tab"
+          :class="currentTab === 'sab' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
         >
           <Droplets class="w-3.5 h-3.5" />
           <span>Sarana Air Bersih (SAB)</span>
-          <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 font-mono">{{ stats.total_insp_sab }}</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] font-mono clinical-num" :class="currentTab === 'sab' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'">{{ stats.total_insp_sab }}</span>
         </button>
 
         <button
           type="button"
           @click="switchTab('hsbu')"
-          class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer"
-          :class="currentTab === 'hsbu' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+          class="clinical-tab"
+          :class="currentTab === 'hsbu' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
         >
           <Building2 class="w-3.5 h-3.5" />
           <span>Higiene Bangunan &amp; Usaha (HSBU)</span>
-          <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 font-mono">{{ stats.total_insp_hsbu }}</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] font-mono clinical-num" :class="currentTab === 'hsbu' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'">{{ stats.total_insp_hsbu }}</span>
         </button>
 
         <button
           type="button"
           @click="switchTab('sivera')"
-          class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer"
-          :class="currentTab === 'sivera' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+          class="clinical-tab"
+          :class="currentTab === 'sivera' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
         >
           <Bug class="w-3.5 h-3.5" />
           <span>Surveilans Vektor (SIVERA)</span>
-          <span class="px-1.5 py-0.5 rounded-full text-[10px] bg-white/20 font-mono">{{ stats.sivera_total }}</span>
+          <span class="px-1.5 py-0.2 rounded text-[10px] font-mono clinical-num" :class="currentTab === 'sivera' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'">{{ stats.sivera_total }}</span>
         </button>
       </div>
 
       <!-- ==================== TAB CONTENT: TPP ==================== -->
-      <div v-if="currentTab === 'tpp'" class="space-y-4">
-        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+      <div v-if="currentTab === 'tpp'" class="space-y-3">
+        <div class="clinical-surface p-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
             <div>
-              <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Utensils class="w-4 h-4 text-amber-500" />
+              <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <Utensils class="w-4 h-4 text-[#00A99D]" />
                 <span>Riwayat Inspeksi Tempat Pengelolaan Pangan (TPP)</span>
               </h2>
               <p class="text-xs text-slate-400 mt-0.5">Daftar pemeriksaan higiene sanitasi pangan berbasis risiko di pelabuhan dan bandara.</p>

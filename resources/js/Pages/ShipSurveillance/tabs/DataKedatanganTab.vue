@@ -158,16 +158,16 @@ const deleteItem = (item) => {
 </script>
 
 <template>
-  <div class="space-y-5">
+  <div class="space-y-3">
     <!-- Filter Bar -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5">
+    <div class="clinical-surface p-3.5 space-y-2.5">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <div class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
-          <Filter class="w-4 h-4 text-[#00A99D]" />
+        <div class="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+          <Filter class="w-3.5 h-3.5 text-[#00A99D]" />
           <span>Filter Data Kedatangan Kapal</span>
           <span
             v-if="activeFilterCount > 0"
-            class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#005851]/10 text-[#005851] dark:bg-[#00A99D]/15 dark:text-[#00A99D]"
+            class="px-1.5 py-0.2 rounded text-[10px] font-mono bg-[#E6F7F5] text-[#005851]"
           >
             {{ activeFilterCount }} aktif
           </span>
@@ -176,36 +176,36 @@ const deleteItem = (item) => {
           v-if="activeFilterCount > 0"
           type="button"
           @click="resetFilter"
-          class="text-xs text-rose-600 dark:text-rose-400 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+          class="text-xs text-rose-600 hover:underline flex items-center gap-1 font-semibold cursor-pointer"
         >
           <RefreshCw class="w-3 h-3" />
           Reset Filter
         </button>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
         <!-- Search -->
         <div>
-          <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Pencarian</label>
+          <label class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Pencarian</label>
           <div class="relative">
             <input
               v-model="searchInput"
               @keyup.enter="handleFilter"
               type="text"
               placeholder="Nama kapal / registrasi / asal..."
-              class="w-full h-9 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 pl-8 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+              class="w-full h-8 text-xs clinical-input px-2.5 pl-7"
             />
-            <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+            <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2" />
           </div>
         </div>
 
         <!-- Pelabuhan Tujuan -->
         <div>
-          <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Pelabuhan Tujuan</label>
+          <label class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Pelabuhan Tujuan</label>
           <select
             v-model="selectedPelabuhan"
             @change="handleFilter"
-            class="w-full h-9 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+            class="w-full h-8 text-xs clinical-input px-2.5"
           >
             <option value="">Semua Pelabuhan Wilker</option>
             <option v-for="port in ports" :key="port" :value="port">{{ port }}</option>
@@ -214,11 +214,11 @@ const deleteItem = (item) => {
 
         <!-- Kategori Asal -->
         <div>
-          <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Kategori Pelayaran</label>
+          <label class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Kategori Pelayaran</label>
           <select
             v-model="selectedKategori"
             @change="handleFilter"
-            class="w-full h-9 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+            class="w-full h-8 text-xs clinical-input px-2.5"
           >
             <option value="">Semua Kategori</option>
             <option value="Dalam Negeri">Dalam Negeri (Domestik)</option>
@@ -228,11 +228,11 @@ const deleteItem = (item) => {
 
         <!-- Tingkat Risiko -->
         <div>
-          <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Faktor Risiko</label>
+          <label class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Faktor Risiko</label>
           <select
             v-model="selectedKresiko"
             @change="handleFilter"
-            class="w-full h-9 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+            class="w-full h-8 text-xs clinical-input px-2.5"
           >
             <option value="">Semua Tingkat Risiko</option>
             <option value="RENDAH">Rendah (Skor &lt; 10)</option>
@@ -243,11 +243,11 @@ const deleteItem = (item) => {
 
         <!-- Status Keputusan -->
         <div>
-          <label class="block text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">Keputusan / Status</label>
+          <label class="block text-[10px] font-semibold uppercase tracking-wider text-slate-500 mb-1">Keputusan / Status</label>
           <select
             v-model="selectedStatus"
             @change="handleFilter"
-            class="w-full h-9 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+            class="w-full h-8 text-xs clinical-input px-2.5"
           >
             <option value="">Semua Status</option>
             <option value="SANDAR">Izin Sandar</option>

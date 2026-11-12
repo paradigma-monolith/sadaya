@@ -415,72 +415,76 @@ const openMonthForm = (targetWilker, targetMonth) => {
   <Head :title="`Dashboard SINKARKES ${year} &bull; BKK Bandung`" />
 
   <HybridNavbar mode="inertia" currentRoute="sinkarkes-dashboard">
-    <main class="w-full max-w-none px-2.5 sm:px-4 lg:px-5 pt-3 pb-12 space-y-5 font-sans">
+    <main class="clinical-main font-sans">
 
       <!-- Top Executive Header & Filter Bar -->
-      <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl sm:rounded-3xl p-5 sm:p-6 shadow-xs">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <!-- Institutional Title & Description -->
-          <div class="space-y-1.5">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] sm:text-xs font-mono font-semibold bg-[#00A99D]/10 text-[#005851] dark:text-[#00A99D] border border-[#00A99D]/30">
-              <Building2 class="w-3.5 h-3.5 text-[#00A99D]" />
-              <span>SINKARKES &bull; BALAI KEKARANTINAAN KESEHATAN KELAS I BANDUNG</span>
+      <div class="clinical-header flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <!-- Institutional Title & Description -->
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-[#002B27] border border-[#00A99D]/40 text-[#99CC33] flex items-center justify-center shrink-0">
+            <Building2 class="w-4 h-4" />
+          </div>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-sm sm:text-[15px] font-bold text-white tracking-tight">
+                Executive Summary &amp; Dashboard SINKARKES
+              </h1>
+              <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#002B27]/80 text-[#99DFD6] border border-[#00A99D]/30">
+                Tahun {{ year }}
+              </span>
             </div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-              <span>Executive Summary &amp; Dashboard SINKARKES</span>
-            </h1>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-3xl leading-relaxed">
-              Ringkasan capaian kinerja kekarantinaan kesehatan terpadu: Pengawasan Alat Angkut &amp; Orang, Dokumen Karantina, Layanan Kesehatan Pelabuhan, serta Pengendalian Risiko Lingkungan.
+            <p class="text-[11px] text-slate-200/85 truncate mt-0.5">
+              Ringkasan kinerja terpadu: Alat Angkut, Orang, Dokumen Karantina, Layanan Kesehatan &amp; Pengendalian Risiko Lingkungan.
             </p>
           </div>
+        </div>
 
-          <!-- Quick Navigation & Filter Controls -->
-          <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Filter Wilayah Kerja -->
-            <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1a2130] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 shadow-2xs">
-              <Building2 class="w-4 h-4 text-[#00A99D] shrink-0" />
-              <select
-                v-model="selectedWilker"
-                @change="handleFilterChange"
-                class="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-100 border-none focus:ring-0 cursor-pointer outline-none pr-2 py-0.5"
-                title="Pilih Wilayah Kerja"
-              >
-                <option value="all">Semua Wilayah Kerja (Konsolidasi)</option>
-                <option v-for="w in wilker_options" :key="w" :value="w">
-                  {{ w }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Filter Tahun -->
-            <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1a2130] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 shadow-2xs">
-              <Calendar class="w-4 h-4 text-[#7CA622] shrink-0" />
-              <select
-                v-model.number="selectedYear"
-                @change="handleFilterChange"
-                class="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-100 border-none focus:ring-0 cursor-pointer outline-none pr-2 py-0.5"
-                title="Pilih Tahun Laporan"
-              >
-                <option v-for="y in availableYears" :key="y" :value="y">
-                  Tahun {{ y }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Switch to Form Input Button -->
-            <Link
-              :href="`/sinkarkes?wilker=${encodeURIComponent(selectedWilker !== 'all' ? selectedWilker : 'POS Bandara Husen')}&year=${selectedYear}`"
-              class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#00A99D] hover:bg-[#008f85] transition-all shadow-sm cursor-pointer"
+        <!-- Quick Navigation & Filter Controls -->
+        <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+          <!-- Filter Wilayah Kerja -->
+          <div class="flex items-center gap-1.5 bg-[#002D29] border border-white/15 rounded-lg px-2.5 py-1 text-white">
+            <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+            <select
+              v-model="selectedWilker"
+              @change="handleFilterChange"
+              class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
+              title="Pilih Wilayah Kerja"
             >
-              <FileSpreadsheet class="w-4 h-4" />
-              <span>Buka Formulir Input &rarr;</span>
-            </Link>
+              <option value="all" class="text-slate-900">Semua Wilayah Kerja (Konsolidasi)</option>
+              <option v-for="w in wilker_options" :key="w" :value="w" class="text-slate-900">
+                {{ w }}
+              </option>
+            </select>
           </div>
+
+          <!-- Filter Tahun -->
+          <div class="flex items-center gap-1.5 bg-[#002D29] border border-white/15 rounded-lg px-2.5 py-1 text-white">
+            <Calendar class="w-3.5 h-3.5 text-[#99CC33] shrink-0" />
+            <select
+              v-model.number="selectedYear"
+              @change="handleFilterChange"
+              class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
+              title="Pilih Tahun Laporan"
+            >
+              <option v-for="y in availableYears" :key="y" :value="y" class="text-slate-900">
+                Tahun {{ y }}
+              </option>
+            </select>
+          </div>
+
+          <!-- Switch to Form Input Button -->
+          <Link
+            :href="`/sinkarkes?wilker=${encodeURIComponent(selectedWilker !== 'all' ? selectedWilker : 'POS Bandara Husen')}&year=${selectedYear}`"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#00A99D] hover:bg-[#009388] transition-colors cursor-pointer"
+          >
+            <FileSpreadsheet class="w-3.5 h-3.5" />
+            <span>Formulir Input &rarr;</span>
+          </Link>
         </div>
       </div>
 
       <!-- 6 Key Performance Metric Cards Grid -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
         <!-- 1. Total Alat Angkut -->
         <div class="bg-white dark:bg-[#12161f] border border-slate-200/90 dark:border-[#232a36] rounded-2xl p-4 shadow-xs relative overflow-hidden group hover:border-[#00A99D]/40 transition-colors">
           <div class="flex items-center justify-between text-slate-500 text-[11px] font-mono">
@@ -510,7 +514,7 @@ const openMonthForm = (targetWilker, targetMonth) => {
           <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 font-mono">
             {{ kpi.total_orang?.toLocaleString('id-ID') || 0 }}
           </div>
-          <div class="text-[10px] text-slate-400 mt-1 flex items-center gap-1.5">
+          <div class="text-[10px] text-slate-400 mt-1 flex items-center gap-1.5 clinical-num">
             <span>Penumpang: <strong>{{ kpi.total_penumpang || 0 }}</strong></span>
             <span>&bull;</span>
             <span>Kru: <strong>{{ kpi.total_crew || 0 }}</strong></span>
@@ -518,96 +522,96 @@ const openMonthForm = (targetWilker, targetMonth) => {
         </div>
 
         <!-- 3. Dokumen Kekarantinaan -->
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200/90 dark:border-[#232a36] rounded-2xl p-4 shadow-xs relative overflow-hidden group hover:border-[#005851]/40 transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[11px] font-mono">
+        <div class="clinical-kpi relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
             <span>DOKUMEN KARANTINA</span>
-            <div class="w-7 h-7 rounded-xl bg-[#005851]/10 text-[#005851] dark:text-[#00A99D] flex items-center justify-center">
+            <div class="w-6 h-6 rounded-lg bg-[#005851]/10 text-[#005851] flex items-center justify-center">
               <FileCheck class="w-3.5 h-3.5" />
             </div>
           </div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 font-mono">
+          <div class="text-xl font-bold text-slate-900 mt-1.5 clinical-num">
             {{ kpi.total_dokumen?.toLocaleString('id-ID') || 0 }}
           </div>
-          <div class="text-[10px] text-slate-400 mt-1 truncate">
+          <div class="text-[10px] text-slate-400 mt-0.5 truncate">
             SSCEC, SSCC, P3K, Desinseksi
           </div>
         </div>
 
         <!-- 4. Layanan Kesehatan -->
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200/90 dark:border-[#232a36] rounded-2xl p-4 shadow-xs relative overflow-hidden group hover:border-sky-400/40 transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[11px] font-mono">
+        <div class="clinical-kpi relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
             <span>LAYANAN MEDIS</span>
-            <div class="w-7 h-7 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 flex items-center justify-center">
+            <div class="w-6 h-6 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
               <HeartPulse class="w-3.5 h-3.5" />
             </div>
           </div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 font-mono">
+          <div class="text-xl font-bold text-slate-900 mt-1.5 clinical-num">
             {{ kpi.total_layanan_kesehatan?.toLocaleString('id-ID') || 0 }}
           </div>
-          <div class="text-[10px] text-slate-400 mt-1 truncate">
+          <div class="text-[10px] text-slate-400 mt-0.5 truncate">
             Poliklinik BKK &amp; Uji Laik
           </div>
         </div>
 
         <!-- 5. Vaksinasi ICV -->
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200/90 dark:border-[#232a36] rounded-2xl p-4 shadow-xs relative overflow-hidden group hover:border-[#7CA622]/40 transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[11px] font-mono">
+        <div class="clinical-kpi relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
             <span>VAKSINASI ICV</span>
-            <div class="w-7 h-7 rounded-xl bg-[#7CA622]/10 text-[#7CA622] flex items-center justify-center">
+            <div class="w-6 h-6 rounded-lg bg-[#7CA622]/10 text-[#7CA622] flex items-center justify-center">
               <ShieldCheck class="w-3.5 h-3.5" />
             </div>
           </div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 font-mono">
+          <div class="text-xl font-bold text-slate-900 mt-1.5 clinical-num">
             {{ kpi.total_vaksinasi?.toLocaleString('id-ID') || 0 }}
           </div>
-          <div class="text-[10px] text-slate-400 mt-1 truncate">
+          <div class="text-[10px] text-slate-400 mt-0.5 truncate">
             Yellow Fever, Meningitis, dll
           </div>
         </div>
 
         <!-- 6. Kepatuhan Pelaporan -->
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200/90 dark:border-[#232a36] rounded-2xl p-4 shadow-xs relative overflow-hidden group hover:border-emerald-500/40 transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[11px] font-mono">
+        <div class="clinical-kpi relative overflow-hidden">
+          <div class="flex items-center justify-between text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
             <span>KELENGKAPAN</span>
-            <div class="w-7 h-7 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center">
+            <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
               <CalendarCheck class="w-3.5 h-3.5" />
             </div>
           </div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-2 font-mono">
+          <div class="text-xl font-bold text-slate-900 mt-1.5 clinical-num">
             {{ kpi.compliance_rate || 0 }}%
           </div>
-          <div class="text-[10px] text-slate-400 mt-1 truncate">
+          <div class="text-[10px] text-slate-400 mt-0.5 truncate clinical-num">
             {{ kpi.submitted_reports_count }} / {{ kpi.total_possible_reports }} bulan terisi
           </div>
         </div>
       </div>
 
       <!-- Charts Row 1: Traffic Trend (Line) & Document Composition (Pie) -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <!-- Monthly Traffic Trend Chart (Span 2 cols) -->
-        <div class="lg:col-span-2 bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+        <div class="lg:col-span-2 clinical-surface p-4 flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between mb-1">
               <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#00A99D]"></span>
-                <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                <span class="w-2 h-2 rounded-full bg-[#00A99D]"></span>
+                <h2 class="text-sm font-bold text-slate-900">
                   Tren Bulanan Pengawasan Alat Angkut &amp; Orang ({{ year }})
                 </h2>
               </div>
-              <span class="text-xs text-slate-400 font-mono">12 Bulan</span>
+              <span class="text-[11px] text-slate-400 font-mono">12 Bulan</span>
             </div>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">
+            <p class="text-xs text-slate-500 mb-3">
               Dinamika volume kedatangan/keberangkatan pesawat, kapal laut, penumpang, dan kru sepanjang tahun.
             </p>
           </div>
 
-          <div class="w-full h-[320px]">
-            <BaseChart :option="trafficOption" height="320px" />
+          <div class="w-full h-[300px]">
+            <BaseChart :option="trafficOption" height="300px" />
           </div>
         </div>
 
         <!-- Document & Certificate Composition (Pie Chart) -->
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+        <div class="clinical-surface p-4 flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between mb-1">
               <div class="flex items-center gap-2">

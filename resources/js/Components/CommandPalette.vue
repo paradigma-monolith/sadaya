@@ -329,21 +329,21 @@ onUnmounted(() => {
       
       <!-- Command Palette Content Modal -->
       <DialogContent 
-        class="fixed left-1/2 top-24 z-50 w-full max-w-xl -translate-x-1/2 rounded-2xl border border-slate-200/90 bg-white shadow-2xl p-0 overflow-hidden ring-1 ring-slate-900/5 outline-none animate-in fade-in-0 zoom-in-95 duration-150"
+        class="fixed left-1/2 top-20 z-50 w-full max-w-lg -translate-x-1/2 rounded-xl border border-slate-200 bg-white shadow-xl p-0 overflow-hidden outline-none animate-in fade-in-0 zoom-in-95 duration-150"
         @keydown="onKeyDown"
       >
         <DialogTitle class="sr-only">Command Palette Global Search</DialogTitle>
         <DialogDescription class="sr-only">Cari menu, tindakan, dan record sistem secara instan</DialogDescription>
 
         <!-- Search Input Bar -->
-        <div class="relative flex items-center border-b border-slate-100 px-4 py-3.5 font-sans">
-          <Search class="w-4 h-4 text-[#00A99D] shrink-0 mr-3" />
+        <div class="relative flex items-center border-b border-slate-200/80 px-3.5 py-2.5 font-sans">
+          <Search class="w-4 h-4 text-[#00A99D] shrink-0 mr-2.5" />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
             type="text"
             placeholder="Ketik untuk mencari (menu, aksi, wilayah kerja)..."
-            class="w-full bg-transparent text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
+            class="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
             autocomplete="off"
             spellcheck="false"
           />
@@ -353,16 +353,16 @@ onUnmounted(() => {
           <button 
             type="button"
             @click="close"
-            class="shrink-0 p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            class="shrink-0 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X class="w-4 h-4" />
           </button>
         </div>
 
         <!-- Results List -->
-        <div class="max-h-80 overflow-y-auto p-2 divide-y divide-slate-100 font-sans">
-          <div v-if="flatItems.length === 0" class="py-12 text-center text-sm text-slate-400">
-            <Sparkles class="w-8 h-8 text-slate-300 mx-auto mb-2" />
+        <div class="max-h-72 overflow-y-auto p-1.5 divide-y divide-slate-100 font-sans">
+          <div v-if="flatItems.length === 0" class="py-10 text-center text-xs text-slate-400">
+            <Sparkles class="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
             <p>Tidak ada hasil untuk "<span class="font-semibold text-slate-700">{{ searchQuery }}</span>"</p>
           </div>
 
@@ -373,15 +373,15 @@ onUnmounted(() => {
               type="button"
               @click="item.action()"
               @mouseenter="activeIndex = idx"
-              class="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all cursor-pointer group"
+              class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer group"
               :class="activeIndex === idx ? 'bg-[#E6F7F5] text-[#005851]' : 'text-slate-600 hover:bg-slate-50'"
             >
-              <div class="flex items-center gap-3 min-w-0">
+              <div class="flex items-center gap-2.5 min-w-0">
                 <div 
-                  class="p-2 rounded-lg shrink-0 transition-colors"
-                  :class="activeIndex === idx ? 'bg-[#00A99D] text-white shadow-xs' : 'bg-slate-100 text-slate-500'"
+                  class="p-1.5 rounded-md shrink-0 transition-colors"
+                  :class="activeIndex === idx ? 'bg-[#005851] text-white' : 'bg-slate-100 text-slate-500'"
                 >
-                  <component :is="item.icon" class="w-4 h-4" />
+                  <component :is="item.icon" class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
                   <div class="text-xs font-semibold text-slate-900 truncate">{{ item.title }}</div>
@@ -389,8 +389,8 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <div class="flex items-center gap-2 shrink-0 ml-3">
-                <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-md bg-white text-[#005851] border border-[#99DFD6]">
+              <div class="flex items-center gap-2 shrink-0 ml-2.5">
+                <span class="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white text-[#005851] border border-[#99DFD6]/80">
                   {{ item.category }}
                 </span>
                 <CornerDownLeft v-if="activeIndex === idx" class="w-3.5 h-3.5 text-[#00A99D]" />

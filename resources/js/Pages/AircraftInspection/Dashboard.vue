@@ -235,133 +235,135 @@ const actionsOption = computed(() => {
   <Head title="Dashboard Inspeksi Sanitasi Pesawat &bull; BKK Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="aircraft-dashboard">
-    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+    <main class="clinical-main">
 
-      <!-- Clean Light Hero Banner -->
-      <div class="relative bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 shadow-xs">
-        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div>
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 mb-3">
-              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <span>Telemetri Kekarantinaan Kesehatan Udara &bull; BKK Kelas I Bandung</span>
+      <!-- Clinical Header Banner -->
+      <div class="clinical-header flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-[#002B27] border border-[#00A99D]/40 text-[#99CC33] flex items-center justify-center shrink-0">
+            <Plane class="w-4 h-4" />
+          </div>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-sm sm:text-[15px] font-bold text-white tracking-tight">
+                Dashboard Analisis Sanitasi Pesawat
+              </h1>
+              <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#002B27]/80 text-[#99DFD6] border border-[#00A99D]/30">
+                IHR 2005
+              </span>
             </div>
-
-            <h1 class="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-              Dashboard Analisis Sanitasi Pesawat
-            </h1>
-            <p class="mt-1.5 text-slate-500 text-sm max-w-2xl leading-relaxed">
-              Pemantauan kepatuhan standar International Health Regulations (IHR 2005) dan kelaikan sanitasi seluruh armada penerbangan di wilayah kerja Balai Kekarantinaan Kesehatan Kelas I Bandung.
+            <p class="mt-0.5 text-[11px] text-slate-200/85 truncate">
+              Pemantauan kepatuhan standar IHR 2005 dan kelaikan sanitasi armada penerbangan wilayah kerja BKK Bandung.
             </p>
           </div>
+        </div>
 
-          <!-- Quick Navigation Buttons -->
-          <div class="flex flex-wrap items-center gap-2.5">
-            <Link
-              href="/aircraft-inspections"
-              class="px-4 py-2 rounded-xl font-semibold text-xs text-white bg-slate-900 hover:bg-slate-800 transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-            >
-              <ListOrdered class="w-4 h-4" />
-              <span>Kelola Data Inspeksi</span>
-              <ArrowRight class="w-3.5 h-3.5" />
-            </Link>
+        <!-- Quick Navigation Buttons -->
+        <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+          <Link
+            href="/aircraft-inspections"
+            class="px-3 py-1.5 rounded-lg font-semibold text-xs text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-colors flex items-center gap-1.5 cursor-pointer"
+          >
+            <ListOrdered class="w-3.5 h-3.5 text-[#99DFD6]" />
+            <span>Kelola Data</span>
+            <ArrowRight class="w-3 h-3" />
+          </Link>
 
-            <a
-              href="/travelconsent/public_aircraft"
-              target="_blank"
-              class="px-4 py-2 rounded-xl font-semibold text-xs text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-colors flex items-center gap-1.5"
-            >
-              <Plus class="w-4 h-4 text-emerald-600" />
-              <span>Buka Form Publik ↗</span>
-            </a>
-          </div>
+          <a
+            href="/travelconsent/public_aircraft"
+            target="_blank"
+            class="px-3 py-1.5 rounded-lg font-semibold text-xs text-white bg-[#00A99D] hover:bg-[#009388] transition-colors flex items-center gap-1.5"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            <span>Form Publik ↗</span>
+          </a>
         </div>
       </div>
 
       <!-- 4 Top Stat Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <!-- Total Inspections -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
-          <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-            <span>VOLUME INSPEKSI</span>
-            <Plane class="w-4 h-4 text-emerald-600" />
+        <div class="clinical-kpi">
+          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold uppercase tracking-wider">
+            <span>Volume Inspeksi</span>
+            <Plane class="w-3.5 h-3.5 text-[#00A99D]" />
           </div>
-          <div class="text-3xl font-bold text-slate-900 mt-2">
+          <div class="text-2xl font-bold text-slate-900 mt-1.5 font-mono clinical-num">
             {{ stats.total }}
           </div>
-          <div class="text-xs text-slate-400 mt-1 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Total seluruh inspeksi terdaftar</span>
+          <div class="text-[11px] text-slate-500 mt-0.5">
+            Total seluruh inspeksi terdaftar
           </div>
         </div>
 
         <!-- Compliance Rate -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
-          <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-            <span>KEPATUHAN KELAIKAN</span>
-            <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+        <div class="clinical-kpi">
+          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold uppercase tracking-wider">
+            <span>Kepatuhan Kelaikan</span>
+            <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
           </div>
-          <div class="text-3xl font-bold text-emerald-600 mt-2">
+          <div class="text-2xl font-bold text-[#005851] mt-1.5 font-mono clinical-num">
             {{ stats.compliance_rate }}%
           </div>
-          <div class="text-xs text-slate-400 mt-1">
+          <div class="text-[11px] text-slate-500 mt-0.5 clinical-num">
             {{ stats.layak_count }} dari {{ stats.total }} pesawat layak
           </div>
         </div>
 
         <!-- Unqualified / Defect -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
-          <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-            <span>PERLU TINDAKAN</span>
-            <AlertTriangle class="w-4 h-4 text-rose-500" />
+        <div class="clinical-kpi">
+          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold uppercase tracking-wider">
+            <span>Perlu Tindakan</span>
+            <AlertTriangle class="w-3.5 h-3.5 text-rose-500" />
           </div>
-          <div class="text-3xl font-bold text-rose-600 mt-2">
+          <div class="text-2xl font-bold text-rose-600 mt-1.5 font-mono clinical-num">
             {{ stats.tidak_layak_count }}
           </div>
-          <div class="text-xs text-rose-500 mt-1">
+          <div class="text-[11px] text-rose-600 mt-0.5">
             Disinseksi / Fumigasi / Disinfeksi
           </div>
         </div>
 
         <!-- Inspeksi Hari Ini -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
-          <div class="flex items-center justify-between text-slate-400 text-[11px] font-semibold uppercase tracking-wider">
-            <span>INSPEKSI HARI INI</span>
-            <Activity class="w-4 h-4 text-blue-600" />
+        <div class="clinical-kpi">
+          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold uppercase tracking-wider">
+            <span>Inspeksi Hari Ini</span>
+            <Activity class="w-3.5 h-3.5 text-[#00A99D]" />
           </div>
-          <div class="text-3xl font-bold text-slate-900 mt-2">
+          <div class="text-2xl font-bold text-slate-900 mt-1.5 font-mono clinical-num">
             {{ stats.today_count }}
           </div>
-          <div class="text-xs text-slate-400 mt-1">
+          <div class="text-[11px] text-slate-500 mt-0.5">
             Pesawat mendarat &amp; diperiksa hari ini
           </div>
         </div>
       </div>
 
       <!-- Charts Row 1: 14-Day Trend & Donut Ratio -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <!-- 14-Day Trend Area Chart -->
-        <div class="lg:col-span-2 bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-6 shadow-xs">
-          <div class="flex items-center justify-between mb-4">
+        <div class="lg:col-span-2 clinical-surface p-4">
+          <div class="flex items-center justify-between mb-3">
             <div>
-              <h2 class="text-base font-bold text-slate-900 dark:text-white">
+              <h2 class="text-sm font-bold text-slate-900">
                 Tren Inspeksi Sanitasi 14 Hari Terakhir
               </h2>
               <p class="text-xs text-slate-500 mt-0.5">
                 Fluktuasi volume inspeksi, pesawat layak, dan pesawat yang memerlukan penyehatan
               </p>
             </div>
-            <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-orange-500/15 text-orange-400 font-semibold border border-orange-500/40">
+            <span class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-teal-50 text-[#005851] font-semibold border border-teal-200">
               14 Hari
             </span>
           </div>
 
-          <BaseChart :option="trendOption" height="340px" />
+          <BaseChart :option="trendOption" height="320px" />
         </div>
 
         <!-- Donut Compliance Ratio -->
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-6 shadow-xs flex flex-col justify-between">
+        <div class="clinical-surface p-4 flex flex-col justify-between">
           <div>
-            <h2 class="text-base font-bold text-slate-900 dark:text-white">
+            <h2 class="text-sm font-bold text-slate-900">
               Proporsi Kelaikan Terbang
             </h2>
             <p class="text-xs text-slate-500 mt-0.5">
@@ -369,23 +371,23 @@ const actionsOption = computed(() => {
             </p>
           </div>
 
-          <div class="py-2">
-            <BaseChart :option="ratioOption" height="280px" />
+          <div class="py-1.5">
+            <BaseChart :option="ratioOption" height="270px" />
           </div>
 
-          <div class="pt-3 border-t border-slate-100 dark:border-[#1e2530] text-xs text-slate-500 text-center">
+          <div class="pt-2.5 border-t border-slate-100 text-[11px] text-slate-500 text-center">
             Standar Bebas Vektor Penyakit &bull; Permenkes 2024
           </div>
         </div>
       </div>
 
       <!-- Charts Row 2: Airline Breakdown & Measures Applied -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <!-- Airline Breakdown -->
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-6 shadow-xs">
-          <div class="flex items-center justify-between mb-4">
+        <div class="clinical-surface p-4">
+          <div class="flex items-center justify-between mb-3">
             <div>
-              <h2 class="text-base font-bold text-slate-900 dark:text-white">
+              <h2 class="text-sm font-bold text-slate-900">
                 Volume Inspeksi per Maskapai / Operator
               </h2>
               <p class="text-xs text-slate-500 mt-0.5">
@@ -394,14 +396,14 @@ const actionsOption = computed(() => {
             </div>
           </div>
 
-          <BaseChart :option="airlineOption" height="300px" />
+          <BaseChart :option="airlineOption" height="280px" />
         </div>
 
         <!-- Measures Applied -->
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-6 shadow-xs">
-          <div class="flex items-center justify-between mb-4">
+        <div class="clinical-surface p-4">
+          <div class="flex items-center justify-between mb-3">
             <div>
-              <h2 class="text-base font-bold text-slate-900 dark:text-white">
+              <h2 class="text-sm font-bold text-slate-900">
                 Tindakan Penyehatan yang Diterapkan
               </h2>
               <p class="text-xs text-slate-500 mt-0.5">
@@ -410,15 +412,15 @@ const actionsOption = computed(() => {
             </div>
           </div>
 
-          <BaseChart :option="actionsOption" height="300px" />
+          <BaseChart :option="actionsOption" height="280px" />
         </div>
       </div>
 
       <!-- Recent Inspections Summary Table -->
-      <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl p-6 shadow-xs">
-        <div class="flex items-center justify-between mb-4">
+      <div class="clinical-surface p-4">
+        <div class="flex items-center justify-between mb-3">
           <div>
-            <h2 class="text-base font-bold text-slate-900 dark:text-white">
+            <h2 class="text-sm font-bold text-slate-900">
               Inspeksi Sanitasi Terbaru
             </h2>
             <p class="text-xs text-slate-500 mt-0.5">
@@ -428,7 +430,7 @@ const actionsOption = computed(() => {
 
           <Link
             href="/aircraft-inspections"
-            class="text-xs font-semibold text-orange-500 hover:text-orange-400 flex items-center gap-1"
+            class="text-xs font-semibold text-[#005851] hover:text-[#004640] flex items-center gap-1"
           >
             <span>Lihat Semua Data</span>
             <ArrowRight class="w-3.5 h-3.5" />

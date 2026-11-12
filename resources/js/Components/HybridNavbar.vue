@@ -79,8 +79,37 @@ const activeNav = computed(() => {
   if (p.includes('/sivera') || p.includes('/prl/sivera')) return 'sivera';
   if (p.includes('/audit-logs')) return 'audit';
   if (p.includes('/profile')) return 'profile';
+  if (p.includes('/ship-surveillance')) return 'ship-surveillance';
+  if (p.includes('/database-import')) return 'database-import';
   if (p.includes('/inertia/dashboard') || p === '/' || p.endsWith('/public') || p.endsWith('/public/')) return 'dashboard';
   return '';
+});
+
+const breadcrumbLabel = computed(() => {
+  const labels = {
+    dashboard: 'Command Center',
+    home: 'Command Center',
+    audit: 'Audit Trail Sistem',
+    profile: 'Profil Akun',
+    'sinkarkes-daily': 'Input Harian SINKARKES',
+    'sinkarkes-dashboard': 'Analitik SINKARKES',
+    sinkarkes: 'Formulir Laporan SINKARKES',
+    'travel-consent': 'Travel Consent Hub',
+    'ship-surveillance': 'TANGKAP Surveillance',
+    'aircraft-dashboard': 'Dashboard Inspeksi Pesawat',
+    'aircraft-index': 'Data Inspeksi Pesawat',
+    'ship-inspections': 'Inspeksi Sanitasi Kapal',
+    'flight-medical-alat': 'Pemakaian Alkes P3K',
+    'flight-medical-obat': 'Pemakaian Obat P3K',
+    'sanitasi-tpp': 'Sanitasi TPP',
+    'sanitasi-sab': 'Sanitasi SAB',
+    'sanitasi-hsbu': 'Sanitasi HSBU',
+    sanitasi: 'Sanitasi Lingkungan',
+    sivera: 'SIVERA',
+    'database-import': 'Import Database',
+    spa: 'Workspace SPA',
+  };
+  return labels[activeNav.value] || 'Portal Karantina Kesehatan';
 });
 
 // Dynamic brand pill badge depending on context (SPA Mode, Inertia Bridge)
@@ -365,7 +394,7 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f8fafc] text-slate-900 selection:bg-emerald-500 selection:text-white flex flex-col">
+  <div class="min-h-screen bg-[#f4f7f9] text-slate-900 selection:bg-[#00A99D] selection:text-white flex flex-col">
     <!-- Enterprise Persistent Sidebar Navigation -->
     <AdminSidebar 
       :mode="mode" 
@@ -374,29 +403,29 @@ const handleLogout = () => {
 
     <!-- Main Layout Wrapper (Auto-offset for persistent desktop sidebar) -->
     <div 
-      class="flex-1 flex flex-col transition-all duration-300 w-full"
-      :class="isCollapsed ? 'lg:pl-16' : 'lg:pl-72'"
+      class="flex-1 flex flex-col transition-all duration-200 w-full"
+      :class="isCollapsed ? 'lg:pl-[60px]' : 'lg:pl-64'"
     >
-      <!-- Top Navbar Header (Clean White Executive Style matching Reference Image 1) -->
-      <header class="sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/80">
+      <!-- Top Navbar Header (Enterprise Clinical Compact) -->
+      <header class="sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90">
         <!-- User Impersonation Alert Banner -->
-        <div v-if="currentUser?.is_impersonating" class="bg-amber-500 text-white font-medium text-xs px-4 py-1.5 flex items-center justify-between shadow-xs">
+        <div v-if="currentUser?.is_impersonating" class="bg-amber-500 text-white font-medium text-xs px-4 py-1 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span>⚠️ Anda sedang login sebagai <strong>{{ currentUser.name }}</strong> (Mode Impersonasi)</span>
           </div>
-          <a :href="getUrl('/impersonate/leave')" class="px-2.5 py-0.5 rounded-md bg-slate-900 text-white text-[11px] font-semibold hover:bg-slate-800 transition-colors">
+          <a :href="getUrl('/impersonate/leave')" class="px-2 py-0.5 rounded bg-slate-900 text-white text-[11px] font-semibold hover:bg-slate-800 transition-colors">
             Kembali ke Super Admin ✕
           </a>
         </div>
 
-        <div class="w-full px-4 sm:px-6 lg:px-8">
-          <div class="flex items-center justify-between h-14">
-            <!-- Left: Single Clean Sidebar Toggle & Mobile-Only Brand (No Duplicate Logo Next to Sidebar) -->
-            <div class="flex items-center gap-3 shrink-0">
+        <div class="w-full px-3 sm:px-5 lg:px-6">
+          <div class="flex items-center justify-between h-12">
+            <!-- Left: Single Clean Sidebar Toggle & Context Breadcrumb -->
+            <div class="flex items-center gap-2.5 shrink-0 min-w-0">
               <button
                 type="button"
                 @click="handleSidebarToggle"
-                class="p-2 rounded-lg text-slate-500 hover:text-slate-900 bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs transition-all cursor-pointer flex items-center justify-center shrink-0"
+                class="p-1.5 rounded-md text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition-colors cursor-pointer flex items-center justify-center shrink-0"
                 :title="isCollapsed ? 'Perluas Sidebar (Ctrl+B)' : 'Ciutkan Sidebar (Ctrl+B)'"
               >
                 <Menu class="w-4 h-4" />
@@ -407,31 +436,33 @@ const handleLogout = () => {
                 <img 
                   :src="getUrl('/images/LOGO KARANTINA.png')" 
                   alt="Logo Karantina Kesehatan" 
-                  class="h-7 w-auto max-w-[32px] object-contain shrink-0 drop-shadow-2xs"
+                  class="h-6 w-auto max-w-[28px] object-contain shrink-0"
                   onerror="this.onerror=null;this.src='/storage/images/LOGO KARANTINA.png';"
                 />
-                <span class="text-sm font-bold text-slate-900 tracking-tight">
+                <span class="text-[13px] font-bold text-slate-900 tracking-tight truncate">
                   BKK Kelas I Bandung
                 </span>
               </a>
 
-              <!-- Desktop Clean Context Label (Replaces redundant second BKK logo) -->
+              <!-- Desktop Clean Dynamic Breadcrumb -->
               <div class="hidden lg:flex items-center gap-2 text-xs text-slate-500">
-                <span class="font-semibold text-slate-800">Command Center</span>
+                <span class="font-bold text-[#005851] tracking-tight">SADAYA</span>
                 <span class="text-slate-300">/</span>
-                <span class="text-slate-500">Wilayah Kerja Jawa Barat</span>
+                <span class="font-medium text-slate-700">{{ breadcrumbLabel }}</span>
+                <span class="text-slate-300">·</span>
+                <span class="text-[11px] text-slate-400">Wilayah Kerja Jawa Barat</span>
               </div>
             </div>
 
-            <!-- Center Navigation Links (Harmonized with Kemenkes Turquoise & Dark Teal) -->
-            <nav class="hidden lg:flex items-center gap-6 text-xs h-14 shrink-0 font-sans">
+            <!-- Center Navigation Links (Compact Enterprise Tabs) -->
+            <nav class="hidden lg:flex items-center gap-5 text-xs h-12 shrink-0 font-sans">
               <a
                 :href="getUrl('/inertia/dashboard')" 
                 @click="handleNav('/inertia/dashboard', $event)"
-                class="h-full inline-flex items-center px-1 border-b-2 transition-all cursor-pointer"
+                class="h-full inline-flex items-center px-1 border-b-2 transition-colors cursor-pointer"
                 :class="(!isSpa && (activeNav === 'dashboard' || activeNav === 'home'))
-                  ? 'border-[#00A99D] text-[#005851] font-bold'
-                  : 'border-transparent text-slate-500 hover:text-[#00A99D] hover:border-[#99DFD6] font-medium'"
+                  ? 'border-[#00A99D] text-[#005851] font-semibold'
+                  : 'border-transparent text-slate-500 hover:text-[#005851] hover:border-[#99DFD6] font-medium'"
               >
                 Dashboard
               </a>
@@ -439,36 +470,36 @@ const handleLogout = () => {
               <a
                 :href="getUrl('/audit-logs')" 
                 @click="handleNav('/audit-logs', $event)"
-                class="h-full inline-flex items-center px-1 border-b-2 transition-all cursor-pointer"
+                class="h-full inline-flex items-center px-1 border-b-2 transition-colors cursor-pointer"
                 :class="(!isSpa && activeNav === 'audit')
-                  ? 'border-[#00A99D] text-[#005851] font-bold'
-                  : 'border-transparent text-slate-500 hover:text-[#00A99D] hover:border-[#99DFD6] font-medium'"
+                  ? 'border-[#00A99D] text-[#005851] font-semibold'
+                  : 'border-transparent text-slate-500 hover:text-[#005851] hover:border-[#99DFD6] font-medium'"
               >
                 Audit Trail
               </a>
             </nav>
 
             <!-- Right Side: Search, Generate Report Pill, Notifications & User Avatar -->
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1.5 shrink-0">
 
               <!-- Command Palette Trigger Button (Ctrl + K) -->
               <button
                 type="button"
                 @click="openCommandPalette"
-                class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-[#E6F7F5] hover:text-[#005851] text-slate-500 text-xs border border-slate-200/90 transition-all cursor-pointer"
+                class="flex items-center gap-2 px-2 py-1 rounded-md bg-slate-50 hover:bg-[#E6F7F5]/70 hover:text-[#005851] text-slate-500 text-xs border border-slate-200/90 transition-colors cursor-pointer"
                 title="Buka Pencarian Cepat (Ctrl+K)"
               >
                 <Search class="w-3.5 h-3.5 text-slate-400" />
-                <span class="hidden md:inline text-[11px] font-medium">Search...</span>
-                <kbd class="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-mono bg-white border border-slate-200 rounded text-slate-400">⌘K</kbd>
+                <span class="hidden md:inline text-[11px] font-medium">Cari modul...</span>
+                <kbd class="hidden md:inline-flex items-center px-1 py-0.2 text-[10px] font-mono bg-white border border-slate-200 rounded text-slate-400">⌘K</kbd>
               </button>
 
-              <!-- Generate Report Button (Official Kemenkes Turquoise Action Button) -->
+              <!-- Generate Report Button -->
               <a
                 :href="getUrl('/exports/audit-logs/pdf')"
-                class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00A99D] hover:bg-[#009388] text-white border border-[#00A99D] text-xs font-semibold shadow-xs hover:shadow transition-all"
+                class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#005851] hover:bg-[#004640] text-white text-[11px] font-semibold transition-colors"
               >
-                <span>Generate Report</span>
+                <span>Export PDF</span>
               </a>
 
               <!-- Notification Bell Dropdown -->
@@ -476,11 +507,11 @@ const handleLogout = () => {
                 <button
                   type="button"
                   @click="toggleNotifications"
-                  class="relative p-1.5 rounded-lg text-slate-500 hover:text-[#005851] bg-white hover:bg-[#E6F7F5] border border-slate-200 transition-all cursor-pointer"
+                  class="relative p-1.5 rounded-md text-slate-500 hover:text-[#005851] bg-white hover:bg-slate-50 border border-slate-200/90 transition-colors cursor-pointer"
                   title="Notifikasi Real-Time"
                 >
-                  <Bell class="w-4 h-4" />
-                  <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-4 h-4 bg-[#00A99D] text-white rounded-full text-[9px] font-bold flex items-center justify-center ring-1 ring-white">
+                  <Bell class="w-3.5 h-3.5" />
+                  <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#00A99D] text-white rounded-full text-[9px] font-bold flex items-center justify-center ring-1 ring-white tabular-nums">
                     {{ unreadCount > 9 ? '9+' : unreadCount }}
                   </span>
                 </button>

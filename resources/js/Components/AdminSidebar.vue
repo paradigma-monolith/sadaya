@@ -337,33 +337,33 @@ const navSections = computed(() => {
 
     <!-- Sidebar Aside Element (Clean White Theme matching Reference Image 2) -->
     <aside
-      class="fixed top-0 bottom-0 left-0 z-40 bg-white border-r border-slate-200/80 flex flex-col transition-all duration-300 font-sans shadow-xl lg:shadow-none"
+      class="fixed top-0 bottom-0 left-0 z-40 bg-white border-r border-slate-200/90 flex flex-col transition-all duration-200 font-sans shadow-xl lg:shadow-none"
       :class="[
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
-        isCollapsed ? 'w-16' : 'w-72 max-w-[85vw]',
+        isCollapsed ? 'w-[60px]' : 'w-64 max-w-[85vw]',
       ]"
     >
       <!-- Sidebar Header -->
       <div
-        class="h-14 border-b border-slate-200/80 flex items-center"
-        :class="isCollapsed ? 'justify-center px-2' : 'justify-between px-4'"
+        class="h-12 border-b border-slate-200/90 flex items-center shrink-0"
+        :class="isCollapsed ? 'justify-center px-2' : 'justify-between px-3.5'"
       >
         <a
           :href="getUrl('/')"
           @click="handleNavClick('/', false, $event)"
-          class="flex items-center gap-2.5 overflow-hidden group cursor-pointer"
+          class="flex items-center gap-2 overflow-hidden group cursor-pointer"
           :class="isCollapsed ? 'justify-center' : ''"
-          title="Kementerian Kesehatan RI &bull; BKK Kelas I Bandung"
+          title="Kementerian Kesehatan RI • BKK Kelas I Bandung"
         >
           <img 
             :src="getUrl('/images/LOGO KARANTINA.png')" 
             alt="Logo Karantina Kesehatan" 
-            class="h-8 w-auto max-w-[36px] object-contain flex-shrink-0 transition-transform group-hover:scale-105 drop-shadow-2xs"
+            class="h-7 w-auto max-w-[30px] object-contain flex-shrink-0 transition-transform group-hover:scale-105"
             onerror="this.onerror=null;this.src='/storage/images/LOGO KARANTINA.png';"
           />
 
-          <div v-if="!isCollapsed" class="transition-opacity duration-200 min-w-0">
-            <span class="block text-sm font-bold text-slate-900 tracking-tight group-hover:text-[#00A99D] transition-colors truncate">
+          <div v-if="!isCollapsed" class="transition-opacity duration-200 min-w-0 leading-tight">
+            <span class="block text-[13px] font-bold text-slate-900 tracking-tight group-hover:text-[#00A99D] transition-colors truncate">
               BKK Kelas I Bandung
             </span>
             <span class="block text-[10px] text-slate-500 font-medium truncate">
@@ -376,7 +376,7 @@ const navSections = computed(() => {
         <button
           type="button"
           @click="closeMobile"
-          class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+          class="lg:hidden p-1 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
           title="Tutup Navigasi"
         >
           <X class="w-4 h-4" />
@@ -384,15 +384,15 @@ const navSections = computed(() => {
       </div>
 
       <!-- Navigation Links Container -->
-      <div class="flex-1 overflow-y-auto px-3 py-3 space-y-3">
-        <div v-for="(section, sIndex) in navSections" :key="sIndex" class="space-y-1">
+      <div class="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-2">
+        <div v-for="(section, sIndex) in navSections" :key="sIndex" class="space-y-0.5">
           <!-- Collapsed Mode Thin Divider -->
-          <div v-if="isCollapsed" class="h-[1px] bg-slate-100 my-2 mx-1"></div>
+          <div v-if="isCollapsed" class="h-[1px] bg-slate-100 my-1.5 mx-1"></div>
 
           <!-- Non-collapsible Section Header (e.g. MENU UTAMA) -->
           <div 
             v-else-if="section.collapsible === false" 
-            class="px-2.5 pt-1 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-snug"
+            class="px-2 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-snug"
           >
             {{ section.title }}
           </div>
@@ -402,15 +402,15 @@ const navSections = computed(() => {
             v-else
             type="button"
             @click="toggleSection(section.title)"
-            class="w-full flex items-start justify-between px-2.5 py-2 rounded-lg text-[10.5px] font-bold uppercase tracking-wider transition-all cursor-pointer group text-left select-none"
+            class="w-full flex items-start justify-between px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer group text-left select-none"
             :class="[
               isSectionOpen(section) 
-                ? 'bg-slate-100/80 text-slate-800' 
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                ? 'bg-slate-50 text-slate-800' 
+                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50/70'
             ]"
             :title="`Klik untuk ${isSectionOpen(section) ? 'menutup' : 'membuka'} menu`"
           >
-            <div class="flex items-start gap-2 min-w-0 flex-1 pr-1.5">
+            <div class="flex items-start gap-1.5 min-w-0 flex-1 pr-1">
               <component 
                 v-if="section.icon"
                 :is="section.icon"
@@ -424,15 +424,15 @@ const navSections = computed(() => {
                 title="Bagian ini berisi menu yang sedang aktif"
               ></span>
             </div>
-            <div class="flex items-center gap-1 shrink-0 ml-1.5 mt-0.5">
+            <div class="flex items-center gap-1 shrink-0 ml-1 mt-0.5">
               <span 
                 v-if="section.items?.length"
-                class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-600 group-hover:bg-slate-300 group-hover:text-slate-800 transition-colors"
+                class="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-200/70 text-slate-600 group-hover:bg-slate-300/80 transition-colors tabular-nums"
               >
                 {{ section.items.length }}
               </span>
               <ChevronDown 
-                class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 shrink-0"
+                class="w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 shrink-0"
                 :class="isSectionOpen(section) ? 'rotate-180 text-slate-700' : ''"
               />
             </div>
@@ -451,7 +451,7 @@ const navSections = computed(() => {
               v-show="isCollapsed || isSectionOpen(section)"
               :class="[
                 !isCollapsed && section.collapsible !== false 
-                  ? 'ml-2 pl-2 border-l-2 border-slate-200/70 space-y-0.5 mt-0.5' 
+                  ? 'ml-2 pl-2 border-l border-slate-200/80 space-y-0.5 mt-0.5' 
                   : 'space-y-0.5'
               ]"
             >
@@ -461,30 +461,30 @@ const navSections = computed(() => {
                   <button
                     type="button"
                     @click="toggleSubMenu(item.name)"
-                    class="w-full flex items-center justify-between rounded-lg text-xs transition-all group relative cursor-pointer px-2.5 py-2 text-left select-none"
+                    class="w-full flex items-center justify-between rounded-md text-xs transition-colors group relative cursor-pointer px-2.5 py-1.5 text-left select-none"
                     :class="[
                       (item.active || item.children.some(c => c.active))
-                        ? 'bg-[#E6F7F5] text-[#005851] font-bold border border-[#99DFD6]'
-                        : 'text-slate-600 hover:text-[#005851] hover:bg-[#F0FDFB] font-medium border border-transparent'
+                        ? 'bg-[#E6F7F5]/90 text-[#005851] font-semibold'
+                        : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50 font-medium'
                     ]"
                   >
                     <!-- Left Active Indicator Bar -->
-                    <span v-if="item.active || item.children.some(c => c.active)" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#00A99D] rounded-r-full"></span>
+                    <span v-if="item.active || item.children.some(c => c.active)" class="absolute left-0 top-1 bottom-1 w-[3px] bg-[#00A99D] rounded-r-full"></span>
 
-                    <div class="flex items-center gap-2.5 min-w-0 flex-1">
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
                       <component 
                         :is="item.icon" 
-                        class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105"
+                        class="w-3.5 h-3.5 flex-shrink-0 transition-transform"
                         :class="(item.active || item.children.some(c => c.active)) ? item.iconColor : `${item.iconColor} opacity-80 group-hover:opacity-100`"
                       />
-                      <span class="leading-snug break-words whitespace-normal text-xs">{{ item.name }}</span>
+                      <span class="leading-snug break-words whitespace-normal text-[12px]">{{ item.name }}</span>
                     </div>
-                    <div class="flex items-center gap-1.5 shrink-0 ml-1.5">
-                      <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-slate-200/80 text-slate-600 group-hover:bg-slate-300">
+                    <div class="flex items-center gap-1 shrink-0 ml-1">
+                      <span class="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-200/70 text-slate-600 tabular-nums">
                         {{ item.children.length }}
                       </span>
                       <ChevronDown 
-                        class="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-transform duration-200"
+                        class="w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200"
                         :class="isSubMenuOpen(item) ? 'rotate-180 text-emerald-700' : ''"
                       />
                     </div>
@@ -499,17 +499,17 @@ const navSections = computed(() => {
                     leave-from-class="max-h-[300px] opacity-100 translate-y-0"
                     leave-to-class="max-h-0 opacity-0 -translate-y-1"
                   >
-                    <div v-show="isSubMenuOpen(item)" class="ml-3 pl-2.5 border-l-2 border-emerald-200/80 space-y-0.5 my-1">
+                    <div v-show="isSubMenuOpen(item)" class="ml-2.5 pl-2 border-l border-emerald-200/80 space-y-0.5 my-0.5">
                       <a
                         v-for="(child, cIndex) in item.children"
                         :key="cIndex"
                         :href="child.url"
                         @click="handleNavClick(child.path, false, $event)"
-                        class="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[11px] transition-all group relative cursor-pointer"
+                        class="flex items-center gap-2 px-2 py-1 rounded-md text-[11px] transition-colors group relative cursor-pointer"
                         :class="[
                           child.active
-                            ? 'bg-[#E6F7F5] text-[#005851] font-bold border border-[#99DFD6]'
-                            : 'text-slate-600 hover:text-[#005851] hover:bg-[#F0FDFB] font-medium border border-transparent'
+                            ? 'bg-[#E6F7F5]/90 text-[#005851] font-semibold'
+                            : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50 font-medium'
                         ]"
                       >
                         <span v-if="child.active" class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0"></span>
@@ -531,31 +531,31 @@ const navSections = computed(() => {
                   :target="item.external ? '_blank' : '_self'"
                   :rel="item.external ? 'noopener noreferrer' : null"
                   @click="handleNavClick(item.path, item.external, $event)"
-                  class="flex items-start rounded-lg text-xs transition-all group relative cursor-pointer"
+                  class="flex items-start rounded-md text-[12px] transition-colors group relative cursor-pointer"
                   :class="[
-                    isCollapsed ? 'justify-center py-2.5 px-2' : 'gap-2.5 px-2.5 py-2',
+                    isCollapsed ? 'justify-center py-2 px-1.5' : 'gap-2 px-2.5 py-1.5',
                     item.active 
-                      ? 'bg-[#E6F7F5] text-[#005851] font-bold border border-[#99DFD6] shadow-2xs'
-                      : 'text-slate-600 hover:text-[#005851] hover:bg-[#F0FDFB] font-medium border border-transparent'
+                      ? 'bg-[#E6F7F5]/90 text-[#005851] font-semibold'
+                      : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50 font-medium'
                   ]"
                   :title="isCollapsed ? item.name : ''"
                 >
                   <!-- Left Active Indicator Bar -->
-                  <span v-if="item.active" class="absolute left-0 top-1.5 bottom-1.5 w-1 bg-[#00A99D] rounded-r-full"></span>
+                  <span v-if="item.active" class="absolute left-0 top-1 bottom-1 w-[3px] bg-[#00A99D] rounded-r-full"></span>
 
                   <component 
                     :is="item.icon" 
-                    class="w-4 h-4 flex-shrink-0 transition-transform group-hover:scale-105 mt-0.5"
+                    class="w-4 h-4 flex-shrink-0 transition-transform mt-0.5"
                     :class="item.active ? item.iconColor : `${item.iconColor} opacity-80 group-hover:opacity-100`"
                   />
 
                   <!-- Label -->
                   <div v-if="!isCollapsed" class="flex-1 flex items-start justify-between min-w-0">
                     <span class="leading-snug break-words whitespace-normal">{{ item.name }}</span>
-                    <div v-if="item.badge || item.external" class="flex items-center gap-1.5 shrink-0 ml-1.5 mt-0.5">
+                    <div v-if="item.badge || item.external" class="flex items-center gap-1 shrink-0 ml-1 mt-0.5">
                       <span 
                         v-if="item.badge" 
-                        class="px-1.5 py-0.5 text-[9px] font-semibold rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6] uppercase tracking-wider"
+                        class="px-1.5 py-0.2 text-[9px] font-semibold rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]/80 uppercase tracking-wider"
                       >
                         {{ item.badge }}
                       </span>
@@ -569,7 +569,7 @@ const navSections = computed(() => {
                   <!-- Tooltip Popup when collapsed -->
                   <div 
                     v-if="isCollapsed" 
-                    class="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-medium rounded-lg shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50"
+                    class="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-medium rounded-md shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50"
                   >
                     {{ item.name }}
                   </div>
@@ -581,24 +581,24 @@ const navSections = computed(() => {
       </div>
 
       <!-- Sidebar Footer: User Profile & Quick Logout -->
-      <div class="p-3 border-t border-slate-200/80 bg-slate-50/60">
-        <div class="flex items-center gap-2.5" :class="isCollapsed ? 'justify-center' : 'justify-between'">
+      <div class="p-2.5 border-t border-slate-200/80 bg-slate-50/70 shrink-0">
+        <div class="flex items-center gap-2" :class="isCollapsed ? 'justify-center' : 'justify-between'">
           <a 
             :href="getUrl('/profile')"
             @click="handleNavClick('/profile', false, $event)"
-            class="flex items-center gap-2.5 overflow-hidden group cursor-pointer"
+            class="flex items-center gap-2 overflow-hidden group cursor-pointer"
             :title="isCollapsed ? (currentUser?.name || 'Profil Akun') : ''"
           >
             <img
               :src="currentUser?.avatar_url || 'https://ui-avatars.com/api/?name=Admin&background=0f172a&color=fff'"
               :alt="currentUser?.name || 'User'"
-              class="w-8 h-8 rounded-full object-cover border border-slate-200 flex-shrink-0"
+              class="w-7 h-7 rounded-full object-cover border border-slate-200 flex-shrink-0"
             />
-            <div v-if="!isCollapsed" class="overflow-hidden text-left">
+            <div v-if="!isCollapsed" class="overflow-hidden text-left leading-tight">
               <span class="block text-xs font-semibold text-slate-800 group-hover:text-slate-950 truncate">
                 {{ currentUser?.name || 'Administrator' }}
               </span>
-              <span class="block text-[10px] text-emerald-600 font-medium truncate">
+              <span class="block text-[10px] text-[#005851] font-medium truncate">
                 {{ currentUser?.roles?.[0] || 'Superadmin' }}
               </span>
             </div>
@@ -608,7 +608,7 @@ const navSections = computed(() => {
             v-if="!isCollapsed"
             type="button"
             @click="handleLogout"
-            class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-all cursor-pointer"
+            class="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
             title="Keluar dari sesi"
           >
             <LogOut class="w-4 h-4" />

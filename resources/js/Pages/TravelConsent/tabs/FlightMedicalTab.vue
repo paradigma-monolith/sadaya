@@ -250,97 +250,97 @@ const countUsed = (items) => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-3">
     <!-- Tab Action Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
-      <div>
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold border mb-1.5" :class="cfg.badgeClass">
-          <Plane class="w-3.5 h-3.5" />
-          <span>{{ cfg.badgeLabel }}</span>
+    <div class="clinical-surface flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 py-3">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <h2 class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+            <component :is="cfg.mainIcon" class="w-4 h-4 text-[#00A99D]" />
+            <span>{{ cfg.heading }}</span>
+          </h2>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold border" :class="cfg.badgeClass">
+            {{ cfg.badgeLabel }}
+          </span>
         </div>
-        <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          {{ cfg.heading }}
-        </h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-3xl">
+        <p class="text-[11px] text-slate-500 mt-0.5">
           {{ cfg.description }}
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2.5">
+      <div class="flex flex-wrap items-center gap-1.5 shrink-0">
         <a
           :href="cfg.formUrl"
           target="_blank"
-          class="px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
-          :class="cfg.primaryBtn"
+          class="clinical-btn-primary"
         >
-          <Plus class="w-4 h-4" />
+          <Plus class="w-3.5 h-3.5" />
           <span>{{ cfg.formLabel }}</span>
         </a>
 
         <a
           :href="`/flight-medical-inspections/export?type=${type}&format=xlsx${selectedEmbarkasi ? '&embarkasi=' + encodeURIComponent(selectedEmbarkasi) : ''}${selectedStatus ? '&status=' + encodeURIComponent(selectedStatus) : ''}`"
-          class="px-3.5 py-2.5 rounded-xl font-semibold text-xs border transition-colors flex items-center gap-1.5"
-          :class="cfg.exportBtn"
+          class="clinical-btn-secondary"
           :title="cfg.exportTitle"
         >
-          <FileSpreadsheet class="w-4 h-4" :class="cfg.iconClass" />
+          <FileSpreadsheet class="w-3.5 h-3.5 text-[#005851]" />
           <span>Ekspor Excel</span>
         </a>
       </div>
     </div>
 
     <!-- Live Metric Cards Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+      <div class="clinical-kpi">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
           <span>TOTAL PEMAKAIAN</span>
-          <component :is="cfg.mainIcon" class="w-4 h-4" :class="cfg.iconClass" />
+          <component :is="cfg.mainIcon" class="w-3.5 h-3.5" :class="cfg.iconClass" />
         </div>
-        <div class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1.5">
+        <div class="text-xl font-bold text-slate-900 mt-1 font-mono clinical-num">
           {{ stats.total }}
         </div>
-        <div class="text-[11px] text-slate-400 mt-0.5">Laporan tercatat</div>
+        <div class="text-[11px] text-slate-400">Laporan tercatat</div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
+      <div class="clinical-kpi">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
           <span>KLOTER DILAYANI</span>
-          <Plane class="w-4 h-4 text-indigo-600" />
+          <Plane class="w-3.5 h-3.5 text-[#00A99D]" />
         </div>
-        <div class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1.5">
+        <div class="text-xl font-bold text-[#005851] mt-1 font-mono clinical-num">
           {{ stats.total_kloter }}
         </div>
-        <div class="text-[11px] text-indigo-500/80 mt-0.5">Embarkasi KJT &amp; JKS</div>
+        <div class="text-[11px] text-slate-500">Embarkasi KJT &amp; JKS</div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
+      <div class="clinical-kpi">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
           <span>{{ cfg.totalUsedLabel }}</span>
-          <component :is="cfg.usedIcon" class="w-4 h-4 text-amber-500" />
+          <component :is="cfg.usedIcon" class="w-3.5 h-3.5 text-amber-500" />
         </div>
-        <div class="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1.5">
+        <div class="text-xl font-bold text-amber-600 mt-1 font-mono clinical-num">
           {{ stats.total_items_used }}
         </div>
-        <div class="text-[11px] text-amber-500/80 mt-0.5">{{ cfg.totalUsedUnit }}</div>
+        <div class="text-[11px] text-amber-600">{{ cfg.totalUsedUnit }}</div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
+      <div class="clinical-kpi">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
           <span>TERVERIFIKASI</span>
-          <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+          <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
         </div>
-        <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5">
+        <div class="text-xl font-bold text-emerald-700 mt-1 font-mono clinical-num">
           {{ stats.approved_count }}
         </div>
-        <div class="text-[11px] text-emerald-600/80 mt-0.5">Disahkan karantina</div>
+        <div class="text-[11px] text-emerald-700">Disahkan karantina</div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs col-span-2 sm:col-span-1">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
+      <div class="clinical-kpi col-span-2 sm:col-span-1">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
           <span>MENUNGGU VERIFIKASI</span>
-          <FileCheck class="w-4 h-4 text-sky-500" />
+          <FileCheck class="w-3.5 h-3.5 text-sky-600" />
         </div>
-        <div class="text-2xl font-extrabold text-sky-600 dark:text-sky-400 mt-1.5">
+        <div class="text-xl font-bold text-sky-700 mt-1 font-mono clinical-num">
           {{ stats.submitted_count }}
         </div>
         <div class="text-[11px] text-sky-500/80 mt-0.5">Proses review</div>
@@ -348,16 +348,15 @@ const countUsed = (items) => {
     </div>
 
     <!-- Filters Toolbar -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
+    <div class="clinical-surface p-3 flex flex-col md:flex-row items-center justify-between gap-2.5">
       <div class="relative w-full md:w-80">
-        <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           v-model="searchInput"
           @keyup.enter="handleFilter"
           type="text"
           placeholder="Cari kloter, embarkasi, awak kabin, pelapor..."
-          class="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all"
-          :class="cfg.inputRing"
+          class="clinical-input w-full pl-9 pr-3"
         />
       </div>
 
@@ -365,8 +364,7 @@ const countUsed = (items) => {
         <select
           v-model="selectedEmbarkasi"
           @change="handleFilter"
-          class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2"
-          :class="cfg.inputRing"
+          class="clinical-input w-auto"
         >
           <option value="">Semua Embarkasi</option>
           <option v-for="emb in embarkasiList" :key="emb" :value="emb">{{ emb }}</option>
@@ -375,8 +373,7 @@ const countUsed = (items) => {
         <select
           v-model="selectedStatus"
           @change="handleFilter"
-          class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2"
-          :class="cfg.inputRing"
+          class="clinical-input w-auto"
         >
           <option value="">Semua Status</option>
           <option value="submitted">Submitted (Menunggu)</option>
@@ -388,8 +385,7 @@ const countUsed = (items) => {
         <button
           type="button"
           @click="handleFilter"
-          class="px-3.5 py-2 text-xs font-bold rounded-xl transition-colors cursor-pointer"
-          :class="cfg.primaryBtn"
+          class="clinical-btn-primary py-1.5 px-3"
         >
           Terapkan
         </button>
@@ -398,7 +394,7 @@ const countUsed = (items) => {
           v-if="searchInput || selectedEmbarkasi || selectedStatus"
           type="button"
           @click="resetFilter"
-          class="px-3 py-2 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+          class="clinical-btn-secondary py-1.5 px-2.5"
         >
           Reset
         </button>
@@ -406,40 +402,40 @@ const countUsed = (items) => {
     </div>
 
     <!-- Main Table -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+    <div class="clinical-surface overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
-            <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-950/60 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <th class="px-5 py-3.5">No. Registrasi</th>
-              <th class="px-5 py-3.5">Embarkasi &amp; Kloter</th>
-              <th class="px-5 py-3.5">Penerbangan Haji</th>
-              <th class="px-5 py-3.5">{{ cfg.colUsedLabel }}</th>
-              <th class="px-5 py-3.5">Awak Kabin &amp; Pelapor</th>
-              <th class="px-5 py-3.5">Waktu Lapor</th>
-              <th class="px-5 py-3.5">Status</th>
-              <th class="px-5 py-3.5 text-right">Aksi</th>
+            <tr class="border-b border-slate-200 bg-slate-50/90 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              <th class="px-4 py-2.5">No. Registrasi</th>
+              <th class="px-4 py-2.5">Embarkasi &amp; Kloter</th>
+              <th class="px-4 py-2.5">Penerbangan Haji</th>
+              <th class="px-4 py-2.5">{{ cfg.colUsedLabel }}</th>
+              <th class="px-4 py-2.5">Awak Kabin &amp; Pelapor</th>
+              <th class="px-4 py-2.5">Waktu Lapor</th>
+              <th class="px-4 py-2.5">Status</th>
+              <th class="px-4 py-2.5 text-right">Aksi</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody class="divide-y divide-slate-100">
             <tr
               v-for="item in inspections.data"
               :key="item.id"
-              class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+              class="hover:bg-[#F4FBF9] transition-colors"
             >
-              <td class="px-5 py-4 font-mono font-bold whitespace-nowrap" :class="cfg.regTextClass">
+              <td class="px-4 py-2.5 font-mono font-bold whitespace-nowrap text-[#005851]">
                 {{ item.registration_no }}
               </td>
 
-              <td class="px-5 py-4">
-                <div class="font-bold text-slate-900 dark:text-white">{{ item.nomor_kloter }}</div>
+              <td class="px-4 py-2.5">
+                <div class="font-bold text-slate-900">{{ item.nomor_kloter }}</div>
                 <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-1">
                   <MapPin class="w-3 h-3" :class="cfg.iconClass" />
                   <span>{{ item.embarkasi }}</span>
                 </div>
               </td>
 
-              <td class="px-5 py-4 font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap">
+              <td class="px-4 py-2.5 font-mono text-slate-700 whitespace-nowrap">
                 <div>{{ item.penerbangan_haji_h }} H / {{ item.penerbangan_haji_m }} M</div>
                 <div v-if="item.no_kontak" class="text-[10px] text-slate-400 font-sans">
                   {{ item.no_kontak }}

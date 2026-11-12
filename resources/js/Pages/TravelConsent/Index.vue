@@ -101,56 +101,62 @@ const tabs = computed(() => [
   <Head title="Travel Consent &bull; Pengawasan Alat Angkut &amp; Barang &bull; BKK Bandung" />
 
   <HybridNavbar mode="inertia" :currentRoute="`travel-consent-${currentTab}`">
-    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+    <main class="clinical-main">
 
       <!-- ==================== HEADER BAR ==================== -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
-        <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 mb-2">
-            <Ship class="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400" />
-            <span>Tim Kerja Pengawasan Faktor Risiko Kesehatan Alat Angkut dan Barang &bull; BKK Kelas I Bandung</span>
+      <div class="clinical-header flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-[#002B27] border border-[#00A99D]/40 text-[#99CC33] flex items-center justify-center shrink-0">
+            <FileCheck class="w-4 h-4" />
           </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
-            <FileCheck class="w-7 h-7 sm:w-8 sm:h-8 text-[#00A99D] shrink-0" />
-            <span>Travel Consent</span>
-          </h1>
-          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
-            Pusat layanan terpadu Data Inspeksi Pesawat, Inspeksi Sanitasi Kapal (SSCC/SSCEC), serta Pemakaian Alkes &amp; Obat P3K Penerbangan.
-          </p>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-sm sm:text-[15px] font-bold text-white tracking-tight">
+                Travel Consent Hub
+              </h1>
+              <span class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#002B27]/80 text-[#99DFD6] border border-[#00A99D]/30">
+                <Ship class="w-3 h-3 text-[#99CC33]" />
+                <span>Alat Angkut &amp; Barang</span>
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-200/85 truncate mt-0.5">
+              Data Inspeksi Pesawat, Sanitasi Kapal (SSCC/SSCEC), serta Pemakaian Alkes &amp; Obat P3K Penerbangan.
+            </p>
+          </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
           <a
             href="/travelconsent/home"
             target="_blank"
-            class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#00A99D] to-[#005851] hover:brightness-105 text-xs font-bold text-white transition shadow-sm flex items-center gap-1.5 cursor-pointer"
+            class="px-3 py-1.5 rounded-lg bg-[#00A99D] hover:bg-[#009388] text-xs font-semibold text-white transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Globe class="w-4 h-4" />
-            <span>Buka Portal Publik</span>
-            <ExternalLink class="w-3.5 h-3.5" />
+            <Globe class="w-3.5 h-3.5" />
+            <span>Portal Publik</span>
+            <ExternalLink class="w-3 h-3" />
           </a>
         </div>
       </div>
 
       <!-- ==================== MULTI-TAB NAVIGATION ==================== -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1.5 border-b border-slate-200 dark:border-slate-800">
+      <div class="clinical-tabs">
         <button
           v-for="tab in tabs"
           :key="tab.id"
           type="button"
           @click="switchTab(tab.id)"
-          class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer"
+          class="clinical-tab"
           :class="currentTab === tab.id
-            ? 'bg-[#005851] text-white shadow-xs'
-            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+            ? 'bg-[#005851] text-white'
+            : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
         >
           <component :is="tab.icon" class="w-3.5 h-3.5" />
           <span>{{ tab.label }}</span>
           <span
-            class="px-1.5 py-0.5 rounded-full text-[10px] font-mono"
+            class="px-1.5 py-0.2 rounded text-[10px] font-mono clinical-num"
             :class="currentTab === tab.id
               ? 'bg-white/20 text-white'
-              : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
+              : 'bg-slate-100 text-slate-600'"
           >
             {{ tab.count }}
           </span>

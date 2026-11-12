@@ -234,9 +234,9 @@ const resetDefaultRedZones = async () => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-3">
     <!-- Alerts -->
-    <div v-if="pdfImportError" class="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs flex items-center justify-between gap-2">
+    <div v-if="pdfImportError" class="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <AlertTriangle class="w-4 h-4 shrink-0" />
         <span>{{ pdfImportError }}</span>
@@ -244,7 +244,7 @@ const resetDefaultRedZones = async () => {
       <button type="button" @click="pdfImportError = ''" class="hover:opacity-75 cursor-pointer"><X class="w-4 h-4" /></button>
     </div>
 
-    <div v-if="pdfImportSuccess" class="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs flex items-center justify-between gap-2">
+    <div v-if="pdfImportSuccess" class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center justify-between gap-2">
       <div class="flex items-center gap-2">
         <CheckCircle2 class="w-4 h-4 shrink-0" />
         <span>{{ pdfImportSuccess }}</span>
@@ -253,32 +253,32 @@ const resetDefaultRedZones = async () => {
     </div>
 
     <!-- Ringkasan & Aksi Cepat -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+      <div class="clinical-kpi">
         <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Total Negara Terdaftar</div>
-        <div class="mt-1.5 text-2xl font-bold text-slate-900 dark:text-white">{{ redZonesState.summary?.total || 0 }}</div>
-        <div class="text-[11px] text-slate-400 mt-1">Tersedia pada form MDH Luar Negeri</div>
+        <div class="mt-1 text-xl font-bold clinical-num text-slate-900">{{ redZonesState.summary?.total || 0 }}</div>
+        <div class="text-[11px] text-slate-400 mt-0.5">Tersedia pada form MDH Luar Negeri</div>
       </div>
-      <div class="bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-900/50 rounded-2xl p-4 shadow-xs">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-rose-600 dark:text-rose-400">Negara Zona Merah (+20)</div>
-        <div class="mt-1.5 text-2xl font-bold text-rose-600 dark:text-rose-400">{{ redZonesState.summary?.red_count || 0 }}</div>
-        <div class="text-[11px] text-slate-400 mt-1">Otomatis +20 skor pada Q1 Internasional</div>
+      <div class="clinical-kpi border-rose-200 bg-rose-50/40">
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-rose-600">Negara Zona Merah (+20)</div>
+        <div class="mt-1 text-xl font-bold clinical-num text-rose-600">{{ redZonesState.summary?.red_count || 0 }}</div>
+        <div class="text-[11px] text-slate-500 mt-0.5">Otomatis +20 skor pada Q1 Internasional</div>
       </div>
-      <div class="bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-900/50 rounded-2xl p-4 shadow-xs">
-        <div class="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">Negara Non-Red Zone (0)</div>
-        <div class="mt-1.5 text-2xl font-bold text-emerald-600 dark:text-emerald-400">{{ redZonesState.summary?.safe_count || 0 }}</div>
-        <div class="text-[11px] text-slate-400 mt-1">Tidak terjangkit / skor 0 pada Q1</div>
+      <div class="clinical-kpi border-emerald-200 bg-emerald-50/40">
+        <div class="text-[11px] font-semibold uppercase tracking-wider text-emerald-600">Negara Non-Red Zone (0)</div>
+        <div class="mt-1 text-xl font-bold clinical-num text-emerald-600">{{ redZonesState.summary?.safe_count || 0 }}</div>
+        <div class="text-[11px] text-slate-500 mt-0.5">Tidak terjangkit / skor 0 pada Q1</div>
       </div>
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-xs flex flex-col justify-between">
+      <div class="clinical-kpi flex flex-col justify-between">
         <div>
           <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Pembaruan PDF Terakhir</div>
-          <div v-if="redZonesState.logs?.length" class="mt-1 text-xs font-semibold text-slate-800 dark:text-slate-200 line-clamp-1" :title="redZonesState.logs[0].filename">
+          <div v-if="redZonesState.logs?.length" class="mt-1 text-xs font-semibold text-slate-800 line-clamp-1" :title="redZonesState.logs[0].filename">
             {{ redZonesState.logs[0].filename }}
           </div>
           <div v-else class="mt-1 text-xs text-slate-400">Belum pernah import PDF (data default)</div>
         </div>
-        <div class="mt-2 flex items-center justify-between gap-2">
-          <span v-if="redZonesState.logs?.length" class="text-[10px] text-slate-400">{{ formatDate(redZonesState.logs[0].created_at) }}</span>
+        <div class="mt-1.5 flex items-center justify-between gap-2">
+          <span v-if="redZonesState.logs?.length" class="text-[10px] text-slate-400 clinical-num">{{ formatDate(redZonesState.logs[0].created_at) }}</span>
           <button
             type="button"
             @click="resetDefaultRedZones"
@@ -293,15 +293,15 @@ const resetDefaultRedZones = async () => {
     </div>
 
     <!-- Panel Upload & Preview PDF Kemenkes -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-xs space-y-4">
-      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+    <div class="clinical-surface p-4 space-y-3.5">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center shrink-0">
-            <UploadCloud class="w-5 h-5" />
+          <div class="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+            <UploadCloud class="w-4 h-4" />
           </div>
           <div>
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Import &amp; Update Zona Merah dari PDF Kemenkes (Kolom NEGARA)</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">
+            <h3 class="text-sm font-bold text-slate-900">Import &amp; Update Zona Merah dari PDF Kemenkes (Kolom NEGARA)</h3>
+            <p class="text-xs text-slate-500">
               Unggah dokumen PDF <em>Daftar Negara/Wilayah Terjangkit Penyakit Infeksi Emerging</em>. Sistem akan membaca kolom <strong>NEGARA</strong> secara otomatis di semua halaman.
             </p>
           </div>
@@ -309,7 +309,7 @@ const resetDefaultRedZones = async () => {
         <a
           href="/ship-surveillance/assessment/international"
           target="_blank"
-          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition shrink-0"
+          class="clinical-btn-secondary py-1.5 px-2.5 text-xs shrink-0"
         >
           <ExternalLink class="w-3.5 h-3.5 text-[#00A99D]" />
           Cek Form Luar Negeri ↗

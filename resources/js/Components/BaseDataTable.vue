@@ -131,31 +131,31 @@ const handlePageChange = (page) => {
 </script>
 
 <template>
-  <div class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs overflow-hidden transition-colors">
+  <div class="w-full clinical-surface overflow-hidden">
     <!-- Table Header Controls: Search & Top Actions Slot -->
-    <div v-if="searchable || $slots.actions" class="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div v-if="searchable || $slots.actions" class="px-3.5 py-2.5 border-b border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-50/50">
       <!-- Search Input -->
-      <div v-if="searchable" class="relative max-w-sm w-full">
-        <Search class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+      <div v-if="searchable" class="relative max-w-xs w-full">
+        <Search class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
         <input
           v-model="searchQuery"
           type="text"
           :placeholder="searchPlaceholder"
           @input="handleSearch"
-          class="w-full pl-9 pr-8 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+          class="w-full pl-8 pr-7 py-1.5 clinical-input"
         />
         <button
           v-if="searchQuery"
           type="button"
           @click="clearSearch"
-          class="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+          class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-600"
         >
           <X class="w-3.5 h-3.5" />
         </button>
       </div>
 
       <!-- Custom Actions Slot (Buttons, Export, Filters) -->
-      <div v-if="$slots.actions" class="flex items-center gap-2">
+      <div v-if="$slots.actions" class="flex items-center gap-1.5">
         <slot name="actions" />
       </div>
     </div>
@@ -165,33 +165,33 @@ const handlePageChange = (page) => {
       <!-- Loading Overlay -->
       <div 
         v-if="loading" 
-        class="absolute inset-0 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xs flex items-center justify-center z-10"
+        class="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center z-10"
       >
-        <div class="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 text-xs font-semibold">
-          <Loader2 class="w-5 h-5 animate-spin" />
+        <div class="flex items-center gap-2 text-[#005851] text-xs font-semibold">
+          <Loader2 class="w-4 h-4 animate-spin" />
           <span>Memuat data...</span>
         </div>
       </div>
 
-      <table class="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+      <table class="w-full text-left text-xs text-slate-700">
         <!-- Table Head -->
-        <thead class="bg-slate-50 dark:bg-slate-800/60 text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
+        <thead class="bg-slate-50/90 text-[11px] uppercase tracking-wider text-slate-500 font-semibold border-b border-slate-200/90">
           <tr>
             <th
               v-for="col in columns"
               :key="col.key"
               :class="[
-                'px-4 py-3 select-none',
-                col.sortable ? 'cursor-pointer hover:text-slate-900 dark:hover:text-white' : '',
+                'px-3.5 py-2.5 select-none',
+                col.sortable ? 'cursor-pointer hover:text-slate-900' : '',
                 col.headerClass || ''
               ]"
               @click="handleSort(col)"
             >
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1">
                 <span>{{ col.label }}</span>
                 <span v-if="col.sortable" class="text-slate-400">
-                  <ChevronUp v-if="sortKey === col.key && sortDirection === 'asc'" class="w-3.5 h-3.5 text-indigo-500" />
-                  <ChevronDown v-else-if="sortKey === col.key && sortDirection === 'desc'" class="w-3.5 h-3.5 text-indigo-500" />
+                  <ChevronUp v-if="sortKey === col.key && sortDirection === 'asc'" class="w-3.5 h-3.5 text-[#00A99D]" />
+                  <ChevronDown v-else-if="sortKey === col.key && sortDirection === 'desc'" class="w-3.5 h-3.5 text-[#00A99D]" />
                   <ChevronsUpDown v-else class="w-3 h-3 opacity-60" />
                 </span>
               </div>
@@ -200,10 +200,10 @@ const handlePageChange = (page) => {
         </thead>
 
         <!-- Table Body -->
-        <tbody class="divide-y divide-slate-200/80 dark:divide-slate-800/60">
+        <tbody class="divide-y divide-slate-100">
           <tr v-if="processedRows.length === 0 && !loading" class="text-center">
-            <td :colspan="columns.length" class="py-12 text-slate-400">
-              <Inbox class="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+            <td :colspan="columns.length" class="py-10 text-slate-400">
+              <Inbox class="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
               <p class="text-xs">{{ emptyMessage }}</p>
             </td>
           </tr>
@@ -211,12 +211,12 @@ const handlePageChange = (page) => {
           <tr
             v-for="(row, rowIndex) in processedRows"
             :key="row.id || rowIndex"
-            class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+            class="hover:bg-[#F4FBF9]/70 transition-colors"
           >
             <td
               v-for="col in columns"
               :key="col.key"
-              :class="['px-4 py-3.5 align-middle', col.class || '']"
+              :class="['px-3.5 py-2.5 align-middle', col.class || '']"
             >
               <!-- Cell Slot with fallback -->
               <slot :name="`cell(${col.key})`" :row="row" :value="row[col.key]">
@@ -231,12 +231,11 @@ const handlePageChange = (page) => {
     <!-- Table Footer / Pagination -->
     <div 
       v-if="isPaginated && data.total > 0"
-      class="p-3.5 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400"
+      class="px-3.5 py-2.5 border-t border-slate-200/90 bg-slate-50/40 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 tabular-nums"
     >
       <div>
-        Menampilkan <span class="font-semibold text-slate-800 dark:text-slate-200">{{ data.from || 1 }}</span> - 
-        <span class="font-semibold text-slate-800 dark:text-slate-200">{{ data.to || data.total }}</span> dari 
-        <span class="font-semibold text-slate-800 dark:text-slate-200">{{ data.total }}</span> data
+        Menampilkan <span class="font-semibold text-slate-800">{{ data.from || 1 }}</span>–<span class="font-semibold text-slate-800">{{ data.to || data.total }}</span> dari 
+        <span class="font-semibold text-slate-800">{{ data.total }}</span> data
       </div>
 
       <!-- Pagination Buttons -->
@@ -245,13 +244,13 @@ const handlePageChange = (page) => {
           type="button"
           :disabled="!data.prev_page_url"
           @click="handlePageChange(data.current_page - 1)"
-          class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          class="p-1.5 rounded-md border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors cursor-pointer"
         >
-          <ChevronLeft class="w-4 h-4" />
+          <ChevronLeft class="w-3.5 h-3.5" />
         </button>
 
-        <span class="px-3 py-1 font-mono text-xs font-semibold text-slate-700 dark:text-slate-300">
-          Halaman {{ data.current_page }} dari {{ data.last_page }}
+        <span class="px-2.5 py-1 font-mono text-[11px] font-semibold text-slate-700">
+          Hal {{ data.current_page }} / {{ data.last_page }}
         </span>
 
         <button

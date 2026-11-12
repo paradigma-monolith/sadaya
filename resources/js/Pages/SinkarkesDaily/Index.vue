@@ -431,148 +431,152 @@ const formatDateId = (isoDate) => {
   <Head :title="`Rekap Harian SINKARKES - ${selectedWilker}`" />
 
   <HybridNavbar mode="inertia" currentRoute="sinkarkes-daily">
-    <main class="w-full max-w-none px-2.5 sm:px-4 lg:px-5 pt-3 pb-12 space-y-4 font-sans">
+    <main class="clinical-main font-sans">
 
       <!-- Institutional Top Banner -->
-      <div class="w-full bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 sm:p-5 shadow-xs">
-        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-          <div class="space-y-1.5 min-w-0 flex-1">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-semibold bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
-              <Sparkles class="w-3.5 h-3.5 text-rose-500" />
-              <span>REKAP HARIAN KAPAL &amp; PESAWAT &bull; AUTO-AKUMULASI SINKARKES</span>
+      <div class="clinical-header flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <div class="w-9 h-9 rounded-lg bg-[#002B27] border border-[#00A99D]/40 text-[#99CC33] flex items-center justify-center shrink-0">
+            <Sparkles class="w-4 h-4" />
+          </div>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-sm sm:text-[15px] font-bold text-white tracking-tight">
+                Rekap Data Harian Kapal &amp; Pesawat
+              </h1>
+              <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-rose-500/20 text-rose-200 border border-rose-400/35">
+                Auto-Akumulasi Poin Merah
+              </span>
             </div>
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Rekap Data Harian Kapal &amp; Pesawat
-            </h1>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-4xl">
-              Sesuai struktur excel <span class="font-semibold text-slate-700 dark:text-slate-200">rekap data harian kapal_pesawat</span>. Setiap inputan harian ditandai poin <span class="font-semibold text-rose-600 dark:text-rose-400">merah SINKARKES</span> dan otomatis terakumulasi per Wilayah Kerja &amp; Bulan ke Formulir Laporan SINKARKES.
+            <p class="text-[11px] text-slate-200/85 truncate mt-0.5">
+              Inputan harian kapal &amp; pesawat otomatis terakumulasi per Wilayah Kerja &amp; Bulan ke Formulir Laporan SINKARKES.
             </p>
           </div>
+        </div>
 
-          <!-- Period & Action Bar -->
-          <div class="flex flex-wrap items-center gap-2">
-            <!-- Wilker -->
-            <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1a2130] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5">
-              <Building2 class="w-4 h-4 text-[#00A99D] shrink-0" />
-              <select
-                v-model="selectedWilker"
-                @change="navigateFilters()"
-                class="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-100 border-none focus:ring-0 cursor-pointer outline-none pr-2 py-0.5"
-              >
-                <option v-for="w in wilkerOptions" :key="w" :value="w">{{ w }}</option>
-              </select>
-            </div>
-
-            <!-- Bulan -->
-            <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1a2130] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5">
-              <Calendar class="w-4 h-4 text-sky-600 shrink-0" />
-              <select
-                v-model.number="selectedMonth"
-                @change="navigateFilters()"
-                class="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-100 border-none focus:ring-0 cursor-pointer outline-none pr-2 py-0.5"
-              >
-                <option v-for="m in MONTH_OPTIONS" :key="m.id" :value="m.id">{{ m.label }}</option>
-              </select>
-            </div>
-
-            <!-- Tahun -->
-            <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1a2130] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5">
-              <select
-                v-model.number="selectedYear"
-                @change="navigateFilters()"
-                class="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-100 border-none focus:ring-0 cursor-pointer outline-none pr-2 py-0.5"
-              >
-                <option v-for="y in YEAR_OPTIONS" :key="y" :value="y">{{ y }}</option>
-              </select>
-            </div>
-
-            <Link
-              :href="sinkarkesFormUrl"
-              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#005851] dark:text-[#00A99D] bg-[#00A99D]/10 hover:bg-[#00A99D]/20 border border-[#00A99D]/30 transition-colors"
-              title="Buka Formulir Laporan SINKARKES untuk melihat akumulasi bulan ini"
+        <!-- Period & Action Bar -->
+        <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+          <!-- Wilker -->
+          <div class="flex items-center gap-1.5 bg-[#002D29] border border-white/15 rounded-lg px-2.5 py-1 text-white">
+            <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+            <select
+              v-model="selectedWilker"
+              @change="navigateFilters()"
+              class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
             >
-              <FileSpreadsheet class="w-4 h-4" />
-              <span>Buka Form SINKARKES</span>
-              <ExternalLink class="w-3 h-3 opacity-70" />
-            </Link>
-
-            <button
-              type="button"
-              @click="openImportModal"
-              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
-            >
-              <Upload class="w-4 h-4 text-sky-600" />
-              <span>Import Excel</span>
-            </button>
-
-            <a
-              :href="exportDataUrl"
-              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 transition-colors"
-            >
-              <Download class="w-4 h-4" />
-              <span>Ekspor Excel</span>
-            </a>
-
-            <button
-              type="button"
-              @click="openCreateForm(activeTab === 'pesawat' ? 'pesawat' : 'kapal')"
-              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#00A99D] hover:bg-[#008f85] shadow-sm transition-all cursor-pointer"
-            >
-              <Plus class="w-4 h-4" />
-              <span>Input Data Harian</span>
-            </button>
+              <option v-for="w in wilkerOptions" :key="w" :value="w" class="text-slate-900">{{ w }}</option>
+            </select>
           </div>
+
+          <!-- Bulan -->
+          <div class="flex items-center gap-1.5 bg-[#002D29] border border-white/15 rounded-lg px-2.5 py-1 text-white">
+            <Calendar class="w-3.5 h-3.5 text-[#99DFD6] shrink-0" />
+            <select
+              v-model.number="selectedMonth"
+              @change="navigateFilters()"
+              class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
+            >
+              <option v-for="m in MONTH_OPTIONS" :key="m.id" :value="m.id" class="text-slate-900">{{ m.label }}</option>
+            </select>
+          </div>
+
+          <!-- Tahun -->
+          <div class="flex items-center gap-1 bg-[#002D29] border border-white/15 rounded-lg px-2 py-1 text-white">
+            <select
+              v-model.number="selectedYear"
+              @change="navigateFilters()"
+              class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
+            >
+              <option v-for="y in YEAR_OPTIONS" :key="y" :value="y" class="text-slate-900">{{ y }}</option>
+            </select>
+          </div>
+
+          <Link
+            :href="sinkarkesFormUrl"
+            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#99DFD6] bg-white/10 hover:bg-white/20 border border-white/15 transition-colors"
+            title="Buka Formulir Laporan SINKARKES untuk melihat akumulasi bulan ini"
+          >
+            <FileSpreadsheet class="w-3.5 h-3.5" />
+            <span>Form SINKARKES</span>
+            <ExternalLink class="w-3 h-3 opacity-75" />
+          </Link>
+
+          <button
+            type="button"
+            @click="openImportModal"
+            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-colors cursor-pointer"
+          >
+            <Upload class="w-3.5 h-3.5 text-[#99DFD6]" />
+            <span>Import</span>
+          </button>
+
+          <a
+            :href="exportDataUrl"
+            class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-colors"
+          >
+            <Download class="w-3.5 h-3.5 text-[#99CC33]" />
+            <span>Ekspor</span>
+          </a>
+
+          <button
+            type="button"
+            @click="openCreateForm(activeTab === 'pesawat' ? 'pesawat' : 'kapal')"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#00A99D] hover:bg-[#009388] transition-colors cursor-pointer"
+          >
+            <Plus class="w-3.5 h-3.5" />
+            <span>Input Data Harian</span>
+          </button>
         </div>
       </div>
 
       <!-- KPI Overview Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5">
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2.5">
+        <div class="clinical-kpi flex items-center justify-between">
           <div>
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Rekap Harian Kapal</p>
-            <p class="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">{{ kapalRecords.length }} <span class="text-xs font-medium text-slate-500">hari</span></p>
-            <p class="text-[11px] text-slate-500 mt-1">{{ kapalTotalArmada.toLocaleString('id-ID') }} kapal &bull; {{ kapalTotalOrang.toLocaleString('id-ID') }} org</p>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Rekap Harian Kapal</p>
+            <p class="text-xl font-bold clinical-num text-slate-900 mt-0.5">{{ kapalRecords.length }} <span class="text-xs font-medium text-slate-500">hari</span></p>
+            <p class="text-[11px] text-slate-500 mt-0.5 clinical-num">{{ kapalTotalArmada.toLocaleString('id-ID') }} kapal &bull; {{ kapalTotalOrang.toLocaleString('id-ID') }} org</p>
           </div>
-          <div class="w-11 h-11 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-100 dark:border-teal-800/50 flex items-center justify-center text-[#00A99D]">
-            <Ship class="w-5 h-5" />
+          <div class="w-9 h-9 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center text-[#00A99D]">
+            <Ship class="w-4 h-4" />
           </div>
         </div>
 
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+        <div class="clinical-kpi flex items-center justify-between">
           <div>
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Rekap Harian Pesawat</p>
-            <p class="text-2xl font-extrabold text-slate-900 dark:text-white mt-0.5">{{ pesawatRecords.length }} <span class="text-xs font-medium text-slate-500">hari</span></p>
-            <p class="text-[11px] text-slate-500 mt-1">{{ pesawatTotalArmada.toLocaleString('id-ID') }} pesawat &bull; {{ pesawatTotalOrang.toLocaleString('id-ID') }} org</p>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Rekap Harian Pesawat</p>
+            <p class="text-xl font-bold clinical-num text-slate-900 mt-0.5">{{ pesawatRecords.length }} <span class="text-xs font-medium text-slate-500">hari</span></p>
+            <p class="text-[11px] text-slate-500 mt-0.5 clinical-num">{{ pesawatTotalArmada.toLocaleString('id-ID') }} pesawat &bull; {{ pesawatTotalOrang.toLocaleString('id-ID') }} org</p>
           </div>
-          <div class="w-11 h-11 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-100 dark:border-sky-800/50 flex items-center justify-center text-sky-600">
-            <Plane class="w-5 h-5" />
+          <div class="w-9 h-9 rounded-lg bg-sky-50 border border-sky-200 flex items-center justify-center text-sky-600">
+            <Plane class="w-4 h-4" />
           </div>
         </div>
 
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+        <div class="clinical-kpi flex items-center justify-between">
           <div>
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Poin Merah SINKARKES</p>
-            <p class="text-2xl font-extrabold text-rose-600 dark:text-rose-400 mt-0.5">
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Poin Merah SINKARKES</p>
+            <p class="text-xl font-bold clinical-num text-rose-600 mt-0.5">
               {{ accumulation.indicators?.filter(i => i.daily_total > 0).length || 0 }}
-              <span class="text-xs font-medium text-slate-500">/ {{ accumulation.indicators?.length || 0 }} indikator aktif</span>
+              <span class="text-xs font-medium text-slate-500">/ {{ accumulation.indicators?.length || 0 }} aktif</span>
             </p>
-            <p class="text-[11px] text-slate-500 mt-1">{{ activeMonthLabel }} {{ selectedYear }} &bull; {{ selectedWilker }}</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">{{ activeMonthLabel }} {{ selectedYear }} &bull; {{ selectedWilker }}</p>
           </div>
-          <div class="w-11 h-11 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-100 dark:border-rose-800/50 flex items-center justify-center text-rose-600">
-            <Layers class="w-5 h-5" />
+          <div class="w-9 h-9 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600">
+            <Layers class="w-4 h-4" />
           </div>
         </div>
 
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 shadow-2xs flex items-center justify-between">
+        <div class="clinical-kpi flex items-center justify-between">
           <div>
-            <p class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Sinkron SINKARKES</p>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Sinkron SINKARKES</p>
             <div class="mt-1 flex items-center gap-1.5">
               <span
-                class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold"
                 :class="accumulation.in_sync ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
               >
-                <CheckCircle2 v-if="accumulation.in_sync" class="w-3.5 h-3.5" />
-                <AlertCircle v-else class="w-3.5 h-3.5" />
+                <CheckCircle2 v-if="accumulation.in_sync" class="w-3 h-3" />
+                <AlertCircle v-else class="w-3 h-3" />
                 {{ accumulation.in_sync ? 'Tersinkron Penuh' : 'Perlu Sinkron' }}
               </span>
             </div>
@@ -580,32 +584,32 @@ const formatDateId = (isoDate) => {
               type="button"
               @click="triggerSync"
               :disabled="isSyncing"
-              class="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-[#00A99D] hover:underline cursor-pointer disabled:opacity-50"
+              class="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-[#005851] hover:underline cursor-pointer disabled:opacity-50"
             >
               <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': isSyncing }" />
               <span>Sinkronkan Ulang Sekarang</span>
             </button>
           </div>
-          <div class="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-100 dark:border-emerald-800/50 flex items-center justify-center text-emerald-600">
-            <Calculator class="w-5 h-5" />
+          <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600">
+            <Calculator class="w-4 h-4" />
           </div>
         </div>
       </div>
 
       <!-- Unified Multi-Tab Switcher -->
-      <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-2 shadow-2xs flex flex-wrap items-center justify-between gap-2">
-        <div class="flex flex-wrap items-center gap-1.5">
+      <div class="clinical-tabs w-full flex-wrap justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-1">
           <button
             type="button"
             @click="switchTab('kapal')"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+            class="clinical-tab cursor-pointer"
             :class="activeTab === 'kapal'
-              ? 'bg-[#00A99D] text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
+              ? 'clinical-tab-active'
+              : 'clinical-tab-inactive'"
           >
-            <Ship class="w-4 h-4" />
+            <Ship class="w-3.5 h-3.5" />
             <span>Rekap Harian Kapal</span>
-            <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="activeTab === 'kapal' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200'">
+            <span class="px-1.5 py-0.5 rounded-full text-[10px] clinical-num" :class="activeTab === 'kapal' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'">
               {{ kapalRecords.length }}
             </span>
           </button>
@@ -613,12 +617,12 @@ const formatDateId = (isoDate) => {
           <button
             type="button"
             @click="switchTab('pesawat')"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+            class="clinical-tab cursor-pointer"
             :class="activeTab === 'pesawat'
-              ? 'bg-sky-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
+              ? 'clinical-tab-active'
+              : 'clinical-tab-inactive'"
           >
-            <Plane class="w-4 h-4" />
+            <Plane class="w-3.5 h-3.5" />
             <span>Rekap Harian Pesawat</span>
             <span class="px-1.5 py-0.5 rounded-full text-[10px]" :class="activeTab === 'pesawat' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200'">
               {{ pesawatRecords.length }}

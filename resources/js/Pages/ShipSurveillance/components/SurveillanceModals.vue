@@ -90,14 +90,16 @@ const submitVerify = () => {
     v-if="showDetailModal && activeItem"
     class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
   >
-    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+    <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-xl border border-slate-200 overflow-hidden">
       <!-- Modal Header -->
-      <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-[#005851] to-[#00A99D] text-white">
+      <div class="px-4 py-3.5 border-b border-emerald-950/20 flex items-center justify-between bg-[#004640] text-white">
         <div class="flex items-center gap-2.5">
-          <Ship class="w-5 h-5" />
+          <div class="w-8 h-8 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center">
+            <Ship class="w-4 h-4 text-emerald-300" />
+          </div>
           <div>
-            <h3 class="font-bold text-base">{{ activeItem.nama_kapal }}</h3>
-            <p class="text-xs text-white/80">No Registrasi: {{ activeItem.registration_no }}</p>
+            <h3 class="font-bold text-sm leading-tight">{{ activeItem.nama_kapal }}</h3>
+            <p class="text-[11px] text-emerald-100/80 font-mono">No Registrasi: {{ activeItem.registration_no }}</p>
           </div>
         </div>
         <button
@@ -105,40 +107,40 @@ const submitVerify = () => {
           @click="emit('close-detail')"
           class="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
         >
-          <X class="w-5 h-5" />
+          <X class="w-4 h-4" />
         </button>
       </div>
 
       <!-- Modal Body -->
-      <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-700 dark:text-slate-300">
+      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-700">
         <!-- Vessel Profile Summary -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-3.5 rounded-lg border border-slate-200">
           <div>
-            <div class="text-slate-400 font-medium">Pelabuhan Asal</div>
-            <div class="font-bold text-slate-900 dark:text-white mt-0.5">{{ activeItem.datang_dari }}</div>
+            <div class="text-slate-500 font-medium text-[11px]">Pelabuhan Asal</div>
+            <div class="font-bold text-slate-900 mt-0.5">{{ activeItem.datang_dari }}</div>
           </div>
           <div>
-            <div class="text-slate-400 font-medium">Pelabuhan Tujuan</div>
-            <div class="font-bold text-slate-900 dark:text-white mt-0.5">{{ activeItem.pelabuhan }}</div>
+            <div class="text-slate-500 font-medium text-[11px]">Pelabuhan Tujuan</div>
+            <div class="font-bold text-slate-900 mt-0.5">{{ activeItem.pelabuhan }}</div>
           </div>
           <div>
-            <div class="text-slate-400 font-medium">Negara Asal / Bendera</div>
-            <div class="font-bold text-slate-900 dark:text-white mt-0.5">{{ activeItem.origin_country || 'N/A' }}</div>
+            <div class="text-slate-500 font-medium text-[11px]">Negara Asal / Bendera</div>
+            <div class="font-bold text-slate-900 mt-0.5">{{ activeItem.origin_country || 'N/A' }}</div>
           </div>
           <div>
-            <div class="text-slate-400 font-medium">Gross Tonnage</div>
-            <div class="font-bold text-slate-900 dark:text-white mt-0.5">{{ formatNumber(activeItem.gross_tonnage) }} GT</div>
+            <div class="text-slate-500 font-medium text-[11px]">Gross Tonnage</div>
+            <div class="font-bold text-slate-900 mt-0.5 clinical-num">{{ formatNumber(activeItem.gross_tonnage) }} GT</div>
           </div>
           <div>
-            <div class="text-slate-400 font-medium">Jumlah ABK</div>
-            <div class="font-bold text-slate-900 dark:text-white mt-0.5">{{ activeItem.jml_crew }} Orang</div>
+            <div class="text-slate-500 font-medium text-[11px]">Jumlah ABK</div>
+            <div class="font-bold text-slate-900 mt-0.5 clinical-num">{{ activeItem.jml_crew }} Orang</div>
           </div>
           <div>
-            <div class="text-slate-400 font-medium">Kategori Pelayaran</div>
-            <div class="font-bold text-slate-900 dark:text-white mt-0.5">{{ activeItem.kategori }}</div>
+            <div class="text-slate-500 font-medium text-[11px]">Kategori Pelayaran</div>
+            <div class="font-bold text-slate-900 mt-0.5">{{ activeItem.kategori }}</div>
           </div>
           <div>
-            <div class="text-slate-400 font-medium">Skor &amp; Risiko</div>
+            <div class="text-slate-500 font-medium text-[11px]">Skor &amp; Risiko</div>
             <div class="font-bold mt-0.5">
               <span :class="['px-2 py-0.5 rounded text-[10px] font-bold', getRiskBadgeClass(activeItem.kresiko)]">
                 {{ activeItem.kresiko }} ({{ activeItem.skoring }})
@@ -146,12 +148,12 @@ const submitVerify = () => {
             </div>
           </div>
           <div>
-            <div class="text-slate-400 font-medium">Estimasi PNBP</div>
-            <div class="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">{{ formatCurrency(activeItem.estimasi_pnbp) }}</div>
+            <div class="text-slate-500 font-medium text-[11px]">Estimasi PNBP</div>
+            <div class="font-bold text-emerald-600 mt-0.5 font-mono clinical-num">{{ formatCurrency(activeItem.estimasi_pnbp) }}</div>
           </div>
-          <div v-if="activeItem.negara_singgah_14_hari" class="col-span-2 sm:col-span-4 pt-2 border-t border-slate-200 dark:border-slate-700/60">
-            <div class="text-slate-400 font-medium">Negara Singgah (14 Hari Terakhir)</div>
-            <div class="font-bold text-slate-900 dark:text-white mt-0.5">{{ activeItem.negara_singgah_14_hari }}</div>
+          <div v-if="activeItem.negara_singgah_14_hari" class="col-span-2 sm:col-span-4 pt-2 border-t border-slate-200">
+            <div class="text-slate-500 font-medium text-[11px]">Negara Singgah (14 Hari Terakhir)</div>
+            <div class="font-bold text-slate-900 mt-0.5">{{ activeItem.negara_singgah_14_hari }}</div>
           </div>
         </div>
 
@@ -249,10 +251,10 @@ const submitVerify = () => {
     v-if="showVerifyModal && verifyTarget"
     class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
   >
-    <div class="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-      <div class="p-5 border-b border-slate-100 dark:border-slate-800 bg-[#005851] text-white flex items-center justify-between">
+    <div class="bg-white rounded-xl max-w-md w-full shadow-xl border border-slate-200 overflow-hidden">
+      <div class="px-4 py-3.5 border-b border-emerald-950/20 bg-[#004640] text-white flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <ShieldCheck class="w-5 h-5 text-emerald-400" />
+          <ShieldCheck class="w-4 h-4 text-emerald-300" />
           <h3 class="font-bold text-sm">Verifikasi Kedatangan Kapal</h3>
         </div>
         <button
@@ -260,40 +262,40 @@ const submitVerify = () => {
           @click="emit('close-verify')"
           class="text-white/80 hover:text-white cursor-pointer"
         >
-          <X class="w-5 h-5" />
+          <X class="w-4 h-4" />
         </button>
       </div>
 
-      <form @submit.prevent="submitVerify" class="p-5 space-y-4 text-xs">
+      <form @submit.prevent="submitVerify" class="p-4 space-y-3.5 text-xs">
         <div>
-          <div class="text-slate-500 font-medium mb-1">Nama Kapal:</div>
-          <div class="font-bold text-sm text-slate-900 dark:text-white">{{ verifyTarget.nama_kapal }}</div>
-          <div class="text-[11px] text-slate-400">{{ verifyTarget.pelabuhan }} &bull; Asal: {{ verifyTarget.datang_dari }}</div>
+          <div class="text-slate-500 font-medium mb-0.5 text-[11px]">Nama Kapal:</div>
+          <div class="font-bold text-sm text-slate-900">{{ verifyTarget.nama_kapal }}</div>
+          <div class="text-[11px] text-slate-500">{{ verifyTarget.pelabuhan }} &bull; Asal: {{ verifyTarget.datang_dari }}</div>
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-2">
+          <label class="block font-semibold text-slate-700 mb-1.5">
             Keputusan Kekarantinaan Kesehatan: <span class="text-rose-500">*</span>
           </label>
-          <div class="grid grid-cols-2 gap-2.5">
+          <div class="grid grid-cols-2 gap-2">
             <label
               :class="[
-                'flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition',
+                'flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition',
                 verifyDecision === 'SANDAR'
-                  ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-950/40 text-cyan-900 dark:text-cyan-200 font-bold'
-                  : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+                  ? 'border-[#00A99D] bg-teal-50 text-[#005851] font-bold'
+                  : 'border-slate-200 hover:bg-slate-50'
               ]"
             >
-              <input type="radio" v-model="verifyDecision" value="SANDAR" class="text-cyan-600 focus:ring-cyan-500" />
+              <input type="radio" v-model="verifyDecision" value="SANDAR" class="text-[#005851] focus:ring-[#00A99D]" />
               <span>SANDAR (Dermaga)</span>
             </label>
 
             <label
               :class="[
-                'flex items-center gap-2 p-3 rounded-xl border cursor-pointer transition',
+                'flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition',
                 verifyDecision === 'ZONA KARANTINA'
-                  ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200 font-bold'
-                  : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800'
+                  ? 'border-rose-500 bg-rose-50 text-rose-800 font-bold'
+                  : 'border-slate-200 hover:bg-slate-50'
               ]"
             >
               <input type="radio" v-model="verifyDecision" value="ZONA KARANTINA" class="text-rose-600 focus:ring-rose-500" />
@@ -303,14 +305,14 @@ const submitVerify = () => {
         </div>
 
         <div>
-          <label class="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          <label class="block font-semibold text-slate-700 mb-1">
             Catatan Rekomendasi / Instruksi Pengawasan:
           </label>
           <textarea
             v-model="verifyNotes"
             rows="3"
             placeholder="Contoh: Dokumen lengkap, seluruh kru sehat, izin sandar diberikan..."
-            class="w-full text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 focus:ring-2 focus:ring-[#00A99D] focus:outline-none"
+            class="clinical-input w-full"
           ></textarea>
         </div>
 

@@ -166,111 +166,113 @@ const deleteInspection = (id, regNo, shipName) => {
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="space-y-3">
     <!-- Tab Action Header -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl p-5 shadow-xs">
-      <div>
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 mb-1.5">
-          <Anchor class="w-3.5 h-3.5" />
-          <span>Kekarantinaan Kesehatan Pelabuhan Laut</span>
+    <div class="clinical-surface flex flex-col md:flex-row md:items-center justify-between gap-3 px-4 py-3">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-2">
+          <h2 class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+            <Anchor class="w-4 h-4 text-[#00A99D]" />
+            <span>Inspeksi Sanitasi Kapal (SSCC / SSCEC)</span>
+          </h2>
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#E6F7F5] text-[#005851]">
+            Pelabuhan Laut
+          </span>
         </div>
-        <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-          Inspeksi Sanitasi Kapal (SSCC / SSCEC)
-        </h2>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 max-w-3xl">
-          Manajemen &amp; penerbitan Sertifikat Sanitasi Kapal (<em class="text-slate-700 dark:text-slate-300 font-medium">Ship Sanitation Control / Exemption Certificate</em>) standar WHO IHR 2005.
+        <p class="text-[11px] text-slate-500 mt-0.5">
+          Penerbitan Sertifikat Sanitasi Kapal (Ship Sanitation Control / Exemption Certificate) standar WHO IHR 2005.
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-2.5">
+      <div class="flex flex-wrap items-center gap-1.5 shrink-0">
         <a
           href="/travelconsent/public_sanitasi"
           target="_blank"
-          class="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+          class="clinical-btn-primary"
         >
-          <Plus class="w-4 h-4" />
+          <Plus class="w-3.5 h-3.5" />
           <span>Form Input Baru ↗</span>
         </a>
 
         <a
           :href="`/ship-inspections/export?format=xlsx${selectedPelabuhan ? '&pelabuhan=' + encodeURIComponent(selectedPelabuhan) : ''}${selectedSertifikat ? '&sertifikat=' + encodeURIComponent(selectedSertifikat) : ''}${selectedStatus ? '&status=' + encodeURIComponent(selectedStatus) : ''}`"
-          class="px-3.5 py-2.5 rounded-xl font-semibold text-xs text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 transition-colors flex items-center gap-1.5"
+          class="clinical-btn-secondary"
           title="Unduh Data Inspeksi Kapal ke Excel"
         >
-          <FileSpreadsheet class="w-4 h-4 text-emerald-600" />
+          <FileSpreadsheet class="w-3.5 h-3.5 text-[#005851]" />
           <span>Ekspor Excel</span>
         </a>
       </div>
     </div>
 
     <!-- Live Metric Cards Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+      <div class="clinical-kpi">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
           <span>TOTAL SERTIFIKAT</span>
-          <Ship class="w-4 h-4 text-emerald-600" />
+          <Ship class="w-3.5 h-3.5 text-[#00A99D]" />
         </div>
-        <div class="text-2xl font-extrabold text-slate-900 dark:text-white mt-1.5">
+        <div class="text-xl font-bold text-slate-900 mt-1 font-mono clinical-num">
           {{ stats.total }}
         </div>
-        <div class="text-[11px] text-slate-400 mt-0.5">Semua pelabuhan</div>
+        <div class="text-[11px] text-slate-400">Semua pelabuhan</div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
+      <div class="clinical-kpi">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
           <span>PEMBEBASAN (SSCEC)</span>
-          <CheckCircle2 class="w-4 h-4 text-emerald-600" />
+          <CheckCircle2 class="w-3.5 h-3.5 text-emerald-600" />
         </div>
-        <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1.5">
+        <div class="text-xl font-bold text-[#005851] mt-1 font-mono clinical-num">
           {{ stats.pembebasan_count }}
         </div>
-        <div class="text-[11px] text-emerald-600/80 mt-0.5">Nihil tindakan pengendalian</div>
+        <div class="text-[11px] text-emerald-700">Nihil tindakan</div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
+      <div class="clinical-kpi">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
           <span>PENGENDALIAN (SSCC)</span>
-          <AlertTriangle class="w-4 h-4 text-amber-500" />
+          <AlertTriangle class="w-3.5 h-3.5 text-amber-500" />
         </div>
-        <div class="text-2xl font-extrabold text-amber-600 dark:text-amber-400 mt-1.5">
+        <div class="text-xl font-bold text-amber-600 mt-1 font-mono clinical-num">
           {{ stats.pengendalian_count }}
         </div>
-        <div class="text-[11px] text-amber-600/80 mt-0.5">Tindakan karantina</div>
+        <div class="text-[11px] text-amber-600">Tindakan karantina</div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
+      <div class="clinical-kpi">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
           <span>TERVERIFIKASI</span>
-          <ShieldCheck class="w-4 h-4 text-sky-600" />
+          <ShieldCheck class="w-3.5 h-3.5 text-sky-600" />
         </div>
-        <div class="text-2xl font-extrabold text-sky-600 dark:text-sky-400 mt-1.5">
+        <div class="text-xl font-bold text-sky-700 mt-1 font-mono clinical-num">
           {{ stats.approved_count }}
         </div>
-        <div class="text-[11px] text-sky-600/80 mt-0.5">Sertifikat aktif</div>
+        <div class="text-[11px] text-sky-600">Sertifikat aktif</div>
       </div>
 
-      <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 shadow-xs col-span-2 sm:col-span-1">
-        <div class="flex items-center justify-between text-slate-500 text-xs font-mono">
-          <span>INSPEKSI HARI INI</span>
-          <FileCheck class="w-4 h-4 text-indigo-500" />
+      <div class="clinical-kpi col-span-2 sm:col-span-1">
+        <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
+          <span>HARI INI</span>
+          <FileCheck class="w-3.5 h-3.5 text-[#00A99D]" />
         </div>
-        <div class="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 mt-1.5">
+        <div class="text-xl font-bold text-slate-900 mt-1 font-mono clinical-num">
           {{ stats.today_count }}
         </div>
-        <div class="text-[11px] text-indigo-500/80 mt-0.5">Real-time pelabuhan</div>
+        <div class="text-[11px] text-slate-500">Real-time pelabuhan</div>
       </div>
     </div>
 
     <!-- Filters & Search Toolbar -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-xs">
+    <div class="clinical-surface p-3 flex flex-col md:flex-row items-center justify-between gap-2.5">
       <div class="relative w-full md:w-80">
-        <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+        <Search class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           v-model="searchInput"
           @keyup.enter="handleFilter"
           type="text"
           placeholder="Cari nama kapal, IMO, reg no, pemeriksa..."
-          class="w-full pl-9 pr-4 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
+          class="clinical-input w-full pl-9 pr-3"
         />
       </div>
 
@@ -278,7 +280,7 @@ const deleteInspection = (id, regNo, shipName) => {
         <select
           v-model="selectedPelabuhan"
           @change="handleFilter"
-          class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="clinical-input w-auto"
         >
           <option value="">Semua Pelabuhan / Wilker</option>
           <option v-for="port in ports" :key="port" :value="port">{{ port }}</option>
@@ -287,7 +289,7 @@ const deleteInspection = (id, regNo, shipName) => {
         <select
           v-model="selectedSertifikat"
           @change="handleFilter"
-          class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="clinical-input w-auto"
         >
           <option value="">Semua Jenis Sertifikat</option>
           <option value="Pembebasan">SSCEC (Pembebasan)</option>
@@ -297,7 +299,7 @@ const deleteInspection = (id, regNo, shipName) => {
         <select
           v-model="selectedStatus"
           @change="handleFilter"
-          class="px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="clinical-input w-auto"
         >
           <option value="">Semua Status</option>
           <option value="submitted">Submitted (Menunggu)</option>
@@ -309,7 +311,7 @@ const deleteInspection = (id, regNo, shipName) => {
         <button
           type="button"
           @click="handleFilter"
-          class="px-3.5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition-colors cursor-pointer"
+          class="clinical-btn-primary py-1.5 px-3"
         >
           Terapkan
         </button>
@@ -318,7 +320,7 @@ const deleteInspection = (id, regNo, shipName) => {
           v-if="searchInput || selectedPelabuhan || selectedSertifikat || selectedStatus"
           type="button"
           @click="resetFilter"
-          class="px-3 py-2 text-xs text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+          class="clinical-btn-secondary py-1.5 px-2.5"
         >
           Reset
         </button>
@@ -326,36 +328,36 @@ const deleteInspection = (id, regNo, shipName) => {
     </div>
 
     <!-- Main Inspections Table Container -->
-    <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xs">
+    <div class="clinical-surface overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
-            <tr class="border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-950/60 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <th class="px-5 py-3.5">No. Registrasi</th>
-              <th class="px-5 py-3.5">Identitas Kapal</th>
-              <th class="px-5 py-3.5">Pelabuhan / Wilker</th>
-              <th class="px-5 py-3.5">Tanggal</th>
-              <th class="px-5 py-3.5">Jenis Sertifikat</th>
-              <th class="px-5 py-3.5">Pemeriksa</th>
-              <th class="px-5 py-3.5">Status</th>
-              <th class="px-5 py-3.5 text-right">Aksi</th>
+            <tr class="border-b border-slate-200 bg-slate-50/90 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              <th class="px-4 py-2.5">No. Registrasi</th>
+              <th class="px-4 py-2.5">Identitas Kapal</th>
+              <th class="px-4 py-2.5">Pelabuhan / Wilker</th>
+              <th class="px-4 py-2.5">Tanggal</th>
+              <th class="px-4 py-2.5">Jenis Sertifikat</th>
+              <th class="px-4 py-2.5">Pemeriksa</th>
+              <th class="px-4 py-2.5">Status</th>
+              <th class="px-4 py-2.5 text-right">Aksi</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+          <tbody class="divide-y divide-slate-100">
             <tr
               v-for="item in inspections.data"
               :key="item.id"
-              class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors"
+              class="hover:bg-[#F4FBF9] transition-colors"
             >
-              <td class="px-5 py-4 font-mono font-bold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+              <td class="px-4 py-2.5 font-mono font-bold text-[#005851] whitespace-nowrap">
                 <div>{{ item.registration_no }}</div>
                 <div class="text-[10px] text-slate-400 font-sans font-normal mt-0.5">
                   {{ item.imo_no }}
                 </div>
               </td>
 
-              <td class="px-5 py-4 font-medium text-slate-800 dark:text-slate-200">
-                <div class="font-bold text-slate-900 dark:text-white text-sm flex items-center gap-1.5">
+              <td class="px-4 py-2.5 font-medium text-slate-800">
+                <div class="font-bold text-slate-900 text-xs flex items-center gap-1.5">
                   <span>{{ item.nama_kapal }}</span>
                   <span v-if="item.bendera" class="text-[10px] font-normal px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                     {{ item.bendera }}

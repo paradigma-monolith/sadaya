@@ -1165,51 +1165,42 @@ const modaReadinessRadarOption = computed(() => {
   <Head title="Tactical Command Center — BKK Kelas I Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="dashboard">
-    <main class="w-full px-3 sm:px-5 lg:px-6 pt-3 pb-16 space-y-3.5 transition-all duration-300">
+    <main class="w-full px-3 sm:px-5 lg:px-6 pt-3 pb-12 space-y-3 transition-all duration-200">
       
       <!-- ========================================================================= -->
-      <!-- TOP COMMAND BAR: HARMONISASI IDENTITAS KEMENKES RI (RADAR & TELEMETRI)    -->
+      <!-- TOP COMMAND BAR: ENTERPRISE CLINICAL COMPACT HEADER                       -->
       <!-- ========================================================================= -->
-      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#002B27] via-[#00443C] to-[#005851] text-white p-3.5 sm:p-4 shadow-xl border border-[#00A99D]/50 ring-1 ring-[#00A99D]/30 font-sans">
-        <!-- Animated Tactical Grid & Radar Glow Background -->
-        <div class="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#00A99D_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full border border-[#99CC33]/20 pointer-events-none animate-pulse"></div>
-        <div class="absolute -right-6 -top-6 w-36 h-36 rounded-full border border-dashed border-[#00A99D]/30 pointer-events-none radar-spin-slow"></div>
-
-        <div class="relative z-10 flex flex-wrap items-center justify-between gap-3">
-          <!-- Left: Animated Mini Radar Emblem & Live Telemetry -->
+      <div class="rounded-xl bg-gradient-to-r from-[#003E38] to-[#005851] text-white px-4 py-3 border border-[#005851] shadow-xs font-sans">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <!-- Left: Brand Telemetry Emblem & Status -->
           <div class="flex items-center gap-3 min-w-0">
-            <div
+            <button
+              type="button"
               @click="triggerSonarPing"
-              title="Klik untuk memancarkan gelombang Ping Sonar Radar"
-              class="relative w-11 h-11 rounded-2xl bg-[#001F1C] flex items-center justify-center shrink-0 shadow-lg shadow-black/40 border border-[#00A99D]/60 cursor-pointer overflow-hidden group"
+              title="Klik untuk memancarkan sinyal Ping Sonar Radar"
+              class="w-9 h-9 rounded-lg bg-[#002B27] hover:bg-[#00201D] flex items-center justify-center shrink-0 border border-[#00A99D]/40 cursor-pointer transition-colors"
             >
-              <!-- Mini Sweeping Conic Beam -->
-              <div class="absolute inset-0 rounded-2xl radar-conic-beam opacity-75"></div>
-              <div class="absolute inset-1.5 rounded-full border border-[#00A99D]/40"></div>
-              <Radio class="relative z-10 w-5 h-5 text-[#99CC33] group-hover:scale-110 transition-transform" />
-              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
-            </div>
+              <Radio class="w-4 h-4 text-[#99CC33]" />
+            </button>
 
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
-                <h1 class="text-sm sm:text-base font-extrabold font-heading tracking-tight text-white flex items-center gap-2 truncate">
-                  <span>PUSAT KOMANDO RADAR GEOSPASIAL</span>
-                  <span class="text-[#99CC33] font-mono text-xs font-bold">BKK KELAS I BANDUNG</span>
+                <h1 class="text-sm sm:text-[15px] font-bold tracking-tight text-white truncate">
+                  Pusat Komando Surveilans &amp; Geospasial
                 </h1>
-                <span class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#00A99D]/25 text-[#E6F7F5] border border-[#00A99D]/50 shadow-xs">
-                  <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
-                  <span>RADAR LOCK: 7 WILKER</span>
+                <span class="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#002B27]/80 text-[#99DFD6] border border-[#00A99D]/30">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#99CC33]"></span>
+                  <span>7 WILKER AKTIF</span>
                 </span>
-                <span class="hidden xl:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#001F1C]/80 text-[#99CC33] border border-[#99CC33]/40">
-                  <Compass class="w-3 h-3 animate-spin" style="animation-duration: 8s" />
+                <span class="hidden xl:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium bg-[#002B27]/60 text-slate-200 border border-white/10 tabular-nums">
+                  <Compass class="w-3 h-3 text-[#99CC33]" />
                   <span>AZM {{ String(radarAngle).padStart(3, '0') }}&deg;</span>
                 </span>
               </div>
-              <p class="text-[11px] text-slate-200 flex flex-wrap items-center gap-2 truncate mt-0.5">
-                <span>Jaringan 7 Wilker &bull; 4 Moda Karantina Terpadu</span>
-                <span class="text-slate-400">|</span>
-                <span class="font-mono text-[#99DFD6] flex items-center gap-1">
+              <p class="text-[11px] text-slate-200/90 flex flex-wrap items-center gap-2 truncate mt-0.5">
+                <span>BKK Kelas I Bandung &bull; 4 Moda Karantina Terpadu</span>
+                <span class="text-white/30">|</span>
+                <span class="font-mono text-[#99DFD6] flex items-center gap-1 tabular-nums">
                   <Clock class="w-3 h-3 text-[#99CC33]" />
                   {{ liveTimeStr || generated_at }}
                 </span>
@@ -1217,23 +1208,23 @@ const modaReadinessRadarOption = computed(() => {
             </div>
           </div>
 
-          <!-- Right: Command Controls, Mode Switcher & Form Launchers -->
-          <div class="flex flex-wrap items-center gap-2 shrink-0 text-xs">
+          <!-- Right: View Switcher, Sync & Quick Input Launchers -->
+          <div class="flex flex-wrap items-center gap-1.5 shrink-0 text-xs">
             <!-- Unified View Mode Switcher -->
-            <div class="inline-flex items-center p-0.5 rounded-xl bg-[#001F1C]/90 border border-[#00A99D]/40 text-[11px] font-bold">
+            <div class="inline-flex items-center p-0.5 rounded-lg bg-[#002B27] border border-white/15 text-[11px] font-semibold">
               <button
                 type="button"
                 @click="dashboardViewMode = 'all'"
-                class="px-2.5 py-1 rounded-lg transition-all cursor-pointer"
-                :class="dashboardViewMode === 'all' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+                class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
+                :class="dashboardViewMode === 'all' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
               >
-                Semua Terpadu
+                Semua
               </button>
               <button
                 type="button"
                 @click="dashboardViewMode = 'sinkarkes'"
-                class="px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1"
-                :class="dashboardViewMode === 'sinkarkes' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+                class="px-2.5 py-1 rounded-md transition-colors cursor-pointer flex items-center gap-1"
+                :class="dashboardViewMode === 'sinkarkes' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
               >
                 <BarChart3 class="w-3 h-3 text-[#99CC33]" />
                 <span>SINKARKES</span>
@@ -1241,41 +1232,41 @@ const modaReadinessRadarOption = computed(() => {
               <button
                 type="button"
                 @click="dashboardViewMode = 'geospatial'"
-                class="px-2.5 py-1 rounded-lg transition-all cursor-pointer hidden sm:inline-flex items-center gap-1"
-                :class="dashboardViewMode === 'geospatial' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+                class="px-2.5 py-1 rounded-md transition-colors cursor-pointer hidden sm:inline-flex items-center gap-1"
+                :class="dashboardViewMode === 'geospatial' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
               >
                 <Globe class="w-3 h-3 text-[#99DFD6]" />
-                <span>Radar &amp; Peta</span>
+                <span>Peta</span>
               </button>
             </div>
 
             <button
               type="button"
               @click="triggerSonarPing"
-              class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-[#99CC33]/20 hover:bg-[#99CC33]/35 text-[#99CC33] border border-[#99CC33]/50 transition-all cursor-pointer"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-[#99CC33]/15 hover:bg-[#99CC33]/25 text-[#d9f99d] border border-[#99CC33]/35 transition-colors cursor-pointer"
               title="Pancarkan Gelombang Sonar Radar"
             >
-              <Zap class="w-3.5 h-3.5" :class="isSonarPinging ? 'animate-bounce' : ''" />
-              <span class="hidden sm:inline">Ping Radar</span>
+              <Zap class="w-3.5 h-3.5" :class="isSonarPinging ? 'animate-pulse' : ''" />
+              <span class="hidden sm:inline">Ping</span>
             </button>
 
             <button
               type="button"
               @click="refreshData"
               :disabled="isRefreshing"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white/10 hover:bg-[#00A99D]/25 text-white hover:text-[#E6F7F5] border border-white/15 hover:border-[#00A99D]/40 transition-all cursor-pointer disabled:opacity-50"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors cursor-pointer disabled:opacity-50"
               title="Sinkronisasi data telemetri terkini"
             >
               <RefreshCw class="w-3.5 h-3.5" :class="isRefreshing ? 'animate-spin text-[#99CC33]' : 'text-[#99DFD6]'" />
-              <span class="hidden sm:inline">{{ isRefreshing ? 'Menghubungkan...' : 'Sinkron' }}</span>
+              <span class="hidden sm:inline">{{ isRefreshing ? 'Memuat...' : 'Sinkron' }}</span>
             </button>
 
-            <div class="h-5 w-px bg-white/20 hidden sm:block"></div>
+            <div class="h-4 w-px bg-white/20 hidden sm:block mx-0.5"></div>
 
             <div class="flex items-center gap-1">
               <Link
                 :href="getUrl('/sinkarkes')"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#99CC33]/25 hover:bg-[#99CC33]/40 text-[#F7FCE8] border border-[#99CC33]/50 transition-all flex items-center gap-1 cursor-pointer"
+                class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-[#99CC33]/20 hover:bg-[#99CC33]/30 text-[#F7FCE8] border border-[#99CC33]/40 transition-colors flex items-center gap-1 cursor-pointer"
                 title="Buka Formulir Input Laporan SINKARKES"
               >
                 <FileSpreadsheet class="w-3.5 h-3.5 text-[#99CC33]" />
@@ -1285,40 +1276,40 @@ const modaReadinessRadarOption = computed(() => {
                 :href="getUrl('/travelconsent/public_aircraft')"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#00A99D]/20 hover:bg-[#00A99D]/35 text-[#E6F7F5] border border-[#00A99D]/40 transition-all flex items-center gap-1 cursor-pointer"
+                class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center gap-1 cursor-pointer"
                 title="Input Inspeksi Pesawat Udara"
               >
-                <Plane class="w-3.5 h-3.5" />
+                <Plane class="w-3.5 h-3.5 text-[#99DFD6]" />
                 <span class="hidden md:inline">Pesawat</span>
               </a>
               <a
                 :href="getUrl('/travelconsent/public_sanitasi')"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#005851]/40 hover:bg-[#005851]/60 text-white border border-[#99DFD6]/35 transition-all flex items-center gap-1 cursor-pointer"
+                class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center gap-1 cursor-pointer"
                 title="Input Karantina Sanitasi Kapal Laut"
               >
-                <Ship class="w-3.5 h-3.5" />
+                <Ship class="w-3.5 h-3.5 text-[#99DFD6]" />
                 <span class="hidden md:inline">Kapal</span>
               </a>
               <a
                 :href="getUrl('/travelconsent/public_alat')"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#99CC33]/20 hover:bg-[#99CC33]/35 text-[#F7FCE8] border border-[#99CC33]/40 transition-all flex items-center gap-1 cursor-pointer"
+                class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center gap-1 cursor-pointer"
                 title="Input Pemeriksaan Alat Kesehatan Haji"
               >
-                <Stethoscope class="w-3.5 h-3.5" />
+                <Stethoscope class="w-3.5 h-3.5 text-[#99CC33]" />
                 <span class="hidden md:inline">Alkes</span>
               </a>
               <a
                 :href="getUrl('/travelconsent/public_obat')"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#00A99D]/25 hover:bg-[#00A99D]/40 text-[#E6F7F5] border border-[#00A99D]/45 transition-all flex items-center gap-1 cursor-pointer"
+                class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center gap-1 cursor-pointer"
                 title="Input Pemakaian Obat P3K Pesawat"
               >
-                <Pill class="w-3.5 h-3.5" />
+                <Pill class="w-3.5 h-3.5 text-[#99DFD6]" />
                 <span class="hidden md:inline">Obat</span>
               </a>
             </div>
@@ -1327,51 +1318,46 @@ const modaReadinessRadarOption = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
-      <!-- 4 INTERACTIVE RADAR-GAUGE SERVICE TILES (ANIMATED MODA TELEMETRY)         -->
+      <!-- 4 CLINICAL SERVICE KPI CARDS (ENTERPRISE COMPACT)                         -->
       <!-- ========================================================================= -->
       <div v-if="dashboardViewMode !== 'sinkarkes'" class="grid grid-cols-2 lg:grid-cols-4 gap-3 font-sans">
         
         <!-- Tile 1: Sanitasi Pesawat Udara -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'aircraft' ? 'all' : 'aircraft'"
-          class="rounded-2xl p-3.5 transition-all duration-300 cursor-pointer border relative overflow-hidden group bg-white shadow-xs hover:shadow-lg hover:-translate-y-0.5"
+          class="rounded-xl p-3 transition-colors cursor-pointer border bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] group"
           :class="selectedModuleKey === 'aircraft'
-            ? 'border-[#00A99D] ring-2 ring-[#00A99D]/30 bg-gradient-to-br from-[#E6F7F5]/70 to-white'
-            : 'border-slate-200/90 hover:border-[#00A99D]'"
+            ? 'border-[#00A99D] ring-1 ring-[#00A99D] bg-[#F4FBF9]'
+            : 'border-slate-200/90 hover:border-[#00A99D]/70'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#005851] via-[#00A99D] to-[#99CC33]"></div>
-          <!-- Subtle Animated Radar Ring Decoration -->
-          <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full border border-dashed border-[#00A99D]/20 group-hover:scale-125 transition-transform duration-500 pointer-events-none radar-spin-slow"></div>
-
-          <div class="flex items-center justify-between text-xs mt-0.5">
-            <span class="font-bold flex items-center gap-2 text-slate-800">
-              <span class="relative w-7 h-7 rounded-xl bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0 border border-[#99DFD6]/60 group-hover:bg-[#00A99D] group-hover:text-white transition-colors">
-                <Plane class="w-4 h-4" />
-                <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00A99D] animate-ping"></span>
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold flex items-center gap-2 text-slate-700">
+              <span class="w-6 h-6 rounded-md bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0">
+                <Plane class="w-3.5 h-3.5" />
               </span>
               <span>Sanitasi Pesawat</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
+            <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#E6F7F5] text-[#005851] tabular-nums">
               {{ kpi.compliance_rate }}% Laik
             </span>
           </div>
 
-          <div class="flex items-baseline justify-between mt-2.5">
+          <div class="flex items-baseline justify-between mt-2">
             <div>
-              <span class="text-2xl font-black text-[#005851] tracking-tight font-mono">
+              <span class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight font-mono tabular-nums">
                 {{ aircraft_stats.total }}
               </span>
-              <span class="text-xs text-slate-400 ml-1">dok</span>
+              <span class="text-[11px] text-slate-400 ml-1">dok</span>
             </div>
-            <div class="text-[11px] font-semibold text-slate-500">
-              <span class="text-[#00A99D] font-bold">{{ aircraft_stats.layak }} Layak</span> &bull; 
-              <span :class="aircraft_stats.tidak_layak > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'">{{ aircraft_stats.tidak_layak }} Tindakan</span>
+            <div class="text-[11px] font-medium text-slate-500 tabular-nums">
+              <span class="text-[#005851] font-semibold">{{ aircraft_stats.layak }} Layak</span> &bull; 
+              <span :class="aircraft_stats.tidak_layak > 0 ? 'text-rose-600 font-semibold' : 'text-slate-400'">{{ aircraft_stats.tidak_layak }} Tindakan</span>
             </div>
           </div>
 
-          <div class="mt-2.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+          <div class="mt-2 w-full bg-slate-100 h-1 rounded-full overflow-hidden">
             <div
-              class="h-full bg-gradient-to-r from-[#005851] to-[#00A99D] rounded-full shimmer-bar transition-all duration-700"
+              class="h-full bg-[#00A99D] rounded-full transition-all duration-500"
               :style="{ width: `${Math.max(12, kpi.compliance_rate || 85)}%` }"
             ></div>
           </div>
@@ -1380,43 +1366,39 @@ const modaReadinessRadarOption = computed(() => {
         <!-- Tile 2: Sanitasi Kapal Laut -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'ship' ? 'all' : 'ship'"
-          class="rounded-2xl p-3.5 transition-all duration-300 cursor-pointer border relative overflow-hidden group bg-white shadow-xs hover:shadow-lg hover:-translate-y-0.5"
+          class="rounded-xl p-3 transition-colors cursor-pointer border bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] group"
           :class="selectedModuleKey === 'ship'
-            ? 'border-[#005851] ring-2 ring-[#005851]/30 bg-gradient-to-br from-[#E0EFEF]/70 to-white'
-            : 'border-slate-200/90 hover:border-[#005851]'"
+            ? 'border-[#005851] ring-1 ring-[#005851] bg-[#F2F8F8]'
+            : 'border-slate-200/90 hover:border-[#005851]/70'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#003B36] via-[#005851] to-[#00A99D]"></div>
-          <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full border border-dashed border-[#005851]/20 group-hover:scale-125 transition-transform duration-500 pointer-events-none radar-spin-slow"></div>
-
-          <div class="flex items-center justify-between text-xs mt-0.5">
-            <span class="font-bold flex items-center gap-2 text-slate-800">
-              <span class="relative w-7 h-7 rounded-xl bg-[#E0EFEF] text-[#005851] flex items-center justify-center shrink-0 border border-[#99DFD6]/60 group-hover:bg-[#005851] group-hover:text-white transition-colors">
-                <Ship class="w-4 h-4" />
-                <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#005851] animate-ping"></span>
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold flex items-center gap-2 text-slate-700">
+              <span class="w-6 h-6 rounded-md bg-[#E0EFEF] text-[#005851] flex items-center justify-center shrink-0">
+                <Ship class="w-3.5 h-3.5" />
               </span>
               <span>Sanitasi Kapal</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#E0EFEF] text-[#005851] border border-[#99DFD6]">
+            <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
               IHR 2005
             </span>
           </div>
 
-          <div class="flex items-baseline justify-between mt-2.5">
+          <div class="flex items-baseline justify-between mt-2">
             <div>
-              <span class="text-2xl font-black text-[#005851] tracking-tight font-mono">
+              <span class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight font-mono tabular-nums">
                 {{ ship_stats.total }}
               </span>
-              <span class="text-xs text-slate-400 ml-1">kapal</span>
+              <span class="text-[11px] text-slate-400 ml-1">kapal</span>
             </div>
-            <div class="text-[11px] font-semibold text-slate-500">
-              <span class="text-[#005851] font-bold">{{ ship_stats.sscec }} SSCEC</span> &bull; 
-              <span class="text-amber-700 font-bold">{{ ship_stats.sscc }} SSCC</span>
+            <div class="text-[11px] font-medium text-slate-500 tabular-nums">
+              <span class="text-[#005851] font-semibold">{{ ship_stats.sscec }} SSCEC</span> &bull; 
+              <span class="text-amber-700 font-semibold">{{ ship_stats.sscc }} SSCC</span>
             </div>
           </div>
 
-          <div class="mt-2.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+          <div class="mt-2 w-full bg-slate-100 h-1 rounded-full overflow-hidden">
             <div
-              class="h-full bg-gradient-to-r from-[#003B36] to-[#00A99D] rounded-full shimmer-bar transition-all duration-700"
+              class="h-full bg-[#005851] rounded-full transition-all duration-500"
               :style="{ width: `${ship_stats.total > 0 ? Math.max(15, Math.round((ship_stats.sscec / ship_stats.total) * 100)) : 75}%` }"
             ></div>
           </div>
@@ -1425,43 +1407,39 @@ const modaReadinessRadarOption = computed(() => {
         <!-- Tile 3: Alkes Haji & Emergensi -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'alat' ? 'all' : 'alat'"
-          class="rounded-2xl p-3.5 transition-all duration-300 cursor-pointer border relative overflow-hidden group bg-white shadow-xs hover:shadow-lg hover:-translate-y-0.5"
+          class="rounded-xl p-3 transition-colors cursor-pointer border bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] group"
           :class="selectedModuleKey === 'alat'
-            ? 'border-[#99CC33] ring-2 ring-[#99CC33]/35 bg-gradient-to-br from-[#F7FCE8]/80 to-white'
-            : 'border-slate-200/90 hover:border-[#99CC33]'"
+            ? 'border-[#7CA622] ring-1 ring-[#7CA622] bg-[#F9FCEF]'
+            : 'border-slate-200/90 hover:border-[#7CA622]/70'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#557A18] via-[#7CA622] to-[#99CC33]"></div>
-          <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full border border-dashed border-[#7CA622]/25 group-hover:scale-125 transition-transform duration-500 pointer-events-none radar-spin-slow"></div>
-
-          <div class="flex items-center justify-between text-xs mt-0.5">
-            <span class="font-bold flex items-center gap-2 text-slate-800">
-              <span class="relative w-7 h-7 rounded-xl bg-[#F7FCE8] text-[#557A18] flex items-center justify-center shrink-0 border border-[#D6EC8E] group-hover:bg-[#7CA622] group-hover:text-white transition-colors">
-                <Stethoscope class="w-4 h-4" />
-                <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold flex items-center gap-2 text-slate-700">
+              <span class="w-6 h-6 rounded-md bg-[#F7FCE8] text-[#557A18] flex items-center justify-center shrink-0">
+                <Stethoscope class="w-3.5 h-3.5" />
               </span>
               <span>Alkes Haji Pesawat</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#F7FCE8] text-[#557A18] border border-[#D6EC8E]">
+            <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-[#F7FCE8] text-[#557A18]">
               Emergensi
             </span>
           </div>
 
-          <div class="flex items-baseline justify-between mt-2.5">
+          <div class="flex items-baseline justify-between mt-2">
             <div>
-              <span class="text-2xl font-black text-[#005851] tracking-tight font-mono">
+              <span class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight font-mono tabular-nums">
                 {{ medical_stats.alat }}
               </span>
-              <span class="text-xs text-slate-400 ml-1">dok</span>
+              <span class="text-[11px] text-slate-400 ml-1">dok</span>
             </div>
-            <div class="text-[11px] font-semibold text-slate-500">
-              <span class="text-[#557A18] font-bold">{{ kpi.approved }} Selesai</span> &bull; 
-              <span class="text-amber-700 font-bold">{{ kpi.pending }} Proses</span>
+            <div class="text-[11px] font-medium text-slate-500 tabular-nums">
+              <span class="text-[#557A18] font-semibold">{{ kpi.approved }} Selesai</span> &bull; 
+              <span class="text-amber-700 font-semibold">{{ kpi.pending }} Proses</span>
             </div>
           </div>
 
-          <div class="mt-2.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+          <div class="mt-2 w-full bg-slate-100 h-1 rounded-full overflow-hidden">
             <div
-              class="h-full bg-gradient-to-r from-[#557A18] to-[#99CC33] rounded-full shimmer-bar transition-all duration-700"
+              class="h-full bg-[#7CA622] rounded-full transition-all duration-500"
               :style="{ width: `${Math.max(18, kpi.completion_rate || 80)}%` }"
             ></div>
           </div>
@@ -1470,43 +1448,39 @@ const modaReadinessRadarOption = computed(() => {
         <!-- Tile 4: Obat P3K Pesawat -->
         <div
           @click="selectedModuleKey = selectedModuleKey === 'obat' ? 'all' : 'obat'"
-          class="rounded-2xl p-3.5 transition-all duration-300 cursor-pointer border relative overflow-hidden group bg-white shadow-xs hover:shadow-lg hover:-translate-y-0.5"
+          class="rounded-xl p-3 transition-colors cursor-pointer border bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] group"
           :class="selectedModuleKey === 'obat'
-            ? 'border-[#00A99D] ring-2 ring-[#00A99D]/30 bg-gradient-to-br from-[#E6F7F5]/70 to-white'
-            : 'border-slate-200/90 hover:border-[#00A99D]'"
+            ? 'border-[#00A99D] ring-1 ring-[#00A99D] bg-[#F4FBF9]'
+            : 'border-slate-200/90 hover:border-[#00A99D]/70'"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00A99D] to-[#99CC33]"></div>
-          <div class="absolute -right-6 -bottom-6 w-24 h-24 rounded-full border border-dashed border-[#00A99D]/20 group-hover:scale-125 transition-transform duration-500 pointer-events-none radar-spin-slow"></div>
-
-          <div class="flex items-center justify-between text-xs mt-0.5">
-            <span class="font-bold flex items-center gap-2 text-slate-800">
-              <span class="relative w-7 h-7 rounded-xl bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0 border border-[#99DFD6]/60 group-hover:bg-[#00A99D] group-hover:text-white transition-colors">
-                <Pill class="w-4 h-4" />
-                <span class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#00A99D] animate-ping"></span>
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold flex items-center gap-2 text-slate-700">
+              <span class="w-6 h-6 rounded-md bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0">
+                <Pill class="w-3.5 h-3.5" />
               </span>
               <span>Obat P3K Pesawat</span>
             </span>
-            <span class="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
+            <span class="text-[10px] font-mono font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 tabular-nums">
               Total {{ kpi.total }}
             </span>
           </div>
 
-          <div class="flex items-baseline justify-between mt-2.5">
+          <div class="flex items-baseline justify-between mt-2">
             <div>
-              <span class="text-2xl font-black text-[#005851] tracking-tight font-mono">
+              <span class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight font-mono tabular-nums">
                 {{ medical_stats.obat }}
               </span>
-              <span class="text-xs text-slate-400 ml-1">dok</span>
+              <span class="text-[11px] text-slate-400 ml-1">dok</span>
             </div>
-            <div class="text-[11px] font-semibold text-slate-500">
-              <span class="text-[#00A99D] font-bold">{{ kpi.completion_rate }}% Verifikasi</span> &bull; 
-              <span class="text-slate-600 font-medium">{{ kpi.today }} Hari Ini</span>
+            <div class="text-[11px] font-medium text-slate-500 tabular-nums">
+              <span class="text-[#005851] font-semibold">{{ kpi.completion_rate }}% Verifikasi</span> &bull; 
+              <span class="text-slate-600">{{ kpi.today }} Hari Ini</span>
             </div>
           </div>
 
-          <div class="mt-2.5 w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+          <div class="mt-2 w-full bg-slate-100 h-1 rounded-full overflow-hidden">
             <div
-              class="h-full bg-gradient-to-r from-[#00A99D] to-[#99CC33] rounded-full shimmer-bar transition-all duration-700"
+              class="h-full bg-[#00A99D] rounded-full transition-all duration-500"
               :style="{ width: `${Math.max(15, kpi.completion_rate || 82)}%` }"
             ></div>
           </div>
@@ -1515,56 +1489,56 @@ const modaReadinessRadarOption = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
-      <!-- CENTERPIECE: TACTICAL GEOSPATIAL COMMAND CENTER (WITH LIVE RADAR HUD)     -->
+      <!-- CENTERPIECE: GEOSPATIAL COMMAND CENTER (ENTERPRISE COMPACT)               -->
       <!-- ========================================================================= -->
-      <div v-if="dashboardViewMode !== 'sinkarkes'" class="bg-white rounded-2xl border-2 border-[#003B36] shadow-2xl overflow-hidden ring-4 ring-[#00A99D]/15 font-sans">
+      <div v-if="dashboardViewMode !== 'sinkarkes'" class="bg-white rounded-xl border border-slate-200/90 shadow-[0_1px_2px_rgba(15,23,42,0.03)] overflow-hidden font-sans">
         
-        <!-- Centerpiece Top Command Bar (Dark Teal Gradient) -->
-        <div class="px-4 py-2.5 bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] text-white flex flex-wrap items-center justify-between gap-3 border-b border-[#003B36]">
+        <!-- Centerpiece Top Command Bar -->
+        <div class="px-4 py-2.5 bg-[#004640] text-white flex flex-wrap items-center justify-between gap-2.5 border-b border-[#003B36]">
           <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 rounded-lg bg-[#00A99D] text-white flex items-center justify-center font-black text-xs shadow-md shadow-[#00A99D]/30 border border-[#99DFD6]/40">
-              <Scan class="w-4 h-4 animate-pulse" />
+            <div class="w-7 h-7 rounded-md bg-[#00A99D] text-white flex items-center justify-center shrink-0">
+              <Scan class="w-4 h-4" />
             </div>
             <div>
               <div class="flex items-center gap-2">
-                <h2 class="text-sm font-extrabold font-heading tracking-tight text-white flex items-center gap-1.5">
-                  <span>RADAR GEOSPASIAL WILAYAH KERJA JAWA BARAT</span>
+                <h2 class="text-xs sm:text-sm font-bold tracking-tight text-white">
+                  Peta Geospasial Wilayah Kerja Jawa Barat
                 </h2>
-                <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#00A99D]/20 text-[#E6F7F5] border border-[#00A99D]/40">
-                  7 NODE TERHUBUNG
+                <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-[#002D29] text-[#99DFD6] border border-[#00A99D]/30">
+                  7 NODE
                 </span>
               </div>
-              <p class="text-[11px] text-slate-200">
-                Pemindaian radar aktif menghubungkan Kantor Induk Bandung dengan 6 Pos/Wilayah Kerja
+              <p class="text-[11px] text-slate-200/85">
+                Koneksi Kantor Induk Bandung &amp; 6 Wilayah Kerja Pelabuhan/Bandara
               </p>
             </div>
           </div>
 
           <!-- Controls: Map Layer Switcher & WebGL Radar Actions -->
-          <div class="flex flex-wrap items-center gap-2 text-xs">
+          <div class="flex flex-wrap items-center gap-1.5 text-xs">
             <!-- Map Layer Switcher -->
-            <div class="inline-flex items-center p-0.5 rounded-lg bg-[#00312D] border border-[#005851] text-[10px] font-bold">
+            <div class="inline-flex items-center p-0.5 rounded-md bg-[#002D29] border border-white/15 text-[10px] font-semibold">
               <button
                 type="button"
                 @click="switchMapLayer('osm')"
-                class="px-2 py-0.5 rounded transition-all cursor-pointer"
-                :class="activeMapLayer === 'osm' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+                class="px-2 py-0.5 rounded transition-colors cursor-pointer"
+                :class="activeMapLayer === 'osm' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
               >
                 OSM Standar
               </button>
               <button
                 type="button"
                 @click="switchMapLayer('hot')"
-                class="px-2 py-0.5 rounded transition-all cursor-pointer"
-                :class="activeMapLayer === 'hot' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+                class="px-2 py-0.5 rounded transition-colors cursor-pointer"
+                :class="activeMapLayer === 'hot' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
               >
                 Humanitarian
               </button>
               <button
                 type="button"
                 @click="switchMapLayer('osmde')"
-                class="px-2 py-0.5 rounded transition-all cursor-pointer"
-                :class="activeMapLayer === 'osmde' ? 'bg-[#00A99D] text-white shadow-xs' : 'text-slate-300 hover:text-white'"
+                class="px-2 py-0.5 rounded transition-colors cursor-pointer"
+                :class="activeMapLayer === 'osmde' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
               >
                 Topografi
               </button>
@@ -1575,19 +1549,19 @@ const modaReadinessRadarOption = computed(() => {
               <button
                 type="button"
                 @click="showMapRadarHud = !showMapRadarHud"
-                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border transition-colors cursor-pointer"
                 :class="showMapRadarHud
-                  ? 'bg-[#99CC33] text-[#002B27] border-[#99CC33] shadow-xs'
-                  : 'bg-white/10 hover:bg-[#00A99D]/20 text-white border-white/10'"
+                  ? 'bg-[#99CC33] text-[#002B27] border-[#99CC33]'
+                  : 'bg-white/10 hover:bg-white/20 text-white border-white/15'"
                 title="Tampilkan / Sembunyikan Overlay Pemindai Radar di Peta"
               >
-                <Radio class="w-3 h-3" :class="showMapRadarHud ? 'animate-pulse' : ''" />
+                <Radio class="w-3 h-3" />
                 <span>Radar HUD</span>
               </button>
               <button
                 type="button"
                 @click="resetGlobalView"
-                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/10 hover:bg-[#00A99D]/25 text-white transition-all cursor-pointer border border-white/10"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer border border-white/15"
                 title="Reset tampilan seluruh Jawa Barat"
               >
                 <Globe class="w-3 h-3 text-[#99CC33]" />
@@ -1596,10 +1570,10 @@ const modaReadinessRadarOption = computed(() => {
               <button
                 type="button"
                 @click="toggle3DPitch"
-                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border transition-colors cursor-pointer"
                 :class="mapPitch > 25
-                  ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-xs'
-                  : 'bg-white/10 hover:bg-[#00A99D]/20 text-white border-white/10'"
+                  ? 'bg-[#00A99D] text-white border-[#00A99D]'
+                  : 'bg-white/10 hover:bg-white/20 text-white border-white/15'"
               >
                 <Box class="w-3 h-3" />
                 <span>3D</span>
@@ -1607,10 +1581,10 @@ const modaReadinessRadarOption = computed(() => {
               <button
                 type="button"
                 @click="toggleOrbit"
-                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border transition-all cursor-pointer"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold border transition-colors cursor-pointer"
                 :class="isOrbiting
-                  ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-xs'
-                  : 'bg-white/10 hover:bg-[#00A99D]/20 text-white border-white/10'"
+                  ? 'bg-[#00A99D] text-white border-[#00A99D]'
+                  : 'bg-white/10 hover:bg-white/20 text-white border-white/15'"
               >
                 <RotateCw class="w-3 h-3" :class="isOrbiting ? 'animate-spin' : ''" />
                 <span>Orbit</span>
@@ -1619,40 +1593,40 @@ const modaReadinessRadarOption = computed(() => {
           </div>
         </div>
 
-        <!-- Fly to Node Ribbon (Interactive Tactical Beacon Strip) -->
-        <div class="px-3.5 py-2 bg-[#002D29] border-b border-[#003B36] text-white flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div class="flex flex-wrap items-center gap-1.5">
-            <span class="text-[10px] font-mono font-bold tracking-wider uppercase text-[#99CC33] mr-1 flex items-center gap-1">
-              <Crosshair class="w-3 h-3 text-[#99CC33] animate-spin" style="animation-duration: 6s" />
-              RADAR LOCK:
+        <!-- Fly to Node Ribbon (Compact Node Bar) -->
+        <div class="px-3.5 py-1.5 bg-[#002D29] border-b border-[#003B36] text-white flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex flex-wrap items-center gap-1">
+            <span class="text-[10px] font-mono font-semibold tracking-wider uppercase text-[#99CC33] mr-1 flex items-center gap-1">
+              <Crosshair class="w-3 h-3 text-[#99CC33]" />
+              NODE:
             </span>
             <button
               v-for="node in bkkMapMarkers"
               :key="node.id"
               type="button"
               @click="selectOffice(node)"
-              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs transition-all cursor-pointer border"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] transition-colors cursor-pointer border"
               :class="selectedOffice?.no === node.no
-                ? 'bg-[#00A99D] text-white border-[#00A99D] font-extrabold shadow-md shadow-[#00A99D]/30 scale-105'
-                : 'bg-[#003B36]/90 text-slate-200 border-[#004D44] hover:bg-[#005851] hover:text-white'"
+                ? 'bg-[#00A99D] text-white border-[#00A99D] font-bold'
+                : 'bg-[#003B36]/80 text-slate-200 border-[#004D44] hover:bg-[#005851] hover:text-white'"
             >
-              <span class="text-[9px] font-mono font-black" :class="selectedOffice?.no === node.no ? 'text-white' : 'text-[#99CC33]'">
+              <span class="text-[9px] font-mono font-bold" :class="selectedOffice?.no === node.no ? 'text-white' : 'text-[#99CC33]'">
                 {{ node.shortCode }}
               </span>
               <span>{{ node.shortTitle.replace('Wilker ', '').replace('Induk ', '') }}</span>
               <span
                 v-if="node.total > 0"
-                class="text-[9px] font-bold px-1 rounded-full font-mono"
-                :class="selectedOffice?.no === node.no ? 'bg-[#003B36] text-[#99CC33]' : 'bg-[#00A99D]/20 text-[#E6F7F5] border border-[#00A99D]/30'"
+                class="text-[9px] font-semibold px-1 rounded font-mono tabular-nums"
+                :class="selectedOffice?.no === node.no ? 'bg-[#003B36] text-[#99CC33]' : 'bg-[#00A99D]/20 text-[#E6F7F5]'"
               >
                 {{ node.total }}
               </span>
             </button>
           </div>
 
-          <div class="text-[11px] font-mono text-slate-300 hidden xl:flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
-            <span>PEMINDAIAN SONAR GEOSPASIAL AKTIF</span>
+          <div class="text-[10px] font-mono text-slate-300 hidden xl:flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#99CC33]"></span>
+            <span>TELEMETRI GEOSPASIAL AKTIF</span>
           </div>
         </div>
 
@@ -1669,7 +1643,7 @@ const modaReadinessRadarOption = computed(() => {
               :initialBearing="0"
               styleType="osm"
               :markers="bkkMapMarkers"
-              height="530px"
+              height="430px"
               @selectMarker="selectOffice"
               @mapMove="onCameraMove"
             />
@@ -1677,52 +1651,52 @@ const modaReadinessRadarOption = computed(() => {
             <!-- Interactive Map Radar HUD Overlay (Pointer-Events-None so map remains interactive) -->
             <div v-if="showMapRadarHud" class="absolute inset-0 pointer-events-none z-10 flex items-center justify-center overflow-hidden">
               <!-- Corner Targeting Brackets -->
-              <div class="absolute top-3 left-3 w-6 h-6 border-t-2 border-l-2 border-[#00A99D]/60"></div>
-              <div class="absolute top-3 right-12 w-6 h-6 border-t-2 border-r-2 border-[#00A99D]/60"></div>
-              <div class="absolute bottom-8 left-3 w-6 h-6 border-b-2 border-l-2 border-[#00A99D]/60"></div>
-              <div class="absolute bottom-8 right-3 w-6 h-6 border-b-2 border-r-2 border-[#00A99D]/60"></div>
+              <div class="absolute top-3 left-3 w-5 h-5 border-t border-l border-[#00A99D]/55"></div>
+              <div class="absolute top-3 right-12 w-5 h-5 border-t border-r border-[#00A99D]/55"></div>
+              <div class="absolute bottom-8 left-3 w-5 h-5 border-b border-l border-[#00A99D]/55"></div>
+              <div class="absolute bottom-8 right-3 w-5 h-5 border-b border-r border-[#00A99D]/55"></div>
 
               <!-- Concentric Tactical Radar Reticle Rings -->
-              <div class="relative w-[360px] h-[360px] sm:w-[440px] sm:h-[440px] rounded-full border border-[#00A99D]/30 flex items-center justify-center">
-                <div class="w-[72%] h-[72%] rounded-full border border-dashed border-[#00A99D]/30 flex items-center justify-center">
-                  <div class="w-[50%] h-[50%] rounded-full border border-[#99CC33]/35 flex items-center justify-center">
-                    <div class="w-3 h-3 rounded-full border-2 border-[#99CC33] bg-[#00A99D]/40 animate-ping"></div>
+              <div class="relative w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] rounded-full border border-[#00A99D]/25 flex items-center justify-center">
+                <div class="w-[72%] h-[72%] rounded-full border border-dashed border-[#00A99D]/25 flex items-center justify-center">
+                  <div class="w-[48%] h-[48%] rounded-full border border-[#99CC33]/30 flex items-center justify-center">
+                    <div class="w-2.5 h-2.5 rounded-full border border-[#99CC33] bg-[#00A99D]/40"></div>
                   </div>
                 </div>
                 <!-- Crosshair Lines -->
-                <div class="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-[#00A99D]/35 to-transparent"></div>
-                <div class="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-[#00A99D]/35 to-transparent"></div>
+                <div class="absolute inset-x-0 top-1/2 h-px bg-gradient-to-r from-transparent via-[#00A99D]/30 to-transparent"></div>
+                <div class="absolute inset-y-0 left-1/2 w-px bg-gradient-to-b from-transparent via-[#00A99D]/30 to-transparent"></div>
                 <!-- Rotating Conic Radar Sweep Beam -->
                 <div
-                  class="absolute inset-0 rounded-full radar-conic-beam opacity-35"
+                  class="absolute inset-0 rounded-full radar-conic-beam opacity-30"
                   :style="{ animationDuration: radarSweepSpeed === 'fast' ? '2.2s' : '4.5s' }"
                 ></div>
                 <!-- Triggered Sonar Shockwave Ring -->
-                <div v-if="isSonarPinging" class="absolute inset-0 rounded-full border-4 border-[#99CC33] sonar-shockwave"></div>
+                <div v-if="isSonarPinging" class="absolute inset-0 rounded-full border-2 border-[#99CC33] sonar-shockwave"></div>
               </div>
             </div>
 
-            <!-- Top Left Cyber HUD Overlay -->
-            <div class="absolute top-3 left-3 z-20 w-52 rounded-xl bg-[#00221F]/92 backdrop-blur-md border border-[#00A99D]/40 px-3 py-2.5 shadow-2xl text-[10px] font-mono text-[#99DFD6] pointer-events-none ring-1 ring-[#00A99D]/20">
-              <div class="flex items-center justify-between border-b border-[#00A99D]/30 pb-1 mb-1.5">
-                <div class="flex items-center gap-1.5 font-bold text-[#99CC33]">
+            <!-- Top Left Telemetry HUD Overlay -->
+            <div class="absolute top-3 left-3 z-20 w-48 rounded-lg bg-[#00221F]/90 backdrop-blur-sm border border-[#00A99D]/35 px-2.5 py-2 shadow-lg text-[10px] font-mono text-[#99DFD6] pointer-events-none">
+              <div class="flex items-center justify-between border-b border-[#00A99D]/25 pb-1 mb-1">
+                <div class="flex items-center gap-1 font-bold text-[#99CC33]">
                   <Terminal class="w-3 h-3 text-[#99CC33]" />
-                  <span>TELEMETRI RADAR GPS</span>
+                  <span>TELEMETRI GPS</span>
                 </div>
-                <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
+                <span class="w-1.5 h-1.5 rounded-full bg-[#99CC33]"></span>
               </div>
-              <div class="space-y-1 text-slate-200">
+              <div class="space-y-0.5 text-slate-200 tabular-nums">
                 <div class="flex justify-between">
                   <span class="text-slate-400">KOORDINAT:</span>
-                  <span class="text-white font-bold">{{ mapCenter[1].toFixed(4) }}, {{ mapCenter[0].toFixed(4) }}</span>
+                  <span class="text-white font-semibold">{{ mapCenter[1].toFixed(4) }}, {{ mapCenter[0].toFixed(4) }}</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-slate-400">ZOOM / PITCH:</span>
-                  <span class="text-white font-bold">{{ mapZoom.toFixed(1) }}x / {{ mapPitch }}&deg;</span>
+                  <span class="text-white font-semibold">{{ mapZoom.toFixed(1) }}x / {{ mapPitch }}&deg;</span>
                 </div>
                 <div class="flex justify-between">
                   <span class="text-slate-400">AZIMUTH:</span>
-                  <span class="text-[#99CC33] font-bold">{{ String(radarAngle).padStart(3, '0') }}&deg; ACTIVE</span>
+                  <span class="text-[#99CC33] font-semibold">{{ String(radarAngle).padStart(3, '0') }}&deg; ACTIVE</span>
                 </div>
               </div>
             </div>
@@ -1730,17 +1704,16 @@ const modaReadinessRadarOption = computed(() => {
             <!-- Bottom Right Target Node Telemetry HUD -->
             <div
               v-if="activeMapNode"
-              class="absolute bottom-3 right-3 z-20 rounded-xl bg-[#00221F]/95 backdrop-blur-md border border-[#00A99D]/50 shadow-2xl transition-all duration-200 text-white ring-1 ring-[#00A99D]/30"
-              :class="isNodeCardMinimized ? 'w-52 px-3 py-2' : 'w-72 sm:w-80 px-4 py-3'"
+              class="absolute bottom-3 right-3 z-20 rounded-lg bg-[#00221F]/92 backdrop-blur-sm border border-[#00A99D]/40 shadow-lg transition-all duration-200 text-white"
+              :class="isNodeCardMinimized ? 'w-48 px-2.5 py-1.5' : 'w-68 sm:w-76 px-3 py-2.5'"
             >
               <div class="flex items-center justify-between gap-1.5">
-                <div class="flex items-center gap-2.5 min-w-0">
-                  <div class="relative w-8 h-8 rounded-lg bg-[#00A99D] text-white flex items-center justify-center text-xs font-mono font-black shrink-0 shadow-xs border border-[#99DFD6]/40">
+                <div class="flex items-center gap-2 min-w-0">
+                  <div class="w-7 h-7 rounded-md bg-[#00A99D] text-white flex items-center justify-center text-[11px] font-mono font-bold shrink-0">
                     {{ activeMapNode.shortCode }}
-                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-[#99CC33] animate-ping"></span>
                   </div>
                   <div class="min-w-0">
-                    <h4 class="text-xs font-black text-white truncate">
+                    <h4 class="text-xs font-bold text-white truncate">
                       {{ activeMapNode.title }}
                     </h4>
                     <p v-if="!isNodeCardMinimized" class="text-[10px] text-[#99CC33] truncate font-mono">
@@ -1758,17 +1731,17 @@ const modaReadinessRadarOption = computed(() => {
               </div>
 
               <template v-if="!isNodeCardMinimized">
-                <div class="grid grid-cols-2 gap-2 pt-2.5 mt-2.5 border-t border-[#003B36] text-[11px] font-mono">
+                <div class="grid grid-cols-2 gap-1.5 pt-2 mt-2 border-t border-[#003B36] text-[10px] font-mono tabular-nums">
                   <div class="p-1.5 rounded bg-[#003B36]/80 border border-[#004D44]">
                     <span class="text-[9px] text-slate-400 block uppercase">Total Dokumen</span>
-                    <span class="text-sm font-black text-[#99CC33]">{{ activeMapNode.total || 0 }}</span>
+                    <span class="text-xs font-bold text-[#99CC33]">{{ activeMapNode.total || 0 }}</span>
                   </div>
                   <div class="p-1.5 rounded bg-[#003B36]/80 border border-[#004D44]">
                     <span class="text-[9px] text-slate-400 block uppercase">Terakhir Aktif</span>
-                    <span class="text-xs font-semibold text-[#E6F7F5] truncate block">{{ activeMapNode.last_human || 'Siaga Aktif' }}</span>
+                    <span class="text-[11px] font-semibold text-[#E6F7F5] truncate block">{{ activeMapNode.last_human || 'Siaga Aktif' }}</span>
                   </div>
                 </div>
-                <div class="mt-2 pt-2 border-t border-[#003B36] text-[10px] text-slate-300 line-clamp-2 leading-tight flex items-start gap-1">
+                <div class="mt-1.5 pt-1.5 border-t border-[#003B36] text-[10px] text-slate-300 line-clamp-2 leading-tight flex items-start gap-1">
                   <MapPin class="w-3 h-3 text-[#99CC33] shrink-0 mt-0.5" />
                   <span>{{ activeMapNode.address }}</span>
                 </div>
@@ -1777,20 +1750,19 @@ const modaReadinessRadarOption = computed(() => {
           </div>
 
           <!-- Side Cockpit: Interactive Circular Polar Sonar Radar Scanner (4 Cols) -->
-          <div class="lg:col-span-4 bg-gradient-to-br from-[#001F1C] via-[#002D29] to-[#003B36] text-white p-4 flex flex-col justify-between relative overflow-hidden border-t lg:border-t-0 lg:border-l border-[#004D44]">
-            <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#00A99D_1px,transparent_1px)] [background-size:14px_14px]"></div>
+          <div class="lg:col-span-4 bg-[#002824] text-white p-3.5 flex flex-col justify-between relative overflow-hidden border-t lg:border-t-0 lg:border-l border-[#004D44]">
 
             <!-- Header -->
             <div class="relative z-10 flex items-center justify-between gap-2">
               <div>
                 <div class="flex items-center gap-1.5">
-                  <span class="w-2 h-2 rounded-full bg-[#99CC33] animate-ping"></span>
-                  <h3 class="text-xs sm:text-sm font-extrabold tracking-tight text-white uppercase">
-                    Sonar Radar Jaringan Wilker
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#99CC33]"></span>
+                  <h3 class="text-xs font-bold tracking-tight text-white uppercase">
+                    Radar Jaringan Wilker
                   </h3>
                 </div>
                 <p class="text-[10px] text-[#99DFD6] font-mono">
-                  Radius 150 KM dari Pusat Komando Bandung
+                  Radius 150 KM &bull; Bandung Hub
                 </p>
               </div>
 
@@ -1799,7 +1771,7 @@ const modaReadinessRadarOption = computed(() => {
                 <button
                   type="button"
                   @click="radarSweepSpeed = radarSweepSpeed === 'normal' ? 'fast' : 'normal'"
-                  class="px-2 py-0.5 rounded text-[10px] font-mono font-bold border transition-all cursor-pointer"
+                  class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold border transition-colors cursor-pointer"
                   :class="radarSweepSpeed === 'fast'
                     ? 'bg-[#99CC33] text-[#002B27] border-[#99CC33]'
                     : 'bg-[#003B36] text-[#99DFD6] border-[#00A99D]/40 hover:text-white'"
@@ -1810,7 +1782,7 @@ const modaReadinessRadarOption = computed(() => {
                 <button
                   type="button"
                   @click="triggerSonarPing"
-                  class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#00A99D]/30 hover:bg-[#00A99D] text-white border border-[#00A99D]/60 transition-all cursor-pointer"
+                  class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#00A99D]/25 hover:bg-[#00A99D] text-white border border-[#00A99D]/50 transition-colors cursor-pointer"
                 >
                   PING
                 </button>
@@ -1861,8 +1833,8 @@ const modaReadinessRadarOption = computed(() => {
                   :title="`${blip.shortTitle}: ${blip.distanceKm} km (${blip.bearingDeg}°)`"
                 >
                   <span
-                    class="absolute -inset-2 rounded-full animate-ping"
-                    :class="blip.is_hq ? 'bg-[#99CC33]/70' : (selectedOffice?.no === blip.no ? 'bg-[#00A99D]/80' : 'bg-[#00A99D]/40')"
+                    class="absolute -inset-1 rounded-full transition-opacity"
+                    :class="blip.is_hq ? 'bg-[#99CC33]/40' : (selectedOffice?.no === blip.no ? 'bg-[#00A99D]/55' : 'bg-[#00A99D]/20')"
                   ></span>
                   <span
                     class="relative flex items-center justify-center rounded-full font-mono font-black transition-transform group-hover/blip:scale-125 shadow-md"
@@ -1921,46 +1893,46 @@ const modaReadinessRadarOption = computed(() => {
       </div>
 
       <!-- ========================================================================= -->
-      <!-- TACTICAL MULTI-RADAR COMMAND DECK (WILKER DOCK + ECHARTS POLAR RADARS)    -->
+      <!-- MULTI-RADAR & WILKER TELEMETRY DECK                                       -->
       <!-- ========================================================================= -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 font-sans">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 font-sans">
         
-        <!-- Panel 1: Tactical Wilker Telemetry Dock (4 Cols - Swapped Here) -->
-        <div class="lg:col-span-4 rounded-2xl bg-white border border-slate-200/90 p-4 shadow-xs flex flex-col justify-between">
+        <!-- Panel 1: Wilker Telemetry Dock (4 Cols) -->
+        <div class="lg:col-span-4 rounded-xl bg-white border border-slate-200/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
           <div>
             <!-- Cockpit Header: Filter & Search -->
-            <div class="space-y-2 pb-2.5 border-b border-slate-200">
+            <div class="space-y-2 pb-2 border-b border-slate-200">
               <div class="flex items-center justify-between gap-1">
                 <div class="flex items-center gap-1">
                   <button
                     type="button"
                     @click="activeOfficeFilter = 'all'"
-                    class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
-                    :class="activeOfficeFilter === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition-colors cursor-pointer"
+                    :class="activeOfficeFilter === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
                   >
                     Semua (7)
                   </button>
                   <button
                     type="button"
                     @click="activeOfficeFilter = 'udara'"
-                    class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
-                    :class="activeOfficeFilter === 'udara' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition-colors cursor-pointer"
+                    :class="activeOfficeFilter === 'udara' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
                   >
                     Udara (3)
                   </button>
                   <button
                     type="button"
                     @click="activeOfficeFilter = 'laut'"
-                    class="px-2 py-0.5 rounded text-[11px] font-bold transition-all cursor-pointer"
-                    :class="activeOfficeFilter === 'laut' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851]'"
+                    class="px-2 py-0.5 rounded text-[11px] font-semibold transition-colors cursor-pointer"
+                    :class="activeOfficeFilter === 'laut' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
                   >
                     Laut (4)
                   </button>
                 </div>
 
-                <span class="text-[10px] font-mono font-bold text-[#005851] bg-[#E6F7F5] px-1.5 py-0.2 rounded border border-[#99DFD6] flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-[#00A99D] animate-ping"></span>
-                  SIAGA AKTIF
+                <span class="text-[10px] font-mono font-semibold text-[#005851] bg-[#E6F7F5] px-1.5 py-0.2 rounded flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#00A99D]"></span>
+                  SIAGA
                 </span>
               </div>
 
@@ -1970,21 +1942,21 @@ const modaReadinessRadarOption = computed(() => {
                   v-model="searchOffice"
                   type="text"
                   placeholder="Cari wilker / alamat..."
-                  class="w-full pl-8 pr-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#00A99D] focus:bg-white"
+                  class="w-full pl-8 pr-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#00A99D] focus:bg-white"
                 />
               </div>
             </div>
 
             <!-- High-Density Telemetry Card List -->
-            <div class="divide-y divide-slate-100 overflow-y-auto max-h-[235px] mt-1.5 pr-1">
+            <div class="space-y-1 overflow-y-auto max-h-[235px] mt-2 pr-1">
               <div
                 v-for="office in filteredOffices"
                 :key="office.no"
                 @click="selectOffice(office)"
-                class="py-2 px-2.5 rounded-xl transition-all cursor-pointer flex flex-col gap-1.5 mb-1"
+                class="py-1.5 px-2.5 rounded-lg transition-colors cursor-pointer flex flex-col gap-1 border"
                 :class="selectedOffice?.no === office.no
-                  ? 'bg-white border-2 border-[#00A99D] shadow-md ring-2 ring-[#00A99D]/20'
-                  : 'bg-slate-50/70 hover:bg-white border border-slate-200/80'"
+                  ? 'bg-[#F4FBF9] border-[#00A99D] ring-1 ring-[#00A99D]'
+                  : 'bg-slate-50/60 hover:bg-white border-slate-200/70'"
               >
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-2 min-w-0">
@@ -2038,21 +2010,21 @@ const modaReadinessRadarOption = computed(() => {
         </div>
 
         <!-- Panel 2: ECharts Multi-Dimensional Wilker Radar (4 Cols) -->
-        <div class="lg:col-span-4 rounded-2xl bg-white border border-slate-200/90 p-4 shadow-xs flex flex-col justify-between">
+        <div class="lg:col-span-4 rounded-xl bg-white border border-slate-200/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between gap-2 mb-1">
               <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#00A99D] animate-pulse"></span>
-                <h3 class="text-xs sm:text-sm font-bold text-slate-900">
-                  Radar Performa 5-Dimensi Wilayah Kerja
+                <span class="w-2 h-2 rounded-full bg-[#00A99D]"></span>
+                <h3 class="text-xs sm:text-[13px] font-bold text-slate-900">
+                  Radar Performa 5-Dimensi Wilker
                 </h3>
               </div>
 
-              <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200 text-[10px] font-bold">
+              <div class="inline-flex items-center p-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-semibold">
                 <button
                   type="button"
                   @click="selectedRadarCompareMode = 'top'"
-                  class="px-2 py-0.5 rounded cursor-pointer transition-all"
+                  class="px-2 py-0.5 rounded cursor-pointer transition-colors"
                   :class="selectedRadarCompareMode === 'top' ? 'bg-[#005851] text-white' : 'text-slate-600'"
                 >
                   Top 4
@@ -2060,7 +2032,7 @@ const modaReadinessRadarOption = computed(() => {
                 <button
                   type="button"
                   @click="selectedRadarCompareMode = 'all'"
-                  class="px-2 py-0.5 rounded cursor-pointer transition-all"
+                  class="px-2 py-0.5 rounded cursor-pointer transition-colors"
                   :class="selectedRadarCompareMode === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600'"
                 >
                   7 Wilker
@@ -2068,36 +2040,36 @@ const modaReadinessRadarOption = computed(() => {
               </div>
             </div>
             <p class="text-[11px] text-slate-500 mb-1">
-              Pemetaan poligon radar atas volume Alat Angkut, Orang, Dokumen, Layanan UKP, dan Kepatuhan.
+              Pemetaan poligon radar volume Alat Angkut, Orang, Dokumen, UKP &amp; Kepatuhan.
             </p>
           </div>
 
-          <div class="w-full h-[275px]">
-            <BaseChart :option="wilkerRadarOption" height="275px" />
+          <div class="w-full h-[255px]">
+            <BaseChart :option="wilkerRadarOption" height="255px" />
           </div>
         </div>
 
         <!-- Panel 3: ECharts Biosecurity & 4-Moda Quarantine Readiness Radar (4 Cols) -->
-        <div class="lg:col-span-4 rounded-2xl bg-white border border-slate-200/90 p-4 shadow-xs flex flex-col justify-between">
+        <div class="lg:col-span-4 rounded-xl bg-white border border-slate-200/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
           <div>
             <div class="flex items-center justify-between gap-2 mb-1">
               <div class="flex items-center gap-2">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#99CC33] animate-pulse"></span>
-                <h3 class="text-xs sm:text-sm font-bold text-slate-900">
-                  Radar Kesiapsiagaan Biosecurity &amp; 4 Moda
+                <span class="w-2 h-2 rounded-full bg-[#7CA622]"></span>
+                <h3 class="text-xs sm:text-[13px] font-bold text-slate-900">
+                  Kesiapsiagaan Biosecurity &amp; 4 Moda
                 </h3>
               </div>
-              <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
-                IHR 2005 READY
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]/70">
+                IHR 2005
               </span>
             </div>
             <p class="text-[11px] text-slate-500 mb-1">
-              Indeks kesiapsiagaan aktual lintas 6 parameter pengawasan dibandingkan terhadap standar IHR (95%).
+              Indeks kesiapsiagaan aktual 6 parameter pengawasan vs standar IHR (95%).
             </p>
           </div>
 
-          <div class="w-full h-[275px]">
-            <BaseChart :option="modaReadinessRadarOption" height="275px" />
+          <div class="w-full h-[255px]">
+            <BaseChart :option="modaReadinessRadarOption" height="255px" />
           </div>
         </div>
 
@@ -2106,39 +2078,39 @@ const modaReadinessRadarOption = computed(() => {
       <!-- ========================================================================= -->
       <!-- INTEGRATED SINKARKES EXECUTIVE SUMMARY, CHARTS & TOTAL SUMMARY TABLE       -->
       <!-- ========================================================================= -->
-      <div id="sinkarkes-section" v-if="dashboardViewMode !== 'geospatial'" class="space-y-3.5 font-sans">
+      <div id="sinkarkes-section" v-if="dashboardViewMode !== 'geospatial'" class="space-y-3 font-sans">
         
         <!-- SINKARKES Header & Filter Controls Banner -->
-        <div class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-          <div class="px-4 py-3 bg-gradient-to-r from-[#003B36] via-[#004D44] to-[#005851] text-white flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="w-8 h-8 rounded-xl bg-[#00A99D] text-white flex items-center justify-center shadow-md shadow-[#00A99D]/30 border border-[#99DFD6]/40 shrink-0">
+        <div class="bg-white rounded-xl border border-slate-200/90 shadow-[0_1px_2px_rgba(15,23,42,0.03)] overflow-hidden">
+          <div class="px-4 py-2.5 bg-[#004640] text-white flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 border-b border-[#003B36]">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-7 h-7 rounded-md bg-[#00A99D] text-white flex items-center justify-center shrink-0">
                 <BarChart3 class="w-4 h-4" />
               </div>
               <div class="min-w-0">
                 <div class="flex items-center gap-2 flex-wrap">
-                  <h2 class="text-sm sm:text-base font-extrabold tracking-tight text-white">
-                    EXECUTIVE SUMMARY &amp; REKAPITULASI SINKARKES ({{ selectedSinkarkesYear }})
+                  <h2 class="text-xs sm:text-sm font-bold tracking-tight text-white">
+                    Ringkasan Eksekutif &amp; Rekapitulasi SINKARKES ({{ selectedSinkarkesYear }})
                   </h2>
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#99CC33]/20 text-[#99CC33] border border-[#99CC33]/40">
+                  <span class="px-1.5 py-0.2 rounded text-[10px] font-mono font-semibold bg-[#002D29] text-[#99CC33] border border-[#99CC33]/35">
                     KSE &bull; UKP &bull; PRL
                   </span>
                 </div>
-                <p class="text-[11px] text-slate-200 truncate mt-0.5">
-                  Ringkasan capaian kinerja kekarantinaan kesehatan terpadu: Alat Angkut, Orang, Dokumen Karantina, Layanan Poliklinik BKK &amp; Vaksinasi ICV
+                <p class="text-[11px] text-slate-200/85 truncate">
+                  Konsolidasi pengawasan alat angkut, orang, dokumen karantina, poliklinik &amp; vaksinasi ICV
                 </p>
               </div>
             </div>
 
-            <!-- Wilker, Year, & Form Input Controls (Projection button removed) -->
-            <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <!-- Wilker, Year, & Form Input Controls -->
+            <div class="flex flex-wrap items-center gap-1.5 shrink-0">
               <!-- Wilayah Kerja Selector -->
-              <div class="flex items-center gap-1.5 bg-[#002D29]/90 border border-[#00A99D]/40 rounded-xl px-2.5 py-1.5 text-white">
+              <div class="flex items-center gap-1.5 bg-[#002D29] border border-white/15 rounded-lg px-2.5 py-1 text-white">
                 <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
                 <select
                   v-model="selectedSinkarkesWilker"
                   @change="handleSinkarkesFilterChange"
-                  class="bg-transparent text-xs font-bold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1"
+                  class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1"
                   title="Filter Wilayah Kerja SINKARKES"
                 >
                   <option value="all" class="text-slate-900">Semua Wilayah Kerja (Konsolidasi)</option>
@@ -2149,12 +2121,12 @@ const modaReadinessRadarOption = computed(() => {
               </div>
 
               <!-- Year Selector -->
-              <div class="flex items-center gap-1.5 bg-[#002D29]/90 border border-[#00A99D]/40 rounded-xl px-2.5 py-1.5 text-white">
+              <div class="flex items-center gap-1.5 bg-[#002D29] border border-white/15 rounded-lg px-2.5 py-1 text-white">
                 <Calendar class="w-3.5 h-3.5 text-[#99CC33] shrink-0" />
                 <select
                   v-model.number="selectedSinkarkesYear"
                   @change="handleSinkarkesFilterChange"
-                  class="bg-transparent text-xs font-bold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1"
+                  class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1"
                   title="Pilih Tahun Laporan SINKARKES"
                 >
                   <option v-for="y in availableSinkarkesYears" :key="y" :value="y" class="text-slate-900">
@@ -2166,7 +2138,7 @@ const modaReadinessRadarOption = computed(() => {
               <!-- Open Form Input Button -->
               <Link
                 :href="getUrl(`/sinkarkes?wilker=${encodeURIComponent(selectedSinkarkesWilker !== 'all' ? selectedSinkarkesWilker : 'POS Bandara Husen')}&year=${selectedSinkarkesYear}`)"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-[#00A99D] hover:bg-[#008f85] border border-[#99DFD6]/40 transition-all shadow-sm cursor-pointer"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-white bg-[#00A99D] hover:bg-[#009388] transition-colors cursor-pointer"
               >
                 <FileSpreadsheet class="w-3.5 h-3.5" />
                 <span>Formulir Input &rarr;</span>
@@ -2175,19 +2147,19 @@ const modaReadinessRadarOption = computed(() => {
           </div>
 
           <!-- 6 Key Performance Metric Cards Grid -->
-          <div class="p-3.5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 bg-slate-50/60">
+          <div class="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 bg-slate-50/70">
             <!-- 1. Total Alat Angkut -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-[#00A99D] transition-colors">
-              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+            <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-[#00A99D] transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
                 <span>ALAT ANGKUT</span>
-                <div class="w-6 h-6 rounded-lg bg-[#E6F7F5] text-[#005851] flex items-center justify-center">
-                  <Plane class="w-3.5 h-3.5" />
+                <div class="w-5 h-5 rounded bg-[#E6F7F5] text-[#005851] flex items-center justify-center">
+                  <Plane class="w-3 h-3" />
                 </div>
               </div>
-              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+              <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
                 {{ (sinkarkesKpi.total_alat_angkut || 0).toLocaleString('id-ID') }}
               </div>
-              <div class="text-[10px] text-slate-500 mt-1 flex items-center gap-1 truncate">
+              <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1 truncate tabular-nums">
                 <span>Pswt: <strong class="text-slate-700">{{ (sinkarkesKpi.total_pesawat || 0).toLocaleString('id-ID') }}</strong></span>
                 <span>&bull;</span>
                 <span>Kpl: <strong class="text-slate-700">{{ (sinkarkesKpi.total_kapal || 0).toLocaleString('id-ID') }}</strong></span>
@@ -2195,17 +2167,17 @@ const modaReadinessRadarOption = computed(() => {
             </div>
 
             <!-- 2. Orang Terawasi -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-amber-400 transition-colors">
-              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+            <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-amber-400 transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
                 <span>ORANG TERAWASI</span>
-                <div class="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                  <Users class="w-3.5 h-3.5" />
+                <div class="w-5 h-5 rounded bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Users class="w-3 h-3" />
                 </div>
               </div>
-              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+              <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
                 {{ (sinkarkesKpi.total_orang || 0).toLocaleString('id-ID') }}
               </div>
-              <div class="text-[10px] text-slate-500 mt-1 flex items-center gap-1 truncate">
+              <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1 truncate tabular-nums">
                 <span>Pnp: <strong class="text-slate-700">{{ (sinkarkesKpi.total_penumpang || 0).toLocaleString('id-ID') }}</strong></span>
                 <span>&bull;</span>
                 <span>Kru: <strong class="text-slate-700">{{ (sinkarkesKpi.total_crew || 0).toLocaleString('id-ID') }}</strong></span>
@@ -2213,65 +2185,65 @@ const modaReadinessRadarOption = computed(() => {
             </div>
 
             <!-- 3. Dokumen Kekarantinaan -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-[#005851] transition-colors">
-              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+            <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-[#005851] transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
                 <span>DOKUMEN KARANTINA</span>
-                <div class="w-6 h-6 rounded-lg bg-[#E0EFEF] text-[#005851] flex items-center justify-center">
-                  <FileCheck class="w-3.5 h-3.5" />
+                <div class="w-5 h-5 rounded bg-[#E0EFEF] text-[#005851] flex items-center justify-center">
+                  <FileCheck class="w-3 h-3" />
                 </div>
               </div>
-              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+              <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
                 {{ (sinkarkesKpi.total_dokumen || 0).toLocaleString('id-ID') }}
               </div>
-              <div class="text-[10px] text-slate-500 mt-1 truncate">
+              <div class="text-[10px] text-slate-500 mt-0.5 truncate">
                 SSCEC, SSCC, P3K, Desinseksi
               </div>
             </div>
 
             <!-- 4. Layanan Medis -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-sky-400 transition-colors">
-              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+            <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-sky-400 transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
                 <span>LAYANAN MEDIS</span>
-                <div class="w-6 h-6 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
-                  <HeartPulse class="w-3.5 h-3.5" />
+                <div class="w-5 h-5 rounded bg-sky-50 text-sky-600 flex items-center justify-center">
+                  <HeartPulse class="w-3 h-3" />
                 </div>
               </div>
-              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+              <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
                 {{ (sinkarkesKpi.total_layanan_kesehatan || 0).toLocaleString('id-ID') }}
               </div>
-              <div class="text-[10px] text-slate-500 mt-1 truncate">
+              <div class="text-[10px] text-slate-500 mt-0.5 truncate">
                 Poliklinik BKK &amp; Uji Laik
               </div>
             </div>
 
             <!-- 5. Vaksinasi ICV -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-[#7CA622] transition-colors">
-              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+            <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-[#7CA622] transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
                 <span>VAKSINASI ICV</span>
-                <div class="w-6 h-6 rounded-lg bg-[#F7FCE8] text-[#557A18] flex items-center justify-center">
-                  <ShieldCheck class="w-3.5 h-3.5" />
+                <div class="w-5 h-5 rounded bg-[#F7FCE8] text-[#557A18] flex items-center justify-center">
+                  <ShieldCheck class="w-3 h-3" />
                 </div>
               </div>
-              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+              <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
                 {{ (sinkarkesKpi.total_vaksinasi || 0).toLocaleString('id-ID') }}
               </div>
-              <div class="text-[10px] text-slate-500 mt-1 truncate">
+              <div class="text-[10px] text-slate-500 mt-0.5 truncate">
                 Yellow Fever, Meningitis, dll
               </div>
             </div>
 
             <!-- 6. Kepatuhan Pelaporan -->
-            <div class="bg-white border border-slate-200/90 rounded-xl p-3 shadow-2xs hover:border-emerald-500 transition-colors">
-              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-bold">
+            <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-emerald-500 transition-colors">
+              <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
                 <span>KELENGKAPAN</span>
-                <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                  <CalendarCheck class="w-3.5 h-3.5" />
+                <div class="w-5 h-5 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                  <CalendarCheck class="w-3 h-3" />
                 </div>
               </div>
-              <div class="text-xl sm:text-2xl font-black text-[#005851] mt-1.5 font-mono">
+              <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
                 {{ sinkarkesKpi.compliance_rate || 0 }}%
               </div>
-              <div class="text-[10px] text-slate-500 mt-1 truncate">
+              <div class="text-[10px] text-slate-500 mt-0.5 truncate tabular-nums">
                 {{ sinkarkesKpi.submitted_reports_count || 0 }} / {{ sinkarkesKpi.total_possible_reports || 84 }} bulan terisi
               </div>
             </div>
@@ -2281,11 +2253,11 @@ const modaReadinessRadarOption = computed(() => {
         <!-- SINKARKES Charts Row 1: Monthly Traffic Trend (2 Cols) & Document Composition (1 Col) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
           <!-- Monthly Traffic Trend Chart -->
-          <div class="lg:col-span-2 bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
+          <div class="lg:col-span-2 clinical-surface p-4 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-1">
                 <div class="flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-[#00A99D]"></span>
+                  <span class="w-2 h-2 rounded-full bg-[#00A99D]"></span>
                   <h3 class="text-xs sm:text-sm font-bold text-slate-900">
                     Tren Bulanan Pengawasan Alat Angkut &amp; Orang ({{ selectedSinkarkesYear }})
                   </h3>
@@ -2296,17 +2268,17 @@ const modaReadinessRadarOption = computed(() => {
                 Dinamika volume kedatangan/keberangkatan pesawat, kapal laut, penumpang, dan kru sepanjang tahun.
               </p>
             </div>
-            <div class="w-full h-[270px]">
-              <BaseChart :option="sinkarkesTrafficOption" height="270px" />
+            <div class="w-full h-[265px]">
+              <BaseChart :option="sinkarkesTrafficOption" height="265px" />
             </div>
           </div>
 
           <!-- Document & Certificate Composition -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
+          <div class="clinical-surface p-4 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-1">
                 <div class="flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-[#005851]"></span>
+                  <span class="w-2 h-2 rounded-full bg-[#005851]"></span>
                   <h3 class="text-xs sm:text-sm font-bold text-slate-900">
                     Komposisi Dokumen Kekarantinaan
                   </h3>
@@ -2317,20 +2289,20 @@ const modaReadinessRadarOption = computed(() => {
                 Distribusi penerbitan SSCEC, SSCC, P3K, HAC, dan sertifikat penyehatan.
               </p>
             </div>
-            <div class="w-full h-[270px]">
-              <BaseChart :option="sinkarkesDocumentOption" height="270px" />
+            <div class="w-full h-[265px]">
+              <BaseChart :option="sinkarkesDocumentOption" height="265px" />
             </div>
           </div>
         </div>
 
         <!-- SINKARKES Charts Row 2: Cross-Wilker Comparison & Health Services -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3.5">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <!-- Cross-Wilker Operational Volume Comparison -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
+          <div class="clinical-surface p-4 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-1">
                 <div class="flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-[#7CA622]"></span>
+                  <span class="w-2 h-2 rounded-full bg-[#7CA622]"></span>
                   <h3 class="text-xs sm:text-sm font-bold text-slate-900">
                     Perbandingan Volume Lintas 7 Wilayah Kerja
                   </h3>
@@ -2341,17 +2313,17 @@ const modaReadinessRadarOption = computed(() => {
                 Komparasi beban aktivitas alat angkut, orang, dan dokumen antar pos dan wilayah kerja.
               </p>
             </div>
-            <div class="w-full h-[270px]">
-              <BaseChart :option="sinkarkesWilkerOption" height="270px" />
+            <div class="w-full h-[265px]">
+              <BaseChart :option="sinkarkesWilkerOption" height="265px" />
             </div>
           </div>
 
           <!-- Health Services & Vaccines Monthly Stack -->
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 shadow-2xs flex flex-col justify-between">
+          <div class="clinical-surface p-4 flex flex-col justify-between">
             <div>
               <div class="flex items-center justify-between mb-1">
                 <div class="flex items-center gap-2">
-                  <span class="w-2.5 h-2.5 rounded-full bg-sky-600"></span>
+                  <span class="w-2 h-2 rounded-full bg-sky-600"></span>
                   <h3 class="text-xs sm:text-sm font-bold text-slate-900">
                     Layanan Kesehatan Pelabuhan &amp; Vaksinasi ICV
                   </h3>
@@ -2362,16 +2334,16 @@ const modaReadinessRadarOption = computed(() => {
                 Kunjungan poliklinik BKK, penerbitan surat keterangan sehat, dan vaksinasi haji/umrah/internasional.
               </p>
             </div>
-            <div class="w-full h-[270px]">
-              <BaseChart :option="sinkarkesHealthOption" height="270px" />
+            <div class="w-full h-[265px]">
+              <BaseChart :option="sinkarkesHealthOption" height="265px" />
             </div>
           </div>
         </div>
 
         <!-- SINKARKES Total Summary Table (Jan - Des + Total Tahunan) -->
-        <div class="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-3.5">
+        <div class="clinical-surface p-4 space-y-3">
           <!-- Header & Top Controls -->
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 border-b border-slate-100 pb-3">
             <div>
               <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6] mb-1">
                 <Table class="w-3.5 h-3.5 text-[#00A99D]" />

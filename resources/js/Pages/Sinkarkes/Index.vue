@@ -503,101 +503,101 @@ onUnmounted(() => {
   <Head :title="`SINKARKES - ${selectedWilker} (${selectedYear})`" />
 
   <HybridNavbar mode="inertia" currentRoute="sinkarkes">
-    <main class="w-full max-w-none px-2.5 sm:px-4 lg:px-5 pt-3 pb-12 space-y-3.5 font-sans">
+    <main class="clinical-main font-sans">
 
       <!-- Top Institutional Banner & Period Controls -->
-      <div class="w-full bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-4 sm:p-5 shadow-xs transition-all">
-        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-          <!-- Title & Meta -->
-          <div class="space-y-1 min-w-0 flex-1">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] sm:text-xs font-mono font-semibold bg-[#00A99D]/10 text-[#005851] dark:text-[#00A99D] border border-[#00A99D]/30">
-              <Building2 class="w-3.5 h-3.5 text-[#00A99D]" />
-              <span>SINKARKES &bull; BKK KELAS I BANDUNG</span>
-            </div>
-            <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5 flex-wrap">
-              <span>Formulir Laporan SINKARKES</span>
-              <span v-if="isDirty" class="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/50 px-2 py-0.5 rounded-full">
-                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                Ada perubahan belum disimpan
+      <div class="clinical-header flex flex-col xl:flex-row xl:items-center justify-between gap-3">
+        <!-- Title & Meta -->
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <div class="w-9 h-9 rounded-lg bg-[#002B27] border border-[#00A99D]/40 text-[#99CC33] flex items-center justify-center shrink-0">
+            <Building2 class="w-4 h-4" />
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 class="text-sm sm:text-[15px] font-bold text-white tracking-tight">
+                Formulir Laporan SINKARKES
+              </h1>
+              <span v-if="isDirty" class="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-200 bg-amber-500/20 border border-amber-400/40 px-2 py-0.5 rounded">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-300"></span>
+                Belum disimpan
               </span>
-            </h1>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-              Instrumen pengumpulan data karantina &amp; surveilans epidemiologi (KSE), upaya kesehatan (UKP), dan pengendalian risiko lingkungan (PRL) wilayah kerja BKK Bandung.
+            </div>
+            <p class="text-[11px] text-slate-200/85 truncate mt-0.5">
+              Data KSE, Upaya Kesehatan (UKP), dan Pengendalian Risiko Lingkungan (PRL) &bull; BKK Kelas I Bandung.
             </p>
           </div>
+        </div>
 
-          <!-- Controls: Wilker, Year, Export & Save -->
-          <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-            <!-- Wilayah Kerja Dropdown -->
-            <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1a2130] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 shadow-2xs">
-              <Building2 class="w-4 h-4 text-[#00A99D] shrink-0" />
-              <select
-                v-model="selectedWilker"
-                @change="handlePeriodChange"
-                class="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-100 border-none focus:ring-0 cursor-pointer outline-none pr-2 py-0.5"
-                title="Pilih Wilayah Kerja"
-              >
-                <option v-for="w in wilkerOptions" :key="w" :value="w">
-                  {{ w }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Tahun Dropdown -->
-            <div class="flex items-center gap-1.5 bg-slate-50 dark:bg-[#1a2130] border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 shadow-2xs">
-              <Calendar class="w-4 h-4 text-[#7CA622] shrink-0" />
-              <select
-                v-model.number="selectedYear"
-                @change="handlePeriodChange"
-                class="bg-transparent text-xs font-bold text-slate-800 dark:text-slate-100 border-none focus:ring-0 cursor-pointer outline-none pr-2 py-0.5"
-                title="Pilih Tahun"
-              >
-                <option v-for="y in availableYears" :key="y" :value="y">
-                  Tahun {{ y }}
-                </option>
-              </select>
-            </div>
-
-            <!-- Rekap Harian Button -->
-            <Link
-              :href="`/sinkarkes-daily?wilker=${encodeURIComponent(selectedWilker)}&year=${selectedYear}&month=${activeMonth}`"
-              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/60 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800/60 transition-colors shadow-2xs"
-              title="Input Data Harian Kapal & Pesawat (Terakumulasi Otomatis ke SINKARKES)"
+        <!-- Controls: Wilker, Year, Export & Save -->
+        <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+          <!-- Wilayah Kerja Dropdown -->
+          <div class="flex items-center gap-1.5 bg-[#002D29] border border-white/15 rounded-lg px-2.5 py-1 text-white">
+            <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+            <select
+              v-model="selectedWilker"
+              @change="handlePeriodChange"
+              class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
+              title="Pilih Wilayah Kerja"
             >
-              <Calendar class="w-4 h-4" />
-              <span class="hidden sm:inline">Rekap Harian</span>
-              <span class="sm:hidden">Harian</span>
-            </Link>
+              <option v-for="w in wilkerOptions" :key="w" :value="w" class="text-slate-900">
+                {{ w }}
+              </option>
+            </select>
+          </div>
 
-            <!-- Dashboard Utama Button -->
-            <Link
-              :href="`/dashboard?year=${selectedYear}&wilker=${encodeURIComponent(selectedWilker)}#sinkarkes-section`"
-              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 transition-colors shadow-2xs"
-              title="Buka Dashboard Utama & Diagram Grafis SINKARKES"
+          <!-- Tahun Dropdown -->
+          <div class="flex items-center gap-1.5 bg-[#002D29] border border-white/15 rounded-lg px-2.5 py-1 text-white">
+            <Calendar class="w-3.5 h-3.5 text-[#99CC33] shrink-0" />
+            <select
+              v-model.number="selectedYear"
+              @change="handlePeriodChange"
+              class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
+              title="Pilih Tahun"
             >
-              <BarChart3 class="w-4 h-4 text-[#00A99D]" />
-              <span class="hidden sm:inline">Dashboard Utama</span>
-              <span class="sm:hidden">Dashboard</span>
-            </Link>
+              <option v-for="y in availableYears" :key="y" :value="y" class="text-slate-900">
+                Tahun {{ y }}
+              </option>
+            </select>
+          </div>
 
-            <!-- Import Excel Button -->
-            <button
-              type="button"
-              @click="openImportModal"
-              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-[#005851] dark:text-[#00A99D] bg-[#00A99D]/10 hover:bg-[#00A99D]/20 border border-[#00A99D]/30 transition-colors shadow-2xs cursor-pointer"
-              title="Import Data SINKARKES dari File Excel Resmi"
-            >
-              <Upload class="w-4 h-4" />
-              <span class="hidden sm:inline">Import Excel</span>
-              <span class="sm:hidden">Import</span>
-            </button>
+          <!-- Rekap Harian Button -->
+          <Link
+            :href="`/sinkarkes-daily?wilker=${encodeURIComponent(selectedWilker)}&year=${selectedYear}&month=${activeMonth}`"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-[#99DFD6] bg-white/10 hover:bg-white/20 border border-white/15 transition-colors"
+            title="Input Data Harian Kapal & Pesawat (Terakumulasi Otomatis ke SINKARKES)"
+          >
+            <Calendar class="w-3.5 h-3.5" />
+            <span class="hidden sm:inline">Rekap Harian</span>
+            <span class="sm:hidden">Harian</span>
+          </Link>
 
-            <!-- Ekspor Excel Button -->
-            <a
-              :href="exportExcelUrl"
-              class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-800/60 transition-colors shadow-2xs"
-              title="Unduh Formulir Lengkap 12 Bulan (Format Excel Asli)"
-            >
+          <!-- Dashboard Utama Button -->
+          <Link
+            :href="`/dashboard?year=${selectedYear}&wilker=${encodeURIComponent(selectedWilker)}#sinkarkes-section`"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-colors"
+            title="Buka Dashboard Utama & Diagram Grafis SINKARKES"
+          >
+            <BarChart3 class="w-3.5 h-3.5 text-[#99CC33]" />
+            <span class="hidden sm:inline">Dashboard</span>
+          </Link>
+
+          <!-- Import Excel Button -->
+          <button
+            type="button"
+            @click="openImportModal"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-colors cursor-pointer"
+            title="Import Data SINKARKES dari File Excel Resmi"
+          >
+            <Upload class="w-3.5 h-3.5 text-[#99DFD6]" />
+            <span class="hidden sm:inline">Import</span>
+          </button>
+
+          <!-- Ekspor Excel Button -->
+          <a
+            :href="exportExcelUrl"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-[#00A99D] hover:bg-[#009388] transition-colors"
+            title="Unduh Formulir Lengkap 12 Bulan (Format Excel Asli)"
+          >
               <Download class="w-4 h-4" />
               <span class="hidden sm:inline">Ekspor Excel</span>
               <span class="sm:hidden">Excel</span>
@@ -608,20 +608,21 @@ onUnmounted(() => {
               type="button"
               @click="saveReport()"
               :disabled="isSaving"
-              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#00A99D] hover:bg-[#008f85] active:scale-95 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[#002B27] bg-[#99CC33] hover:bg-[#8ec226] disabled:opacity-50 transition-colors cursor-pointer"
             >
-              <Save v-if="!isSaving" class="w-4 h-4" />
-              <span v-else class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+              <Save v-if="!isSaving" class="w-3.5 h-3.5" />
+              <span v-else class="w-3.5 h-3.5 border-2 border-[#002B27] border-t-transparent rounded-full animate-spin"></span>
               <span>{{ isSaving ? 'Menyimpan...' : 'Simpan Data' }}</span>
-              <span class="hidden md:inline-block text-[10px] bg-white/20 px-1.5 py-0.2 rounded font-mono font-normal">Ctrl+S</span>
+              <span class="hidden md:inline-block text-[10px] bg-black/10 px-1 rounded font-mono font-normal">Ctrl+S</span>
             </button>
           </div>
         </div>
 
-        <!-- 12-Month Pill Switcher -->
-        <div class="mt-5 pt-4 border-t border-slate-200/80 dark:border-slate-800">
+      <!-- 12-Month Pill Switcher Card -->
+      <div class="clinical-surface p-3.5">
+        <div>
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
               <Calendar class="w-3.5 h-3.5 text-[#00A99D]" />
               <span>Bulan Pelaporan ({{ selectedYear }})</span>
             </span>
@@ -629,18 +630,18 @@ onUnmounted(() => {
               <button
                 type="button"
                 @click="prevMonth"
-                class="p-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                class="p-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
                 title="Bulan Sebelumnya"
               >
                 <ChevronLeft class="w-4 h-4" />
               </button>
-              <span class="text-xs font-bold text-[#005851] dark:text-[#00A99D] min-w-[70px] text-center">
+              <span class="text-xs font-bold text-[#005851] min-w-[70px] text-center">
                 {{ monthsList.find(m => m.id === activeMonth)?.label }} {{ selectedYear }}
               </span>
               <button
                 type="button"
                 @click="nextMonth"
-                class="p-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                class="p-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
                 title="Bulan Berikutnya"
               >
                 <ChevronRight class="w-4 h-4" />
@@ -655,11 +656,11 @@ onUnmounted(() => {
               :key="m.id"
               type="button"
               @click="switchMonth(m.id)"
-              class="relative flex flex-col items-center justify-center py-2 px-1 rounded-xl text-xs font-semibold transition-all border cursor-pointer select-none"
+              class="relative flex flex-col items-center justify-center py-1.5 px-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer select-none"
               :class="[
                 activeMonth === m.id
-                  ? 'bg-[#00A99D] text-white border-[#00A99D] shadow-sm font-bold scale-[1.02]'
-                  : 'bg-slate-50 dark:bg-[#161c28] text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800',
+                  ? 'bg-[#005851] text-white border-[#005851] shadow-xs font-bold'
+                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100',
               ]"
             >
               <span class="text-[11px] sm:text-xs tracking-tight">{{ m.label }}</span>
@@ -668,14 +669,14 @@ onUnmounted(() => {
                   class="w-1.5 h-1.5 rounded-full"
                   :class="[
                     monthStatuses[m.id]?.hasData
-                      ? (activeMonth === m.id ? 'bg-white' : 'bg-emerald-500')
-                      : (activeMonth === m.id ? 'bg-white/40' : 'bg-slate-300 dark:bg-slate-600')
+                      ? (activeMonth === m.id ? 'bg-[#99CC33]' : 'bg-emerald-500')
+                      : (activeMonth === m.id ? 'bg-white/40' : 'bg-slate-300')
                   ]"
                 ></span>
                 <span
                   v-if="monthStatuses[m.id]?.hasData"
-                  class="text-[9px] font-mono leading-none"
-                  :class="activeMonth === m.id ? 'text-white/90' : 'text-slate-500 dark:text-slate-400'"
+                  class="text-[9px] font-mono leading-none clinical-num"
+                  :class="activeMonth === m.id ? 'text-white/90' : 'text-slate-500'"
                 >
                   {{ monthStatuses[m.id].filledCount }}
                 </span>
@@ -685,13 +686,13 @@ onUnmounted(() => {
         </div>
 
         <!-- Progress & Status Mini Strip -->
-        <div class="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+        <div class="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
           <div class="flex items-center gap-3">
             <div class="flex items-center gap-1.5">
               <CheckCircle2 class="w-4 h-4 text-emerald-600" />
-              <span>Kelengkapan Bulan Ini: <strong class="text-slate-800 dark:text-white">{{ overallStats.filledInputs }} / {{ overallStats.totalInputs }}</strong> ({{ overallStats.percent }}%)</span>
+              <span>Kelengkapan Bulan Ini: <strong class="text-slate-800 clinical-num">{{ overallStats.filledInputs }} / {{ overallStats.totalInputs }}</strong> (<span class="clinical-num">{{ overallStats.percent }}%</span>)</span>
             </div>
-            <div class="hidden sm:flex w-24 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+            <div class="hidden sm:flex w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
               <div class="bg-[#00A99D] h-full rounded-full transition-all duration-300" :style="{ width: `${overallStats.percent}%` }"></div>
             </div>
           </div>
@@ -699,7 +700,7 @@ onUnmounted(() => {
           <div class="flex items-center gap-3 text-[11px]">
             <span v-if="activeMonthMeta.updater" class="flex items-center gap-1">
               <UserCheck class="w-3.5 h-3.5 text-slate-400" />
-              <span>Petugas: <strong class="text-slate-700 dark:text-slate-300">{{ activeMonthMeta.updater }}</strong></span>
+              <span>Petugas: <strong class="text-slate-700">{{ activeMonthMeta.updater }}</strong></span>
             </span>
             <span class="text-slate-400 font-mono">
               Wilker: <strong>{{ selectedWilker }}</strong>
@@ -709,8 +710,8 @@ onUnmounted(() => {
       </div>
 
       <!-- Navigation Tabs: KSE, UKP, PRL & Filters -->
-      <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl p-2 sm:p-3 shadow-xs">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="clinical-surface p-2.5">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
           <!-- Section Switcher Buttons -->
           <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
             <button
@@ -718,11 +719,11 @@ onUnmounted(() => {
               :key="sec.section_code"
               type="button"
               @click="activeSection = sec.section_code"
-              class="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer"
+              class="clinical-tab cursor-pointer"
               :class="[
                 activeSection === sec.section_code
-                  ? 'bg-[#005851] text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-[#1a2130] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800'
+                  ? 'clinical-tab-active'
+                  : 'clinical-tab-inactive'
               ]"
             >
               <span>{{ sec.section_code }}</span>
@@ -730,11 +731,11 @@ onUnmounted(() => {
                 &bull; {{ sec.section_title }}
               </span>
               <span
-                class="px-1.5 py-0.2 rounded-full text-[10px] font-mono font-bold"
+                class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold clinical-num"
                 :class="[
                   activeSection === sec.section_code
                     ? 'bg-white/25 text-white'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                    : 'bg-slate-200 text-slate-700'
                 ]"
               >
                 {{ sectionStats[sec.section_code]?.filledInputs || 0 }}/{{ sectionStats[sec.section_code]?.totalInputs || 0 }}
@@ -751,7 +752,7 @@ onUnmounted(() => {
                 v-model="searchQuery"
                 type="text"
                 placeholder="Cari indikator / no..."
-                class="w-full pl-8 pr-3 py-1.5 rounded-xl text-xs bg-slate-50 dark:bg-[#1a2130] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#00A99D]"
+                class="clinical-input w-full pl-8 pr-3"
               />
             </div>
 

@@ -524,34 +524,40 @@ onMounted(() => {
   <Head title="Pusat Migrasi & Import Database â€¢ BKK Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="database-import">
-    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+    <main class="clinical-main">
 
       <!-- ==================== HEADER BAR ==================== -->
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
-        <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 mb-2">
-            <Database class="w-3.5 h-3.5" />
-            <span>Pusat Satu Pintu Migrasi Data â€¢ Simply (CI4) &rarr; Sadaya (Laravel/Vue 3)</span>
+      <div class="clinical-header flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-[#002B27] border border-[#00A99D]/40 text-[#99CC33] flex items-center justify-center shrink-0">
+            <Database class="w-4 h-4" />
           </div>
-          <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-            Pusat Migrasi &amp; Import Database
-          </h1>
-          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
-            Pindahkan dan sinkronkan seluruh basis data operasional (Pengawasan Kedatangan Kapal TANGKAP, Travel Consent Pesawat Udara, Sanitasi Kapal, Alkes &amp; Obat Medis Haji) secara langsung dari MySQL Simply maupun berkas backup.
-          </p>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-sm sm:text-[15px] font-bold text-white tracking-tight">
+                Pusat Migrasi &amp; Import Database
+              </h1>
+              <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#002B27]/80 text-[#99DFD6] border border-[#00A99D]/30">
+                Simply &rarr; Sadaya
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-200/85 truncate mt-0.5">
+              Sinkronisasi basis data TANGKAP, Travel Consent Pesawat, Sanitasi Kapal, Alkes &amp; Obat dari MySQL atau backup.
+            </p>
+          </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-1.5 shrink-0">
           <button
             type="button"
             @click="showAutoSyncModal = true"
-            class="px-4 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100/80 dark:hover:bg-indigo-900/50 text-xs font-bold text-indigo-700 dark:text-indigo-300 transition shadow-2xs flex items-center gap-2 cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg border border-white/15 bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <Clock class="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>Sinkronisasi Otomatis</span>
+            <Clock class="w-3.5 h-3.5 text-[#99DFD6]" />
+            <span>Auto-Sync</span>
             <span
-              class="w-2 h-2 rounded-full"
-              :class="autoSync.enabled ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'"
+              class="w-1.5 h-1.5 rounded-full"
+              :class="autoSync.enabled ? 'bg-[#99CC33]' : 'bg-slate-400'"
               :title="autoSync.enabled ? 'Status: Aktif' : 'Status: Nonaktif'"
             />
           </button>
@@ -560,27 +566,27 @@ onMounted(() => {
             type="button"
             @click="handleTestConnection"
             :disabled="isTesting"
-            class="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition shadow-xs flex items-center gap-2 cursor-pointer"
+            class="px-2.5 py-1.5 rounded-lg border border-white/15 bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors flex items-center gap-1.5 cursor-pointer"
           >
-            <RefreshCw class="w-3.5 h-3.5 text-slate-500" :class="{ 'animate-spin': isTesting }" />
-            <span>{{ isTesting ? 'Memeriksa...' : 'Uji Semua Koneksi' }}</span>
+            <RefreshCw class="w-3.5 h-3.5 text-[#99DFD6]" :class="{ 'animate-spin': isTesting }" />
+            <span>{{ isTesting ? 'Memeriksa...' : 'Uji Koneksi' }}</span>
           </button>
 
           <button
             type="button"
             @click="handleMigrate('all')"
             :disabled="isMigrating"
-            class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:opacity-95 text-xs font-bold text-white transition shadow-md flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            class="px-3 py-1.5 rounded-lg bg-[#00A99D] hover:bg-[#009388] text-xs font-semibold text-white transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
           >
-            <Sparkles class="w-4 h-4 text-indigo-200" :class="{ 'animate-spin': isMigrating && activeMigratingModule === 'all' }" />
-            <span>{{ isMigrating && activeMigratingModule === 'all' ? 'Memigrasikan Seluruh Data...' : 'Migrasikan Semua Data (One-Click)' }}</span>
+            <Sparkles class="w-3.5 h-3.5" :class="{ 'animate-spin': isMigrating && activeMigratingModule === 'all' }" />
+            <span>{{ isMigrating && activeMigratingModule === 'all' ? 'Memigrasikan...' : 'Migrasi Semua' }}</span>
           </button>
         </div>
       </div>
 
       <!-- ==================== MIGRATION OPTIONS BAR ==================== -->
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs">
-        <div class="flex flex-wrap items-center gap-x-6 gap-y-3 text-xs">
+      <div class="clinical-surface px-4 py-3">
+        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs">
           <label class="flex items-center gap-2 text-slate-700 dark:text-slate-300 cursor-pointer">
             <input
               type="checkbox"
@@ -652,39 +658,39 @@ onMounted(() => {
       <div v-if="migrationSummary" class="transition-all duration-300">
         <div
           v-if="migrationSummary.success"
-          class="p-5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 space-y-3 shadow-xs"
+          class="p-4 rounded-xl bg-teal-50/70 border border-teal-200 space-y-2.5 shadow-xs"
         >
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 font-bold text-sm text-indigo-900 dark:text-indigo-200">
-              <CheckCircle2 class="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            <div class="flex items-center gap-2 font-bold text-sm text-[#004640]">
+              <CheckCircle2 class="w-4 h-4 text-[#00A99D]" />
               <span>{{ migrationSummary.message || 'Proses Migrasi Berhasil Diselesaikan!' }}</span>
             </div>
-            <span class="text-xs font-mono font-semibold px-2.5 py-1 rounded-lg bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300">
+            <span class="text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-white border border-teal-200 text-[#005851] clinical-num">
               Waktu: {{ migrationSummary.duration }} detik
             </span>
           </div>
 
           <!-- If ALL modules were migrated -->
-          <div v-if="migrationSummary.details" class="overflow-x-auto pt-2">
-            <table class="w-full text-left text-xs bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-indigo-100 dark:border-indigo-900/50">
-              <thead class="bg-indigo-100/60 dark:bg-indigo-900/40 text-slate-700 dark:text-slate-300 text-[11px] uppercase tracking-wider font-semibold">
+          <div v-if="migrationSummary.details" class="overflow-x-auto pt-1">
+            <table class="w-full text-left text-xs bg-white rounded-lg overflow-hidden border border-slate-200">
+              <thead class="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
                 <tr>
-                  <th class="p-3">Modul</th>
-                  <th class="p-3 text-center">Total Diproses</th>
-                  <th class="p-3 text-center">Berhasil Diimpor</th>
-                  <th class="p-3 text-center">Dilewati (Duplikat)</th>
-                  <th class="p-3 text-center">Gagal</th>
-                  <th class="p-3 text-right">Durasi</th>
+                  <th class="p-2.5">Modul</th>
+                  <th class="p-2.5 text-center">Total Diproses</th>
+                  <th class="p-2.5 text-center">Berhasil Diimpor</th>
+                  <th class="p-2.5 text-center">Dilewati (Duplikat)</th>
+                  <th class="p-2.5 text-center">Gagal</th>
+                  <th class="p-2.5 text-right">Durasi</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                <tr v-for="(det, k) in migrationSummary.details" :key="k">
-                  <td class="p-3 font-semibold text-slate-900 dark:text-white">{{ det.module_name }}</td>
-                  <td class="p-3 text-center font-mono">{{ formatNumber(det.total_processed) }}</td>
-                  <td class="p-3 text-center font-bold text-emerald-600 font-mono">{{ formatNumber(det.imported) }}</td>
-                  <td class="p-3 text-center text-amber-600 font-mono">{{ formatNumber(det.skipped) }}</td>
-                  <td class="p-3 text-center text-rose-600 font-mono">{{ formatNumber(det.failed) }}</td>
-                  <td class="p-3 text-right font-mono text-slate-500">{{ det.duration }}s</td>
+              <tbody class="divide-y divide-slate-100">
+                <tr v-for="(det, k) in migrationSummary.details" :key="k" class="hover:bg-[#F4FBF9]">
+                  <td class="p-2.5 font-semibold text-slate-900">{{ det.module_name }}</td>
+                  <td class="p-2.5 text-center font-mono clinical-num">{{ formatNumber(det.total_processed) }}</td>
+                  <td class="p-2.5 text-center font-bold text-emerald-600 font-mono clinical-num">{{ formatNumber(det.imported) }}</td>
+                  <td class="p-2.5 text-center text-amber-600 font-mono clinical-num">{{ formatNumber(det.skipped) }}</td>
+                  <td class="p-2.5 text-center text-rose-600 font-mono clinical-num">{{ formatNumber(det.failed) }}</td>
+                  <td class="p-2.5 text-right font-mono text-slate-500 clinical-num">{{ det.duration }}s</td>
                 </tr>
               </tbody>
             </table>
@@ -692,28 +698,28 @@ onMounted(() => {
 
           <!-- If single module was migrated -->
           <div v-else class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+            <div class="clinical-kpi p-2.5">
               <span class="text-[10px] text-slate-400 block">Total Diproses</span>
-              <span class="text-base font-bold text-slate-900 dark:text-white">{{ formatNumber(migrationSummary.total_processed) }}</span>
+              <span class="text-base font-bold text-slate-900 clinical-num">{{ formatNumber(migrationSummary.total_processed) }}</span>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+            <div class="clinical-kpi p-2.5">
               <span class="text-[10px] text-slate-400 block">Berhasil Diimpor</span>
-              <span class="text-base font-bold text-emerald-600">{{ formatNumber(migrationSummary.imported) }}</span>
+              <span class="text-base font-bold text-emerald-600 clinical-num">{{ formatNumber(migrationSummary.imported) }}</span>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+            <div class="clinical-kpi p-2.5">
               <span class="text-[10px] text-slate-400 block">Dilewati (Duplikat)</span>
-              <span class="text-base font-bold text-amber-600">{{ formatNumber(migrationSummary.skipped) }}</span>
+              <span class="text-base font-bold text-amber-600 clinical-num">{{ formatNumber(migrationSummary.skipped) }}</span>
             </div>
-            <div class="bg-white dark:bg-slate-900 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/40">
+            <div class="clinical-kpi p-2.5">
               <span class="text-[10px] text-slate-400 block">Gagal</span>
-              <span class="text-base font-bold text-rose-600">{{ formatNumber(migrationSummary.failed) }}</span>
+              <span class="text-base font-bold text-rose-600 clinical-num">{{ formatNumber(migrationSummary.failed) }}</span>
             </div>
           </div>
         </div>
 
         <div
           v-else
-          class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2.5"
+          class="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800 flex items-start gap-2.5"
         >
           <XCircle class="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
           <div>

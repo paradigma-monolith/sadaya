@@ -186,66 +186,64 @@ onUnmounted(() => {
   <Head title="Pengawasan Kedatangan Kapal (TANGKAP) &bull; BKK Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="ship-surveillance">
-    <main class="w-full px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
+    <main class="clinical-main">
 
       <!-- ==================== HEADER BAR ==================== -->
-      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
-        <div class="flex items-start sm:items-center gap-3.5 min-w-0">
-          <img
-            src="/storage/images/LOGO KARANTINA.png"
-            alt="Logo Karantina Kesehatan"
-            class="h-12 w-12 object-contain drop-shadow-xs shrink-0 mt-0.5 sm:mt-0"
-            onerror="this.onerror=null;this.src='/images/LOGO KARANTINA.png';"
-          />
+      <div class="clinical-header flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-lg bg-[#002B27] border border-[#00A99D]/40 text-[#99CC33] flex items-center justify-center shrink-0">
+            <Anchor class="w-4 h-4" />
+          </div>
           <div class="min-w-0">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 mb-1.5">
-              <Anchor class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Kekarantinaan Pelabuhan &bull; BKK Kelas I Bandung</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <h1 class="text-sm sm:text-[15px] font-bold tracking-tight text-white">
+                Pengawasan Kedatangan Kapal (TANGKAP)
+              </h1>
+              <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#002B27]/80 text-[#99DFD6] border border-[#00A99D]/30">
+                Kekarantinaan Pelabuhan
+              </span>
             </div>
-            <h1 class="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white flex flex-wrap items-center gap-2">
-              <span>Pengawasan Kedatangan Kapal (TANGKAP)</span>
-            </h1>
-            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-3xl leading-relaxed">
-              Digitalisasi Self-Assessment Maritime Declaration of Health, Skoring Faktor Risiko, Verifikasi Sandar &amp; Estimasi PNBP.
+            <p class="text-[11px] text-slate-200/85 truncate mt-0.5">
+              Self-Assessment Maritime Declaration of Health, Skoring Faktor Risiko, Verifikasi Sandar &amp; Estimasi PNBP.
             </p>
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div class="flex flex-wrap items-center gap-1.5 shrink-0">
           <!-- Export CSV -->
           <a
             :href="exportCsvUrl"
-            class="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 transition shadow-xs"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/15 bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors"
           >
-            <Download class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <Download class="w-3.5 h-3.5 text-[#99CC33]" />
             <span>Export CSV</span>
           </a>
 
           <!-- Portal Pelayanan Dropdown (TANGKAP) -->
-          <div ref="portalDropdownRef" class="relative inline-flex items-center shadow-sm">
+          <div ref="portalDropdownRef" class="relative inline-flex items-center">
             <a
               href="/ship-surveillance/portal"
               target="_blank"
-              class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-l-xl bg-gradient-to-r from-[#005851] to-[#00A99D] text-white text-xs font-bold hover:brightness-105 transition cursor-pointer"
-              title="Buka Portal Self-Assessment TANGKAP (Langsung di Sadaya)"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-l-lg bg-[#00A99D] hover:bg-[#009388] text-white text-xs font-semibold transition-colors cursor-pointer"
+              title="Buka Portal Self-Assessment TANGKAP"
             >
               <ExternalLink class="w-3.5 h-3.5" />
-              <span>Portal Pelayanan (TANGKAP)</span>
+              <span>Portal TANGKAP</span>
             </a>
             <button
               type="button"
               @click="showPortalDropdown = !showPortalDropdown"
-              class="px-2.5 py-2.5 rounded-r-xl bg-[#00A99D] hover:bg-[#008f84] text-white text-xs border-l border-white/20 transition flex items-center justify-center cursor-pointer"
+              class="px-2 py-1.5 rounded-r-lg bg-[#009388] hover:bg-[#007e74] text-white text-xs border-l border-white/20 transition-colors flex items-center justify-center cursor-pointer"
               title="Pilih Formulir Spesifik"
             >
-              <ChevronDown class="w-4 h-4 transition-transform" :class="{ 'rotate-180': showPortalDropdown }" />
+              <ChevronDown class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': showPortalDropdown }" />
             </button>
 
             <div
               v-if="showPortalDropdown"
-              class="absolute right-0 top-full mt-2 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-2 space-y-1"
+              class="absolute right-0 top-full mt-1.5 w-68 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 text-slate-800"
             >
-              <div class="px-3 py-1.5 text-[10px] font-mono uppercase text-slate-400 tracking-wider">
+              <div class="px-2.5 py-1 text-[10px] font-mono uppercase text-slate-400 tracking-wider">
                 Portal Karantina Kesehatan (TANGKAP)
               </div>
 
@@ -253,16 +251,16 @@ onUnmounted(() => {
                 href="/ship-surveillance/portal"
                 target="_blank"
                 @click="showPortalDropdown = false"
-                class="flex items-start gap-2.5 p-2 rounded-xl text-xs hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition group"
+                class="flex items-start gap-2 p-2 rounded-lg text-xs hover:bg-slate-50 text-slate-700 transition-colors group"
               >
-                <div class="w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Globe class="w-4 h-4" />
+                <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Globe class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
-                  <div class="font-bold text-slate-900 dark:text-white group-hover:text-[#00A99D] transition">
+                  <div class="font-semibold text-slate-900 group-hover:text-[#00A99D] transition-colors">
                     Portal Utama TANGKAP ↗
                   </div>
-                  <div class="text-[11px] text-slate-500 line-clamp-1">
+                  <div class="text-[10px] text-slate-500 line-clamp-1">
                     Pilihan formulir kedatangan kapal
                   </div>
                 </div>
@@ -272,16 +270,16 @@ onUnmounted(() => {
                 href="/ship-surveillance/assessment/domestic"
                 target="_blank"
                 @click="showPortalDropdown = false"
-                class="flex items-start gap-2.5 p-2 rounded-xl text-xs hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition group"
+                class="flex items-start gap-2 p-2 rounded-lg text-xs hover:bg-slate-50 text-slate-700 transition-colors group"
               >
-                <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Flag class="w-4 h-4" />
+                <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Flag class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
-                  <div class="font-bold text-slate-900 dark:text-white group-hover:text-[#00A99D] transition">
+                  <div class="font-semibold text-slate-900 group-hover:text-[#00A99D] transition-colors">
                     Kapal Dari Dalam Negeri ↗
                   </div>
-                  <div class="text-[11px] text-slate-500 line-clamp-1">
+                  <div class="text-[10px] text-slate-500 line-clamp-1">
                     Formulir self-assessment rute domestik
                   </div>
                 </div>
@@ -291,16 +289,16 @@ onUnmounted(() => {
                 href="/ship-surveillance/assessment/international"
                 target="_blank"
                 @click="showPortalDropdown = false"
-                class="flex items-start gap-2.5 p-2 rounded-xl text-xs hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 transition group"
+                class="flex items-start gap-2 p-2 rounded-lg text-xs hover:bg-slate-50 text-slate-700 transition-colors group"
               >
-                <div class="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-600 flex items-center justify-center shrink-0 mt-0.5">
-                  <Ship class="w-4 h-4" />
+                <div class="w-6 h-6 rounded-md bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0 mt-0.5">
+                  <Ship class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
-                  <div class="font-bold text-slate-900 dark:text-white group-hover:text-[#00A99D] transition">
+                  <div class="font-semibold text-slate-900 group-hover:text-[#00A99D] transition-colors">
                     Ship Arriving from Abroad ↗
                   </div>
-                  <div class="text-[11px] text-slate-500 line-clamp-1">
+                  <div class="text-[10px] text-slate-500 line-clamp-1">
                     Form English kapal luar negeri (TANGKAP)
                   </div>
                 </div>
@@ -311,26 +309,26 @@ onUnmounted(() => {
       </div>
 
       <!-- ==================== MULTI-TAB NAVIGATION ==================== -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-1.5 border-b border-slate-200 dark:border-slate-800">
+      <div class="clinical-tabs">
         <button
           v-for="tab in tabs"
           :key="tab.id"
           type="button"
           @click="switchTab(tab.id)"
-          class="px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer"
+          class="clinical-tab"
           :class="activeTab === tab.id
-            ? 'bg-[#005851] text-white shadow-xs'
-            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'"
+            ? 'bg-[#005851] text-white'
+            : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
         >
           <component :is="tab.icon" class="w-3.5 h-3.5" />
           <span>{{ tab.label }}</span>
           <span
-            class="px-1.5 py-0.5 rounded-full text-[10px] font-mono"
+            class="px-1.5 py-0.2 rounded text-[10px] font-mono clinical-num"
             :class="activeTab === tab.id
               ? 'bg-white/20 text-white'
               : tab.accent === 'rose'
-                ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400'
-                : 'bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
+                ? 'bg-rose-50 text-rose-600'
+                : 'bg-slate-100 text-slate-600'"
           >
             {{ tab.count }}
           </span>
