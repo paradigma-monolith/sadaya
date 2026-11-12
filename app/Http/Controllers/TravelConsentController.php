@@ -378,14 +378,14 @@ class TravelConsentController extends Controller
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Formulir Sertifikat Pengendalian Sanitasi Kapal berhasil disubmit.',
+                'message' => 'FORM PEMERIKSAAN SANITASI KAPAL berhasil disubmit.',
                 'registration_no' => $inspection->registration_no,
                 'receipt_url' => route('travelconsent.receipt_sanitasi', $inspection->registration_no),
             ]);
         }
 
         return redirect()->route('travelconsent.receipt_sanitasi', $inspection->registration_no)
-            ->with('success', 'Formulir Sertifikat Pengendalian Sanitasi Kapal berhasil disubmit.');
+            ->with('success', 'FORM PEMERIKSAAN SANITASI KAPAL berhasil disubmit.');
     }
 
     /**

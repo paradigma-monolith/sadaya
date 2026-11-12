@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Sertifikat Pengendalian Sanitasi Kapal &bull; BKK Kelas I Bandung</title>
+    <title>FORM PEMERIKSAAN SANITASI KAPAL &bull; BKK Kelas I Bandung</title>
 
     <!-- Google Fonts & Tailwind CDN -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -495,7 +495,7 @@
             <!-- Title & Subtitle -->
             <div class="pt-5 pb-1">
                 <h2 class="text-xl sm:text-2xl font-black text-slate-900 uppercase tracking-tight">
-                    Sertifikat Pengendalian Sanitasi Kapal
+                    FORM PEMERIKSAAN SANITASI KAPAL
                 </h2>
                 <p class="text-xs sm:text-sm text-slate-500 font-medium italic mt-0.5">
                     Ship Sanitation Control Exemption Certificate (SSCEC) / Ship Sanitation Control Certificate (SSCC)
