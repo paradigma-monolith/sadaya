@@ -165,24 +165,24 @@ const handlePageChange = (page) => {
       <!-- Loading Overlay -->
       <div 
         v-if="loading" 
-        class="absolute inset-0 bg-white/75 backdrop-blur-[1px] flex items-center justify-center z-10"
+        class="absolute inset-0 bg-white/75 dark:bg-[#111820]/80 backdrop-blur-[1px] flex items-center justify-center z-10"
       >
-        <div class="flex items-center gap-2 text-[#005851] text-xs font-semibold">
+        <div class="flex items-center gap-2 text-[#005851] dark:text-[#4fd1c5] text-xs font-semibold">
           <Loader2 class="w-4 h-4 animate-spin" />
           <span>Memuat data...</span>
         </div>
       </div>
 
-      <table class="w-full text-left text-xs text-slate-700">
+      <table class="w-full text-left text-xs text-slate-700 dark:text-slate-200">
         <!-- Table Head -->
-        <thead class="bg-slate-50/90 text-[11px] uppercase tracking-wider text-slate-500 font-semibold border-b border-slate-200/90">
+        <thead class="bg-slate-50/90 dark:bg-[#16202a] text-[11px] uppercase tracking-wider text-slate-500 dark:text-slate-300 font-semibold border-b border-slate-200/90 dark:border-slate-800">
           <tr>
             <th
               v-for="col in columns"
               :key="col.key"
               :class="[
                 'px-3.5 py-2.5 select-none',
-                col.sortable ? 'cursor-pointer hover:text-slate-900' : '',
+                col.sortable ? 'cursor-pointer hover:text-slate-900 dark:hover:text-white' : '',
                 col.headerClass || ''
               ]"
               @click="handleSort(col)"
@@ -200,10 +200,10 @@ const handlePageChange = (page) => {
         </thead>
 
         <!-- Table Body -->
-        <tbody class="divide-y divide-slate-100">
+        <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
           <tr v-if="processedRows.length === 0 && !loading" class="text-center">
             <td :colspan="columns.length" class="py-10 text-slate-400">
-              <Inbox class="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
+              <Inbox class="w-7 h-7 text-slate-300 dark:text-slate-600 mx-auto mb-1.5" />
               <p class="text-xs">{{ emptyMessage }}</p>
             </td>
           </tr>
@@ -211,7 +211,7 @@ const handlePageChange = (page) => {
           <tr
             v-for="(row, rowIndex) in processedRows"
             :key="row.id || rowIndex"
-            class="hover:bg-[#F4FBF9]/70 transition-colors"
+            class="hover:bg-[#F4FBF9]/70 dark:hover:bg-[#00A99D]/10 transition-colors"
           >
             <td
               v-for="col in columns"

@@ -337,7 +337,7 @@ const navSections = computed(() => {
 
     <!-- Sidebar Aside Element (Clean White Theme matching Reference Image 2) -->
     <aside
-      class="fixed top-0 bottom-0 left-0 z-40 bg-white border-r border-slate-200/90 flex flex-col transition-all duration-200 font-sans shadow-xl lg:shadow-none"
+      class="fixed top-0 bottom-0 left-0 z-40 bg-white dark:bg-[#111820] border-r border-slate-200/90 dark:border-slate-800 flex flex-col transition-all duration-200 font-sans shadow-xl lg:shadow-none"
       :class="[
         isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         isCollapsed ? 'w-[60px]' : 'w-64 max-w-[85vw]',
@@ -345,7 +345,7 @@ const navSections = computed(() => {
     >
       <!-- Sidebar Header -->
       <div
-        class="h-12 border-b border-slate-200/90 flex items-center shrink-0"
+        class="h-12 border-b border-slate-200/90 dark:border-slate-800 flex items-center shrink-0"
         :class="isCollapsed ? 'justify-center px-2' : 'justify-between px-3.5'"
       >
         <a
@@ -363,10 +363,10 @@ const navSections = computed(() => {
           />
 
           <div v-if="!isCollapsed" class="transition-opacity duration-200 min-w-0 leading-tight">
-            <span class="block text-[13px] font-bold text-slate-900 tracking-tight group-hover:text-[#00A99D] transition-colors truncate">
+            <span class="block text-[13px] font-bold text-slate-900 dark:text-slate-100 tracking-tight group-hover:text-[#00A99D] transition-colors truncate">
               BKK Kelas I Bandung
             </span>
-            <span class="block text-[10px] text-slate-500 font-medium truncate">
+            <span class="block text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">
               Kementerian Kesehatan RI
             </span>
           </div>
@@ -376,7 +376,7 @@ const navSections = computed(() => {
         <button
           type="button"
           @click="closeMobile"
-          class="lg:hidden p-1 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors cursor-pointer shrink-0"
+          class="lg:hidden p-1 rounded-md text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
           title="Tutup Navigasi"
         >
           <X class="w-4 h-4" />
@@ -387,12 +387,12 @@ const navSections = computed(() => {
       <div class="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-2">
         <div v-for="(section, sIndex) in navSections" :key="sIndex" class="space-y-0.5">
           <!-- Collapsed Mode Thin Divider -->
-          <div v-if="isCollapsed" class="h-[1px] bg-slate-100 my-1.5 mx-1"></div>
+          <div v-if="isCollapsed" class="h-[1px] bg-slate-100 dark:bg-slate-800 my-1.5 mx-1"></div>
 
           <!-- Non-collapsible Section Header (e.g. MENU UTAMA) -->
           <div 
             v-else-if="section.collapsible === false" 
-            class="px-2 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-snug"
+            class="px-2 pt-1 pb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 leading-snug"
           >
             {{ section.title }}
           </div>
@@ -405,8 +405,8 @@ const navSections = computed(() => {
             class="w-full flex items-start justify-between px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer group text-left select-none"
             :class="[
               isSectionOpen(section) 
-                ? 'bg-slate-50 text-slate-800' 
-                : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50/70'
+                ? 'bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200' 
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/50'
             ]"
             :title="`Klik untuk ${isSectionOpen(section) ? 'menutup' : 'membuka'} menu`"
           >
@@ -415,9 +415,9 @@ const navSections = computed(() => {
                 v-if="section.icon"
                 :is="section.icon"
                 class="w-3.5 h-3.5 shrink-0 transition-colors mt-0.5"
-                :class="section.iconColor || 'text-slate-500'"
+                :class="section.iconColor || 'text-slate-500 dark:text-slate-400'"
               />
-              <span class="leading-snug font-bold break-words whitespace-normal text-slate-700 group-hover:text-slate-900">{{ section.title }}</span>
+              <span class="leading-snug font-bold break-words whitespace-normal text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">{{ section.title }}</span>
               <span 
                 v-if="section.items && section.items.some(i => i.active)"
                 class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0 mt-1"
@@ -427,13 +427,13 @@ const navSections = computed(() => {
             <div class="flex items-center gap-1 shrink-0 ml-1 mt-0.5">
               <span 
                 v-if="section.items?.length"
-                class="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-200/70 text-slate-600 group-hover:bg-slate-300/80 transition-colors tabular-nums"
+                class="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-slate-300/80 dark:group-hover:bg-slate-700 transition-colors tabular-nums"
               >
                 {{ section.items.length }}
               </span>
               <ChevronDown 
-                class="w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200 shrink-0"
-                :class="isSectionOpen(section) ? 'rotate-180 text-slate-700' : ''"
+                class="w-3 h-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform duration-200 shrink-0"
+                :class="isSectionOpen(section) ? 'rotate-180 text-slate-700 dark:text-slate-200' : ''"
               />
             </div>
           </button>
@@ -451,7 +451,7 @@ const navSections = computed(() => {
               v-show="isCollapsed || isSectionOpen(section)"
               :class="[
                 !isCollapsed && section.collapsible !== false 
-                  ? 'ml-2 pl-2 border-l border-slate-200/80 space-y-0.5 mt-0.5' 
+                  ? 'ml-2 pl-2 border-l border-slate-200/80 dark:border-slate-800 space-y-0.5 mt-0.5' 
                   : 'space-y-0.5'
               ]"
             >
@@ -464,8 +464,8 @@ const navSections = computed(() => {
                     class="w-full flex items-center justify-between rounded-md text-xs transition-colors group relative cursor-pointer px-2.5 py-1.5 text-left select-none"
                     :class="[
                       (item.active || item.children.some(c => c.active))
-                        ? 'bg-[#E6F7F5]/90 text-[#005851] font-semibold'
-                        : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50 font-medium'
+                        ? 'bg-[#E6F7F5]/90 dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#4fd1c5] font-semibold'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#4fd1c5] hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium'
                     ]"
                   >
                     <!-- Left Active Indicator Bar -->
@@ -480,12 +480,12 @@ const navSections = computed(() => {
                       <span class="leading-snug break-words whitespace-normal text-[12px]">{{ item.name }}</span>
                     </div>
                     <div class="flex items-center gap-1 shrink-0 ml-1">
-                      <span class="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-200/70 text-slate-600 tabular-nums">
+                      <span class="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300 tabular-nums">
                         {{ item.children.length }}
                       </span>
                       <ChevronDown 
-                        class="w-3 h-3 text-slate-400 group-hover:text-slate-600 transition-transform duration-200"
-                        :class="isSubMenuOpen(item) ? 'rotate-180 text-emerald-700' : ''"
+                        class="w-3 h-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform duration-200"
+                        :class="isSubMenuOpen(item) ? 'rotate-180 text-emerald-700 dark:text-[#4fd1c5]' : ''"
                       />
                     </div>
                   </button>
@@ -499,7 +499,7 @@ const navSections = computed(() => {
                     leave-from-class="max-h-[300px] opacity-100 translate-y-0"
                     leave-to-class="max-h-0 opacity-0 -translate-y-1"
                   >
-                    <div v-show="isSubMenuOpen(item)" class="ml-2.5 pl-2 border-l border-emerald-200/80 space-y-0.5 my-0.5">
+                    <div v-show="isSubMenuOpen(item)" class="ml-2.5 pl-2 border-l border-emerald-200/80 dark:border-emerald-800/50 space-y-0.5 my-0.5">
                       <a
                         v-for="(child, cIndex) in item.children"
                         :key="cIndex"
@@ -508,8 +508,8 @@ const navSections = computed(() => {
                         class="flex items-center gap-2 px-2 py-1 rounded-md text-[11px] transition-colors group relative cursor-pointer"
                         :class="[
                           child.active
-                            ? 'bg-[#E6F7F5]/90 text-[#005851] font-semibold'
-                            : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50 font-medium'
+                            ? 'bg-[#E6F7F5]/90 dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#4fd1c5] font-semibold'
+                            : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#4fd1c5] hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium'
                         ]"
                       >
                         <span v-if="child.active" class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0"></span>
@@ -535,8 +535,8 @@ const navSections = computed(() => {
                   :class="[
                     isCollapsed ? 'justify-center py-2 px-1.5' : 'gap-2 px-2.5 py-1.5',
                     item.active 
-                      ? 'bg-[#E6F7F5]/90 text-[#005851] font-semibold'
-                      : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50 font-medium'
+                      ? 'bg-[#E6F7F5]/90 dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#4fd1c5] font-semibold'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#4fd1c5] hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium'
                   ]"
                   :title="isCollapsed ? item.name : ''"
                 >
@@ -555,13 +555,13 @@ const navSections = computed(() => {
                     <div v-if="item.badge || item.external" class="flex items-center gap-1 shrink-0 ml-1 mt-0.5">
                       <span 
                         v-if="item.badge" 
-                        class="px-1.5 py-0.2 text-[9px] font-semibold rounded bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]/80 uppercase tracking-wider"
+                        class="px-1.5 py-0.2 text-[9px] font-semibold rounded bg-[#E6F7F5] dark:bg-[#00A99D]/20 text-[#005851] dark:text-[#4fd1c5] border border-[#99DFD6]/80 dark:border-[#00A99D]/40 uppercase tracking-wider"
                       >
                         {{ item.badge }}
                       </span>
                       <ExternalLink 
                         v-if="item.external" 
-                        class="w-3 h-3 text-slate-400 group-hover:text-slate-600" 
+                        class="w-3 h-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200" 
                       />
                     </div>
                   </div>
@@ -569,7 +569,7 @@ const navSections = computed(() => {
                   <!-- Tooltip Popup when collapsed -->
                   <div 
                     v-if="isCollapsed" 
-                    class="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 text-white text-[11px] font-medium rounded-md shadow-lg whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50"
+                    class="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 dark:bg-slate-800 text-white text-[11px] font-medium rounded-md shadow-lg border border-slate-700 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50"
                   >
                     {{ item.name }}
                   </div>
@@ -581,7 +581,7 @@ const navSections = computed(() => {
       </div>
 
       <!-- Sidebar Footer: User Profile & Quick Logout -->
-      <div class="p-2.5 border-t border-slate-200/80 bg-slate-50/70 shrink-0">
+      <div class="p-2.5 border-t border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-[#0d141b] shrink-0">
         <div class="flex items-center gap-2" :class="isCollapsed ? 'justify-center' : 'justify-between'">
           <a 
             :href="getUrl('/profile')"
@@ -592,13 +592,13 @@ const navSections = computed(() => {
             <img
               :src="currentUser?.avatar_url || 'https://ui-avatars.com/api/?name=Admin&background=0f172a&color=fff'"
               :alt="currentUser?.name || 'User'"
-              class="w-7 h-7 rounded-full object-cover border border-slate-200 flex-shrink-0"
+              class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0"
             />
             <div v-if="!isCollapsed" class="overflow-hidden text-left leading-tight">
-              <span class="block text-xs font-semibold text-slate-800 group-hover:text-slate-950 truncate">
+              <span class="block text-xs font-semibold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 dark:group-hover:text-white truncate">
                 {{ currentUser?.name || 'Administrator' }}
               </span>
-              <span class="block text-[10px] text-[#005851] font-medium truncate">
+              <span class="block text-[10px] text-[#005851] dark:text-[#4fd1c5] font-medium truncate">
                 {{ currentUser?.roles?.[0] || 'Superadmin' }}
               </span>
             </div>
@@ -608,7 +608,7 @@ const navSections = computed(() => {
             v-if="!isCollapsed"
             type="button"
             @click="handleLogout"
-            class="p-1.5 rounded-md text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+            class="p-1.5 rounded-md text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
             title="Keluar dari sesi"
           >
             <LogOut class="w-4 h-4" />

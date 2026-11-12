@@ -406,12 +406,12 @@ onUnmounted(() => {
               class="max-w-[78%] rounded-2xl px-3.5 py-2 transition-all font-sans"
               :class="msg.user_id === currentUser?.id 
                 ? 'bg-[#00A99D] text-white rounded-br-xs shadow-xs' 
-                : 'bg-slate-100 text-slate-800 rounded-bl-xs border border-slate-200/60'"
+                : 'bg-slate-100 dark:bg-[#16202a] text-slate-800 dark:text-slate-100 rounded-bl-xs border border-slate-200/60 dark:border-slate-700'"
             >
               <!-- Sender Name (if not current user) -->
               <div 
                 v-if="msg.user_id !== currentUser?.id" 
-                class="text-[10px] font-bold text-slate-900 mb-0.5 flex items-center gap-1"
+                class="text-[10px] font-bold text-slate-900 dark:text-white mb-0.5 flex items-center gap-1"
               >
                 <span>{{ msg.user_name }}</span>
               </div>

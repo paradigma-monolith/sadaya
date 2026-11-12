@@ -2434,9 +2434,9 @@ const modaReadinessRadarOption = computed(() => {
           <div v-if="activeSummaryTab === 'indicators'" class="overflow-x-auto rounded-xl border border-slate-200">
             <table class="w-full min-w-[980px] text-left text-xs border-collapse">
               <thead>
-                <tr class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
-                  <th class="py-2.5 px-3 w-20 text-center sticky left-0 bg-slate-50 z-10 shadow-xs">Kode</th>
-                  <th class="py-2.5 px-3 min-w-[240px] sticky left-20 bg-slate-50 z-10 shadow-xs">Uraian Indikator</th>
+                <tr class="bg-slate-50 dark:bg-[#16202a] text-slate-700 dark:text-slate-200 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
+                  <th class="py-2.5 px-3 w-20 text-center sticky left-0 bg-slate-50 dark:bg-[#16202a] z-10 shadow-xs">Kode</th>
+                  <th class="py-2.5 px-3 min-w-[240px] sticky left-20 bg-slate-50 dark:bg-[#16202a] z-10 shadow-xs">Uraian Indikator</th>
                   <th class="py-2.5 px-2 text-center w-14">Satuan</th>
                   <th
                     v-for="m in monthNames"
@@ -2445,24 +2445,24 @@ const modaReadinessRadarOption = computed(() => {
                   >
                     {{ m }}
                   </th>
-                  <th class="py-2.5 px-3 text-right w-24 bg-[#E6F7F5] text-[#005851] font-mono font-bold text-[11px]">
+                  <th class="py-2.5 px-3 text-right w-24 bg-[#E6F7F5] dark:bg-[#00A99D]/20 text-[#005851] dark:text-[#5eead4] font-mono font-bold text-[11px]">
                     TOTAL TAHUN
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 <tr
                   v-for="row in filteredSummaryItems"
                   :key="row.code"
-                  class="hover:bg-[#E6F7F5]/30 transition-colors group"
+                  class="hover:bg-[#E6F7F5]/30 dark:hover:bg-[#00A99D]/10 transition-colors group"
                 >
-                  <td class="py-2 px-3 font-mono font-bold text-[11px] text-center text-slate-600 sticky left-0 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
-                    <span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-700">
+                  <td class="py-2 px-3 font-mono font-bold text-[11px] text-center text-slate-600 dark:text-slate-300 sticky left-0 bg-white dark:bg-[#111820] group-hover:bg-[#f2fbfa] dark:group-hover:bg-[#142627] z-10 shadow-xs">
+                    <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#16202a] text-slate-700 dark:text-slate-200">
                       {{ row.code }}
                     </span>
                   </td>
 
-                  <td class="py-2 px-3 text-slate-800 font-medium sticky left-20 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
+                  <td class="py-2 px-3 text-slate-800 dark:text-slate-100 font-medium sticky left-20 bg-white dark:bg-[#111820] group-hover:bg-[#f2fbfa] dark:group-hover:bg-[#142627] z-10 shadow-xs">
                     <div class="flex items-center gap-1.5">
                       <span
                         class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider shrink-0"
@@ -2486,12 +2486,12 @@ const modaReadinessRadarOption = computed(() => {
                     v-for="mId in 12"
                     :key="mId"
                     class="py-2 px-2 text-right font-mono text-[11px]"
-                    :class="row.months[mId] > 0 ? 'text-slate-800 font-medium' : 'text-slate-300'"
+                    :class="row.months[mId] > 0 ? 'text-slate-800 dark:text-slate-100 font-medium' : 'text-slate-300 dark:text-slate-600'"
                   >
                     {{ row.months[mId] > 0 ? row.months[mId].toLocaleString('id-ID') : '-' }}
                   </td>
 
-                  <td class="py-2 px-3 text-right font-mono font-bold text-xs bg-[#E6F7F5]/50 text-[#005851] group-hover:bg-[#E6F7F5] transition-colors">
+                  <td class="py-2 px-3 text-right font-mono font-bold text-xs bg-[#E6F7F5]/50 dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#5eead4] group-hover:bg-[#E6F7F5] dark:group-hover:bg-[#00A99D]/25 transition-colors">
                     {{ row.total_year > 0 ? row.total_year.toLocaleString('id-ID') : '-' }}
                   </td>
                 </tr>
@@ -2504,9 +2504,9 @@ const modaReadinessRadarOption = computed(() => {
               </tbody>
 
               <!-- Grand Total Row -->
-              <tfoot class="bg-slate-100/90 border-t-2 border-slate-300 font-bold">
+              <tfoot class="bg-slate-100/90 dark:bg-[#16202a] border-t-2 border-slate-300 dark:border-slate-700 font-bold">
                 <tr>
-                  <td colspan="2" class="py-2.5 px-3 text-slate-800 sticky left-0 bg-slate-100 z-10 shadow-xs text-xs uppercase tracking-wider">
+                  <td colspan="2" class="py-2.5 px-3 text-slate-800 dark:text-slate-100 sticky left-0 bg-slate-100 dark:bg-[#16202a] z-10 shadow-xs text-xs uppercase tracking-wider">
                     TOTAL KESELURUHAN (GRAND TOTAL)
                   </td>
                   <td class="py-2.5 px-2 text-center text-slate-500 font-mono text-[10px]">
@@ -2528,11 +2528,11 @@ const modaReadinessRadarOption = computed(() => {
           </div>
 
           <!-- TAB 2: Tabel Rekapitulasi per Wilayah Kerja -->
-          <div v-else-if="activeSummaryTab === 'wilkers'" class="overflow-x-auto rounded-xl border border-slate-200">
+          <div v-else-if="activeSummaryTab === 'wilkers'" class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
             <table class="w-full min-w-[980px] text-left text-xs border-collapse">
               <thead>
-                <tr class="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200">
-                  <th class="py-2.5 px-3 min-w-[220px] sticky left-0 bg-slate-50 z-10 shadow-xs">Wilayah Kerja / Pos</th>
+                <tr class="bg-slate-50 dark:bg-[#16202a] text-slate-700 dark:text-slate-200 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
+                  <th class="py-2.5 px-3 min-w-[220px] sticky left-0 bg-slate-50 dark:bg-[#16202a] z-10 shadow-xs">Wilayah Kerja / Pos</th>
                   <th class="py-2.5 px-2 text-center w-28">Kepatuhan</th>
                   <th
                     v-for="m in monthNames"
@@ -2541,18 +2541,18 @@ const modaReadinessRadarOption = computed(() => {
                   >
                     {{ m }}
                   </th>
-                  <th class="py-2.5 px-3 text-right w-28 bg-[#F7FCE8] text-[#557A18] font-mono font-bold text-[11px]">
+                  <th class="py-2.5 px-3 text-right w-28 bg-[#F7FCE8] dark:bg-[#1d2d18] text-[#557A18] dark:text-[#bef264] font-mono font-bold text-[11px]">
                     TOTAL TAHUN
                   </th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 <tr
                   v-for="wRow in (sinkarkesWilkerSummary?.items || [])"
                   :key="wRow.wilker"
-                  class="hover:bg-[#E6F7F5]/30 transition-colors group"
+                  class="hover:bg-[#E6F7F5]/30 dark:hover:bg-[#00A99D]/10 transition-colors group"
                 >
-                  <td class="py-2.5 px-3 font-semibold text-slate-800 flex items-center gap-2 sticky left-0 bg-white group-hover:bg-[#f2fbfa] z-10 shadow-xs">
+                  <td class="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-2 sticky left-0 bg-white dark:bg-[#111820] group-hover:bg-[#f2fbfa] dark:group-hover:bg-[#142627] z-10 shadow-xs">
                     <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
                     <span class="truncate">{{ wRow.wilker }}</span>
                   </td>
@@ -2560,7 +2560,7 @@ const modaReadinessRadarOption = computed(() => {
                   <td class="py-2.5 px-2 text-center">
                     <span
                       class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
-                      :class="wRow.compliance_percent >= 80 ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'"
+                      :class="wRow.compliance_percent >= 80 ? 'bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-300' : 'bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300'"
                     >
                       {{ wRow.filled_months }}/12 bln ({{ wRow.compliance_percent }}%)
                     </span>
@@ -2570,34 +2570,34 @@ const modaReadinessRadarOption = computed(() => {
                     v-for="mId in 12"
                     :key="mId"
                     class="py-2.5 px-2 text-right font-mono text-[11px]"
-                    :class="wRow.months[mId] > 0 ? 'text-slate-800 font-medium' : 'text-slate-300'"
+                    :class="wRow.months[mId] > 0 ? 'text-slate-800 dark:text-slate-100 font-medium' : 'text-slate-300 dark:text-slate-600'"
                   >
                     {{ wRow.months[mId] > 0 ? wRow.months[mId].toLocaleString('id-ID') : '-' }}
                   </td>
 
-                  <td class="py-2.5 px-3 text-right font-mono font-bold text-xs bg-[#F7FCE8]/60 text-[#557A18] group-hover:bg-[#F7FCE8] transition-colors">
+                  <td class="py-2.5 px-3 text-right font-mono font-bold text-xs bg-[#F7FCE8]/60 dark:bg-[#1d2d18]/75 text-[#557A18] dark:text-[#bef264] group-hover:bg-[#F7FCE8] dark:group-hover:bg-[#24391d] transition-colors">
                     {{ wRow.total_year > 0 ? wRow.total_year.toLocaleString('id-ID') : '-' }}
                   </td>
                 </tr>
               </tbody>
 
               <!-- Grand Total Row -->
-              <tfoot class="bg-slate-100/90 border-t-2 border-slate-300 font-bold">
+              <tfoot class="bg-slate-100/90 dark:bg-[#16202a] border-t-2 border-slate-300 dark:border-slate-700 font-bold">
                 <tr>
-                  <td class="py-2.5 px-3 text-slate-800 sticky left-0 bg-slate-100 z-10 shadow-xs text-xs uppercase tracking-wider">
+                  <td class="py-2.5 px-3 text-slate-800 dark:text-slate-100 sticky left-0 bg-slate-100 dark:bg-[#16202a] z-10 shadow-xs text-xs uppercase tracking-wider">
                     TOTAL KONSOLIDASI BKK BANDUNG
                   </td>
-                  <td class="py-2.5 px-2 text-center text-slate-500 font-mono text-[10px]">
+                  <td class="py-2.5 px-2 text-center text-slate-500 dark:text-slate-400 font-mono text-[10px]">
                     7 Wilker
                   </td>
                   <td
                     v-for="mId in 12"
                     :key="mId"
-                    class="py-2.5 px-2 text-right font-mono text-[11px] text-slate-900"
+                    class="py-2.5 px-2 text-right font-mono text-[11px] text-slate-900 dark:text-slate-100"
                   >
                     {{ (sinkarkesWilkerSummary?.monthly_totals?.[mId] || 0) > 0 ? sinkarkesWilkerSummary.monthly_totals[mId].toLocaleString('id-ID') : '-' }}
                   </td>
-                  <td class="py-2.5 px-3 text-right font-mono font-extrabold text-sm bg-[#99CC33]/25 text-[#557A18]">
+                  <td class="py-2.5 px-3 text-right font-mono font-extrabold text-sm bg-[#99CC33]/25 dark:bg-[#99CC33]/20 text-[#557A18] dark:text-[#d9f99d]">
                     {{ (sinkarkesWilkerSummary?.total_year || 0).toLocaleString('id-ID') }}
                   </td>
                 </tr>
@@ -2776,48 +2776,48 @@ const modaReadinessRadarOption = computed(() => {
         <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
           
           <!-- Card 1: Tindakan Karantina Pesawat -->
-          <div class="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs">
+          <div class="rounded-2xl p-4 bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
-              <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+              <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <Plane class="w-3.5 h-3.5 text-[#00A99D]" />
                 Tindakan Sanitasi Pesawat
               </h4>
-              <span class="text-[11px] font-semibold text-[#005851] font-mono">{{ aircraft_stats.layak }} Layak &bull; {{ aircraft_stats.tidak_layak }} Tindakan</span>
+              <span class="text-[11px] font-semibold text-[#005851] dark:text-[#5eead4] font-mono">{{ aircraft_stats.layak }} Layak &bull; {{ aircraft_stats.tidak_layak }} Tindakan</span>
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs">
               <div
                 v-for="act in aircraft_stats.tindakan"
                 :key="act.key"
-                class="px-2.5 py-1.5 rounded-lg border border-[#E6F7F5] bg-[#E6F7F5]/40 flex items-center justify-between"
+                class="px-2.5 py-1.5 rounded-lg border border-[#E6F7F5] dark:border-[#00A99D]/30 bg-[#E6F7F5]/40 dark:bg-[#00A99D]/12 flex items-center justify-between"
               >
-                <span class="text-slate-600 text-[11px]">{{ act.label }}</span>
-                <span class="font-bold text-[#005851] font-mono">{{ act.count }}</span>
+                <span class="text-slate-700 dark:text-slate-200 text-[11px] font-medium">{{ act.label }}</span>
+                <span class="font-bold text-[#005851] dark:text-[#5eead4] font-mono">{{ act.count }}</span>
               </div>
             </div>
           </div>
 
           <!-- Card 2: Temuan Risiko Kapal (32 Area IHR 2005) -->
-          <div class="rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs">
+          <div class="rounded-2xl p-4 bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
-              <h4 class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                <Ship class="w-3.5 h-3.5 text-[#005851]" />
+              <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                <Ship class="w-3.5 h-3.5 text-[#005851] dark:text-[#5eead4]" />
                 Temuan Faktor Risiko Sanitasi Kapal
               </h4>
-              <span class="text-[11px] font-semibold text-amber-700 font-mono">{{ ship_stats.ships_with_risk }} / {{ ship_stats.total }} Kapal</span>
+              <span class="text-[11px] font-semibold text-amber-700 dark:text-amber-300 font-mono">{{ ship_stats.ships_with_risk }} / {{ ship_stats.total }} Kapal</span>
             </div>
 
             <div v-if="ship_stats.top_risk_areas && ship_stats.top_risk_areas.length > 0" class="space-y-1.5 text-xs">
               <div
                 v-for="(area, idx) in ship_stats.top_risk_areas"
                 :key="idx"
-                class="flex items-center justify-between px-2.5 py-1 rounded bg-amber-50/80 border border-amber-200/50 text-[11px]"
+                class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-amber-50/80 dark:bg-amber-500/12 border border-amber-200/50 dark:border-amber-500/30 text-[11px]"
               >
-                <span class="font-medium text-slate-800 truncate">{{ area.name }}</span>
-                <span class="font-bold text-amber-700 shrink-0 ml-2 font-mono">{{ area.count }} temuan</span>
+                <span class="font-medium text-slate-800 dark:text-slate-100 truncate">{{ area.name }}</span>
+                <span class="font-bold text-amber-700 dark:text-amber-300 shrink-0 ml-2 font-mono">{{ area.count }} temuan</span>
               </div>
             </div>
-            <p v-else class="text-[11px] text-slate-500 italic">
+            <p v-else class="text-[11px] text-slate-500 dark:text-slate-400 italic">
               Nihil faktor risiko pada seluruh 32 area sanitasi kapal.
             </p>
           </div>

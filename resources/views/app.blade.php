@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-[#f8fafc] text-slate-900">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-[#f4f7f9] dark:bg-[#0b1116] text-slate-900 dark:text-slate-100">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,22 +12,22 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Force Clean Light Mode (Dark Mode Disabled) -->
+    <!-- Theme Boot (Avoid Flash of Wrong Theme) -->
     <script>
         (function() {
             try {
-                localStorage.setItem('hybrid_theme', 'light');
-                document.documentElement.classList.remove('dark');
-            } catch (e) {
-                document.documentElement.classList.remove('dark');
-            }
+                var saved = localStorage.getItem('hybrid_theme');
+                var isDark = saved === 'dark' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                document.documentElement.classList.toggle('dark', isDark);
+                document.documentElement.style.colorScheme = isDark ? 'dark' : 'light';
+            } catch (e) {}
         })();
     </script>
 
     @vite(['resources/css/app.css', 'resources/js/inertia.js'])
     @inertiaHead
 </head>
-<body class="h-full font-sans antialiased selection:bg-[#00A99D] selection:text-white bg-[#f8fafc] text-slate-900 overflow-x-clip w-full max-w-full">
+<body class="h-full font-sans antialiased selection:bg-[#00A99D] selection:text-white bg-[#f4f7f9] dark:bg-[#0b1116] text-slate-900 dark:text-slate-100 overflow-x-clip w-full max-w-full transition-colors duration-200">
     @inertia
 </body>
 </html>

@@ -13,8 +13,13 @@ import {
   AlertCircle,
   Layers,
   Cpu,
-  User
+  User,
+  Sun,
+  Moon
 } from 'lucide-vue-next';
+import { useTheme } from '@/composables/useTheme';
+
+const { isDark, toggleTheme } = useTheme();
 
 defineProps({
   status: {
@@ -55,7 +60,21 @@ const submit = () => {
 <template>
   <Head title="Masuk - BKK Kelas I Bandung" />
 
-  <div class="min-h-screen bg-[#f4f7f9] text-slate-900 flex flex-col justify-center py-10 sm:px-6 lg:px-8 relative selection:bg-[#00A99D] selection:text-white font-sans">
+  <div class="min-h-screen bg-[#f4f7f9] dark:bg-[#0b1116] text-slate-900 dark:text-slate-100 flex flex-col justify-center py-10 sm:px-6 lg:px-8 relative selection:bg-[#00A99D] selection:text-white font-sans transition-colors duration-200">
+    <!-- Top-Right Theme Toggle -->
+    <button
+      type="button"
+      @click="toggleTheme"
+      class="fixed top-4 right-4 z-20 p-2 rounded-lg border transition-colors cursor-pointer"
+      :class="isDark
+        ? 'bg-[#111820] border-slate-700 text-amber-300 hover:bg-slate-800'
+        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-[#005851]'"
+      :title="isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'"
+    >
+      <Sun v-if="isDark" class="w-4 h-4" />
+      <Moon v-else class="w-4 h-4" />
+    </button>
+
     <!-- Header / Brand -->
     <div class="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
       <div class="inline-flex items-center justify-center">

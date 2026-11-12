@@ -374,12 +374,12 @@ onUnmounted(() => {
               @click="item.action()"
               @mouseenter="activeIndex = idx"
               class="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left transition-colors cursor-pointer group"
-              :class="activeIndex === idx ? 'bg-[#E6F7F5] text-[#005851]' : 'text-slate-600 hover:bg-slate-50'"
+              :class="activeIndex === idx ? 'bg-[#E6F7F5] dark:bg-[#00A99D]/20 text-[#005851] dark:text-[#5eead4]' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#16202a]'"
             >
               <div class="flex items-center gap-2.5 min-w-0">
                 <div 
                   class="p-1.5 rounded-md shrink-0 transition-colors"
-                  :class="activeIndex === idx ? 'bg-[#005851] text-white' : 'bg-slate-100 text-slate-500'"
+                  :class="activeIndex === idx ? 'bg-[#005851] text-white' : 'bg-slate-100 dark:bg-[#16202a] text-slate-500 dark:text-slate-400'"
                 >
                   <component :is="item.icon" class="w-3.5 h-3.5" />
                 </div>

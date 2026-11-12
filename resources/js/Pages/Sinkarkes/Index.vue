@@ -795,43 +795,43 @@ onUnmounted(() => {
       </div>
 
       <!-- Main Form Data Table -->
-      <div class="w-full bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-2xl shadow-xs overflow-hidden">
+      <div class="w-full clinical-surface overflow-hidden">
         <div class="w-full overflow-x-auto">
           <table class="w-full min-w-[680px] text-left text-xs border-collapse">
             <!-- Table Header -->
             <thead>
-              <tr class="bg-slate-100/90 dark:bg-[#161c28] text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
-                <th class="py-3 px-3 sm:px-4 w-14 text-center whitespace-nowrap">Row</th>
-                <th class="py-3 px-2 sm:px-3 w-16 text-center whitespace-nowrap">No</th>
-                <th class="py-3 px-3 sm:px-4 w-full min-w-[280px] sm:min-w-[420px]">
+              <tr class="bg-slate-100/90 dark:bg-[#16202a] text-slate-700 dark:text-slate-200 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
+                <th class="py-2.5 px-3 sm:px-4 w-14 text-center whitespace-nowrap">Row</th>
+                <th class="py-2.5 px-2 sm:px-3 w-16 text-center whitespace-nowrap">No</th>
+                <th class="py-2.5 px-3 sm:px-4 w-full min-w-[280px] sm:min-w-[420px]">
                   Uraian Kegiatan / Indikator
                 </th>
-                <th class="py-3 px-2 sm:px-3 w-24 text-center whitespace-nowrap">Satuan</th>
-                <th class="py-3 px-2 sm:px-3 w-28 text-center whitespace-nowrap">Tipe</th>
-                <th class="py-3 px-3 sm:px-5 w-48 sm:w-60 text-right whitespace-nowrap bg-slate-200/50 dark:bg-[#1a2130]">
+                <th class="py-2.5 px-2 sm:px-3 w-24 text-center whitespace-nowrap">Satuan</th>
+                <th class="py-2.5 px-2 sm:px-3 w-28 text-center whitespace-nowrap">Tipe</th>
+                <th class="py-2.5 px-3 sm:px-5 w-48 sm:w-60 text-right whitespace-nowrap bg-slate-200/50 dark:bg-[#1b2733]">
                   Nilai ({{ monthsList.find(m => m.id === activeMonth)?.label }})
                 </th>
               </tr>
             </thead>
 
             <!-- Table Body -->
-            <tbody class="divide-y divide-slate-100 dark:divide-[#1f2633]">
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
               <template v-for="item in filteredItems" :key="item.excel_row">
 
                 <!-- 1. HEADER ROW (Category Divider) -->
                 <tr
                   v-if="item.type === 'header'"
-                  class="bg-slate-50/80 dark:bg-[#161c28]/60 font-bold text-slate-800 dark:text-slate-100 border-t-2 border-slate-200 dark:border-slate-700"
+                  class="bg-slate-50/80 dark:bg-[#16202a] font-bold text-slate-800 dark:text-slate-100 border-t-2 border-slate-200 dark:border-slate-700"
                 >
-                  <td class="py-2.5 px-3 sm:px-4 text-center font-mono text-[10px] text-slate-400">
+                  <td class="py-2 px-3 sm:px-4 text-center font-mono text-[10px] text-slate-400">
                     {{ item.excel_row }}
                   </td>
-                  <td class="py-2.5 px-2 sm:px-3 text-center font-mono text-xs text-[#005851] dark:text-[#00A99D]">
+                  <td class="py-2 px-2 sm:px-3 text-center font-mono text-xs text-[#005851] dark:text-[#5eead4]">
                     {{ item.no }}
                   </td>
                   <td
                     colspan="4"
-                    class="py-2.5 px-3 sm:px-4 uppercase tracking-wide text-xs text-slate-900 dark:text-white"
+                    class="py-2 px-3 sm:px-4 uppercase tracking-wide text-xs text-slate-900 dark:text-white"
                     :style="{ paddingLeft: `${(item.level || 0) * 16 + 12}px` }"
                   >
                     <div class="flex items-center gap-2">
@@ -844,49 +844,49 @@ onUnmounted(() => {
                 <!-- 2. SUMMARY ROW (Auto Calculated Total) -->
                 <tr
                   v-else-if="item.type === 'summary'"
-                  class="bg-[#00A99D]/5 dark:bg-[#00A99D]/10 hover:bg-[#00A99D]/10 transition-colors border-l-4 border-l-[#00A99D]"
+                  class="bg-[#00A99D]/5 dark:bg-[#00A99D]/12 hover:bg-[#00A99D]/10 dark:hover:bg-[#00A99D]/18 transition-colors border-l-4 border-l-[#00A99D]"
                 >
                   <!-- Excel Row -->
-                  <td class="py-2.5 px-3 sm:px-4 text-center font-mono text-[10px] text-slate-400">
+                  <td class="py-2 px-3 sm:px-4 text-center font-mono text-[10px] text-slate-400">
                     {{ item.excel_row }}
                   </td>
 
                   <!-- Item No -->
-                  <td class="py-2.5 px-2 sm:px-3 text-center font-mono font-bold text-xs text-[#005851] dark:text-[#00A99D]">
+                  <td class="py-2 px-2 sm:px-3 text-center font-mono font-bold text-xs text-[#005851] dark:text-[#5eead4]">
                     {{ item.no }}
                   </td>
 
                   <!-- Label with Indentation -->
                   <td
-                    class="py-2.5 px-3 sm:px-4 text-slate-900 dark:text-white font-semibold"
+                    class="py-2 px-3 sm:px-4 text-slate-900 dark:text-white font-semibold"
                     :style="{ paddingLeft: `${(item.level || 0) * 18 + 12}px` }"
                   >
                     <div class="flex items-center gap-1.5 flex-wrap">
                       <span>{{ item.label }}</span>
-                      <span class="text-[9px] font-mono text-[#005851] dark:text-[#00A99D] bg-white/70 dark:bg-black/30 px-1 py-0.2 rounded border border-[#00A99D]/20">
+                      <span class="text-[9px] font-mono text-[#005851] dark:text-[#5eead4] bg-white/70 dark:bg-[#16202a] px-1 py-0.2 rounded border border-[#00A99D]/25">
                         {{ item.code }}
                       </span>
                     </div>
                   </td>
 
                   <!-- Unit -->
-                  <td class="py-2.5 px-2 sm:px-3 text-center text-slate-500 font-mono text-[11px]">
+                  <td class="py-2 px-2 sm:px-3 text-center text-slate-500 dark:text-slate-300 font-mono text-[11px]">
                     {{ item.unit || '-' }}
                   </td>
 
                   <!-- Tipe Badge -->
-                  <td class="py-2.5 px-2 sm:px-3 text-center">
-                    <span class="inline-flex items-center gap-1 text-[10px] font-bold font-mono px-2 py-0.5 rounded-md bg-[#00A99D]/15 text-[#005851] dark:text-[#00A99D]">
+                  <td class="py-2 px-2 sm:px-3 text-center">
+                    <span class="inline-flex items-center gap-1 text-[10px] font-bold font-mono px-2 py-0.5 rounded-md bg-[#00A99D]/15 text-[#005851] dark:text-[#5eead4]">
                       <Calculator class="w-3 h-3" />
                       <span>Total</span>
                     </span>
                   </td>
 
                   <!-- Summary Value Display (Auto-calculated) -->
-                  <td class="py-2.5 px-3 sm:px-5 text-right font-mono font-extrabold text-sm text-[#005851] dark:text-[#00A99D] bg-[#00A99D]/5 dark:bg-[#00A99D]/15">
-                    <div class="inline-flex items-center justify-end gap-1.5 w-full">
+                  <td class="py-2 px-3 sm:px-5 text-right font-mono font-extrabold text-sm text-[#005851] dark:text-[#5eead4] bg-[#00A99D]/5 dark:bg-[#00A99D]/15">
+                    <div class="inline-flex items-center justify-end gap-1.5 w-full clinical-num">
                       <span>{{ getValue(item.excel_row, 'summary') }}</span>
-                      <span class="text-[11px] font-mono text-slate-400 w-8 text-left truncate">
+                      <span class="text-[11px] font-mono text-slate-400 dark:text-slate-300 w-8 text-left truncate">
                         {{ item.unit || '' }}
                       </span>
                     </div>
@@ -896,21 +896,21 @@ onUnmounted(() => {
                 <!-- 3. INPUT ROW (Editable by User) -->
                 <tr
                   v-else
-                  class="hover:bg-slate-50 dark:hover:bg-[#161c28]/40 transition-colors group"
+                  class="hover:bg-slate-50 dark:hover:bg-[#00A99D]/8 transition-colors group"
                 >
                   <!-- Excel Row -->
-                  <td class="py-2 px-3 sm:px-4 text-center font-mono text-[10px] text-slate-400 group-hover:text-slate-600">
+                  <td class="py-2 px-3 sm:px-4 text-center font-mono text-[10px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">
                     {{ item.excel_row }}
                   </td>
 
                   <!-- Item No -->
-                  <td class="py-2 px-2 sm:px-3 text-center font-mono text-xs text-slate-600 dark:text-slate-400">
+                  <td class="py-2 px-2 sm:px-3 text-center font-mono text-xs text-slate-600 dark:text-slate-300">
                     {{ item.no }}
                   </td>
 
                   <!-- Label with Indentation -->
                   <td
-                    class="py-2 px-3 sm:px-4 text-slate-700 dark:text-slate-300"
+                    class="py-2 px-3 sm:px-4 text-slate-700 dark:text-slate-200"
                     :style="{ paddingLeft: `${(item.level || 0) * 18 + 12}px` }"
                   >
                     <div class="flex items-center gap-1.5 flex-wrap">
@@ -923,20 +923,20 @@ onUnmounted(() => {
 
                   <!-- Unit Badge -->
                   <td class="py-2 px-2 sm:px-3 text-center">
-                    <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                    <span class="inline-block px-1.5 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-100 dark:bg-[#1b2733] text-slate-600 dark:text-slate-300">
                       {{ item.unit || '-' }}
                     </span>
                   </td>
 
                   <!-- Tipe Badge -->
                   <td class="py-2 px-2 sm:px-3 text-center">
-                    <span class="text-[10px] font-mono text-slate-400">
+                    <span class="text-[10px] font-mono text-slate-400 dark:text-slate-400">
                       {{ item.data_type === 'decimal' ? 'Desimal' : 'Angka' }}
                     </span>
                   </td>
 
                   <!-- Value Input Field -->
-                  <td class="py-1.5 px-3 sm:px-5 text-right bg-slate-50/50 dark:bg-[#161c28]/30">
+                  <td class="py-1.5 px-3 sm:px-5 text-right bg-slate-50/50 dark:bg-[#141d26]">
                     <div class="inline-flex items-center justify-end gap-1.5 w-full">
                       <input
                         type="number"
@@ -945,7 +945,7 @@ onUnmounted(() => {
                         placeholder="0"
                         :value="getValue(item.excel_row, 'input')"
                         @input="onInputChange(item.excel_row, $event.target.value, item.data_type)"
-                        class="w-full max-w-[140px] sm:max-w-[165px] py-1 px-2.5 text-right font-mono text-xs font-semibold rounded-lg bg-white dark:bg-[#1e2533] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#00A99D] focus:border-transparent transition-all shadow-2xs"
+                        class="w-full max-w-[140px] sm:max-w-[165px] py-1 px-2.5 text-right font-mono text-xs font-semibold rounded-lg bg-white dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#00A99D] focus:border-transparent transition-all shadow-2xs clinical-num"
                       />
                       <span class="text-[11px] font-mono text-slate-400 w-9 text-left truncate">
                         {{ item.unit || '' }}

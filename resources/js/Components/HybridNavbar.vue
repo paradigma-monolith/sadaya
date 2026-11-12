@@ -19,13 +19,16 @@ import {
   Package,
   Home,
   X,
-  Search
+  Search,
+  Sun,
+  Moon
 } from 'lucide-vue-next';
 import AdminSidebar from './AdminSidebar.vue';
 import FloatingChat from './FloatingChat.vue';
 import CommandPalette from './CommandPalette.vue';
 import { Toaster } from 'vue-sonner';
 import { useSidebar } from '@/composables/useSidebar';
+import { useTheme } from '@/composables/useTheme';
 
 const props = defineProps({
   mode: {
@@ -228,8 +231,9 @@ const currentUser = computed(() => {
   }
 });
 
-// Synchronized persistent sidebar state via composable
+// Synchronized persistent sidebar & theme state via composables
 const { isOpen, isCollapsed, toggleCollapse, toggleOpen } = useSidebar();
+const { isDark, toggleTheme } = useTheme();
 
 const handleSidebarToggle = () => {
   if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
@@ -394,7 +398,7 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#f4f7f9] text-slate-900 selection:bg-[#00A99D] selection:text-white flex flex-col">
+  <div class="min-h-screen bg-[#f4f7f9] dark:bg-[#0b1116] text-slate-900 dark:text-slate-100 selection:bg-[#00A99D] selection:text-white flex flex-col transition-colors duration-200">
     <!-- Enterprise Persistent Sidebar Navigation -->
     <AdminSidebar 
       :mode="mode" 
@@ -407,7 +411,7 @@ const handleLogout = () => {
       :class="isCollapsed ? 'lg:pl-[60px]' : 'lg:pl-64'"
     >
       <!-- Top Navbar Header (Enterprise Clinical Compact) -->
-      <header class="sticky top-0 z-30 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90">
+      <header class="sticky top-0 z-30 w-full bg-white/95 dark:bg-[#111820]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800 transition-colors">
         <!-- User Impersonation Alert Banner -->
         <div v-if="currentUser?.is_impersonating" class="bg-amber-500 text-white font-medium text-xs px-4 py-1 flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -425,7 +429,7 @@ const handleLogout = () => {
               <button
                 type="button"
                 @click="handleSidebarToggle"
-                class="p-1.5 rounded-md text-slate-500 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                class="p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-50 dark:bg-[#16202a] hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 transition-colors cursor-pointer flex items-center justify-center shrink-0"
                 :title="isCollapsed ? 'Perluas Sidebar (Ctrl+B)' : 'Ciutkan Sidebar (Ctrl+B)'"
               >
                 <Menu class="w-4 h-4" />
@@ -439,34 +443,49 @@ const handleLogout = () => {
                   class="h-6 w-auto max-w-[28px] object-contain shrink-0"
                   onerror="this.onerror=null;this.src='/storage/images/LOGO KARANTINA.png';"
                 />
-                <span class="text-[13px] font-bold text-slate-900 tracking-tight truncate">
+                <span class="text-[13px] font-bold text-slate-900 dark:text-slate-100 tracking-tight truncate">
                   BKK Kelas I Bandung
                 </span>
               </a>
 
               <!-- Desktop Clean Dynamic Breadcrumb -->
-              <div class="hidden lg:flex items-center gap-2 text-xs text-slate-500">
-                <span class="font-bold text-[#005851] tracking-tight">SADAYA</span>
-                <span class="text-slate-300">/</span>
-                <span class="font-medium text-slate-700">{{ breadcrumbLabel }}</span>
-                <span class="text-slate-300">·</span>
-                <span class="text-[11px] text-slate-400">Wilayah Kerja Jawa Barat</span>
+              <div class="hidden lg:flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <span class="font-bold text-[#005851] dark:text-[#4fd1c5] tracking-tight">SADAYA</span>
+                <span class="text-slate-300 dark:text-slate-700">/</span>
+                <span class="font-medium text-slate-700 dark:text-slate-200">{{ breadcrumbLabel }}</span>
+                <span class="text-slate-300 dark:text-slate-700">·</span>
+                <span class="text-[11px] text-slate-400 dark:text-slate-500">Wilayah Kerja Jawa Barat</span>
               </div>
             </div>
 
-            <!-- Right Side: Search, Notifications & User Avatar -->
+            <!-- Right Side: Search, Dark Mode Toggle, Notifications & User Avatar -->
             <div class="flex items-center gap-1.5 shrink-0">
 
               <!-- Command Palette Trigger Button (Ctrl + K) -->
               <button
                 type="button"
                 @click="openCommandPalette"
-                class="flex items-center gap-2 px-2 py-1 rounded-md bg-slate-50 hover:bg-[#E6F7F5]/70 hover:text-[#005851] text-slate-500 text-xs border border-slate-200/90 transition-colors cursor-pointer"
+                class="flex items-center gap-2 px-2 py-1 rounded-md bg-slate-50 dark:bg-[#16202a] hover:bg-[#E6F7F5]/70 dark:hover:bg-[#00A99D]/15 hover:text-[#005851] dark:hover:text-[#4fd1c5] text-slate-500 dark:text-slate-400 text-xs border border-slate-200/90 dark:border-slate-700 transition-colors cursor-pointer"
                 title="Buka Pencarian Cepat (Ctrl+K)"
               >
                 <Search class="w-3.5 h-3.5 text-slate-400" />
                 <span class="hidden md:inline text-[11px] font-medium">Cari modul...</span>
-                <kbd class="hidden md:inline-flex items-center px-1 py-0.2 text-[10px] font-mono bg-white border border-slate-200 rounded text-slate-400">⌘K</kbd>
+                <kbd class="hidden md:inline-flex items-center px-1 py-0.2 text-[10px] font-mono bg-white dark:bg-[#111820] border border-slate-200 dark:border-slate-700 rounded text-slate-400 dark:text-slate-500">⌘K</kbd>
+              </button>
+
+              <!-- Dark / Light Mode Toggle -->
+              <button
+                type="button"
+                @click="toggleTheme"
+                class="p-1.5 rounded-md border transition-colors cursor-pointer flex items-center justify-center shrink-0"
+                :class="isDark
+                  ? 'bg-[#16202a] border-slate-700 text-amber-300 hover:bg-slate-800 hover:text-amber-200'
+                  : 'bg-white border-slate-200/90 text-slate-500 hover:bg-slate-50 hover:text-[#005851]'"
+                :title="isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'"
+                :aria-label="isDark ? 'Beralih ke Mode Terang' : 'Beralih ke Mode Gelap'"
+              >
+                <Sun v-if="isDark" class="w-3.5 h-3.5" />
+                <Moon v-else class="w-3.5 h-3.5" />
               </button>
 
               <!-- Notification Bell Dropdown -->
@@ -474,11 +493,11 @@ const handleLogout = () => {
                 <button
                   type="button"
                   @click="toggleNotifications"
-                  class="relative p-1.5 rounded-md text-slate-500 hover:text-[#005851] bg-white hover:bg-slate-50 border border-slate-200/90 transition-colors cursor-pointer"
+                  class="relative p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-[#005851] dark:hover:text-[#4fd1c5] bg-white dark:bg-[#16202a] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700 transition-colors cursor-pointer"
                   title="Notifikasi Real-Time"
                 >
                   <Bell class="w-3.5 h-3.5" />
-                  <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#00A99D] text-white rounded-full text-[9px] font-bold flex items-center justify-center ring-1 ring-white tabular-nums">
+                  <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#00A99D] text-white rounded-full text-[9px] font-bold flex items-center justify-center ring-1 ring-white dark:ring-[#111820] tabular-nums">
                     {{ unreadCount > 9 ? '9+' : unreadCount }}
                   </span>
                 </button>
@@ -499,15 +518,15 @@ const handleLogout = () => {
                 >
                   <div 
                     v-if="showNotifications" 
-                    class="fixed inset-x-3 top-16 mt-2 max-w-sm mx-auto sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-84 sm:max-w-md sm:mx-0 max-h-[min(520px,calc(100vh-5.5rem))] flex flex-col bg-white border border-slate-200 rounded-2xl shadow-xl p-3.5 z-50 text-slate-800"
+                    class="fixed inset-x-3 top-16 mt-2 max-w-sm mx-auto sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-84 sm:max-w-md sm:mx-0 max-h-[min(520px,calc(100vh-5.5rem))] flex flex-col bg-white dark:bg-[#111820] border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl p-3.5 z-50 text-slate-800 dark:text-slate-100"
                   >
-                    <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 text-xs shrink-0">
+                    <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-slate-100 dark:border-slate-800 text-xs shrink-0">
                       <div class="flex items-center gap-2">
-                        <span class="font-bold text-[#005851] flex items-center gap-1.5">
+                        <span class="font-bold text-[#005851] dark:text-[#4fd1c5] flex items-center gap-1.5">
                           <Radio class="w-3.5 h-3.5 text-[#00A99D]" />
                           <span>Notifikasi Sistem</span>
                         </span>
-                        <span v-if="unreadCount > 0" class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
+                        <span v-if="unreadCount > 0" class="px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-[#E6F7F5] dark:bg-[#00A99D]/20 text-[#005851] dark:text-[#4fd1c5] border border-[#99DFD6] dark:border-[#00A99D]/40">
                           {{ unreadCount }} Baru
                         </span>
                       </div>
@@ -516,7 +535,7 @@ const handleLogout = () => {
                         <button
                           type="button"
                           @click="markAllRead"
-                          class="text-[11px] text-slate-500 hover:text-[#00A99D] flex items-center gap-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-[#E6F7F5] transition-colors"
+                          class="text-[11px] text-slate-500 dark:text-slate-400 hover:text-[#00A99D] flex items-center gap-1 cursor-pointer py-1 px-1.5 rounded-lg hover:bg-[#E6F7F5] dark:hover:bg-[#00A99D]/15 transition-colors"
                         >
                           <CheckCheck class="w-3.5 h-3.5 text-[#00A99D]" />
                           <span class="hidden min-[380px]:inline">Tandai Dibaca</span>
@@ -524,7 +543,7 @@ const handleLogout = () => {
                         <button
                           type="button"
                           @click="showNotifications = false"
-                          class="sm:hidden p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                          class="sm:hidden p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                         >
                           <X class="w-4 h-4" />
                         </button>
@@ -536,25 +555,25 @@ const handleLogout = () => {
                         v-for="n in notifications" 
                         :key="n.id" 
                         @click="markSingleRead(n)"
-                        class="p-2.5 rounded-xl text-xs transition-colors cursor-pointer hover:border-[#99DFD6] border" 
-                        :class="n.read_at ? 'bg-slate-50 border-slate-100 text-slate-500' : 'bg-[#E6F7F5]/50 border-[#99DFD6] text-slate-800'"
+                        class="p-2.5 rounded-xl text-xs transition-colors cursor-pointer hover:border-[#99DFD6] dark:hover:border-[#00A99D]/50 border" 
+                        :class="n.read_at ? 'bg-slate-50 dark:bg-[#16202a] border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400' : 'bg-[#E6F7F5]/50 dark:bg-[#00A99D]/10 border-[#99DFD6] dark:border-[#00A99D]/40 text-slate-800 dark:text-slate-100'"
                       >
                         <div class="flex items-start justify-between gap-1.5">
-                          <div class="font-semibold text-[#005851] text-xs leading-tight">
+                          <div class="font-semibold text-[#005851] dark:text-[#4fd1c5] text-xs leading-tight">
                             {{ n.data?.title || 'Pemberitahuan Sistem' }}
                           </div>
                           <span v-if="!n.read_at" class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0 mt-1"></span>
                         </div>
-                        <div class="text-[11px] text-slate-600 mt-1 leading-relaxed">
+                        <div class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                           {{ n.data?.message }}
                         </div>
-                        <div class="text-[10px] text-slate-400 mt-1.5 font-mono">
+                        <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 font-mono">
                           {{ n.data?.time || 'baru saja' }}
                         </div>
                       </div>
 
-                      <div v-if="notifications.length === 0" class="py-8 text-center text-xs text-slate-400">
-                        <Radio class="w-6 h-6 text-slate-300 mx-auto mb-2" />
+                      <div v-if="notifications.length === 0" class="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
+                        <Radio class="w-6 h-6 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
                         <p>Belum ada notifikasi baru.</p>
                       </div>
                     </div>
@@ -567,15 +586,15 @@ const handleLogout = () => {
                 :href="getUrl('/profile')"
                 @click="handleNav('/profile', $event)"
                 title="Kelola Profil Akun"
-                class="flex items-center gap-2 p-1 sm:pr-3 rounded-full bg-white hover:bg-slate-50 border border-slate-200 transition-all group cursor-pointer shrink-0 max-w-[180px]"
+                class="flex items-center gap-2 p-1 sm:pr-3 rounded-full bg-white dark:bg-[#16202a] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all group cursor-pointer shrink-0 max-w-[180px]"
               >
                 <img
                   :src="currentUser?.avatar_url || 'https://ui-avatars.com/api/?name=Admin&background=0f172a&color=fff'"
                   :alt="currentUser?.name || 'User'"
-                  class="w-7 h-7 rounded-full object-cover border border-slate-200 shrink-0"
+                  class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
                 />
                 <div class="hidden md:block text-left min-w-0 flex-1">
-                  <span class="block font-semibold text-slate-800 group-hover:text-slate-950 truncate text-xs leading-tight">
+                  <span class="block font-semibold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 dark:group-hover:text-white truncate text-xs leading-tight">
                     {{ currentUser?.name }}
                   </span>
                 </div>
@@ -586,7 +605,7 @@ const handleLogout = () => {
                 type="button"
                 @click="handleLogout"
                 title="Keluar dari sesi"
-                class="hidden md:inline-flex items-center gap-1 p-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-rose-600 bg-white hover:bg-rose-50 border border-slate-200 hover:border-rose-200 transition-all cursor-pointer shrink-0"
+                class="hidden md:inline-flex items-center gap-1 p-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 bg-white dark:bg-[#16202a] hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-slate-200 dark:border-slate-700 hover:border-rose-200 dark:hover:border-rose-800 transition-all cursor-pointer shrink-0"
               >
                 <LogOut class="w-3.5 h-3.5" />
               </button>
@@ -606,26 +625,26 @@ const handleLogout = () => {
       >
         <div 
           v-if="liveToast"
-          class="fixed top-16 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-96 z-50 bg-white text-slate-900 border border-emerald-200 rounded-2xl p-3 shadow-xl flex items-start gap-3"
+          class="fixed top-16 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-96 z-50 bg-white dark:bg-[#111820] text-slate-900 dark:text-slate-100 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-3 shadow-xl flex items-start gap-3"
         >
-          <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+          <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
             <Radio class="w-4 h-4" />
           </div>
           <div class="flex-1 min-w-0 cursor-pointer" @click="showNotifications = true; liveToast = null;">
             <div class="flex items-center justify-between gap-1">
-              <span class="text-xs font-bold text-slate-900 leading-tight truncate">
+              <span class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight truncate">
                 {{ liveToast.title }}
               </span>
               <span class="text-[10px] text-slate-400 font-mono shrink-0">baru saja</span>
             </div>
-            <p class="text-[11px] text-slate-600 mt-0.5 line-clamp-2 leading-relaxed">
+            <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2 leading-relaxed">
               {{ liveToast.message }}
             </p>
           </div>
           <button 
             type="button" 
             @click="liveToast = null" 
-            class="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+            class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
           >
             <X class="w-3.5 h-3.5" />
           </button>
@@ -645,6 +664,6 @@ const handleLogout = () => {
     <CommandPalette ref="commandPaletteRef" :mode="mode" />
 
     <!-- Vue Sonner Global Rich Toasts -->
-    <Toaster position="top-right" richColors />
+    <Toaster position="top-right" richColors :theme="isDark ? 'dark' : 'light'" />
   </div>
 </template>
