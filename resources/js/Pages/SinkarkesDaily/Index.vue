@@ -763,73 +763,121 @@ const formatDateId = (isoDate) => {
           </div>
         </div>
 
-        <!-- Form Metric Groups -->
-        <div class="p-4 sm:p-5 space-y-4 max-h-[65vh] overflow-y-auto">
-          <div
-            v-for="sec in groupedFormSections"
-            :key="sec.id"
-            class="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden"
-          >
-            <button
-              type="button"
-              @click="toggleGroup(sec.id)"
-              class="w-full px-4 py-2.5 bg-slate-50 dark:bg-[#171d29] flex items-center justify-between text-left hover:bg-slate-100/80 dark:hover:bg-slate-800/70 transition cursor-pointer"
-            >
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-extrabold text-slate-800 dark:text-slate-100">{{ sec.title }}</span>
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
-                  {{ sec.fields.length }} kolom
-                </span>
-                <span v-if="sec.redCount > 0" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300">
-                  {{ sec.redCount }} poin SINKARKES
-                </span>
-              </div>
-              <ChevronDown v-if="collapsedGroups[sec.id]" class="w-4 h-4 text-slate-400" />
-              <ChevronUp v-else class="w-4 h-4 text-slate-400" />
-            </button>
+        <!-- Form Metric Rows (Table / Row Layout) -->
+        <div class="max-h-[68vh] overflow-y-auto overflow-x-auto bg-white dark:bg-[#12161f]">
+          <table class="w-full min-w-[680px] text-left text-xs border-collapse">
+            <thead class="sticky top-0 z-10 bg-slate-100 dark:bg-[#161c28] text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800 shadow-2xs">
+              <tr>
+                <th class="py-2.5 px-3 w-16 text-center whitespace-nowrap">Kolom</th>
+                <th class="py-2.5 px-3 sm:px-4 min-w-[260px]">Uraian Indikator Harian</th>
+                <th class="py-2.5 px-3 sm:px-4 w-72 whitespace-nowrap">Masuk ke SINKARKES</th>
+                <th class="py-2.5 px-3 sm:px-5 w-44 text-right whitespace-nowrap bg-slate-200/50 dark:bg-[#1a2130]">
+                  Input Nilai ({{ formTanggal || 'Harian' }})
+                </th>
+              </tr>
+            </thead>
 
-            <div v-if="!collapsedGroups[sec.id]" class="p-3.5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 bg-white dark:bg-[#12161f]">
-              <div
-                v-for="field in sec.fields"
-                :key="field.key"
-                class="rounded-xl p-2.5 border transition-colors"
-                :class="field.is_red
-                  ? 'border-rose-200 dark:border-rose-800/70 bg-rose-50/40 dark:bg-rose-950/15'
-                  : 'border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-[#161c28]'"
-              >
-                <div class="flex items-start justify-between gap-1.5 mb-1.5">
-                  <label class="text-[11px] font-semibold text-slate-800 dark:text-slate-200 leading-snug">
-                    <span class="font-mono text-[10px] text-slate-400 mr-1">[{{ field.excel_col }}]</span>
-                    {{ field.label }}
-                  </label>
-                  <span
-                    v-if="field.is_red"
-                    class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-rose-600 text-white"
-                    :title="field.sinkarkes_label"
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800/70">
+              <tr v-if="groupedFormSections.length === 0">
+                <td colspan="4" class="px-6 py-10 text-center text-slate-400">
+                  Tidak ada indikator yang cocok dengan filter pencarian saat ini.
+                </td>
+              </tr>
+
+              <template v-for="sec in groupedFormSections" :key="sec.id">
+                <!-- Category Group Divider Row (Collapsible) -->
+                <tr
+                  @click="toggleGroup(sec.id)"
+                  class="bg-slate-50/95 dark:bg-[#171d29] hover:bg-slate-100 dark:hover:bg-slate-800/80 border-t-2 border-slate-200 dark:border-slate-700 cursor-pointer select-none transition-colors"
+                >
+                  <td colspan="4" class="py-2.5 px-3 sm:px-4">
+                    <div class="flex items-center justify-between gap-2">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="w-2 h-2 rounded-full bg-[#00A99D]"></span>
+                        <span class="text-xs font-extrabold uppercase tracking-wide text-slate-800 dark:text-slate-100">
+                          {{ sec.title }}
+                        </span>
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300">
+                          {{ sec.fields.length }} baris
+                        </span>
+                        <span
+                          v-if="sec.redCount > 0"
+                          class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300"
+                        >
+                          {{ sec.redCount }} poin SINKARKES
+                        </span>
+                      </div>
+                      <ChevronDown v-if="collapsedGroups[sec.id]" class="w-4 h-4 text-slate-400 shrink-0" />
+                      <ChevronUp v-else class="w-4 h-4 text-slate-400 shrink-0" />
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Metric Input Rows -->
+                <template v-if="!collapsedGroups[sec.id]">
+                  <tr
+                    v-for="field in sec.fields"
+                    :key="field.key"
+                    class="transition-colors"
+                    :class="field.is_red
+                      ? 'bg-rose-50/35 dark:bg-rose-950/10 hover:bg-rose-50/70 dark:hover:bg-rose-950/25 border-l-4 border-l-rose-500'
+                      : 'hover:bg-slate-50/80 dark:hover:bg-[#171d29]/50'"
                   >
-                    R{{ field.sinkarkes_excel_mark }} &bull; {{ field.sinkarkes_code }}
-                  </span>
-                </div>
+                    <!-- Excel Column Letter -->
+                    <td class="py-2 px-3 text-center whitespace-nowrap">
+                      <span
+                        class="inline-flex items-center justify-center min-w-[2.2rem] px-1.5 py-0.5 rounded font-mono text-[11px] font-bold border"
+                        :class="field.is_red
+                          ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800'
+                          : 'bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700'"
+                      >
+                        {{ field.excel_col }}
+                      </span>
+                    </td>
 
-                <input
-                  :value="formMetrics[field.key] ?? ''"
-                  @input="(e) => sanitizeMetricValue(field.key, e.target.value)"
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  class="w-full px-2.5 py-1.5 text-sm font-bold rounded-lg border bg-white dark:bg-[#0e121a] text-slate-900 dark:text-white focus:ring-2 focus:ring-[#00A99D] outline-none"
-                  :class="field.is_red ? 'border-rose-300 dark:border-rose-700' : 'border-slate-200 dark:border-slate-700'"
-                />
+                    <!-- Indicator Name -->
+                    <td class="py-2 px-3 sm:px-4">
+                      <label :for="`daily-field-${field.key}`" class="block font-semibold text-slate-800 dark:text-slate-100 leading-snug cursor-pointer">
+                        {{ field.label }}
+                      </label>
+                      <span v-if="field.dedupe_pair" class="inline-block mt-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
+                        * Anti-ganda otomatis dengan pasangan kapal/dokumen
+                      </span>
+                    </td>
 
-                <p v-if="field.is_red" class="mt-1 text-[10px] text-rose-700 dark:text-rose-300 leading-tight truncate" :title="field.sinkarkes_label">
-                  &rarr; {{ field.sinkarkes_label }}
-                </p>
-                <p v-if="field.dedupe_pair" class="mt-0.5 text-[9px] font-medium text-amber-700 dark:text-amber-400">
-                  * Anti-ganda otomatis dgn pasangan kapal/dokumen
-                </p>
-              </div>
-            </div>
-          </div>
+                    <!-- Target SINKARKES Mapping -->
+                    <td class="py-2 px-3 sm:px-4">
+                      <div v-if="field.is_red" class="space-y-0.5">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-600 text-white">
+                          Baris {{ field.sinkarkes_excel_mark }} &bull; {{ field.sinkarkes_code }}
+                        </span>
+                        <div class="text-[11px] text-rose-700 dark:text-rose-300 leading-tight">
+                          {{ field.sinkarkes_label }}
+                        </div>
+                      </div>
+                      <span v-else class="text-[11px] text-slate-400 italic">
+                        Rekap harian saja
+                      </span>
+                    </td>
+
+                    <!-- Numeric Input Box -->
+                    <td class="py-2 px-3 sm:px-5 text-right bg-slate-50/40 dark:bg-[#161c28]/40">
+                      <input
+                        :id="`daily-field-${field.key}`"
+                        :value="formMetrics[field.key] ?? ''"
+                        @input="(e) => sanitizeMetricValue(field.key, e.target.value)"
+                        type="number"
+                        min="0"
+                        placeholder="0"
+                        class="w-32 sm:w-36 ml-auto px-3 py-1.5 text-sm font-bold text-right rounded-lg border bg-white dark:bg-[#0e121a] text-slate-900 dark:text-white focus:ring-2 focus:ring-[#00A99D] outline-none transition"
+                        :class="field.is_red ? 'border-rose-300 dark:border-rose-700' : 'border-slate-200 dark:border-slate-700'"
+                      />
+                    </td>
+                  </tr>
+                </template>
+              </template>
+            </tbody>
+          </table>
         </div>
 
         <!-- Live Impact Preview + Save Footer -->
