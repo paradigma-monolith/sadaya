@@ -454,31 +454,6 @@ const handleLogout = () => {
               </div>
             </div>
 
-            <!-- Center Navigation Links (Compact Enterprise Tabs) -->
-            <nav class="hidden lg:flex items-center gap-5 text-xs h-12 shrink-0 font-sans">
-              <a
-                :href="getUrl('/inertia/dashboard')" 
-                @click="handleNav('/inertia/dashboard', $event)"
-                class="h-full inline-flex items-center px-1 border-b-2 transition-colors cursor-pointer"
-                :class="(!isSpa && (activeNav === 'dashboard' || activeNav === 'home'))
-                  ? 'border-[#00A99D] text-[#005851] font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-[#005851] hover:border-[#99DFD6] font-medium'"
-              >
-                Dashboard
-              </a>
-
-              <a
-                :href="getUrl('/audit-logs')" 
-                @click="handleNav('/audit-logs', $event)"
-                class="h-full inline-flex items-center px-1 border-b-2 transition-colors cursor-pointer"
-                :class="(!isSpa && activeNav === 'audit')
-                  ? 'border-[#00A99D] text-[#005851] font-semibold'
-                  : 'border-transparent text-slate-500 hover:text-[#005851] hover:border-[#99DFD6] font-medium'"
-              >
-                Audit Trail
-              </a>
-            </nav>
-
             <!-- Right Side: Search, Notifications & User Avatar -->
             <div class="flex items-center gap-1.5 shrink-0">
 
