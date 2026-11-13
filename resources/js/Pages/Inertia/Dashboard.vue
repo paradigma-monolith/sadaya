@@ -1208,7 +1208,7 @@ const modaReadinessRadarOption = computed(() => {
             </div>
           </div>
 
-          <!-- Right: View Switcher, Sync & Quick Input Launchers -->
+          <!-- Right: View Switcher & Sync -->
           <div class="flex flex-wrap items-center gap-1.5 shrink-0 text-xs">
             <!-- Unified View Mode Switcher -->
             <div class="inline-flex items-center p-0.5 rounded-lg bg-[#002B27] border border-white/15 text-[11px] font-semibold">
@@ -1260,59 +1260,6 @@ const modaReadinessRadarOption = computed(() => {
               <RefreshCw class="w-3.5 h-3.5" :class="isRefreshing ? 'animate-spin text-[#99CC33]' : 'text-[#99DFD6]'" />
               <span class="hidden sm:inline">{{ isRefreshing ? 'Memuat...' : 'Sinkron' }}</span>
             </button>
-
-            <div class="h-4 w-px bg-white/20 hidden sm:block mx-0.5"></div>
-
-            <div class="flex items-center gap-1">
-              <Link
-                :href="getUrl('/sinkarkes')"
-                class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-[#99CC33]/20 hover:bg-[#99CC33]/30 text-[#F7FCE8] border border-[#99CC33]/40 transition-colors flex items-center gap-1 cursor-pointer"
-                title="Buka Formulir Input Laporan SINKARKES"
-              >
-                <FileSpreadsheet class="w-3.5 h-3.5 text-[#99CC33]" />
-                <span class="hidden md:inline">SINKARKES</span>
-              </Link>
-              <a
-                :href="getUrl('/travelconsent/public_aircraft')"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center gap-1 cursor-pointer"
-                title="Input Inspeksi Pesawat Udara"
-              >
-                <Plane class="w-3.5 h-3.5 text-[#99DFD6]" />
-                <span class="hidden md:inline">Pesawat</span>
-              </a>
-              <a
-                :href="getUrl('/travelconsent/public_sanitasi')"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center gap-1 cursor-pointer"
-                title="Input Karantina Sanitasi Kapal Laut"
-              >
-                <Ship class="w-3.5 h-3.5 text-[#99DFD6]" />
-                <span class="hidden md:inline">Kapal</span>
-              </a>
-              <a
-                :href="getUrl('/travelconsent/public_alat')"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center gap-1 cursor-pointer"
-                title="Input Pemeriksaan Alat Kesehatan Haji"
-              >
-                <Stethoscope class="w-3.5 h-3.5 text-[#99CC33]" />
-                <span class="hidden md:inline">Alkes</span>
-              </a>
-              <a
-                :href="getUrl('/travelconsent/public_obat')"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="px-2 py-1.5 rounded-lg text-[11px] font-semibold bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors flex items-center gap-1 cursor-pointer"
-                title="Input Pemakaian Obat P3K Pesawat"
-              >
-                <Pill class="w-3.5 h-3.5 text-[#99DFD6]" />
-                <span class="hidden md:inline">Obat</span>
-              </a>
-            </div>
           </div>
         </div>
       </div>
