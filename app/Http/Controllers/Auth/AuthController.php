@@ -48,27 +48,15 @@ class AuthController extends Controller
             ->first();
 
         if ($user && Hash::check($password, $user->password)) {
-            $request->clearRateLimiter();
-            Auth::login($user, $remember);
-            $request->session()->regenerate();
-
-            // Record login success with IP, User-Agent, Device, Platform
-            LoginHistoryService::recordSuccess($user, $request);
-
-            return redirect()->intended(route('home'));
+            return $this->completeLogin($user, $request, $remember);
         }
 
         // 2. Fallback: Authenticate directly against Simply database
         $simplyUser = SimplyDataMigrationService::findAndVerifySimplyUser($loginInput, $password);
         if ($simplyUser) {
-            $request->clearRateLimiter();
             $syncedUser = SimplyDataMigrationService::syncUserFromSimplyData($simplyUser);
-            Auth::login($syncedUser, $remember);
-            $request->session()->regenerate();
 
-            LoginHistoryService::recordSuccess($syncedUser, $request);
-
-            return redirect()->intended(route('home'));
+            return $this->completeLogin($syncedUser, $request, $remember);
         }
 
         // 3. Record failed login attempt and enforce progressive brute-force throttling
@@ -79,6 +67,25 @@ class AuthController extends Controller
             'login' => 'Username / Email atau Kata Sandi yang Anda masukkan salah.',
             'email' => 'Username / Email atau Kata Sandi yang Anda masukkan salah.',
         ])->onlyInput('login', 'email');
+    }
+
+    /**
+     * Finalize authenticated session, regenerate CSRF/session, record login audit, and flash welcome feedback.
+     */
+    protected function completeLogin(User $user, LoginRequest $request, bool $remember): RedirectResponse
+    {
+        $request->clearRateLimiter();
+        Auth::login($user, $remember);
+        $request->session()->regenerate();
+
+        // Record login success with IP, User-Agent, Device, Platform
+        LoginHistoryService::recordSuccess($user, $request);
+
+        $firstName = trim((string) strtok(trim((string) ($user->name ?? '')), ' ')) ?: 'Petugas';
+
+        return redirect()
+            ->intended(route('home'))
+            ->with('success', "Selamat datang kembali, {$firstName}. Sesi aktif dan terenkripsi.");
     }
 
     /**

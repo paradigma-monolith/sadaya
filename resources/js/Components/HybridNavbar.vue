@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import { usePage, router as inertiaRouter } from '@inertiajs/vue3';
 import { 
   LogOut, 
@@ -19,7 +19,7 @@ import FloatingChat from './FloatingChat.vue';
 import CommandPalette from './CommandPalette.vue';
 import ConfirmDialog from './ConfirmDialog.vue';
 import ClinicalSkeleton from './ClinicalSkeleton.vue';
-import { Toaster } from 'vue-sonner';
+import { Toaster, toast } from 'vue-sonner';
 import { useSidebar } from '@/composables/useSidebar';
 import { useTheme } from '@/composables/useTheme';
 import { getUserInitials } from '@/utils/userAvatar';
@@ -149,15 +149,37 @@ const handleNav = (targetPath, e) => {
   }
 };
 
+let inertiaPage = null;
+try {
+  inertiaPage = usePage();
+} catch (e) {
+  inertiaPage = null;
+}
+
 // Safely access current authenticated user
 const currentUser = computed(() => {
-  try {
-    const page = usePage();
-    return page?.props?.auth?.user || null;
-  } catch (e) {
-    return (typeof window !== 'undefined' && window.authUser) ? window.authUser : null;
+  if (inertiaPage?.props?.auth?.user) {
+    return inertiaPage.props.auth.user;
   }
+  return (typeof window !== 'undefined' && window.authUser) ? window.authUser : null;
 });
+
+const flashProps = computed(() => inertiaPage?.props?.flash || null);
+let lastShownFlash = { success: null, error: null };
+
+const flushFlashToasts = (flash) => {
+  const successMsg = flash?.success || null;
+  const errorMsg = flash?.error || null;
+
+  if (successMsg && successMsg !== lastShownFlash.success) {
+    toast.success(successMsg);
+  }
+  if (errorMsg && errorMsg !== lastShownFlash.error) {
+    toast.error(errorMsg);
+  }
+
+  lastShownFlash = { success: successMsg, error: errorMsg };
+};
 
 const avatarLoadError = ref(false);
 const userInitials = computed(() => getUserInitials(currentUser.value?.name, 'AD'));
@@ -276,9 +298,20 @@ const showLiveToast = (notification) => {
   }, 5000);
 };
 
+watch(
+  flashProps,
+  (flash) => {
+    if (typeof window !== 'undefined') {
+      flushFlashToasts(flash);
+    }
+  },
+  { deep: true }
+);
+
 let isNavbarMounted = true;
 
 onMounted(async () => {
+  flushFlashToasts(flashProps.value);
   fetchNotifications();
 
   // Lazy-load Echo & listen for real-time Reverb WebSocket notifications

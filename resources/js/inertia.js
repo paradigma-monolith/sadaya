@@ -17,6 +17,16 @@ const ensureAuthenticatedEcho = (pageProps) => {
         .catch(() => {});
 };
 
+const syncCsrfMeta = (pageProps) => {
+    if (typeof document === 'undefined' || !pageProps?.csrfToken) {
+        return;
+    }
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta && meta.getAttribute('content') !== pageProps.csrfToken) {
+        meta.setAttribute('content', pageProps.csrfToken);
+    }
+};
+
 if (typeof window !== 'undefined') {
     // Auto-recover once when a new Vite deployment invalidates stale dynamic chunk hashes.
     window.addEventListener('vite:preloadError', () => {
@@ -73,8 +83,10 @@ createInertiaApp({
 
         app.mount(el);
 
+        syncCsrfMeta(props?.initialPage?.props);
         ensureAuthenticatedEcho(props?.initialPage?.props);
         router.on('navigate', (event) => {
+            syncCsrfMeta(event?.detail?.page?.props);
             ensureAuthenticatedEcho(event?.detail?.page?.props);
         });
     },

@@ -25,6 +25,12 @@ import {
   findMostRecentSweptBlip,
   resolveActiveRadarTarget,
 } from '../../resources/js/Pages/Inertia/components/radarTelemetryUtils.js';
+import {
+  getIndonesianTimeGreeting,
+  getUserFirstName,
+  sanitizeDashboardViewMode,
+  getDashboardModuleLabel,
+} from '../../resources/js/Pages/Inertia/components/dashboardTelemetryUtils.js';
 
 test('useDate formats valid dates and handles empty input', () => {
   const { formatDate, formatDateTime, fromNow } = useDate();
@@ -243,6 +249,28 @@ test('radarTelemetryUtils tracks active swept target by priority and handles wra
   });
   assert.equal(filteredSweep.mode, 'sweep');
   assert.equal(filteredSweep.target?.shortCode, 'CBN');
+});
+
+test('dashboardTelemetryUtils computes greetings, operator first name, view modes, and labels', () => {
+  assert.equal(getIndonesianTimeGreeting(7), 'Selamat pagi');
+  assert.equal(getIndonesianTimeGreeting(13), 'Selamat siang');
+  assert.equal(getIndonesianTimeGreeting(16), 'Selamat sore');
+  assert.equal(getIndonesianTimeGreeting(21), 'Selamat malam');
+  assert.equal(getIndonesianTimeGreeting(2), 'Selamat malam');
+
+  assert.equal(getUserFirstName('Dr. Budi Santoso'), 'Dr.');
+  assert.equal(getUserFirstName('Rizky Pratama'), 'Rizky');
+  assert.equal(getUserFirstName('   '), 'Petugas');
+  assert.equal(getUserFirstName(null, 'Admin'), 'Admin');
+
+  assert.equal(sanitizeDashboardViewMode('sinkarkes'), 'sinkarkes');
+  assert.equal(sanitizeDashboardViewMode('geospatial'), 'geospatial');
+  assert.equal(sanitizeDashboardViewMode('unknown-mode'), 'all');
+  assert.equal(sanitizeDashboardViewMode(null), 'all');
+
+  assert.equal(getDashboardModuleLabel('aircraft'), 'Sanitasi Pesawat');
+  assert.equal(getDashboardModuleLabel('obat'), 'Obat P3K');
+  assert.equal(getDashboardModuleLabel('all'), 'Semua Layanan');
 });
 
 

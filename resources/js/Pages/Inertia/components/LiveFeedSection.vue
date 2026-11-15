@@ -9,7 +9,9 @@ import {
   LogIn,
   MapPin,
   Search,
+  X,
 } from 'lucide-vue-next';
+import { getDashboardModuleLabel } from './dashboardTelemetryUtils';
 
 const props = defineProps({
   recentInspections: { type: Array, default: () => [] },
@@ -18,6 +20,8 @@ const props = defineProps({
   selectedModuleKey: { type: String, default: 'all' },
   moduleIconMap: { type: Object, default: () => ({}) },
 });
+
+const emit = defineEmits(['clear-module-filter']);
 
 const getUrl = (path) => {
   if (typeof window !== 'undefined' && window.location.pathname.includes('/hybridlaravel/public')) {
@@ -29,6 +33,28 @@ const getUrl = (path) => {
 const activeFeedTab = ref('inspections'); // 'inspections' | 'activities' | 'logins'
 const searchFeed = ref('');
 const statusFilterFeed = ref('all');
+
+const hasActiveFilters = computed(() => (
+  props.selectedModuleKey !== 'all' ||
+  statusFilterFeed.value !== 'all' ||
+  searchFeed.value.trim().length > 0
+));
+
+const focusPendingInspections = () => {
+  activeFeedTab.value = 'inspections';
+  statusFilterFeed.value = 'submitted';
+  searchFeed.value = '';
+};
+
+const resetFeedFilters = () => {
+  statusFilterFeed.value = 'all';
+  searchFeed.value = '';
+  if (props.selectedModuleKey !== 'all') {
+    emit('clear-module-filter');
+  }
+};
+
+defineExpose({ focusPendingInspections });
 
 const filteredInspections = computed(() => {
   let list = props.recentInspections || [];
@@ -102,7 +128,18 @@ const statusBadgeClass = (status) => ({
         </button>
       </div>
 
-      <div v-if="activeFeedTab === 'inspections'" class="flex items-center gap-2">
+      <div v-if="activeFeedTab === 'inspections'" class="flex flex-wrap items-center gap-2">
+        <button
+          v-if="selectedModuleKey !== 'all'"
+          type="button"
+          @click="emit('clear-module-filter')"
+          class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[#E6F7F5] dark:bg-[#00A99D]/20 text-[#005851] dark:text-[#5eead4] border border-[#99DFD6] dark:border-[#00A99D]/45 text-[11px] font-bold hover:bg-[#d2f1ec] dark:hover:bg-[#00A99D]/30 transition-colors cursor-pointer"
+          title="Hapus filter modul layanan"
+        >
+          <span>{{ getDashboardModuleLabel(selectedModuleKey) }}</span>
+          <X class="w-3 h-3" />
+        </button>
+
         <select
           v-model="statusFilterFeed"
           class="px-2 py-1 rounded-lg bg-slate-50 dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 font-medium focus:outline-none focus:border-[#00A99D]"
@@ -114,13 +151,23 @@ const statusBadgeClass = (status) => ({
         </select>
 
         <div class="relative w-44 sm:w-52">
-          <Search class="w-3 h-3 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2" />
+          <Search class="w-3 h-3 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             v-model="searchFeed"
             type="text"
             placeholder="Cari no reg / armada..."
-            class="w-full pl-6 pr-2 py-1 rounded-lg bg-slate-50 dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:bg-white dark:focus:bg-[#192430] focus:border-[#00A99D]"
+            class="w-full pl-6 pr-6 py-1 rounded-lg bg-slate-50 dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:bg-white dark:focus:bg-[#192430] focus:border-[#00A99D]"
           />
+          <button
+            v-if="searchFeed"
+            type="button"
+            @click="searchFeed = ''"
+            aria-label="Hapus pencarian feed"
+            title="Hapus pencarian"
+            class="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+          >
+            <X class="w-3 h-3" />
+          </button>
         </div>
       </div>
     </div>
@@ -128,8 +175,16 @@ const statusBadgeClass = (status) => ({
     <!-- Inspections View -->
     <div v-if="activeFeedTab === 'inspections'">
       <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
-        <div v-if="filteredInspections.length === 0" class="py-8 text-center text-slate-500 dark:text-slate-400 text-xs">
-          Tidak ada dokumen pemeriksaan yang cocok dengan filter yang dipilih.
+        <div v-if="filteredInspections.length === 0" class="py-8 px-4 text-center text-slate-500 dark:text-slate-400 text-xs space-y-2">
+          <p>Tidak ada dokumen pemeriksaan yang cocok dengan filter yang dipilih.</p>
+          <button
+            v-if="hasActiveFilters"
+            type="button"
+            @click="resetFeedFilters"
+            class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#E6F7F5] dark:bg-[#00A99D]/20 text-[#005851] dark:text-[#5eead4] border border-[#99DFD6] dark:border-[#00A99D]/40 font-semibold hover:bg-[#d2f1ec] cursor-pointer"
+          >
+            Reset Filter
+          </button>
         </div>
         <div
           v-for="item in filteredInspections"
@@ -226,8 +281,16 @@ const statusBadgeClass = (status) => ({
               </td>
             </tr>
             <tr v-if="filteredInspections.length === 0">
-              <td colspan="8" class="py-6 text-center text-slate-500 dark:text-slate-400 text-xs">
-                Tidak ada dokumen pemeriksaan yang cocok dengan filter yang dipilih.
+              <td colspan="8" class="py-6 px-4 text-center text-slate-500 dark:text-slate-400 text-xs">
+                <p>Tidak ada dokumen pemeriksaan yang cocok dengan filter yang dipilih.</p>
+                <button
+                  v-if="hasActiveFilters"
+                  type="button"
+                  @click="resetFeedFilters"
+                  class="mt-2 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#E6F7F5] dark:bg-[#00A99D]/20 text-[#005851] dark:text-[#5eead4] border border-[#99DFD6] dark:border-[#00A99D]/40 font-semibold hover:bg-[#d2f1ec] cursor-pointer"
+                >
+                  Reset Filter
+                </button>
               </td>
             </tr>
           </tbody>

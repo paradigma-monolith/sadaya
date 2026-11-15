@@ -1,1 +1,0 @@
-import{_ as c,f as l}from"./vendor-ui-BFpxcZTs.js";function i(t,u=350){let e=null;const n=(...o)=>{e&&clearTimeout(e),e=setTimeout(()=>{e=null,t(...o)},u)};return n.cancel=()=>{e&&(clearTimeout(e),e=null)},c()&&l(()=>{n.cancel()}),n}export{i as u};

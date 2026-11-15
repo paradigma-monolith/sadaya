@@ -31,6 +31,27 @@ class AuthTest extends TestCase
 
         $this->assertAuthenticatedAs($user);
         $response->assertRedirect(route('home'));
+        $response->assertSessionHas('success');
+    }
+
+    public function test_login_preserves_intended_destination_after_authentication(): void
+    {
+        $user = User::factory()->create([
+            'email' => 'operator@hybrid.local',
+            'name' => 'Rizky Pratama',
+            'password' => bcrypt('password'),
+        ]);
+
+        $this->get('/sinkarkes')->assertRedirect('/login');
+
+        $response = $this->post('/login', [
+            'login' => 'operator@hybrid.local',
+            'password' => 'password',
+        ]);
+
+        $this->assertAuthenticatedAs($user);
+        $response->assertRedirect(url('/sinkarkes'));
+        $response->assertSessionHas('success', 'Selamat datang kembali, Rizky. Sesi aktif dan terenkripsi.');
     }
 
     public function test_users_cannot_authenticate_with_invalid_password(): void

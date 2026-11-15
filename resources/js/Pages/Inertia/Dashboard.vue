@@ -1,11 +1,18 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { ref, computed, onMounted, onUnmounted, watch, nextTick, defineAsyncComponent } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import { useSidebar } from '@/composables/useSidebar';
 import { useTheme } from '@/composables/useTheme';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
 import BaseChart from '../../Components/BaseChart.vue';
 import DashboardKpiDeck from './components/DashboardKpiDeck.vue';
+import {
+  DASHBOARD_VIEW_MODE_STORAGE_KEY,
+  getIndonesianTimeGreeting,
+  getUserFirstName,
+  sanitizeDashboardViewMode,
+  getDashboardModuleLabel,
+} from './components/dashboardTelemetryUtils';
 
 const GeospatialDeck = defineAsyncComponent(() => import('./components/GeospatialDeck.vue'));
 const SinkarkesSection = defineAsyncComponent(() => import('./components/SinkarkesSection.vue'));
@@ -16,11 +23,9 @@ import {
   Ship,
   Stethoscope,
   Pill,
-  ClipboardCheck,
   Clock,
   RefreshCw,
   Globe,
-  CalendarDays,
   ChartColumn,
   ChartLine,
   Check,
@@ -28,9 +33,10 @@ import {
   Compass,
   Zap,
   BarChart3,
-  FileSpreadsheet,
-  FileCheck,
-  Bug,
+  ArrowDown,
+  MapPin,
+  ShieldCheck,
+  X,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -136,14 +142,67 @@ const props = defineProps({
   },
 });
 
-const dashboardViewMode = ref('all'); // 'all' | 'sinkarkes' | 'geospatial'
-
-const getUrl = (path) => {
-  if (typeof window !== 'undefined' && window.location.pathname.includes('/hybridlaravel/public')) {
-    return `/hybridlaravel/public${path}`;
-  }
-  return path;
+const loadSavedViewMode = () => {
+  try {
+    if (typeof window !== 'undefined') {
+      return sanitizeDashboardViewMode(window.localStorage.getItem(DASHBOARD_VIEW_MODE_STORAGE_KEY));
+    }
+  } catch (e) {}
+  return 'all';
 };
+
+const dashboardViewMode = ref(loadSavedViewMode()); // 'all' | 'sinkarkes' | 'geospatial'
+
+watch(dashboardViewMode, (mode) => {
+  try {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(DASHBOARD_VIEW_MODE_STORAGE_KEY, sanitizeDashboardViewMode(mode));
+    }
+  } catch (e) {}
+});
+
+const inertiaPage = usePage();
+const authUser = computed(() => inertiaPage?.props?.auth?.user || null);
+const operatorFirstName = computed(() => getUserFirstName(authUser.value?.name, 'Petugas'));
+const operatorRole = computed(() => authUser.value?.roles?.[0] || 'Petugas');
+const currentHour = ref(new Date().getHours());
+const operatorGreeting = computed(() => getIndonesianTimeGreeting(currentHour.value));
+
+const liveFeedWrapRef = ref(null);
+const liveFeedSectionRef = ref(null);
+const pendingFocusToSubmitted = ref(false);
+
+const scrollToLiveFeed = async () => {
+  if (dashboardViewMode.value === 'sinkarkes') {
+    dashboardViewMode.value = 'all';
+  }
+  await nextTick();
+  liveFeedWrapRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+const jumpToPendingInspections = async () => {
+  selectedModuleKey.value = 'all';
+  if (dashboardViewMode.value === 'sinkarkes') {
+    dashboardViewMode.value = 'all';
+  }
+  await nextTick();
+  if (liveFeedSectionRef.value) {
+    liveFeedSectionRef.value.focusPendingInspections?.();
+    liveFeedWrapRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    pendingFocusToSubmitted.value = true;
+  }
+};
+
+watch(liveFeedSectionRef, (inst) => {
+  if (inst && pendingFocusToSubmitted.value) {
+    pendingFocusToSubmitted.value = false;
+    inst.focusPendingInspections?.();
+    nextTick(() => {
+      liveFeedWrapRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+});
 
 const isRefreshing = ref(false);
 const refreshData = () => {
@@ -418,6 +477,7 @@ const radarAngle = ref(0);
 let telemetryTimer = null;
 const updateLiveClock = () => {
   const now = new Date();
+  currentHour.value = now.getHours();
   liveTimeStr.value = now.toLocaleTimeString('id-ID', {
     hour: '2-digit',
     minute: '2-digit',
@@ -532,8 +592,12 @@ const radarBlips = computed(() => {
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2">
                 <h1 class="text-sm sm:text-[15px] font-bold tracking-tight text-white truncate">
-                  Pusat Komando Surveilans &amp; Geospasial
+                  {{ operatorGreeting }}, {{ operatorFirstName }}
                 </h1>
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-[#99CC33]/15 text-[#d9f99d] border border-[#99CC33]/35">
+                  <ShieldCheck class="w-3 h-3 text-[#99CC33]" />
+                  <span>{{ operatorRole }}</span>
+                </span>
                 <span class="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#002B27]/85 text-[#99DFD6] border border-[#00A99D]/35">
                   <span class="relative flex h-1.5 w-1.5">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#99CC33] opacity-75"></span>
@@ -547,7 +611,7 @@ const radarBlips = computed(() => {
                 </span>
               </div>
               <p class="text-[11px] text-slate-200/90 flex flex-wrap items-center gap-2 truncate mt-0.5">
-                <span>BKK Kelas I Bandung &bull; 4 Moda Karantina Terpadu</span>
+                <span>Pusat Komando Surveilans &bull; BKK Kelas I Bandung</span>
                 <span class="text-white/30">|</span>
                 <span class="font-mono text-[#99DFD6] flex items-center gap-1 tabular-nums">
                   <Clock class="w-3 h-3 text-[#99CC33]" />
@@ -581,7 +645,7 @@ const radarBlips = computed(() => {
               <button
                 type="button"
                 @click="dashboardViewMode = 'geospatial'"
-                class="px-2.5 py-1 rounded-md transition-all cursor-pointer hidden sm:inline-flex items-center gap-1"
+                class="px-2.5 py-1 rounded-md transition-all cursor-pointer inline-flex items-center gap-1"
                 :class="dashboardViewMode === 'geospatial' ? 'bg-[#00A99D] text-white shadow-[0_0_12px_rgba(0,169,157,0.35)]' : 'text-slate-300 hover:text-white'"
               >
                 <Globe class="w-3 h-3 text-[#99DFD6]" />
@@ -612,71 +676,78 @@ const radarBlips = computed(() => {
           </div>
         </div>
 
-        <!-- Quick Operational Module Launcher + Readiness Telemetry -->
+        <!-- Operational Priority Strip & Active Filter Jump Controls -->
         <div class="relative mt-2.5 pt-2 border-t border-white/15 flex flex-wrap items-center justify-between gap-2 text-[11px]">
-          <div class="flex flex-wrap items-center gap-1.5">
-            <span class="text-[10px] font-mono uppercase tracking-wider text-[#99DFD6]/80 mr-1 hidden sm:inline">Akses Cepat:</span>
-            <Link
-              :href="getUrl('/travel-consent')"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-            >
-              <FileCheck class="w-3 h-3 text-[#99CC33]" />
-              <span>Travel Consent</span>
-            </Link>
-            <Link
-              :href="getUrl('/ship-surveillance')"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-            >
-              <Ship class="w-3 h-3 text-[#99DFD6]" />
-              <span>TANGKAP Kapal</span>
-            </Link>
-            <Link
-              :href="getUrl('/sinkarkes-daily')"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-            >
-              <CalendarDays class="w-3 h-3 text-[#99CC33]" />
-              <span>Rekap Harian</span>
-            </Link>
-            <Link
-              :href="getUrl('/sinkarkes')"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-            >
-              <FileSpreadsheet class="w-3 h-3 text-[#99DFD6]" />
-              <span>Form SINKARKES</span>
-            </Link>
-            <Link
-              :href="getUrl('/sanitasi-lingkungan')"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-            >
-              <ClipboardCheck class="w-3 h-3 text-[#99CC33]" />
-              <span>Sanitasi Lingkungan</span>
-            </Link>
-            <Link
-              :href="getUrl('/sivera')"
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-            >
-              <Bug class="w-3 h-3 text-rose-300" />
-              <span>SIVERA</span>
-            </Link>
-          </div>
-
-          <div class="hidden xl:flex items-center gap-2 font-mono text-[10px] tabular-nums">
+          <div class="flex flex-wrap items-center gap-1.5 font-mono text-[10px] tabular-nums">
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#002B27]/80 border border-white/10 text-[#99DFD6]">
               <span class="text-white/60">HARI INI</span>
               <strong class="text-white">{{ kpi.today || 0 }}</strong>
             </span>
+
+            <button
+              v-if="(kpi.pending || 0) > 0"
+              type="button"
+              @click="jumpToPendingInspections"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/50 text-amber-200 transition-all cursor-pointer"
+              title="Loncat ke daftar pengajuan yang menunggu verifikasi"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-300 animate-pulse"></span>
+              <span class="opacity-90">ANTRE</span>
+              <strong class="text-white">{{ kpi.pending }}</strong>
+              <ArrowDown class="w-3 h-3" />
+            </button>
             <span
-              class="inline-flex items-center gap-1 px-2 py-0.5 rounded border"
-              :class="(kpi.pending || 0) > 0
-                ? 'bg-amber-500/15 border-amber-400/40 text-amber-200'
-                : 'bg-[#002B27]/80 border-white/10 text-emerald-200'"
+              v-else
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#002B27]/80 border border-white/10 text-emerald-200"
             >
               <span class="opacity-75">ANTRE</span>
-              <strong>{{ kpi.pending || 0 }}</strong>
+              <strong>0</strong>
             </span>
+
             <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#99CC33]/15 border border-[#99CC33]/35 text-[#d9f99d]">
               <span class="opacity-75">LAIK</span>
               <strong>{{ kpi.compliance_rate || 0 }}%</strong>
+            </span>
+
+            <span
+              v-if="activeMapNode"
+              class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white/10 border border-white/15 text-slate-100 font-sans text-[10.5px]"
+            >
+              <MapPin class="w-3 h-3 text-[#5eead4]" />
+              <span>Fokus: <strong>{{ activeMapNode.shortTitle || activeMapNode.short_name }}</strong></span>
+            </span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <div
+              v-if="selectedModuleKey !== 'all'"
+              class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#00A99D]/25 border border-[#5eead4]/45 text-white text-[10.5px]"
+            >
+              <span>Filter Feed: <strong>{{ getDashboardModuleLabel(selectedModuleKey) }}</strong></span>
+              <button
+                type="button"
+                @click="scrollToLiveFeed"
+                class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded bg-white/15 hover:bg-white/25 text-[#d9f99d] font-semibold cursor-pointer transition-colors"
+                title="Gulir ke tabel dokumen pemeriksaan di bawah"
+              >
+                <span>Lihat</span>
+                <ArrowDown class="w-3 h-3" />
+              </button>
+              <button
+                type="button"
+                @click="selectedModuleKey = 'all'"
+                aria-label="Hapus filter modul layanan"
+                title="Reset filter modul"
+                class="p-0.5 rounded hover:bg-white/20 text-white/80 hover:text-white cursor-pointer"
+              >
+                <X class="w-3 h-3" />
+              </button>
+            </div>
+            <span
+              v-else
+              class="text-[10.5px] text-teal-100/75 hidden md:inline"
+            >
+              Klik kartu KPI untuk memfilter riwayat inspeksi di bawah
             </span>
           </div>
         </div>
@@ -878,14 +949,21 @@ const radarBlips = computed(() => {
       <!-- ========================================================================= -->
       <!-- COMPACT LIVE FEED & AUDIT TRAIL TABLE (Lazy Component)                    -->
       <!-- ========================================================================= -->
-      <LiveFeedSection
+      <div
         v-if="dashboardViewMode !== 'sinkarkes'"
-        :recent-inspections="recent_inspections"
-        :recent-activities="recent_activities"
-        :recent-logins="recent_logins"
-        :selected-module-key="selectedModuleKey"
-        :module-icon-map="moduleIconMap"
-      />
+        ref="liveFeedWrapRef"
+        class="scroll-mt-16"
+      >
+        <LiveFeedSection
+          ref="liveFeedSectionRef"
+          :recent-inspections="recent_inspections"
+          :recent-activities="recent_activities"
+          :recent-logins="recent_logins"
+          :selected-module-key="selectedModuleKey"
+          :module-icon-map="moduleIconMap"
+          @clear-module-filter="selectedModuleKey = 'all'"
+        />
+      </div>
 
     </main>
   </HybridNavbar>

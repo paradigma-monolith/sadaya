@@ -103,9 +103,6 @@ const submit = () => {
   }
   form.post(getUrl('/login'), {
     onFinish: () => form.reset('password'),
-    onSuccess: () => {
-      window.location.href = getUrl('/');
-    },
   });
 };
 
