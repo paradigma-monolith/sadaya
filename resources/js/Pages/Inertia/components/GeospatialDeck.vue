@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, onUnmounted, defineAsyncComponent } from 'vue';
+import { ref, watch, onMounted, onUnmounted, defineAsyncComponent } from 'vue';
 import {
   Radio,
   Globe,
@@ -32,6 +32,9 @@ const emit = defineEmits([
 ]);
 
 const mapComponentRef = ref(null);
+const mapViewportRef = ref(null);
+const shouldMountMap = ref(false);
+let mapObserver = null;
 const activeMapLayer = ref('auto');
 const showMapRadarHud = ref(true);
 const mapCenter = ref([107.6108, -6.8989]);
@@ -41,6 +44,14 @@ const mapBearing = ref(0);
 const isOrbiting = ref(false);
 const isNodeCardMinimized = ref(false);
 const hoveredRadarBlip = ref(null);
+
+const ensureMapMounted = () => {
+  shouldMountMap.value = true;
+  if (mapObserver) {
+    mapObserver.disconnect();
+    mapObserver = null;
+  }
+};
 
 const switchMapLayer = (layerKey) => {
   activeMapLayer.value = layerKey;
@@ -68,6 +79,7 @@ const toggleOrbit = () => {
 };
 
 const flyToNode = (target) => {
+  ensureMapMounted();
   isNodeCardMinimized.value = false;
   if (target && mapComponentRef.value) {
     mapComponentRef.value.flyTo(
@@ -83,6 +95,7 @@ watch(
   () => props.selectedOffice?.no,
   (no) => {
     if (!no) return;
+    ensureMapMounted();
     const target = props.bkkMapMarkers.find((m) => m.no === no);
     if (target) {
       isNodeCardMinimized.value = false;
@@ -90,7 +103,27 @@ watch(
   }
 );
 
+onMounted(() => {
+  if (typeof IntersectionObserver !== 'undefined' && mapViewportRef.value) {
+    mapObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          ensureMapMounted();
+        }
+      },
+      { rootMargin: '150px' }
+    );
+    mapObserver.observe(mapViewportRef.value);
+  } else {
+    shouldMountMap.value = true;
+  }
+});
+
 onUnmounted(() => {
+  if (mapObserver) {
+    mapObserver.disconnect();
+    mapObserver = null;
+  }
   if (isOrbiting.value && mapComponentRef.value) {
     mapComponentRef.value.toggleOrbit();
   }
@@ -248,8 +281,9 @@ defineExpose({ flyToNode });
     <!-- Centerpiece Body: Map + Tactical Wilker Telemetry Dock -->
     <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800">
       <!-- Large WebGL Map Area (8 Cols) -->
-      <div class="lg:col-span-8 relative min-w-0 bg-[#002D29] overflow-hidden h-[290px] sm:h-[370px] lg:h-[430px]">
+      <div ref="mapViewportRef" class="lg:col-span-8 relative min-w-0 bg-[#002D29] overflow-hidden h-[290px] sm:h-[370px] lg:h-[430px]">
         <BaseMap
+          v-if="shouldMountMap"
           ref="mapComponentRef"
           :initialCenter="[107.55, -6.65]"
           :initialZoom="8.2"
@@ -261,6 +295,20 @@ defineExpose({ flyToNode });
           @selectMarker="(m) => emit('select-office', m)"
           @mapMove="onCameraMove"
         />
+        <div
+          v-else
+          class="w-full h-full flex flex-col items-center justify-center gap-2 text-center px-4 bg-[#00221F] text-[#99DFD6]"
+        >
+          <Globe class="w-8 h-8 text-[#00A99D] animate-pulse" />
+          <p class="text-xs font-semibold text-white">Peta Geospasial Wilayah Kerja Jawa Barat</p>
+          <button
+            type="button"
+            @click="ensureMapMounted"
+            class="px-3 py-1.5 rounded-lg bg-[#00A99D] hover:bg-[#009388] text-white text-xs font-semibold cursor-pointer"
+          >
+            Muat Peta Interaktif
+          </button>
+        </div>
 
         <!-- Interactive Map Radar HUD Overlay -->
         <div v-if="showMapRadarHud" class="absolute inset-0 pointer-events-none z-10 flex items-center justify-center overflow-hidden">
@@ -429,6 +477,7 @@ defineExpose({ flyToNode });
               @mouseleave="hoveredRadarBlip = null"
               class="absolute -translate-x-1/2 -translate-y-1/2 z-20 group/blip cursor-pointer focus:outline-none"
               :style="{ left: `${blip.x}%`, top: `${blip.y}%` }"
+              :aria-label="`Pilih ${blip.shortTitle}: ${blip.distanceKm} km`"
               :title="`${blip.shortTitle}: ${blip.distanceKm} km (${blip.bearingDeg}°)`"
             >
               <span

@@ -1,9 +1,11 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import axios from 'axios';
 import { toast } from 'vue-sonner';
 import ClinicalModal from '../../../Components/ClinicalModal.vue';
 import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
+import { useFormDraft } from '@/composables/useFormDraft';
+import { useDebouncedFn } from '@/composables/useDebouncedFn';
 import { ClipboardCheck, Utensils, Droplets, Building2, Bug, Save, X } from 'lucide-vue-next';
 import { getRiskBadgeClass } from '../utils';
 
@@ -100,17 +102,62 @@ const formTpp = ref(buildDefaultTpp(defWilker(), defPemeriksa()));
 const formSab = ref(buildDefaultSab(defWilker(), defPemeriksa()));
 const formHsbu = ref(buildDefaultHsbu(defWilker(), defPemeriksa()));
 
+const draftStore = useFormDraft('sadaya:sanitasi_inspeksi_draft:v1');
+const hasRestoredDraft = ref(false);
+
+const debouncedSaveDraft = useDebouncedFn(() => {
+  if (!props.open) return;
+  draftStore.save({
+    type: addInspeksiType.value,
+    tpp: formTpp.value,
+    sab: formSab.value,
+    hsbu: formHsbu.value,
+  });
+}, 350);
+
+onUnmounted(() => {
+  debouncedSaveDraft.cancel?.();
+});
+
+const discardDraft = () => {
+  draftStore.clear();
+  hasRestoredDraft.value = false;
+  hasEdited.value = false;
+  formTpp.value = buildDefaultTpp(defWilker(), defPemeriksa());
+  formSab.value = buildDefaultSab(defWilker(), defPemeriksa());
+  formHsbu.value = buildDefaultHsbu(defWilker(), defPemeriksa());
+};
+
+watch(
+  [formTpp, formSab, formHsbu, addInspeksiType],
+  () => {
+    if (props.open && hasEdited.value) {
+      debouncedSaveDraft();
+    }
+  },
+  { deep: true }
+);
+
 watch(
   () => props.open,
   (opened) => {
     if (opened) {
       addInspeksiType.value = props.initialType || 'tpp';
-      formTpp.value.wilker = formTpp.value.wilker || defWilker();
-      formTpp.value.nama_pemeriksa = formTpp.value.nama_pemeriksa || defPemeriksa();
-      formSab.value.wilker = formSab.value.wilker || defWilker();
-      formSab.value.nama_pemeriksa = formSab.value.nama_pemeriksa || defPemeriksa();
-      formHsbu.value.wilker = formHsbu.value.wilker || defWilker();
-      formHsbu.value.nama_pemeriksa = formHsbu.value.nama_pemeriksa || defPemeriksa();
+      const restored = draftStore.restore();
+      if (restored && typeof restored === 'object') {
+        if (restored.tpp) formTpp.value = { ...buildDefaultTpp(defWilker(), defPemeriksa()), ...restored.tpp };
+        if (restored.sab) formSab.value = { ...buildDefaultSab(defWilker(), defPemeriksa()), ...restored.sab };
+        if (restored.hsbu) formHsbu.value = { ...buildDefaultHsbu(defWilker(), defPemeriksa()), ...restored.hsbu };
+        hasRestoredDraft.value = true;
+      } else {
+        hasRestoredDraft.value = false;
+        formTpp.value.wilker = formTpp.value.wilker || defWilker();
+        formTpp.value.nama_pemeriksa = formTpp.value.nama_pemeriksa || defPemeriksa();
+        formSab.value.wilker = formSab.value.wilker || defWilker();
+        formSab.value.nama_pemeriksa = formSab.value.nama_pemeriksa || defPemeriksa();
+        formHsbu.value.wilker = formHsbu.value.wilker || defWilker();
+        formHsbu.value.nama_pemeriksa = formHsbu.value.nama_pemeriksa || defPemeriksa();
+      }
       hasEdited.value = false;
     } else {
       hasEdited.value = false;
@@ -347,6 +394,8 @@ const submitInspeksi = async () => {
       });
       toast.success(res.data.message || 'Data inspeksi HSBU berhasil disimpan');
     }
+    draftStore.clear();
+    hasRestoredDraft.value = false;
     hasEdited.value = false;
     allowNextNavigation();
     emit('saved');
@@ -432,6 +481,20 @@ const submitInspeksi = async () => {
       </datalist>
 
       <div class="p-6 max-h-[75vh] overflow-y-auto space-y-6">
+        <div
+          v-if="hasRestoredDraft"
+          class="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300"
+        >
+          <span>Draf lokal terakhir dipulihkan otomatis agar data lapangan tidak hilang.</span>
+          <button
+            type="button"
+            @click="discardDraft"
+            class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 font-semibold text-amber-800 dark:text-amber-200 hover:bg-amber-100/70 transition cursor-pointer shrink-0"
+          >
+            Reset Draf
+          </button>
+        </div>
+
         <!-- TPP FORM -->
         <div v-if="addInspeksiType === 'tpp'" class="space-y-5">
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

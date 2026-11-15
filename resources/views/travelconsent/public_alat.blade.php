@@ -6,33 +6,16 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Daftar Pemakaian Alat Kesehatan P3K & Emergensi &bull; BKK Kelas I Bandung</title>
 
-    <!-- Google Fonts & Tailwind CDN -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                    },
-                    colors: {
-                        primary: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            700: '#1d4ed8',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    @include('partials.public_head')
+    @vite('resources/css/public.css')
     <style>
+        :root {
+            --sadaya-primary-50: #eff6ff;
+            --sadaya-primary-100: #dbeafe;
+            --sadaya-primary-500: #3b82f6;
+            --sadaya-primary-600: #2563eb;
+            --sadaya-primary-700: #1d4ed8;
+        }
         .glass-card {
             background: #ffffff;
             border: 1px solid rgba(226, 232, 240, 0.9);

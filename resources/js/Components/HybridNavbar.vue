@@ -352,6 +352,14 @@ const handleLogout = () => {
 
 <template>
   <div class="min-h-screen bg-[#f4f7f9] dark:bg-[#0b1116] text-slate-900 dark:text-slate-100 selection:bg-[#00A99D] selection:text-white flex flex-col transition-colors duration-200">
+    <!-- Keyboard Skip Link -->
+    <a
+      href="#sadaya-main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[120] focus:px-3 focus:py-2 focus:rounded-lg focus:bg-[#005851] focus:text-white focus:text-xs focus:font-semibold focus:shadow-lg"
+    >
+      Lewati ke konten utama
+    </a>
+
     <!-- Enterprise Persistent Sidebar Navigation -->
     <AdminSidebar 
       :mode="mode" 
@@ -360,11 +368,11 @@ const handleLogout = () => {
 
     <!-- Main Layout Wrapper (Auto-offset for persistent desktop sidebar) -->
     <div 
-      class="flex-1 flex flex-col transition-all duration-200 w-full"
+      class="flex-1 flex flex-col transition-all duration-200 w-full print:pl-0"
       :class="isCollapsed ? 'lg:pl-[60px]' : 'lg:pl-64'"
     >
       <!-- Top Navbar Header (Enterprise Clinical Compact) -->
-      <header class="sticky top-0 z-30 w-full bg-white/95 dark:bg-[#111820]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800 transition-colors">
+      <header class="sticky top-0 z-30 w-full bg-white/95 dark:bg-[#111820]/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800 transition-colors print:hidden">
         <!-- User Impersonation Alert Banner -->
         <div v-if="currentUser?.is_impersonating" class="bg-amber-500 text-white font-medium text-xs px-4 py-1 flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -642,12 +650,18 @@ const handleLogout = () => {
       >
         <div 
           v-if="liveToast"
-          class="fixed top-16 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-96 z-50 bg-white dark:bg-[#111820] text-slate-900 dark:text-slate-100 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-3 shadow-xl flex items-start gap-3"
+          role="status"
+          aria-live="polite"
+          class="fixed top-16 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-96 z-50 bg-white dark:bg-[#111820] text-slate-900 dark:text-slate-100 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-3 shadow-xl flex items-start gap-3 print:hidden"
         >
           <div class="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
             <Radio class="w-4 h-4" />
           </div>
-          <div class="flex-1 min-w-0 cursor-pointer" @click="showNotifications = true; liveToast = null;">
+          <button
+            type="button"
+            class="flex-1 min-w-0 text-left cursor-pointer"
+            @click="showNotifications = true; liveToast = null;"
+          >
             <div class="flex items-center justify-between gap-1">
               <span class="text-xs font-bold text-slate-900 dark:text-slate-100 leading-tight truncate">
                 {{ liveToast.title }}
@@ -657,7 +671,7 @@ const handleLogout = () => {
             <p class="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2 leading-relaxed">
               {{ liveToast.message }}
             </p>
-          </div>
+          </button>
           <button 
             type="button" 
             @click="liveToast = null" 
@@ -671,13 +685,13 @@ const handleLogout = () => {
       </Transition>
 
       <!-- Page Content Slot (Full Width) -->
-      <div class="flex-1 w-full">
+      <div id="sadaya-main-content" tabindex="-1" class="flex-1 w-full outline-none">
         <slot />
       </div>
     </div>
 
     <!-- Real-Time Floating Chat strictly at Bottom-Right -->
-    <FloatingChat :mode="mode" />
+    <FloatingChat :mode="mode" class="print:hidden" />
 
     <!-- Global Command Palette Modal (Ctrl + K) -->
     <CommandPalette ref="commandPaletteRef" :mode="mode" />

@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+
+@source '../views/travelconsent/**/*.blade.php';
+@source '../views/ship_surveillance/**/*.blade.php';
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --color-primary-50: var(--sadaya-primary-50, #ecfdf5);
+    --color-primary-100: var(--sadaya-primary-100, #d1fae5);
+    --color-primary-500: var(--sadaya-primary-500, #00a99d);
+    --color-primary-600: var(--sadaya-primary-600, #009388);
+    --color-primary-700: var(--sadaya-primary-700, #005851);
+}
+
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid #00a99d;
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}

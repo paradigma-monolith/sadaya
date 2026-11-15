@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, watch, defineAsyncComponent } from 'vue';
+import { ref, computed, watch, defineAsyncComponent, onMounted, onUnmounted } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import ClinicalSkeleton from '../../Components/ClinicalSkeleton.vue';
 import { toast } from 'vue-sonner';
 import { useConfirm } from '@/composables/useConfirm';
 import axios from 'axios';
@@ -43,6 +44,23 @@ const props = defineProps({
 });
 
 const { confirm: confirmDialog } = useConfirm();
+const isLoading = ref(false);
+let unbindStart = null;
+let unbindFinish = null;
+
+onMounted(() => {
+  unbindStart = router.on('start', () => {
+    isLoading.value = true;
+  });
+  unbindFinish = router.on('finish', () => {
+    isLoading.value = false;
+  });
+});
+
+onUnmounted(() => {
+  unbindStart?.();
+  unbindFinish?.();
+});
 
 const currentTab = ref(props.active_tab || 'tpp');
 watch(() => props.active_tab, (val) => {
@@ -306,9 +324,11 @@ const deleteInspection = async (item, type) => {
       </div>
 
       <!-- ==================== SUB-TABS NAVIGATION ==================== -->
-      <div class="clinical-tabs">
+      <div class="clinical-tabs" role="tablist" aria-label="Kategori Pengendalian Risiko Lingkungan">
         <button
           type="button"
+          role="tab"
+          :aria-selected="currentTab === 'tpp'"
           @click="switchTab('tpp')"
           class="clinical-tab"
           :class="currentTab === 'tpp' ? 'clinical-tab-active' : 'clinical-tab-inactive'"
@@ -323,6 +343,8 @@ const deleteInspection = async (item, type) => {
 
         <button
           type="button"
+          role="tab"
+          :aria-selected="currentTab === 'sab'"
           @click="switchTab('sab')"
           class="clinical-tab"
           :class="currentTab === 'sab' ? 'clinical-tab-active' : 'clinical-tab-inactive'"
@@ -337,6 +359,8 @@ const deleteInspection = async (item, type) => {
 
         <button
           type="button"
+          role="tab"
+          :aria-selected="currentTab === 'hsbu'"
           @click="switchTab('hsbu')"
           class="clinical-tab"
           :class="currentTab === 'hsbu' ? 'clinical-tab-active' : 'clinical-tab-inactive'"
@@ -351,6 +375,8 @@ const deleteInspection = async (item, type) => {
 
         <button
           type="button"
+          role="tab"
+          :aria-selected="currentTab === 'sivera'"
           @click="switchTab('sivera')"
           class="clinical-tab"
           :class="currentTab === 'sivera' ? 'clinical-tab-active' : 'clinical-tab-inactive'"
@@ -363,6 +389,11 @@ const deleteInspection = async (item, type) => {
           >{{ stats.sivera_total || 0 }}</span>
         </button>
       </div>
+
+      <p class="sr-only" role="status" aria-live="polite">
+        {{ isLoading ? 'Memuat data PRL...' : `Tab aktif: ${currentTab.toUpperCase()}` }}
+      </p>
+      <ClinicalSkeleton v-if="isLoading" variant="table" :rows="6" :cols="6" />
 
       <!-- ==================== TAB CONTENT ==================== -->
       <InspeksiTab

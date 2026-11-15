@@ -1,9 +1,11 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
 import BaseChart from '../../Components/BaseChart.vue';
+import ClinicalSkeleton from '../../Components/ClinicalSkeleton.vue';
 import SinkarkesSummaryCard from './components/SinkarkesSummaryCard.vue';
+import { useTheme } from '@/composables/useTheme';
 import {
   FileSpreadsheet,
   Calendar,
@@ -14,7 +16,8 @@ import {
   HeartPulse,
   ShieldCheck,
   CalendarCheck,
-  PieChart as PieChartIcon
+  PieChart as PieChartIcon,
+  Printer,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -72,9 +75,37 @@ const props = defineProps({
   },
 });
 
+const { isDark } = useTheme();
 const selectedYear = ref(props.year);
 const selectedWilker = ref(props.wilker);
+const isFiltering = ref(false);
+const isMobileViewport = ref(false);
 const availableYears = [2024, 2025, 2026, 2027, 2028, 2029, 2030];
+
+let mqList = null;
+const updateViewportFlag = () => {
+  if (typeof window !== 'undefined') {
+    isMobileViewport.value = window.innerWidth < 640;
+  }
+};
+
+onMounted(() => {
+  updateViewportFlag();
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    mqList = window.matchMedia('(max-width: 639px)');
+    mqList.addEventListener?.('change', updateViewportFlag);
+  }
+});
+
+onUnmounted(() => {
+  mqList?.removeEventListener?.('change', updateViewportFlag);
+});
+
+const handlePrint = () => {
+  if (typeof window !== 'undefined') {
+    window.print();
+  }
+};
 
 // Handle filter change
 const handleFilterChange = () => {
@@ -84,6 +115,12 @@ const handleFilterChange = () => {
   }, {
     preserveState: true,
     replace: true,
+    onStart: () => {
+      isFiltering.value = true;
+    },
+    onFinish: () => {
+      isFiltering.value = false;
+    },
   });
 };
 
@@ -185,6 +222,7 @@ const trafficOption = computed(() => {
 
 // 2. Chart 2: Document Composition (Donut / Pie)
 const documentOption = computed(() => {
+  const compact = isMobileViewport.value;
   return {
     tooltip: {
       trigger: 'item',
@@ -192,24 +230,33 @@ const documentOption = computed(() => {
       backgroundColor: 'rgba(15, 23, 42, 0.95)',
       textStyle: { color: '#f8fafc', fontSize: 11 },
     },
-    legend: {
-      orient: 'vertical',
-      right: '2%',
-      top: 'middle',
-      textStyle: { color: '#64748b', fontSize: 10 },
-      itemWidth: 12,
-      itemHeight: 12,
-    },
+    legend: compact
+      ? {
+          orient: 'horizontal',
+          bottom: 0,
+          left: 'center',
+          textStyle: { color: '#64748b', fontSize: 10 },
+          itemWidth: 10,
+          itemHeight: 10,
+        }
+      : {
+          orient: 'vertical',
+          right: '2%',
+          top: 'middle',
+          textStyle: { color: '#64748b', fontSize: 10 },
+          itemWidth: 12,
+          itemHeight: 12,
+        },
     series: [
       {
         name: 'Dokumen Kekarantinaan',
         type: 'pie',
-        radius: ['45%', '72%'],
-        center: ['35%', '50%'],
+        radius: compact ? ['38%', '64%'] : ['45%', '72%'],
+        center: compact ? ['50%', '39%'] : ['35%', '50%'],
         avoidLabelOverlap: true,
         itemStyle: {
           borderRadius: 6,
-          borderColor: '#fff',
+          borderColor: isDark.value ? '#111820' : '#ffffff',
           borderWidth: 2,
         },
         label: {
@@ -397,13 +444,14 @@ const openMonthForm = (targetWilker, targetMonth) => {
         </div>
 
         <!-- Quick Navigation & Filter Controls -->
-        <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+        <div class="flex flex-wrap items-center gap-1.5 shrink-0 print:hidden">
           <!-- Filter Wilayah Kerja -->
           <div class="flex items-center gap-1.5 bg-[#002D29] border border-white/15 rounded-lg px-2.5 py-1 text-white">
             <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
             <select
               v-model="selectedWilker"
               @change="handleFilterChange"
+              aria-label="Filter Wilayah Kerja"
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
               title="Pilih Wilayah Kerja"
             >
@@ -420,6 +468,7 @@ const openMonthForm = (targetWilker, targetMonth) => {
             <select
               v-model.number="selectedYear"
               @change="handleFilterChange"
+              aria-label="Filter Tahun Laporan"
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
               title="Pilih Tahun Laporan"
             >
@@ -428,6 +477,17 @@ const openMonthForm = (targetWilker, targetMonth) => {
               </option>
             </select>
           </div>
+
+          <!-- Print Report Button -->
+          <button
+            type="button"
+            @click="handlePrint"
+            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-white/15 bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors cursor-pointer"
+            title="Cetak / Simpan PDF Laporan"
+          >
+            <Printer class="w-3.5 h-3.5 text-[#99DFD6]" />
+            <span class="hidden sm:inline">Cetak</span>
+          </button>
 
           <!-- Switch to Form Input Button -->
           <Link
@@ -439,6 +499,12 @@ const openMonthForm = (targetWilker, targetMonth) => {
           </Link>
         </div>
       </div>
+
+      <!-- Screen Reader Live Filter Announcement & Skeleton State -->
+      <p class="sr-only" role="status" aria-live="polite">
+        {{ isFiltering ? 'Memuat data dashboard SINKARKES...' : `Menampilkan laporan SINKARKES tahun ${year} untuk ${selectedWilker === 'all' ? 'semua wilayah kerja' : selectedWilker}` }}
+      </p>
+      <ClinicalSkeleton v-if="isFiltering" variant="cards" :cols="4" />
 
       <!-- 6 Key Performance Metric Cards Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -480,64 +546,64 @@ const openMonthForm = (targetWilker, targetMonth) => {
 
         <!-- 3. Dokumen Kekarantinaan -->
         <div class="clinical-kpi relative overflow-hidden">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
             <span>DOKUMEN KARANTINA</span>
-            <div class="w-6 h-6 rounded-lg bg-[#005851]/10 text-[#005851] flex items-center justify-center">
+            <div class="w-6 h-6 rounded-lg bg-[#005851]/10 dark:bg-[#00A99D]/20 text-[#005851] dark:text-[#5eead4] flex items-center justify-center">
               <FileCheck class="w-3.5 h-3.5" />
             </div>
           </div>
-          <div class="text-xl font-bold text-slate-900 mt-1.5 clinical-num">
+          <div class="text-xl font-bold text-slate-900 dark:text-white mt-1.5 clinical-num">
             {{ kpi.total_dokumen?.toLocaleString('id-ID') || 0 }}
           </div>
-          <div class="text-[10px] text-slate-400 mt-0.5 truncate">
+          <div class="text-[10px] text-slate-400 dark:text-slate-400 mt-0.5 truncate">
             SSCEC, SSCC, P3K, Desinseksi
           </div>
         </div>
 
         <!-- 4. Layanan Kesehatan -->
         <div class="clinical-kpi relative overflow-hidden">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
             <span>LAYANAN MEDIS</span>
-            <div class="w-6 h-6 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
+            <div class="w-6 h-6 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
               <HeartPulse class="w-3.5 h-3.5" />
             </div>
           </div>
-          <div class="text-xl font-bold text-slate-900 mt-1.5 clinical-num">
+          <div class="text-xl font-bold text-slate-900 dark:text-white mt-1.5 clinical-num">
             {{ kpi.total_layanan_kesehatan?.toLocaleString('id-ID') || 0 }}
           </div>
-          <div class="text-[10px] text-slate-400 mt-0.5 truncate">
+          <div class="text-[10px] text-slate-400 dark:text-slate-400 mt-0.5 truncate">
             Poliklinik BKK &amp; Uji Laik
           </div>
         </div>
 
         <!-- 5. Vaksinasi ICV -->
         <div class="clinical-kpi relative overflow-hidden">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
             <span>VAKSINASI ICV</span>
-            <div class="w-6 h-6 rounded-lg bg-[#7CA622]/10 text-[#7CA622] flex items-center justify-center">
+            <div class="w-6 h-6 rounded-lg bg-[#7CA622]/10 dark:bg-[#7CA622]/20 text-[#7CA622] dark:text-[#bef264] flex items-center justify-center">
               <ShieldCheck class="w-3.5 h-3.5" />
             </div>
           </div>
-          <div class="text-xl font-bold text-slate-900 mt-1.5 clinical-num">
+          <div class="text-xl font-bold text-slate-900 dark:text-white mt-1.5 clinical-num">
             {{ kpi.total_vaksinasi?.toLocaleString('id-ID') || 0 }}
           </div>
-          <div class="text-[10px] text-slate-400 mt-0.5 truncate">
+          <div class="text-[10px] text-slate-400 dark:text-slate-400 mt-0.5 truncate">
             Yellow Fever, Meningitis, dll
           </div>
         </div>
 
         <!-- 6. Kepatuhan Pelaporan -->
         <div class="clinical-kpi relative overflow-hidden">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-semibold uppercase tracking-wider">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-semibold uppercase tracking-wider">
             <span>KELENGKAPAN</span>
-            <div class="w-6 h-6 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div class="w-6 h-6 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
               <CalendarCheck class="w-3.5 h-3.5" />
             </div>
           </div>
-          <div class="text-xl font-bold text-slate-900 mt-1.5 clinical-num">
+          <div class="text-xl font-bold text-slate-900 dark:text-white mt-1.5 clinical-num">
             {{ kpi.compliance_rate || 0 }}%
           </div>
-          <div class="text-[10px] text-slate-400 mt-0.5 truncate clinical-num">
+          <div class="text-[10px] text-slate-400 dark:text-slate-400 mt-0.5 truncate clinical-num">
             {{ kpi.submitted_reports_count }} / {{ kpi.total_possible_reports }} bulan terisi
           </div>
         </div>
@@ -551,13 +617,13 @@ const openMonthForm = (targetWilker, targetMonth) => {
             <div class="flex items-center justify-between mb-1">
               <div class="flex items-center gap-2">
                 <span class="w-2 h-2 rounded-full bg-[#00A99D]"></span>
-                <h2 class="text-sm font-bold text-slate-900">
+                <h2 class="text-sm font-bold text-slate-900 dark:text-white">
                   Tren Bulanan Pengawasan Alat Angkut &amp; Orang ({{ year }})
                 </h2>
               </div>
               <span class="text-[11px] text-slate-400 font-mono">12 Bulan</span>
             </div>
-            <p class="text-xs text-slate-500 mb-3">
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3">
               Dinamika volume kedatangan/keberangkatan pesawat, kapal laut, penumpang, dan kru sepanjang tahun.
             </p>
           </div>

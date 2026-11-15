@@ -6,33 +6,16 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>FORM PEMERIKSAAN SANITASI KAPAL &bull; BKK Kelas I Bandung</title>
 
-    <!-- Google Fonts & Tailwind CDN -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace'],
-                    },
-                    colors: {
-                        primary: {
-                            50: '#ecfdf5',
-                            100: '#d1fae5',
-                            500: '#10b981',
-                            600: '#059669',
-                            700: '#047857',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
+    @include('partials.public_head')
+    @vite('resources/css/public.css')
     <style>
+        :root {
+            --sadaya-primary-50: #ecfdf5;
+            --sadaya-primary-100: #d1fae5;
+            --sadaya-primary-500: #10b981;
+            --sadaya-primary-600: #059669;
+            --sadaya-primary-700: #047857;
+        }
         /* Custom custom styling for smooth feel */
         .glass-card {
             background: #ffffff;

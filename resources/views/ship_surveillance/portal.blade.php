@@ -10,6 +10,8 @@
   <meta name="description" content="Formulir karantina kesehatan untuk kedatangan kapal di Balai Kekarantinaan Kesehatan Kelas I Bandung">
   <meta name="author" content="IT BKK Bandung">
   
+  @include('partials.public_head')
+
   <!-- Preload critical resources -->
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://unpkg.com">
@@ -23,14 +25,14 @@
 
   <style>
     :root {
-      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --success-gradient: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-      --info-gradient: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-      --text-primary: #2c3e50;
-      --text-secondary: #7f8c8d;
-      --text-light: rgba(255, 255, 255, 0.9);
-      --shadow-light: 0 10px 25px rgba(0, 0, 0, 0.15);
-      --shadow-heavy: 0 20px 40px rgba(0, 0, 0, 0.1);
+      --primary-gradient: linear-gradient(135deg, #003b36 0%, #005851 50%, #00a99d 100%);
+      --success-gradient: linear-gradient(135deg, #005851 0%, #00a99d 100%);
+      --info-gradient: linear-gradient(135deg, #0f172a 0%, #0369a1 100%);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-light: rgba(255, 255, 255, 0.92);
+      --shadow-light: 0 10px 25px rgba(0, 88, 81, 0.22);
+      --shadow-heavy: 0 20px 40px rgba(0, 43, 39, 0.25);
       --border-radius: 20px;
       --border-radius-sm: 15px;
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -43,7 +45,7 @@
     body {
       background: var(--primary-gradient);
       min-height: 100vh;
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+      font-family: 'Plus Jakarta Sans', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
       line-height: 1.6;
       margin: 0;
       padding: 0;

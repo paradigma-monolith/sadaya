@@ -1,8 +1,10 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
 import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
+import { useFormDraft } from '@/composables/useFormDraft';
+import { useDebouncedFn } from '@/composables/useDebouncedFn';
 import {
   Ship,
   Plane,
@@ -53,6 +55,67 @@ const formMetrics = ref({});
 const showOnlyRedFields = ref(false);
 const formFieldSearch = ref('');
 const collapsedGroups = ref({});
+const hasRestoredDraft = ref(false);
+
+const getDraftStore = (type = formTransportType.value) =>
+  useFormDraft(`sadaya:sinkarkes_daily_draft:${type === 'pesawat' ? 'pesawat' : 'kapal'}`);
+
+const debouncedSaveDraft = useDebouncedFn(() => {
+  if (editingId.value) return;
+  const hasContent = Object.keys(formMetrics.value).length > 0 || Boolean(formNotes.value?.trim());
+  if (!hasContent) return;
+  getDraftStore().save({
+    tanggal: formTanggal.value,
+    wilker: formWilker.value,
+    notes: formNotes.value,
+    metrics: formMetrics.value,
+  });
+}, 350);
+
+onUnmounted(() => {
+  debouncedSaveDraft.cancel?.();
+});
+
+const restoreNewDraft = (type) => {
+  const saved = getDraftStore(type).restore();
+  if (saved && typeof saved === 'object' && saved.metrics) {
+    formTanggal.value = saved.tanggal || props.defaultDate;
+    formWilker.value = saved.wilker || props.defaultWilker;
+    formNotes.value = saved.notes || '';
+    formMetrics.value = { ...(saved.metrics || {}) };
+    hasRestoredDraft.value = true;
+    return true;
+  }
+  hasRestoredDraft.value = false;
+  return false;
+};
+
+const discardDraft = () => {
+  getDraftStore().clear();
+  hasRestoredDraft.value = false;
+  formTanggal.value = props.defaultDate;
+  formWilker.value = props.defaultWilker;
+  formNotes.value = '';
+  formMetrics.value = {};
+};
+
+const switchTransportMode = (nextType) => {
+  formTransportType.value = nextType;
+  formMetrics.value = {};
+  if (!restoreNewDraft(nextType)) {
+    formNotes.value = '';
+  }
+};
+
+watch(
+  [formTanggal, formWilker, formNotes, formMetrics],
+  () => {
+    if (!editingId.value) {
+      debouncedSaveDraft();
+    }
+  },
+  { deep: true },
+);
 
 watch(
   () => [props.editingRecord, props.initialTransportType, props.defaultDate, props.defaultWilker],
@@ -64,13 +127,16 @@ watch(
       formWilker.value = props.editingRecord.wilker;
       formNotes.value = props.editingRecord.notes || '';
       formMetrics.value = { ...(props.editingRecord.metrics || {}) };
+      hasRestoredDraft.value = false;
     } else {
       editingId.value = null;
       formTransportType.value = props.initialTransportType || 'kapal';
-      formTanggal.value = props.defaultDate;
-      formWilker.value = props.defaultWilker;
-      formNotes.value = '';
-      formMetrics.value = {};
+      if (!restoreNewDraft(formTransportType.value)) {
+        formTanggal.value = props.defaultDate;
+        formWilker.value = props.defaultWilker;
+        formNotes.value = '';
+        formMetrics.value = {};
+      }
     }
     formFieldSearch.value = '';
     collapsedGroups.value = {};
@@ -189,6 +255,10 @@ const saveDailyRecord = () => {
     preserveScroll: true,
     onSuccess: () => {
       isSaving.value = false;
+      if (!editingId.value) {
+        getDraftStore().clear();
+        hasRestoredDraft.value = false;
+      }
       toast.success('Data Harian Disimpan & Diakumulasikan', {
         description: `Otomatis memperbarui Formulir SINKARKES ${formWilker.value}`,
       });
@@ -225,13 +295,13 @@ const saveDailyRecord = () => {
         <div v-if="!editingId" class="inline-flex bg-black/20 rounded-xl p-0.5 text-xs font-bold">
           <button
             type="button"
-            @click="formTransportType = 'kapal'; formMetrics = {}"
+            @click="switchTransportMode('kapal')"
             class="px-3 py-1 rounded-lg transition cursor-pointer"
             :class="formTransportType === 'kapal' ? 'bg-white text-[#005851]' : 'text-white/80 hover:text-white'"
           >Kapal</button>
           <button
             type="button"
-            @click="formTransportType = 'pesawat'; formMetrics = {}"
+            @click="switchTransportMode('pesawat')"
             class="px-3 py-1 rounded-lg transition cursor-pointer"
             :class="formTransportType === 'pesawat' ? 'bg-white text-sky-700' : 'text-white/80 hover:text-white'"
           >Pesawat</button>
@@ -244,6 +314,20 @@ const saveDailyRecord = () => {
     </div>
 
     <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-[#171d29] space-y-3">
+      <div
+        v-if="hasRestoredDraft && !editingId"
+        class="flex items-center justify-between gap-3 px-3.5 py-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300"
+      >
+        <span>Draf lokal laporan harian dipulihkan otomatis agar angka shift tidak hilang.</span>
+        <button
+          type="button"
+          @click="discardDraft"
+          class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 font-semibold text-amber-800 dark:text-amber-200 hover:bg-amber-100/70 transition cursor-pointer shrink-0"
+        >
+          Reset Draf
+        </button>
+      </div>
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <div>
           <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">Tanggal</label>

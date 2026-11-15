@@ -1,7 +1,8 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import ClinicalSkeleton from '../../Components/ClinicalSkeleton.vue';
 import AircraftTab from './tabs/AircraftTab.vue';
 import ShipTab from './tabs/ShipTab.vue';
 import FlightMedicalTab from './tabs/FlightMedicalTab.vue';
@@ -45,6 +46,23 @@ const props = defineProps({
 
 const VALID_TABS = ['aircraft', 'ship', 'alat', 'obat'];
 const currentTab = ref(VALID_TABS.includes(props.active_tab) ? props.active_tab : 'aircraft');
+const isLoading = ref(false);
+let unbindStart = null;
+let unbindFinish = null;
+
+onMounted(() => {
+  unbindStart = router.on('start', () => {
+    isLoading.value = true;
+  });
+  unbindFinish = router.on('finish', () => {
+    isLoading.value = false;
+  });
+});
+
+onUnmounted(() => {
+  unbindStart?.();
+  unbindFinish?.();
+});
 
 watch(
   () => props.active_tab,
@@ -139,11 +157,13 @@ const tabs = computed(() => [
       </div>
 
       <!-- ==================== MULTI-TAB NAVIGATION ==================== -->
-      <div class="clinical-tabs">
+      <div class="clinical-tabs" role="tablist" aria-label="Kategori Travel Consent">
         <button
           v-for="tab in tabs"
           :key="tab.id"
           type="button"
+          role="tab"
+          :aria-selected="currentTab === tab.id"
           @click="switchTab(tab.id)"
           class="clinical-tab"
           :class="currentTab === tab.id ? 'clinical-tab-active' : 'clinical-tab-inactive'"
@@ -160,6 +180,11 @@ const tabs = computed(() => [
           </span>
         </button>
       </div>
+
+      <p class="sr-only" role="status" aria-live="polite">
+        {{ isLoading ? 'Memuat data tab...' : `Tab aktif: ${tabs.find(t => t.id === currentTab)?.label || currentTab}` }}
+      </p>
+      <ClinicalSkeleton v-if="isLoading" variant="table" :rows="6" :cols="5" />
 
       <!-- ==================== ACTIVE TAB CONTENT ==================== -->
       <AircraftTab

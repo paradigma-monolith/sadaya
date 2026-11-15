@@ -530,3 +530,58 @@ html.dark ::-webkit-scrollbar-thumb:hover {
     color: #e2e8f0;
 }
 
+/* Global Keyboard Focus Ring (A11y) */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid #00A99D;
+    outline-offset: 2px;
+}
+
+/* Motion Reduction Support for Vestibular Comfort */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* Clean Direct Browser Print Layout (Ctrl+P) for Reports & Tables */
+@media print {
+    html,
+    body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+    }
+
+    aside,
+    header,
+    .print-hidden,
+    [data-sonner-toaster] {
+        display: none !important;
+    }
+
+    .clinical-main {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+
+    table {
+        page-break-inside: auto;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}
+

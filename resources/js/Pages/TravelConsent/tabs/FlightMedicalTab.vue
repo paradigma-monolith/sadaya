@@ -6,14 +6,13 @@ import { useDate } from '../../../composables/useDate';
 import { useConfirm } from '@/composables/useConfirm';
 import { useDebouncedFn } from '@/composables/useDebouncedFn';
 import SharePublicModal from '../components/SharePublicModal.vue';
+import FlightMedicalDetailModal from '../components/FlightMedicalDetailModal.vue';
 import PaginationBar from '@/Components/PaginationBar.vue';
-import ClinicalModal from '@/Components/ClinicalModal.vue';
 import {
   Activity,
   Briefcase,
   HeartPulse,
   Pill,
-  ShieldCheck,
   FileCheck,
   Search,
   Download,
@@ -21,12 +20,9 @@ import {
   CheckCircle2,
   Plus,
   Trash2,
-  X,
   FileSpreadsheet,
   MapPin,
   Plane,
-  Check,
-  Info,
   Link2,
 } from 'lucide-vue-next';
 
@@ -185,7 +181,6 @@ const activeItem = ref(null);
 const showDetailModal = ref(false);
 const showShareModal = ref(false);
 const shareTarget = ref(null);
-const activeModalTab = ref('overview'); // 'overview' | 'p3k' | 'emergensi' | 'verify'
 
 const shareUrl = computed(() => {
   if (!shareTarget.value) return '';
@@ -219,18 +214,8 @@ const openShareModal = (item) => {
   showShareModal.value = true;
 };
 
-const statusForm = ref({
-  status: 'approved',
-  keterangan: '',
-});
-
 const openDetail = (item) => {
   activeItem.value = item;
-  statusForm.value = {
-    status: item.status || 'submitted',
-    keterangan: item.keterangan || '',
-  };
-  activeModalTab.value = 'overview';
   showDetailModal.value = true;
 };
 
@@ -241,10 +226,10 @@ const closeDetail = () => {
 
 const isSubmittingStatus = ref(false);
 
-const submitStatusUpdate = () => {
+const submitStatusUpdate = (payload) => {
   if (!activeItem.value || isSubmittingStatus.value) return;
   isSubmittingStatus.value = true;
-  router.put(`/flight-medical-inspections/${activeItem.value.id}/status`, statusForm.value, {
+  router.put(`/flight-medical-inspections/${activeItem.value.id}/status`, payload, {
     preserveScroll: true,
     onSuccess: () => {
       toast.success(`Status pemakaian ${cfg.value.nounLower} diperbarui`);
@@ -656,284 +641,14 @@ const countUsed = (items) => {
       />
     </div>
 
-    <!-- Modal Detail & Verification -->
-    <ClinicalModal
+    <FlightMedicalDetailModal
       :open="Boolean(showDetailModal && activeItem)"
-      :title="`Detail Kloter ${activeItem?.nomor_kloter || ''}`"
-      max-width="max-w-4xl"
+      :item="activeItem"
+      :cfg="cfg"
+      :is-submitting="isSubmittingStatus"
       @close="closeDetail"
-    >
-      <div v-if="activeItem" class="bg-white dark:bg-slate-900 rounded-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl text-white flex items-center justify-center shadow-xs" :class="cfg.modalHeaderIcon">
-              <component :is="cfg.mainIcon" class="w-5 h-5" />
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="text-base font-extrabold text-slate-900 dark:text-white">
-                  {{ activeItem.nomor_kloter }} &bull; {{ activeItem.embarkasi }}
-                </h3>
-                <span class="px-2 py-0.5 rounded text-[10.5px] font-mono font-bold" :class="cfg.modalRegBadge">
-                  {{ activeItem.registration_no }}
-                </span>
-              </div>
-              <p class="text-xs text-slate-500">
-                Penerbangan Haji: {{ activeItem.penerbangan_haji_h }} H / {{ activeItem.penerbangan_haji_m }} M
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            @click="closeDetail"
-            aria-label="Tutup modal detail pemakaian"
-            title="Tutup"
-            class="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-          >
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-
-        <div class="flex border-b border-slate-200 dark:border-slate-800 px-6 bg-white dark:bg-slate-900 gap-6 text-xs font-semibold overflow-x-auto">
-          <button
-            type="button"
-            @click="activeModalTab = 'overview'"
-            class="py-3 border-b-2 transition-colors cursor-pointer shrink-0"
-            :class="activeModalTab === 'overview' ? cfg.activeModalTabClass : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-          >
-            Informasi Kloter &amp; TTD
-          </button>
-          <button
-            type="button"
-            @click="activeModalTab = 'p3k'"
-            class="py-3 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
-            :class="activeModalTab === 'p3k' ? cfg.activeModalTabClass : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-          >
-            {{ cfg.modalP3kTab }}
-            <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] rounded-full">
-              {{ activeItem.items_p3k ? activeItem.items_p3k.length : 0 }}
-            </span>
-          </button>
-          <button
-            type="button"
-            @click="activeModalTab = 'emergensi'"
-            class="py-3 border-b-2 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0"
-            :class="activeModalTab === 'emergensi' ? cfg.activeModalTabClass : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-          >
-            {{ cfg.modalEmkTab }}
-            <span class="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] rounded-full">
-              {{ activeItem.items_emergensi ? activeItem.items_emergensi.length : 0 }}
-            </span>
-          </button>
-          <button
-            type="button"
-            @click="activeModalTab = 'verify'"
-            class="py-3 border-b-2 transition-colors cursor-pointer flex items-center gap-1 shrink-0"
-            :class="activeModalTab === 'verify' ? cfg.activeModalTabClass : 'border-transparent text-slate-500 hover:text-slate-900 dark:hover:text-white'"
-          >
-            <ShieldCheck class="w-3.5 h-3.5" />
-            <span>Verifikasi Karantina</span>
-          </button>
-        </div>
-
-        <div class="p-6 overflow-y-auto flex-1 space-y-6 text-xs">
-          <div v-if="activeModalTab === 'overview'" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
-                <h4 class="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
-                  <Plane class="w-4 h-4" :class="cfg.iconClass" />
-                  <span>Data Kloter &amp; Penerbangan</span>
-                </h4>
-                <div class="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                  <div class="py-1.5 flex justify-between">
-                    <span class="text-slate-500">Nomor Kloter:</span>
-                    <strong class="text-slate-900 dark:text-white">{{ activeItem.nomor_kloter }}</strong>
-                  </div>
-                  <div class="py-1.5 flex justify-between">
-                    <span class="text-slate-500">Embarkasi:</span>
-                    <span class="font-medium">{{ activeItem.embarkasi }}</span>
-                  </div>
-                  <div class="py-1.5 flex justify-between">
-                    <span class="text-slate-500">Penerbangan Haji:</span>
-                    <span>{{ activeItem.penerbangan_haji_h }} H / {{ activeItem.penerbangan_haji_m }} M</span>
-                  </div>
-                  <div class="py-1.5 flex justify-between">
-                    <span class="text-slate-500">Kontak Dokter/PIC:</span>
-                    <span>{{ activeItem.no_kontak || '-' }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
-                <h4 class="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-1.5">
-                  <ShieldCheck class="w-4 h-4" :class="cfg.iconClass" />
-                  <span>Petugas &amp; Lokasi</span>
-                </h4>
-                <div class="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
-                  <div class="py-1.5 flex justify-between">
-                    <span class="text-slate-500">Awak Kabin (Crew):</span>
-                    <strong class="text-slate-900 dark:text-white">{{ activeItem.crew_nama }}</strong>
-                  </div>
-                  <div class="py-1.5 flex justify-between">
-                    <span class="text-slate-500">Petugas / Pelapor:</span>
-                    <strong class="text-slate-900 dark:text-white">{{ activeItem.pelapor_nama }}</strong>
-                  </div>
-                  <div class="py-1.5 flex justify-between">
-                    <span class="text-slate-500">Lokasi Geotag:</span>
-                    <span>{{ activeItem.lokasi_geotag || '-' }}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
-                <h5 class="font-bold text-slate-800 dark:text-slate-200">Tanda Tangan Awak Kabin:</h5>
-                <div class="p-2 border border-slate-200 rounded-xl bg-white">
-                  <img v-if="activeItem.crew_ttd" :src="activeItem.crew_ttd" alt="TTD Crew" class="h-16 object-contain mx-auto" />
-                  <p v-else class="text-slate-400 text-center italic py-4">Tidak ada tanda tangan</p>
-                </div>
-                <p class="text-[10px] text-slate-400 text-center">{{ activeItem.crew_nama }}</p>
-              </div>
-
-              <div class="p-4 rounded-2xl bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-1.5">
-                <h5 class="font-bold text-slate-800 dark:text-slate-200">Tanda Tangan Petugas / Pelapor:</h5>
-                <div class="p-2 border border-slate-200 rounded-xl bg-white">
-                  <img v-if="activeItem.pelapor_ttd" :src="activeItem.pelapor_ttd" alt="TTD Pelapor" class="h-16 object-contain mx-auto" />
-                  <p v-else class="text-slate-400 text-center italic py-4">Tidak ada tanda tangan</p>
-                </div>
-                <p class="text-[10px] text-slate-400 text-center">{{ activeItem.pelapor_nama }}</p>
-              </div>
-            </div>
-
-            <div class="p-4 rounded-2xl border" :class="cfg.notesBoxClass">
-              <h5 class="font-bold mb-1 flex items-center gap-1.5" :class="cfg.notesTitleClass">
-                <Info class="w-4 h-4" :class="cfg.iconClass" />
-                <span>Catatan Pemakaian:</span>
-              </h5>
-              <p class="text-slate-700 dark:text-slate-300 italic">"{{ activeItem.keterangan || 'Tidak ada catatan tambahan.' }}"</p>
-            </div>
-          </div>
-
-          <div v-if="activeModalTab === 'p3k'" class="space-y-4">
-            <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-bold text-[11px]">
-                  <tr>
-                    <th class="px-4 py-2.5 w-12 text-center">No</th>
-                    <th class="px-4 py-2.5">{{ cfg.modalP3kHeader }}</th>
-                    <th class="px-4 py-2.5 w-24 text-center">Satuan</th>
-                    <th class="px-4 py-2.5 w-24 text-center">Isi</th>
-                    <th class="px-4 py-2.5 w-24 text-center">Terpakai</th>
-                    <th class="px-4 py-2.5">Keterangan</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                  <tr v-for="(item, idx) in activeItem.items_p3k || []" :key="idx" class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                    <td class="px-4 py-2 text-center font-mono text-slate-400">{{ idx + 1 }}</td>
-                    <td class="px-4 py-2 font-medium text-slate-800 dark:text-slate-200">{{ item.nama }}</td>
-                    <td class="px-4 py-2 text-center text-slate-500">{{ item.satuan }}</td>
-                    <td class="px-4 py-2 text-center font-mono">{{ item.isi }}</td>
-                    <td class="px-4 py-2 text-center font-mono font-bold" :class="parseInt(item.terpakai) > 0 ? cfg.p3kUsedClass : 'text-slate-400'">
-                      {{ item.terpakai }}
-                    </td>
-                    <td class="px-4 py-2 text-slate-600 dark:text-slate-400">{{ item.keterangan || '-' }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div v-if="activeModalTab === 'emergensi'" class="space-y-4">
-            <div class="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 font-bold text-[11px]">
-                  <tr>
-                    <th class="px-4 py-2.5 w-12 text-center">No</th>
-                    <th class="px-4 py-2.5">{{ cfg.modalEmkHeader }}</th>
-                    <th class="px-4 py-2.5 w-24 text-center">Satuan</th>
-                    <th class="px-4 py-2.5 w-24 text-center">Isi</th>
-                    <th class="px-4 py-2.5 w-24 text-center">Terpakai</th>
-                    <th class="px-4 py-2.5">Keterangan</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                  <tr v-for="(item, idx) in activeItem.items_emergensi || []" :key="idx" class="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                    <td class="px-4 py-2 text-center font-mono text-slate-400">{{ idx + 1 }}</td>
-                    <td class="px-4 py-2 font-medium text-slate-800 dark:text-slate-200">{{ item.nama }}</td>
-                    <td class="px-4 py-2 text-center text-slate-500">{{ item.satuan }}</td>
-                    <td class="px-4 py-2 text-center font-mono">{{ item.isi }}</td>
-                    <td class="px-4 py-2 text-center font-mono font-bold" :class="parseInt(item.terpakai) > 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'">
-                      {{ item.terpakai }}
-                    </td>
-                    <td class="px-4 py-2 text-slate-600 dark:text-slate-400">{{ item.keterangan || '-' }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div v-if="activeModalTab === 'verify'" class="space-y-4">
-            <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 space-y-4">
-              <h4 class="font-bold text-slate-900 dark:text-white text-sm">Verifikasi Laporan Karantina</h4>
-              <div>
-                <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Status Verifikasi:</label>
-                <select
-                  v-model="statusForm.status"
-                  class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium focus:ring-2"
-                  :class="cfg.inputRing"
-                >
-                  <option value="submitted">Submitted (Menunggu)</option>
-                  <option value="verified">Verified (Telah Diverifikasi)</option>
-                  <option value="approved">Approved (Disahkan)</option>
-                  <option value="rejected">Rejected (Ditolak / Perlu Perbaikan)</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="block text-slate-700 dark:text-slate-300 font-semibold mb-1">Catatan / Rekomendasi Resmi:</label>
-                <textarea
-                  v-model="statusForm.keterangan"
-                  rows="3"
-                  :placeholder="cfg.notesPlaceholder"
-                  class="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white focus:ring-2"
-                  :class="cfg.inputRing"
-                ></textarea>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between">
-          <div class="text-xs text-slate-400">
-            Diverifikasi oleh: <strong class="text-slate-700 dark:text-slate-300">{{ activeItem.verifier ? activeItem.verifier.name : 'Belum diverifikasi' }}</strong>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              @click="closeDetail"
-              class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            >
-              Tutup
-            </button>
-
-            <button
-              v-if="activeModalTab === 'verify'"
-              type="button"
-              :disabled="isSubmittingStatus"
-              @click="submitStatusUpdate"
-              class="px-5 py-2 rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-              :class="cfg.primaryBtn"
-            >
-              <Check class="w-4 h-4" />
-              <span>{{ isSubmittingStatus ? 'Menyimpan...' : 'Simpan Pembaruan' }}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </ClinicalModal>
+      @submit="submitStatusUpdate"
+    />
 
     <SharePublicModal
       :show="showShareModal && !!shareTarget"

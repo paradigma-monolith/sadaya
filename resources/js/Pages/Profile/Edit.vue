@@ -190,16 +190,22 @@ const triggerAvatarSelect = () => {
         <!-- Left Column: Avatar & Roles Info Card -->
         <div class="lg:col-span-1 space-y-3">
           <div class="clinical-surface p-5 text-center">
-            <div class="relative w-24 h-24 mx-auto mb-3 group cursor-pointer" @click="triggerAvatarSelect" title="Klik untuk mengubah foto profil">
+            <button
+              type="button"
+              @click="triggerAvatarSelect"
+              aria-label="Ubah foto profil"
+              title="Klik untuk mengubah foto profil"
+              class="relative block w-24 h-24 mx-auto mb-3 rounded-xl group cursor-pointer"
+            >
               <img
                 :src="avatarPreview"
                 :alt="user.name"
                 class="w-full h-full rounded-xl object-cover border-2 border-[#00A99D]/40 shadow-xs group-hover:opacity-80 transition-opacity"
               />
-              <div class="absolute inset-0 rounded-xl bg-slate-950/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium">
+              <span class="absolute inset-0 rounded-xl bg-slate-950/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-medium">
                 <Camera class="w-5 h-5" />
-              </div>
-            </div>
+              </span>
+            </button>
 
             <input
               ref="avatarInput"

@@ -9,6 +9,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
+                'resources/css/public.css',
                 'resources/js/inertia.js',
             ],
             refresh: true,
