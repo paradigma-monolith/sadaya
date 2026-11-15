@@ -2,6 +2,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import { toast } from 'vue-sonner';
+import { useConfirm } from '@/composables/useConfirm';
 import {
   Database,
   Server,
@@ -260,6 +262,8 @@ const isModuleCustomized = (moduleId) => {
   );
 };
 
+const { confirmDialog } = useConfirm();
+
 // Apply top global credentials to all modules
 const applyGlobalToAllModules = () => {
   props.modules.forEach((mod) => {
@@ -271,7 +275,7 @@ const applyGlobalToAllModules = () => {
     moduleConfigs.value[mod.id].username = credentials.value.username;
     moduleConfigs.value[mod.id].password = credentials.value.password;
   });
-  alert(`Kredensial host, port, username, dan password berhasil disalin ke seluruh ${props.modules.length} modul.`);
+  toast.success(`Kredensial host, port, username, dan password berhasil disalin ke seluruh ${props.modules.length} modul.`);
 };
 
 // Reset single module configuration back to global & default
@@ -404,9 +408,13 @@ const handleTestConnection = async () => {
 const handleMigrate = async (moduleId) => {
   if (options.value.truncate_first) {
     const targetName = moduleId === 'all' ? 'SELURUH data dari semua modul' : `data modul ${moduleId}`;
-    if (!confirm(`PERINGATAN: Anda memilih untuk mengosongkan ${targetName} di Sadaya sebelum impor. Lanjutkan?`)) {
-      return;
-    }
+    const ok = await confirmDialog({
+      title: 'Konfirmasi Pengosongan Tabel',
+      message: `PERINGATAN: Anda memilih untuk mengosongkan ${targetName} di Sadaya sebelum impor. Seluruh baris lama akan dihapus. Lanjutkan?`,
+      confirmText: 'Ya, Kosongkan & Impor',
+      variant: 'danger',
+    });
+    if (!ok) return;
   }
 
   isMigrating.value = true;
@@ -461,7 +469,7 @@ const handleFileSelect = (e) => {
 
 const handleExecuteUpload = async () => {
   if (!uploadFile.value || !uploadTargetModule.value) {
-    alert('Pilih file backup terlebih dahulu.');
+    toast.warning('Pilih file backup terlebih dahulu.');
     return;
   }
 
@@ -521,7 +529,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Head title="Pusat Migrasi & Import Database â€¢ BKK Bandung" />
+  <Head title="Pusat Migrasi & Import Database • BKK Bandung" />
 
   <HybridNavbar mode="inertia" currentRoute="database-import">
     <main class="clinical-main">

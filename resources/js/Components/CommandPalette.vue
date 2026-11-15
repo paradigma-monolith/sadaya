@@ -30,10 +30,15 @@ import {
   FileSpreadsheet,
   BarChart3,
   Globe,
-  CalendarDays
+  CalendarDays,
+  ClipboardCheck,
+  Bug,
+  Database
 } from 'lucide-vue-next';
 import { router as inertiaRouter } from '@inertiajs/vue3';
 import { useRouter } from 'vue-router';
+import { useTheme } from '@/composables/useTheme';
+import ClinicalSkeleton from './ClinicalSkeleton.vue';
 
 const props = defineProps({
   mode: {
@@ -68,21 +73,42 @@ const prefix = computed(() => {
 
 const getUrl = (path) => `${prefix.value}${path}`;
 
+const { isDark, toggleTheme } = useTheme();
+
 // Static quick actions & navigation options
-const defaultActions = [
+const defaultActions = computed(() => [
   {
     id: 'nav-dashboard',
     title: 'Dashboard Utama',
     subtitle: 'Ringkasan operasional BKK Kelas I Bandung & 6 Wilker',
     category: 'Navigasi',
     icon: LayoutDashboard,
-    action: () => navigateTo('/inertia/dashboard'),
+    action: () => navigateTo('/dashboard'),
+  },
+  {
+    id: 'action-toggle-theme',
+    title: isDark.value ? 'Beralih ke Mode Terang (Light Mode)' : 'Beralih ke Mode Gelap (Dark Mode)',
+    subtitle: 'Ubah tampilan antarmuka terang / gelap secara instan',
+    category: 'Preferensi',
+    icon: isDark.value ? Sun : Moon,
+    action: () => {
+      toggleTheme();
+      isOpen.value = false;
+    },
+  },
+  {
+    id: 'nav-travel-consent',
+    title: 'Travel Consent Hub (Pesawat, Kapal, Alkes & Obat P3K)',
+    subtitle: 'Kelola daftar inspeksi sanitasi & sertifikat kesehatan alat angkut',
+    category: 'Alat Angkut & Barang',
+    icon: Layers,
+    action: () => navigateTo('/travel-consent'),
   },
   {
     id: 'nav-public-home',
     title: 'Portal Publik Travel Consent',
     subtitle: 'Buka halaman portal layanan publik inspeksi sanitasi & P3K',
-    category: 'Pengawasan Alat Angkut & Barang',
+    category: 'Alat Angkut & Barang',
     icon: Globe,
     action: () => window.open('/travelconsent/home', '_blank'),
   },
@@ -90,7 +116,7 @@ const defaultActions = [
     id: 'nav-aircraft',
     title: 'Travel Consent — Data Inspeksi Pesawat',
     subtitle: 'Kelola daftar inspeksi sanitasi pesawat udara',
-    category: 'Pengawasan Alat Angkut & Barang',
+    category: 'Alat Angkut & Barang',
     icon: Layers,
     action: () => navigateTo('/travel-consent/aircraft'),
   },
@@ -98,7 +124,7 @@ const defaultActions = [
     id: 'nav-ship-surveillance',
     title: 'Pengawasan Kedatangan Kapal (TANGKAP & Karantina)',
     subtitle: 'Self-assessment karantina, skoring risiko, verifikasi sandar & estimasi PNBP',
-    category: 'Pengawasan Alat Angkut & Barang',
+    category: 'Alat Angkut & Barang',
     icon: Ship,
     action: () => navigateTo('/ship-surveillance'),
   },
@@ -106,7 +132,7 @@ const defaultActions = [
     id: 'nav-ship-inspections',
     title: 'Travel Consent — Inspeksi Sanitasi Kapal (SSCC / SSCEC)',
     subtitle: 'Kelola sertifikat & verifikasi sanitasi kapal laut',
-    category: 'Pengawasan Alat Angkut & Barang',
+    category: 'Alat Angkut & Barang',
     icon: Anchor,
     action: () => navigateTo('/travel-consent/ship'),
   },
@@ -114,7 +140,7 @@ const defaultActions = [
     id: 'nav-medical-alat',
     title: 'Travel Consent — Pemakaian Alkes P3K',
     subtitle: 'Kelola rekam alat kesehatan P3K & emergensi kloter haji',
-    category: 'Pengawasan Alat Angkut & Barang',
+    category: 'Alat Angkut & Barang',
     icon: BriefcaseMedical,
     action: () => navigateTo('/travel-consent/alat'),
   },
@@ -122,13 +148,29 @@ const defaultActions = [
     id: 'nav-medical-obat',
     title: 'Travel Consent — Pemakaian Obat P3K',
     subtitle: 'Kelola rekam obat-obatan P3K & emergensi kloter haji',
-    category: 'Pengawasan Alat Angkut & Barang',
+    category: 'Alat Angkut & Barang',
     icon: Pill,
     action: () => navigateTo('/travel-consent/obat'),
   },
   {
+    id: 'nav-sanitasi',
+    title: 'Sanitasi Lingkungan (TPP, SAB, HSBU)',
+    subtitle: 'Pengawasan tempat pengolahan pangan, air bersih & gedung perkantoran',
+    category: 'Kesehatan Lingkungan',
+    icon: ClipboardCheck,
+    action: () => navigateTo('/sanitasi-lingkungan'),
+  },
+  {
+    id: 'nav-sivera',
+    title: 'SIVERA (Surveilans Vektor & Reservoar)',
+    subtitle: 'Pemantauan kepadatan nyamuk, jentik, lalat, kecoa, tikus & pinjal',
+    category: 'Kesehatan Lingkungan',
+    icon: Bug,
+    action: () => navigateTo('/sivera'),
+  },
+  {
     id: 'nav-sinkarkes-dashboard',
-    title: 'Dashboard & Analitik SINKARKES (Utama)',
+    title: 'Dashboard & Analitik SINKARKES',
     subtitle: 'Executive summary, diagram grafis bulanan & total summary di Dashboard Utama',
     category: 'Laporan & Dokumen',
     icon: BarChart3,
@@ -167,6 +209,14 @@ const defaultActions = [
     action: () => window.open(getUrl('/ship-surveillance/portal'), '_blank'),
   },
   {
+    id: 'nav-database-import',
+    title: 'Pusat Migrasi & Import Database',
+    subtitle: 'Sinkronisasi dan migrasi data SQL dari sistem lama / backup',
+    category: 'Tata Kelola',
+    icon: Database,
+    action: () => navigateTo('/database-import'),
+  },
+  {
     id: 'nav-audit',
     title: 'Audit Trail Logs',
     subtitle: 'Lihat riwayat aktivitas sistem & keamanan akun',
@@ -182,7 +232,7 @@ const defaultActions = [
     icon: User,
     action: () => navigateTo('/profile'),
   },
-];
+]);
 
 const navigateTo = (path) => {
   isOpen.value = false;
@@ -211,12 +261,13 @@ const flatItems = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
   
   if (!query) {
-    return defaultActions;
+    return defaultActions.value;
   }
 
-  const filteredLocal = defaultActions.filter(item => 
+  const filteredLocal = defaultActions.value.filter(item => 
     item.title.toLowerCase().includes(query) || 
-    item.subtitle.toLowerCase().includes(query)
+    item.subtitle.toLowerCase().includes(query) ||
+    item.category.toLowerCase().includes(query)
   );
 
   const scoutUsers = (searchResults.value.users || []).map(u => ({
@@ -225,7 +276,7 @@ const flatItems = computed(() => {
     subtitle: u.subtitle,
     category: 'Pengguna (Scout)',
     icon: User,
-    action: () => navigateTo(u.url || '/inertia/dashboard'),
+    action: () => navigateTo(u.url || '/dashboard'),
   }));
 
   return [...filteredLocal, ...scoutUsers];
@@ -325,25 +376,25 @@ onUnmounted(() => {
   <DialogRoot v-model:open="isOpen">
     <DialogPortal>
       <!-- Backdrop Overlay -->
-      <DialogOverlay class="fixed inset-0 z-50 bg-slate-900/25 backdrop-blur-xs transition-opacity duration-200" />
+      <DialogOverlay class="fixed inset-0 z-50 bg-slate-900/40 dark:bg-slate-950/65 backdrop-blur-xs transition-opacity duration-200" />
       
       <!-- Command Palette Content Modal -->
       <DialogContent 
-        class="fixed left-1/2 top-20 z-50 w-full max-w-lg -translate-x-1/2 rounded-xl border border-slate-200 bg-white shadow-xl p-0 overflow-hidden outline-none animate-in fade-in-0 zoom-in-95 duration-150"
+        class="fixed left-1/2 top-16 sm:top-20 z-50 w-[calc(100%-1.5rem)] max-w-lg -translate-x-1/2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#111820] shadow-2xl p-0 overflow-hidden outline-none animate-in fade-in-0 zoom-in-95 duration-150"
         @keydown="onKeyDown"
       >
         <DialogTitle class="sr-only">Command Palette Global Search</DialogTitle>
         <DialogDescription class="sr-only">Cari menu, tindakan, dan record sistem secara instan</DialogDescription>
 
         <!-- Search Input Bar -->
-        <div class="relative flex items-center border-b border-slate-200/80 px-3.5 py-2.5 font-sans">
+        <div class="relative flex items-center border-b border-slate-200/80 dark:border-slate-800 px-3.5 py-2.5 font-sans">
           <Search class="w-4 h-4 text-[#00A99D] shrink-0 mr-2.5" />
           <input
             ref="searchInputRef"
             v-model="searchQuery"
             type="text"
-            placeholder="Ketik untuk mencari (menu, aksi, wilayah kerja)..."
-            class="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
+            placeholder="Ketik untuk mencari (menu, aksi, tema, wilayah kerja)..."
+            class="w-full bg-transparent text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none"
             autocomplete="off"
             spellcheck="false"
           />
@@ -353,17 +404,21 @@ onUnmounted(() => {
           <button 
             type="button"
             @click="close"
-            class="shrink-0 p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            class="shrink-0 p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X class="w-4 h-4" />
           </button>
         </div>
 
         <!-- Results List -->
-        <div class="max-h-72 overflow-y-auto p-1.5 divide-y divide-slate-100 font-sans">
-          <div v-if="flatItems.length === 0" class="py-10 text-center text-xs text-slate-400">
-            <Sparkles class="w-7 h-7 text-slate-300 mx-auto mb-1.5" />
-            <p>Tidak ada hasil untuk "<span class="font-semibold text-slate-700">{{ searchQuery }}</span>"</p>
+        <div class="max-h-72 overflow-y-auto p-1.5 divide-y divide-slate-100 dark:divide-slate-800 font-sans">
+          <div v-if="isSearching && flatItems.length === 0" class="p-2">
+            <ClinicalSkeleton variant="lines" :rows="3" />
+          </div>
+
+          <div v-else-if="flatItems.length === 0" class="py-10 text-center text-xs text-slate-400 dark:text-slate-500">
+            <Sparkles class="w-7 h-7 text-slate-300 dark:text-slate-600 mx-auto mb-1.5" />
+            <p>Tidak ada hasil untuk "<span class="font-semibold text-slate-700 dark:text-slate-200">{{ searchQuery }}</span>"</p>
           </div>
 
           <div v-else class="space-y-0.5">
@@ -384,13 +439,13 @@ onUnmounted(() => {
                   <component :is="item.icon" class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
-                  <div class="text-xs font-semibold text-slate-900 truncate">{{ item.title }}</div>
-                  <div class="text-[11px] text-slate-500 truncate">{{ item.subtitle }}</div>
+                  <div class="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">{{ item.title }}</div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ item.subtitle }}</div>
                 </div>
               </div>
 
               <div class="flex items-center gap-2 shrink-0 ml-2.5">
-                <span class="text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white text-[#005851] border border-[#99DFD6]/80">
+                <span class="hidden sm:inline-flex text-[10px] uppercase font-mono px-1.5 py-0.2 rounded bg-white dark:bg-[#16202a] text-[#005851] dark:text-[#4fd1c5] border border-[#99DFD6]/80 dark:border-[#00A99D]/40">
                   {{ item.category }}
                 </span>
                 <CornerDownLeft v-if="activeIndex === idx" class="w-3.5 h-3.5 text-[#00A99D]" />
@@ -400,22 +455,22 @@ onUnmounted(() => {
         </div>
 
         <!-- Footer Shortcuts Guide -->
-        <div class="border-t border-slate-100 bg-slate-50/80 px-4 py-2 flex items-center justify-between text-[11px] text-slate-500 font-sans">
+        <div class="border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-[#0d141b] px-4 py-2 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-sans">
           <div class="flex items-center gap-3">
             <span class="flex items-center gap-1">
-              <kbd class="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[10px] text-slate-600">↑↓</kbd>
+              <kbd class="px-1.5 py-0.5 rounded-md bg-white dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 font-mono text-[10px] text-slate-600 dark:text-slate-300">↑↓</kbd>
               Pilih
             </span>
             <span class="flex items-center gap-1">
-              <kbd class="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[10px] text-slate-600">↵</kbd>
+              <kbd class="px-1.5 py-0.5 rounded-md bg-white dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 font-mono text-[10px] text-slate-600 dark:text-slate-300">↵</kbd>
               Buka
             </span>
             <span class="flex items-center gap-1">
-              <kbd class="px-1.5 py-0.5 rounded-md bg-white border border-slate-200 font-mono text-[10px] text-slate-600">ESC</kbd>
+              <kbd class="px-1.5 py-0.5 rounded-md bg-white dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 font-mono text-[10px] text-slate-600 dark:text-slate-300">ESC</kbd>
               Tutup
             </span>
           </div>
-          <div class="font-mono text-[10px] text-slate-500 flex items-center gap-1.5">
+          <div class="font-mono text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
             <span class="w-1.5 h-1.5 rounded-full bg-[#00A99D]"></span>
             BKK Kelas I Bandung Search
           </div>

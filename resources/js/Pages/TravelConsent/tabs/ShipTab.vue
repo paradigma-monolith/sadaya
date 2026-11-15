@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
+import { useConfirm } from '@/composables/useConfirm';
 import SharePublicModal from '../components/SharePublicModal.vue';
 import PaginationBar from '../components/PaginationBar.vue';
 import {
@@ -156,10 +158,20 @@ const submitStatusUpdate = () => {
   });
 };
 
-const deleteInspection = (id, regNo, shipName) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus data inspeksi kapal ${shipName} (${regNo})?`)) {
+const { confirmDialog } = useConfirm();
+
+const deleteInspection = async (id, regNo, shipName) => {
+  const ok = await confirmDialog({
+    title: 'Hapus Data Inspeksi Kapal?',
+    message: `Apakah Anda yakin ingin menghapus data inspeksi kapal ${shipName} (${regNo})?`,
+    confirmText: 'Ya, Hapus',
+    variant: 'danger',
+  });
+  if (ok) {
     router.delete(`/ship-inspections/${id}`, {
       preserveScroll: true,
+      onSuccess: () => toast.success(`Data inspeksi ${shipName} dihapus`),
+      onError: () => toast.error('Gagal menghapus data inspeksi kapal'),
     });
   }
 };

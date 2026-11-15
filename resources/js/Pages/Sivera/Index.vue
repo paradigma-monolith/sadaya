@@ -3,6 +3,8 @@
 import { ref, computed } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import { toast } from 'vue-sonner';
+import { useConfirm } from '@/composables/useConfirm';
 import {
   Bug,
   Search,
@@ -1087,11 +1089,11 @@ const submitPengendalian = async () => {
     };
 
     const res = await axios.post(`/prl/sivera/${pengendalianItem.value.id}/pengendalian`, payload);
-    alert(res.data.message);
+    toast.success(res.data.message || 'Tindakan pengendalian disimpan');
     showPengendalianModal.value = false;
     router.reload();
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menyimpan tindakan pengendalian.');
+    toast.error(err.response?.data?.message || 'Gagal menyimpan tindakan pengendalian.');
   } finally {
     isSubmittingPengendalian.value = false;
   }
@@ -1296,28 +1298,36 @@ const submitInspeksi = async () => {
     } else {
       res = await axios.post('/sivera', payload);
     }
-    alert(res.data.message);
+    toast.success(res.data.message || 'Data surveilans berhasil disimpan');
 
     showAddInspeksiModal.value = false;
     isEditMode.value = false;
     editId.value = null;
     router.reload();
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menyimpan data.');
+    toast.error(err.response?.data?.message || 'Gagal menyimpan data.');
   } finally {
     isSubmittingInspeksi.value = false;
   }
 };
 
+const { confirmDialog } = useConfirm();
+
 // Delete Sivera Item
 const deleteInspection = async (item) => {
-  if (!confirm(`Apakah Anda yakin ingin menghapus catatan ${item.jenis_vektor} di ${item.wilker}?`)) return;
+  const ok = await confirmDialog({
+    title: 'Hapus Catatan SIVERA?',
+    message: `Apakah Anda yakin ingin menghapus catatan ${item.jenis_vektor} di ${item.wilker}?`,
+    confirmText: 'Ya, Hapus',
+    variant: 'danger',
+  });
+  if (!ok) return;
   try {
     const res = await axios.delete(`/sivera/${item.id}`);
-    alert(res.data.message || 'Data surveilans berhasil dihapus');
+    toast.success(res.data.message || 'Data surveilans berhasil dihapus');
     router.reload();
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menghapus data.');
+    toast.error(err.response?.data?.message || 'Gagal menghapus data.');
   }
 };
 

@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue';
 import axios from 'axios';
+import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
+import { useConfirm } from '@/composables/useConfirm';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -215,8 +217,16 @@ const addManualCountry = async () => {
   }
 };
 
+const { confirmDialog } = useConfirm();
+
 const resetDefaultRedZones = async () => {
-  if (!confirm('Kembalikan status Zona Merah untuk 195 negara ke data referensi awal?')) return;
+  const ok = await confirmDialog({
+    title: 'Reset Daftar Negara Zona Merah?',
+    message: 'Kembalikan status Zona Merah untuk 195 negara ke data referensi awal Kemenkes?',
+    confirmText: 'Ya, Reset Referensi',
+    variant: 'warning',
+  });
+  if (!ok) return;
   isResettingCountries.value = true;
   pdfImportError.value = '';
   try {
@@ -224,9 +234,11 @@ const resetDefaultRedZones = async () => {
     if (res.data?.success && res.data?.data) {
       redZonesState.value = res.data.data;
       pdfImportSuccess.value = res.data.message;
+      toast.success(res.data.message || 'Daftar Zona Merah berhasil direset');
     }
   } catch (err) {
     pdfImportError.value = err?.response?.data?.message || 'Gagal mereset daftar negara.';
+    toast.error(pdfImportError.value);
   } finally {
     isResettingCountries.value = false;
   }

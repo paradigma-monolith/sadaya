@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
 import { router, Link } from '@inertiajs/vue3';
+import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
+import { useConfirm } from '@/composables/useConfirm';
 import {
   formatCurrency,
   formatNumber,
@@ -137,21 +139,32 @@ const saveGt = async (item) => {
       item.gross_tonnage = result.data.gross_tonnage;
       item.estimasi_pnbp = result.data.estimasi_pnbp;
       editingGtId.value = null;
+      toast.success('Gross Tonnage diperbarui');
     } else {
-      alert(result.message || 'Gagal memperbarui Gross Tonnage');
+      toast.error(result.message || 'Gagal memperbarui Gross Tonnage');
     }
   } catch {
-    alert('Terjadi kesalahan koneksi saat memperbarui Gross Tonnage');
+    toast.error('Terjadi kesalahan koneksi saat memperbarui Gross Tonnage');
   } finally {
     isSavingGt.value = false;
   }
 };
 
+const { confirmDialog } = useConfirm();
+
 // Delete Action
-const deleteItem = (item) => {
-  if (confirm(`Apakah Anda yakin ingin menghapus data pengawasan kapal "${item.nama_kapal}"?`)) {
+const deleteItem = async (item) => {
+  const ok = await confirmDialog({
+    title: 'Hapus Data Pengawasan Kapal?',
+    message: `Apakah Anda yakin ingin menghapus data pengawasan kapal "${item.nama_kapal}"?`,
+    confirmText: 'Ya, Hapus',
+    variant: 'danger',
+  });
+  if (ok) {
     router.delete(`/ship-surveillance/${item.id}`, {
       preserveScroll: true,
+      onSuccess: () => toast.success(`Data pengawasan "${item.nama_kapal}" dihapus`),
+      onError: () => toast.error('Gagal menghapus data pengawasan kapal'),
     });
   }
 };

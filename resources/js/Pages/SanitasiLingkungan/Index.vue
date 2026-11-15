@@ -3,6 +3,8 @@
 import { ref, computed, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import { toast } from 'vue-sonner';
+import { useConfirm } from '@/composables/useConfirm';
 import {
   Leaf,
   Utensils,
@@ -237,9 +239,11 @@ const openAddSarana = (type = 'tpp') => {
   showAddSaranaModal.value = true;
 };
 
+const { confirmDialog } = useConfirm();
+
 const submitSarana = async () => {
   if (!saranaForm.value.nama) {
-    alert('Nama sarana / gedung wajib diisi!');
+    toast.warning('Nama sarana / gedung wajib diisi!');
     return;
   }
   isSubmittingSarana.value = true;
@@ -275,12 +279,12 @@ const submitSarana = async () => {
 
     const res = await axios.post(endpoint, payload);
     if (res.data.success) {
-      alert(res.data.message);
+      toast.success(res.data.message || 'Data sarana berhasil disimpan');
       showAddSaranaModal.value = false;
       router.reload();
     }
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menyimpan data sarana.');
+    toast.error(err.response?.data?.message || 'Gagal menyimpan data sarana.');
   } finally {
     isSubmittingSarana.value = false;
   }
@@ -505,7 +509,7 @@ const submitInspeksi = async () => {
   try {
     if (addInspeksiType.value === 'tpp') {
       if (!formTpp.value.nama_tpp) {
-        alert('Nama TPP wajib diisi atau dipilih!');
+        toast.warning('Nama TPP wajib diisi atau dipilih!');
         isSubmittingInspeksi.value = false;
         return;
       }
@@ -554,10 +558,10 @@ const submitInspeksi = async () => {
         saran_rencana_tindakan: formTpp.value.saran_rencana_tindakan,
       };
       const res = await axios.post('/sanitasi-lingkungan/inspeksi/tpp', payload);
-      alert(res.data.message);
+      toast.success(res.data.message || 'Data inspeksi TPP berhasil disimpan');
     } else if (addInspeksiType.value === 'sab') {
       if (!formSab.value.nama_sab) {
-        alert('Nama SAB wajib diisi atau dipilih!');
+        toast.warning('Nama SAB wajib diisi atau dipilih!');
         isSubmittingInspeksi.value = false;
         return;
       }
@@ -591,10 +595,10 @@ const submitInspeksi = async () => {
         saran_rencana_tindakan: formSab.value.saran_rencana_tindakan,
       };
       const res = await axios.post('/sanitasi-lingkungan/inspeksi/sab', payload);
-      alert(res.data.message);
+      toast.success(res.data.message || 'Data inspeksi SAB berhasil disimpan');
     } else if (addInspeksiType.value === 'hsbu') {
       if (!formHsbu.value.nama_gedung) {
-        alert('Nama Bangunan/Gedung HSBU wajib diisi atau dipilih!');
+        toast.warning('Nama Bangunan/Gedung HSBU wajib diisi atau dipilih!');
         isSubmittingInspeksi.value = false;
         return;
       }
@@ -621,12 +625,12 @@ const submitInspeksi = async () => {
         saran_rencana_tindakan: formHsbu.value.saran_rencana_tindakan,
       };
       const res = await axios.post('/sanitasi-lingkungan/inspeksi/hsbu', payload);
-      alert(res.data.message);
+      toast.success(res.data.message || 'Data inspeksi HSBU berhasil disimpan');
     }
     showAddInspeksiModal.value = false;
     router.reload();
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menyimpan data.');
+    toast.error(err.response?.data?.message || 'Gagal menyimpan data.');
   } finally {
     isSubmittingInspeksi.value = false;
   }
@@ -634,13 +638,19 @@ const submitInspeksi = async () => {
 
 // Delete Sarana / Inspeksi Item
 const deleteInspection = async (item, type) => {
-  if (!confirm(`Apakah Anda yakin ingin menghapus catatan ${item.nama_tpp || item.nama_sab || item.nama_gedung}?`)) return;
+  const ok = await confirmDialog({
+    title: 'Hapus Catatan Inspeksi?',
+    message: `Apakah Anda yakin ingin menghapus catatan ${item.nama_tpp || item.nama_sab || item.nama_gedung}?`,
+    confirmText: 'Ya, Hapus',
+    variant: 'danger',
+  });
+  if (!ok) return;
   try {
     const res = await axios.delete(`/sanitasi-lingkungan/inspeksi/${type}/${item.id}`);
-    alert(res.data.message || 'Data berhasil dihapus');
+    toast.success(res.data.message || 'Data berhasil dihapus');
     router.reload();
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menghapus data.');
+    toast.error(err.response?.data?.message || 'Gagal menghapus data.');
   }
 };
 

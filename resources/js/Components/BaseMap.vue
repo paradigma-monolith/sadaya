@@ -49,7 +49,7 @@ let themeObserver = null;
 let orbitInterval = null;
 
 // Helper to create reliable raster style specifications (Fast, zero glyph/worker network failures)
-const createRasterStyle = (subdomains, tileTemplate, attribution) => ({
+const createRasterStyle = (subdomains, tileTemplate, attribution, paint = {}) => ({
   version: 8,
   sources: {
     'raster-tiles': {
@@ -66,11 +66,12 @@ const createRasterStyle = (subdomains, tileTemplate, attribution) => ({
       source: 'raster-tiles',
       minzoom: 0,
       maxzoom: 20,
+      paint,
     },
   ],
 });
 
-// Style definitions using genuine, watermark-free OpenStreetMap CDN raster tiles (No API key required)
+// Style definitions for Light / OSM / Voyager and genuine Dark Mode
 const STYLES = {
   osm: createRasterStyle(
     ['a', 'b', 'c'],
@@ -89,18 +90,19 @@ const STYLES = {
   ),
   light: createRasterStyle(
     ['a', 'b', 'c'],
-    'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap contributors'
+    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap &copy; CARTO'
   ),
   dark: createRasterStyle(
-    ['a', 'b', 'c'],
-    'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap contributors'
+    ['a', 'b', 'c', 'd'],
+    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap &copy; CARTO',
+    { 'raster-brightness-min': 0.04, 'raster-contrast': 0.08 }
   ),
   voyager: createRasterStyle(
-    ['a', 'b', 'c'],
-    'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap contributors'
+    ['a', 'b', 'c', 'd'],
+    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap &copy; CARTO'
   ),
 };
 
@@ -155,41 +157,41 @@ const renderMarkers = () => {
       </div>
     `;
 
-    // Interactive Compact HTML Popup
+    // Interactive Compact HTML Popup (theme-aware via CSS classes)
     const popup = new maplibregl.Popup({
       offset: 18,
       closeButton: true,
       closeOnClick: true,
-      maxWidth: '205px',
+      maxWidth: '215px',
       className: 'custom-maplibre-popup',
     }).setHTML(`
-      <div style="padding: 7px 9px; font-family: 'Segoe UI', sans-serif; color: #005851; min-width: 155px; max-width: 195px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px; border-bottom: 1px solid #E6F7F5; padding-bottom: 4px; margin-bottom: 5px; padding-right: 12px;">
-          <div style="display: flex; align-items: center; gap: 4px; font-weight: 700; font-size: 10px; color: #005851; line-height: 1.2;">
-            <span style="font-family: monospace; background: #E6F7F5; color: #005851; border: 1px solid #99DFD6; padding: 1px 4px; border-radius: 3px; font-size: 8.5px;">${badgeLabel}</span>
+      <div class="bkk-map-popup">
+        <div class="bkk-popup-hdr">
+          <div class="bkk-popup-title">
+            <span class="bkk-popup-badge">${badgeLabel}</span>
             <span>${node.short_name || node.name}</span>
           </div>
-          <span style="padding: 1px 4px; border-radius: 9999px; font-size: 8px; font-weight: 700; text-transform: uppercase; background-color: #E6F7F5; color: #005851; border: 1px solid #99DFD6; flex-shrink: 0;">
+          <span class="bkk-popup-status">
             ${node.status || 'ONLINE'}
           </span>
         </div>
-        <div style="font-size: 9px; color: #475569; display: flex; flex-direction: column; gap: 2.5px;">
+        <div class="bkk-popup-rows">
           ${Array.isArray(node.popupRows) && node.popupRows.length
             ? node.popupRows.map((row) => `
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #64748b;">${row.label}</span>
-            <span style="font-family: monospace; font-weight: 700; color: ${row.color || '#005851'};">${row.value}</span>
+          <div class="bkk-popup-row">
+            <span class="bkk-popup-lbl">${row.label}</span>
+            <span class="bkk-popup-val" ${row.color ? `style="color: ${row.color};"` : ''}>${row.value}</span>
           </div>`).join('')
             : `
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #64748b;">Peran: <strong style="color: #005851;">${node.type || 'Wilker'}</strong></span>
-            <span style="font-weight: 700; color: #00A99D;">${node.ping || '4ms'}</span>
+          <div class="bkk-popup-row">
+            <span class="bkk-popup-lbl">Peran: <strong class="bkk-popup-strong">${node.type || 'Wilker'}</strong></span>
+            <span class="bkk-popup-ping">${node.ping || '4ms'}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="color: #64748b;">Throughput:</span>
-            <span style="font-family: monospace; font-weight: 600; color: #005851;">${node.connections ? Number(node.connections).toLocaleString() : '1420'} req/s</span>
+          <div class="bkk-popup-row">
+            <span class="bkk-popup-lbl">Throughput:</span>
+            <span class="bkk-popup-val">${node.connections ? Number(node.connections).toLocaleString() : '1420'} req/s</span>
           </div>`}
-          <div style="font-size: 8.5px; color: #475569; margin-top: 2px; line-height: 1.25; border-top: 1px dashed #E6F7F5; padding-top: 3px;">
+          <div class="bkk-popup-addr">
             📍 ${node.address || node.location || ''}
           </div>
         </div>
@@ -341,7 +343,7 @@ const flyTo = (coords, zoom = 12, pitch = 45, bearing = 0) => {
 
 const setStyle = (styleKey) => {
   if (!mapInstance.value) return;
-  currentStyleKey.value = styleKey;
+  currentStyleKey.value = styleKey === 'auto' ? (isDarkMode() ? 'dark' : 'light') : styleKey;
   const style = resolveStyle(styleKey);
   mapInstance.value.setStyle(style);
   mapInstance.value.once('style.load', () => {
@@ -487,8 +489,8 @@ defineExpose({
 </script>
 
 <template>
-  <div class="relative w-full h-full overflow-hidden">
-    <div ref="mapContainer" :style="{ height, width: '100%' }" class="w-full"></div>
+  <div class="relative w-full h-full overflow-hidden bg-slate-100 dark:bg-[#0b151a]">
+    <div ref="mapContainer" :style="{ height, width: '100%' }" class="w-full h-full"></div>
     <slot name="overlay"></slot>
   </div>
 </template>
@@ -532,19 +534,148 @@ defineExpose({
 }
 
 .custom-maplibre-popup .maplibregl-popup-content {
-  border-radius: 0.65rem;
-  box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.22), 0 4px 8px -4px rgba(0, 0, 0, 0.18);
+  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.22), 0 4px 10px -4px rgba(0, 0, 0, 0.14);
   padding: 0;
-  border: 1px solid rgba(226, 232, 240, 0.85);
-  backdrop-filter: blur(8px);
+  border: 1px solid rgba(203, 213, 225, 0.9);
+  backdrop-filter: blur(10px);
+}
+html.dark .custom-maplibre-popup .maplibregl-popup-content {
+  background: rgba(15, 23, 32, 0.96);
+  border-color: rgba(51, 65, 85, 0.9);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.65);
+}
+html.dark .custom-maplibre-popup .maplibregl-popup-tip {
+  border-top-color: rgba(15, 23, 32, 0.96);
+  border-bottom-color: rgba(15, 23, 32, 0.96);
+}
+.bkk-map-popup {
+  padding: 8px 10px;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #005851;
+  min-width: 165px;
+  max-width: 205px;
+}
+html.dark .bkk-map-popup {
+  color: #e2e8f0;
+}
+.bkk-popup-hdr {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  padding-right: 14px;
+}
+html.dark .bkk-popup-hdr {
+  border-bottom-color: #1e293b;
+}
+.bkk-popup-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 10.5px;
+  color: #0f172a;
+  line-height: 1.2;
+}
+html.dark .bkk-popup-title {
+  color: #f8fafc;
+}
+.bkk-popup-badge {
+  font-family: 'JetBrains Mono', monospace;
+  background: #E6F7F5;
+  color: #005851;
+  border: 1px solid #99DFD6;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-size: 8.5px;
+}
+html.dark .bkk-popup-badge {
+  background: rgba(0, 169, 157, 0.18);
+  color: #5eead4;
+  border-color: rgba(0, 169, 157, 0.45);
+}
+.bkk-popup-status {
+  padding: 1px 5px;
+  border-radius: 9999px;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  background-color: #E6F7F5;
+  color: #005851;
+  border: 1px solid #99DFD6;
+  flex-shrink: 0;
+}
+html.dark .bkk-popup-status {
+  background-color: rgba(0, 169, 157, 0.18);
+  color: #4fd1c5;
+  border-color: rgba(0, 169, 157, 0.4);
+}
+.bkk-popup-rows {
+  font-size: 9.5px;
+  color: #475569;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+html.dark .bkk-popup-rows {
+  color: #cbd5e1;
+}
+.bkk-popup-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+.bkk-popup-lbl {
+  color: #64748b;
+}
+html.dark .bkk-popup-lbl {
+  color: #94a3b8;
+}
+.bkk-popup-strong,
+.bkk-popup-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: #005851;
+}
+html.dark .bkk-popup-strong,
+html.dark .bkk-popup-val {
+  color: #5eead4;
+}
+.bkk-popup-ping {
+  font-weight: 700;
+  color: #00A99D;
+}
+.bkk-popup-addr {
+  font-size: 8.5px;
+  color: #64748b;
+  margin-top: 2px;
+  line-height: 1.3;
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 4px;
+}
+html.dark .bkk-popup-addr {
+  color: #94a3b8;
+  border-top-color: #1e293b;
 }
 .maplibregl-popup-close-button {
-  padding: 2px 6px;
+  padding: 3px 6px;
   color: #64748b;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1;
 }
 .maplibregl-popup-close-button:hover {
   color: #0f172a;
+}
+html.dark .maplibregl-popup-close-button {
+  color: #94a3b8;
+}
+html.dark .maplibregl-popup-close-button:hover {
+  color: #ffffff;
 }
 </style>

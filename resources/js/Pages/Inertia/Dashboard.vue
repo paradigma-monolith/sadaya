@@ -58,6 +58,7 @@ import {
   CalendarCheck,
   Table,
   PieChart as PieChartIcon,
+  Bug,
 } from 'lucide-vue-next';
 
 const props = defineProps({
@@ -203,7 +204,7 @@ const officesList = computed(() => {
 const selectedOffice = ref(null);
 const searchOffice = ref('');
 const activeOfficeFilter = ref('all'); // 'all' | 'udara' | 'laut'
-const activeMapLayer = ref('osm'); // 'osm' | 'hot' | 'osmde'
+const activeMapLayer = ref('auto'); // 'auto' | 'osm' | 'hot' | 'osmde'
 
 onMounted(() => {
   if (officesList.value.length > 0) {
@@ -271,9 +272,6 @@ const selectOffice = (office) => {
 
 const switchMapLayer = (layerKey) => {
   activeMapLayer.value = layerKey;
-  if (mapComponentRef.value) {
-    mapComponentRef.value.setStyle(layerKey);
-  }
 };
 
 const onCameraMove = (cam) => {
@@ -1262,6 +1260,53 @@ const modaReadinessRadarOption = computed(() => {
             </button>
           </div>
         </div>
+
+        <!-- Quick Operational Module Launcher -->
+        <div class="mt-2.5 pt-2 border-t border-white/15 flex flex-wrap items-center gap-1.5 text-[11px]">
+          <span class="text-[10px] font-mono uppercase tracking-wider text-[#99DFD6]/80 mr-1 hidden sm:inline">Akses Cepat:</span>
+          <Link
+            :href="getUrl('/travel-consent')"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+          >
+            <FileCheck class="w-3 h-3 text-[#99CC33]" />
+            <span>Travel Consent</span>
+          </Link>
+          <Link
+            :href="getUrl('/ship-surveillance')"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+          >
+            <Ship class="w-3 h-3 text-[#99DFD6]" />
+            <span>TANGKAP Kapal</span>
+          </Link>
+          <Link
+            :href="getUrl('/sinkarkes-daily')"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+          >
+            <CalendarDays class="w-3 h-3 text-[#99CC33]" />
+            <span>Rekap Harian</span>
+          </Link>
+          <Link
+            :href="getUrl('/sinkarkes')"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+          >
+            <FileSpreadsheet class="w-3 h-3 text-[#99DFD6]" />
+            <span>Form SINKARKES</span>
+          </Link>
+          <Link
+            :href="getUrl('/sanitasi-lingkungan')"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+          >
+            <ClipboardCheck class="w-3 h-3 text-[#99CC33]" />
+            <span>Sanitasi Lingkungan</span>
+          </Link>
+          <Link
+            :href="getUrl('/sivera')"
+            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+          >
+            <Bug class="w-3 h-3 text-rose-300" />
+            <span>SIVERA</span>
+          </Link>
+        </div>
       </div>
 
       <!-- ========================================================================= -->
@@ -1467,11 +1512,20 @@ const modaReadinessRadarOption = computed(() => {
             <div class="inline-flex items-center p-0.5 rounded-md bg-[#002D29] border border-white/15 text-[10px] font-semibold">
               <button
                 type="button"
+                @click="switchMapLayer('auto')"
+                class="px-2 py-0.5 rounded transition-colors cursor-pointer"
+                :class="activeMapLayer === 'auto' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
+                title="Ikuti tema Terang / Gelap"
+              >
+                Auto
+              </button>
+              <button
+                type="button"
                 @click="switchMapLayer('osm')"
                 class="px-2 py-0.5 rounded transition-colors cursor-pointer"
                 :class="activeMapLayer === 'osm' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
               >
-                OSM Standar
+                OSM
               </button>
               <button
                 type="button"
@@ -1581,16 +1635,16 @@ const modaReadinessRadarOption = computed(() => {
         <div class="grid grid-cols-1 lg:grid-cols-12 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
           
           <!-- Large WebGL Map Area (8 Cols) -->
-          <div class="lg:col-span-8 relative min-w-0 bg-[#002D29] overflow-hidden">
+          <div class="lg:col-span-8 relative min-w-0 bg-[#002D29] overflow-hidden h-[290px] sm:h-[370px] lg:h-[430px]">
             <BaseMap
               ref="mapComponentRef"
               :initialCenter="[107.55, -6.65]"
               :initialZoom="8.2"
               :initialPitch="25"
               :initialBearing="0"
-              styleType="osm"
+              :styleType="activeMapLayer"
               :markers="bkkMapMarkers"
-              height="430px"
+              height="100%"
               @selectMarker="selectOffice"
               @mapMove="onCameraMove"
             />
@@ -1604,7 +1658,7 @@ const modaReadinessRadarOption = computed(() => {
               <div class="absolute bottom-8 right-3 w-5 h-5 border-b border-r border-[#00A99D]/55"></div>
 
               <!-- Concentric Tactical Radar Reticle Rings -->
-              <div class="relative w-[320px] h-[320px] sm:w-[380px] sm:h-[380px] rounded-full border border-[#00A99D]/25 flex items-center justify-center">
+              <div class="relative w-[220px] h-[220px] sm:w-[340px] sm:h-[340px] lg:w-[380px] lg:h-[380px] rounded-full border border-[#00A99D]/25 flex items-center justify-center">
                 <div class="w-[72%] h-[72%] rounded-full border border-dashed border-[#00A99D]/25 flex items-center justify-center">
                   <div class="w-[48%] h-[48%] rounded-full border border-[#99CC33]/30 flex items-center justify-center">
                     <div class="w-2.5 h-2.5 rounded-full border border-[#99CC33] bg-[#00A99D]/40"></div>
@@ -1623,8 +1677,8 @@ const modaReadinessRadarOption = computed(() => {
               </div>
             </div>
 
-            <!-- Top Left Telemetry HUD Overlay -->
-            <div class="absolute top-3 left-3 z-20 w-48 rounded-lg bg-[#00221F]/90 backdrop-blur-sm border border-[#00A99D]/35 px-2.5 py-2 shadow-lg text-[10px] font-mono text-[#99DFD6] pointer-events-none">
+            <!-- Top Left Telemetry HUD Overlay (Hidden on very small screens to avoid crowding map) -->
+            <div class="hidden sm:block absolute top-3 left-3 z-20 w-48 rounded-lg bg-[#00221F]/90 backdrop-blur-sm border border-[#00A99D]/35 px-2.5 py-2 shadow-lg text-[10px] font-mono text-[#99DFD6] pointer-events-none">
               <div class="flex items-center justify-between border-b border-[#00A99D]/25 pb-1 mb-1">
                 <div class="flex items-center gap-1 font-bold text-[#99CC33]">
                   <Terminal class="w-3 h-3 text-[#99CC33]" />
@@ -1651,8 +1705,8 @@ const modaReadinessRadarOption = computed(() => {
             <!-- Bottom Right Target Node Telemetry HUD -->
             <div
               v-if="activeMapNode"
-              class="absolute bottom-3 right-3 z-20 rounded-lg bg-[#00221F]/92 backdrop-blur-sm border border-[#00A99D]/40 shadow-lg transition-all duration-200 text-white"
-              :class="isNodeCardMinimized ? 'w-48 px-2.5 py-1.5' : 'w-68 sm:w-76 px-3 py-2.5'"
+              class="absolute bottom-2.5 right-2.5 sm:bottom-3 sm:right-3 z-20 rounded-lg bg-[#00221F]/92 backdrop-blur-sm border border-[#00A99D]/40 shadow-lg transition-all duration-200 text-white"
+              :class="isNodeCardMinimized ? 'w-44 sm:w-48 px-2.5 py-1.5' : 'w-56 sm:w-72 px-2.5 sm:px-3 py-2 sm:py-2.5'"
             >
               <div class="flex items-center justify-between gap-1.5">
                 <div class="flex items-center gap-2 min-w-0">
@@ -1737,8 +1791,8 @@ const modaReadinessRadarOption = computed(() => {
             </div>
 
             <!-- Interactive Circular Radar Scope -->
-            <div class="relative z-10 my-3 flex items-center justify-center">
-              <div class="relative w-72 h-72 sm:w-80 sm:h-80 rounded-full bg-[#001715] border-2 border-[#00A99D]/60 shadow-[0_0_40px_rgba(0,169,157,0.28)] flex items-center justify-center overflow-hidden">
+            <div class="relative z-10 my-2 sm:my-3 flex items-center justify-center">
+              <div class="relative w-56 h-56 sm:w-72 sm:h-72 lg:w-80 lg:h-80 rounded-full bg-[#001715] border-2 border-[#00A99D]/60 shadow-[0_0_40px_rgba(0,169,157,0.28)] flex items-center justify-center overflow-hidden">
                 <!-- Range Rings (25%, 50%, 75%, 100%) -->
                 <div class="absolute w-[82%] h-[82%] rounded-full border border-[#00A99D]/25"></div>
                 <div class="absolute w-[60%] h-[60%] rounded-full border border-dashed border-[#00A99D]/30"></div>
@@ -2641,23 +2695,23 @@ const modaReadinessRadarOption = computed(() => {
       <div v-if="dashboardViewMode !== 'sinkarkes'" class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 font-sans">
         
         <!-- 30-Day Trend Multi-Series ECharts (7 Cols) -->
-        <div class="lg:col-span-7 rounded-2xl p-4 bg-white border border-slate-200/90 shadow-2xs flex flex-col justify-between">
+        <div class="lg:col-span-7 clinical-surface p-4 flex flex-col justify-between">
           <div>
             <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
               <div>
-                <h3 class="text-xs sm:text-sm font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
+                <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-1.5">
                   <ChartLine class="w-4 h-4 text-[#00A99D]" />
                   Tren Pengawasan 30 Hari Terakhir
                 </h3>
               </div>
 
               <!-- Line vs Bar Mode -->
-              <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200">
+              <div class="inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-[#16202a] border border-slate-200 dark:border-slate-700">
                 <button
                   type="button"
                   @click="trendViewMode = 'line'"
                   class="p-1 rounded transition-all cursor-pointer"
-                  :class="trendViewMode === 'line' ? 'bg-[#005851] text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700'"
+                  :class="trendViewMode === 'line' ? 'bg-[#005851] text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
                   title="Grafik Garis"
                 >
                   <ChartLine class="w-3.5 h-3.5" />
@@ -2666,7 +2720,7 @@ const modaReadinessRadarOption = computed(() => {
                   type="button"
                   @click="trendViewMode = 'bar'"
                   class="p-1 rounded transition-all cursor-pointer"
-                  :class="trendViewMode === 'bar' ? 'bg-[#005851] text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700'"
+                  :class="trendViewMode === 'bar' ? 'bg-[#005851] text-white shadow-2xs font-bold' : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'"
                   title="Grafik Batang"
                 >
                   <ChartColumn class="w-3.5 h-3.5" />
@@ -2681,40 +2735,40 @@ const modaReadinessRadarOption = computed(() => {
           </div>
 
           <!-- Series Checklist -->
-          <div class="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-3 text-[11px]">
+          <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-3 text-[11px]">
             <button type="button" @click="toggleSeries('total')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.total ? 'bg-[#005851]' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.total ? 'bg-[#005851]' : 'bg-slate-200 dark:bg-slate-700'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.total ? 'font-bold text-[#005851]' : 'text-slate-400'">Total ({{ kpi.total }})</span>
+              <span :class="seriesVisibility.total ? 'font-bold text-[#005851] dark:text-[#5eead4]' : 'text-slate-400 dark:text-slate-500'">Total ({{ kpi.total }})</span>
             </button>
 
             <button type="button" @click="toggleSeries('aircraft')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.aircraft ? 'bg-[#00A99D]' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.aircraft ? 'bg-[#00A99D]' : 'bg-slate-200 dark:bg-slate-700'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.aircraft ? 'font-bold text-[#005851]' : 'text-slate-400'">Pesawat ({{ aircraft_stats.total }})</span>
+              <span :class="seriesVisibility.aircraft ? 'font-bold text-[#005851] dark:text-[#5eead4]' : 'text-slate-400 dark:text-slate-500'">Pesawat ({{ aircraft_stats.total }})</span>
             </button>
 
             <button type="button" @click="toggleSeries('ship')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.ship ? 'bg-[#007D74]' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.ship ? 'bg-[#007D74]' : 'bg-slate-200 dark:bg-slate-700'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.ship ? 'font-bold text-[#005851]' : 'text-slate-400'">Kapal ({{ ship_stats.total }})</span>
+              <span :class="seriesVisibility.ship ? 'font-bold text-[#005851] dark:text-[#5eead4]' : 'text-slate-400 dark:text-slate-500'">Kapal ({{ ship_stats.total }})</span>
             </button>
 
             <button type="button" @click="toggleSeries('alat')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.alat ? 'bg-[#7CA622]' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.alat ? 'bg-[#7CA622]' : 'bg-slate-200 dark:bg-slate-700'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.alat ? 'font-bold text-[#557A18]' : 'text-slate-400'">Alkes ({{ medical_stats.alat }})</span>
+              <span :class="seriesVisibility.alat ? 'font-bold text-[#557A18] dark:text-[#bef264]' : 'text-slate-400 dark:text-slate-500'">Alkes ({{ medical_stats.alat }})</span>
             </button>
 
             <button type="button" @click="toggleSeries('obat')" class="inline-flex items-center gap-1 cursor-pointer">
-              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.obat ? 'bg-[#E11D48]' : 'bg-slate-200'">
+              <span class="w-3 h-3 rounded flex items-center justify-center text-white" :class="seriesVisibility.obat ? 'bg-[#E11D48]' : 'bg-slate-200 dark:bg-slate-700'">
                 <Check class="w-2 h-2 stroke-[3]" />
               </span>
-              <span :class="seriesVisibility.obat ? 'font-bold text-slate-800' : 'text-slate-400'">Obat ({{ medical_stats.obat }})</span>
+              <span :class="seriesVisibility.obat ? 'font-bold text-slate-800 dark:text-rose-300' : 'text-slate-400 dark:text-slate-500'">Obat ({{ medical_stats.obat }})</span>
             </button>
           </div>
         </div>
@@ -2723,7 +2777,7 @@ const modaReadinessRadarOption = computed(() => {
         <div class="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3">
           
           <!-- Card 1: Tindakan Karantina Pesawat -->
-          <div class="rounded-2xl p-4 bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+          <div class="clinical-surface p-4">
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <Plane class="w-3.5 h-3.5 text-[#00A99D]" />
@@ -2745,7 +2799,7 @@ const modaReadinessRadarOption = computed(() => {
           </div>
 
           <!-- Card 2: Temuan Risiko Kapal (32 Area IHR 2005) -->
-          <div class="rounded-2xl p-4 bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 shadow-2xs">
+          <div class="clinical-surface p-4">
             <div class="flex items-center justify-between mb-2">
               <h4 class="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
                 <Ship class="w-3.5 h-3.5 text-[#005851] dark:text-[#5eead4]" />
@@ -2776,16 +2830,16 @@ const modaReadinessRadarOption = computed(() => {
       <!-- ========================================================================= -->
       <!-- COMPACT LIVE FEED & AUDIT TRAIL TABLE                                     -->
       <!-- ========================================================================= -->
-      <div v-if="dashboardViewMode !== 'sinkarkes'" class="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden font-sans">
+      <div v-if="dashboardViewMode !== 'sinkarkes'" class="clinical-surface overflow-hidden font-sans">
         
         <!-- Header & Tabs -->
-        <div class="px-4 py-2.5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2.5 text-xs">
-          <div class="flex items-center gap-1.5">
+        <div class="px-4 py-2.5 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs">
+          <div class="flex flex-wrap items-center gap-1.5">
             <button
               type="button"
               @click="activeFeedTab = 'inspections'"
               class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5"
-              :class="activeFeedTab === 'inspections' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 hover:text-[#005851] bg-slate-100'"
+              :class="activeFeedTab === 'inspections' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#5eead4] bg-slate-100 dark:bg-[#16202a]'"
             >
               <ClipboardCheck class="w-3.5 h-3.5" />
               <span>Dokumen Pemeriksaan Terkini</span>
@@ -2798,7 +2852,7 @@ const modaReadinessRadarOption = computed(() => {
               type="button"
               @click="activeFeedTab = 'activities'"
               class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5"
-              :class="activeFeedTab === 'activities' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 hover:text-[#005851] bg-slate-100'"
+              :class="activeFeedTab === 'activities' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#5eead4] bg-slate-100 dark:bg-[#16202a]'"
             >
               <Activity class="w-3.5 h-3.5" />
               <span>Audit Log ({{ recent_activities.length }})</span>
@@ -2808,7 +2862,7 @@ const modaReadinessRadarOption = computed(() => {
               type="button"
               @click="activeFeedTab = 'logins'"
               class="px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer flex items-center gap-1.5"
-              :class="activeFeedTab === 'logins' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 hover:text-[#005851] bg-slate-100'"
+              :class="activeFeedTab === 'logins' ? 'bg-[#005851] text-white shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#5eead4] bg-slate-100 dark:bg-[#16202a]'"
             >
               <LogIn class="w-3.5 h-3.5" />
               <span>Sesi Login ({{ recent_logins.length }})</span>
@@ -2819,7 +2873,7 @@ const modaReadinessRadarOption = computed(() => {
           <div v-if="activeFeedTab === 'inspections'" class="flex items-center gap-2">
             <select
               v-model="statusFilterFeed"
-              class="px-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 font-medium focus:outline-none focus:border-[#00A99D]"
+              class="px-2 py-1 rounded-lg bg-slate-50 dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 font-medium focus:outline-none focus:border-[#00A99D]"
             >
               <option value="all">Semua Status</option>
               <option value="submitted">Diajukan</option>
@@ -2833,7 +2887,7 @@ const modaReadinessRadarOption = computed(() => {
                 v-model="searchFeed"
                 type="text"
                 placeholder="Cari no reg / armada..."
-                class="w-full pl-6 pr-2 py-1 rounded-lg bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:bg-white focus:border-[#00A99D]"
+                class="w-full pl-6 pr-2 py-1 rounded-lg bg-slate-50 dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:bg-white dark:focus:bg-[#192430] focus:border-[#00A99D]"
               />
             </div>
           </div>
@@ -2843,7 +2897,7 @@ const modaReadinessRadarOption = computed(() => {
         <div v-if="activeFeedTab === 'inspections'" class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="bg-slate-50 text-slate-900 font-bold border-b border-slate-100 text-[11px]">
+              <tr class="bg-slate-50 dark:bg-[#16202a] text-slate-900 dark:text-slate-200 font-bold border-b border-slate-100 dark:border-slate-800 text-[11px]">
                 <th class="py-2.5 px-3">Layanan</th>
                 <th class="py-2.5 px-3">No. Registrasi</th>
                 <th class="py-2.5 px-3">Armada / Subjek</th>
@@ -2854,21 +2908,21 @@ const modaReadinessRadarOption = computed(() => {
                 <th class="py-2.5 px-3 text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-100">
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
               <tr
                 v-for="item in filteredInspections"
                 :key="item.registration_no"
-                class="hover:bg-[#E6F7F5]/30 transition-colors"
+                class="hover:bg-[#E6F7F5]/30 dark:hover:bg-[#00A99D]/10 transition-colors"
               >
                 <!-- Layanan Badge (Harmonized to Kemenkes Brand) -->
                 <td class="py-2 px-3 whitespace-nowrap">
                   <span
                     class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold"
                     :class="{
-                      'bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]': item.module === 'aircraft',
-                      'bg-[#E0EFEF] text-[#005851] border border-[#99DFD6]': item.module === 'ship',
-                      'bg-[#F7FCE8] text-[#557A18] border border-[#D6EC8E]': item.module === 'alat',
-                      'bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]': item.module === 'obat',
+                      'bg-[#E6F7F5] dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#5eead4] border border-[#99DFD6] dark:border-[#00A99D]/40': item.module === 'aircraft',
+                      'bg-[#E0EFEF] dark:bg-cyan-500/15 text-[#005851] dark:text-cyan-300 border border-[#99DFD6] dark:border-cyan-500/40': item.module === 'ship',
+                      'bg-[#F7FCE8] dark:bg-lime-500/15 text-[#557A18] dark:text-lime-300 border border-[#D6EC8E] dark:border-lime-500/40': item.module === 'alat',
+                      'bg-[#E6F7F5] dark:bg-emerald-500/15 text-[#005851] dark:text-emerald-300 border border-[#99DFD6] dark:border-emerald-500/40': item.module === 'obat',
                     }"
                   >
                     <component :is="moduleIconMap[item.module] || Layers" class="w-3 h-3" />
@@ -2876,26 +2930,26 @@ const modaReadinessRadarOption = computed(() => {
                   </span>
                 </td>
 
-                <td class="py-2 px-3 whitespace-nowrap font-mono font-bold text-[#005851]">
+                <td class="py-2 px-3 whitespace-nowrap font-mono font-bold text-[#005851] dark:text-[#5eead4]">
                   {{ item.registration_no }}
                 </td>
 
-                <td class="py-2 px-3 text-slate-800 font-semibold max-w-xs truncate" :title="item.subject">
+                <td class="py-2 px-3 text-slate-800 dark:text-slate-100 font-semibold max-w-xs truncate" :title="item.subject">
                   {{ item.subject }}
                 </td>
 
-                <td class="py-2 px-3 whitespace-nowrap text-slate-600">
+                <td class="py-2 px-3 whitespace-nowrap text-slate-600 dark:text-slate-300">
                   {{ item.officer }}
                 </td>
 
-                <td class="py-2 px-3 whitespace-nowrap text-slate-600">
+                <td class="py-2 px-3 whitespace-nowrap text-slate-600 dark:text-slate-300">
                   <span class="inline-flex items-center gap-1">
                     <MapPin class="w-3 h-3 text-[#00A99D]" />
                     {{ item.office }}
                   </span>
                 </td>
 
-                <td class="py-2 px-3 whitespace-nowrap text-slate-500 text-[11px] font-mono">
+                <td class="py-2 px-3 whitespace-nowrap text-slate-500 dark:text-slate-400 text-[11px] font-mono">
                   {{ item.date }}
                 </td>
 
@@ -2904,17 +2958,17 @@ const modaReadinessRadarOption = computed(() => {
                     <span
                       class="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase tracking-wider font-mono"
                       :class="{
-                        'bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]': item.status === 'approved',
-                        'bg-amber-50 text-amber-700 border border-amber-200': item.status === 'submitted',
-                        'bg-[#F7FCE8] text-[#557A18] border border-[#D6EC8E]': item.status === 'verified',
-                        'bg-rose-50 text-rose-700 border border-rose-200': item.status === 'rejected',
+                        'bg-[#E6F7F5] dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#5eead4] border border-[#99DFD6] dark:border-[#00A99D]/40': item.status === 'approved',
+                        'bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-500/40': item.status === 'submitted',
+                        'bg-[#F7FCE8] dark:bg-lime-500/15 text-[#557A18] dark:text-lime-300 border border-[#D6EC8E] dark:border-lime-500/40': item.status === 'verified',
+                        'bg-rose-50 dark:bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-500/40': item.status === 'rejected',
                       }"
                     >
                       {{ item.status_label }}
                     </span>
                     <span
                       class="text-[11px] font-semibold"
-                      :class="item.result_ok ? 'text-[#00A99D] font-bold' : 'text-rose-600 font-bold'"
+                      :class="item.result_ok ? 'text-[#00A99D] font-bold' : 'text-rose-600 dark:text-rose-400 font-bold'"
                     >
                       {{ item.result }}
                     </span>
@@ -2924,7 +2978,7 @@ const modaReadinessRadarOption = computed(() => {
                 <td class="py-2 px-3 whitespace-nowrap text-right">
                   <Link
                     :href="getUrl(item.url)"
-                    class="inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#E6F7F5] hover:bg-[#00A99D] text-[#005851] hover:text-white transition-all border border-[#99DFD6]/60"
+                    class="inline-flex items-center gap-0.5 px-2.5 py-0.5 rounded text-[11px] font-semibold bg-[#E6F7F5] dark:bg-[#00A99D]/15 hover:bg-[#00A99D] text-[#005851] dark:text-[#5eead4] hover:text-white transition-all border border-[#99DFD6]/60 dark:border-[#00A99D]/40"
                   >
                     <span>Buka</span>
                     <ChevronRight class="w-3 h-3" />
@@ -2933,7 +2987,7 @@ const modaReadinessRadarOption = computed(() => {
               </tr>
 
               <tr v-if="filteredInspections.length === 0">
-                <td colspan="8" class="py-6 text-center text-slate-500 text-xs">
+                <td colspan="8" class="py-6 text-center text-slate-500 dark:text-slate-400 text-xs">
                   Tidak ada dokumen pemeriksaan yang cocok dengan filter yang dipilih.
                 </td>
               </tr>
@@ -2946,24 +3000,24 @@ const modaReadinessRadarOption = computed(() => {
           <div
             v-for="act in recent_activities"
             :key="act.id"
-            class="flex items-start justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs"
+            class="flex items-start justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#16202a] border border-slate-100 dark:border-slate-800 text-xs"
           >
             <div class="flex items-start gap-2">
-              <div class="w-6 h-6 rounded-full bg-[#E6F7F5] text-[#005851] flex items-center justify-center font-bold text-[10px] shrink-0 font-mono">
+              <div class="w-6 h-6 rounded-full bg-[#E6F7F5] dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#5eead4] flex items-center justify-center font-bold text-[10px] shrink-0 font-mono">
                 {{ act.causer_name.charAt(0) }}
               </div>
               <div>
-                <div class="font-bold text-slate-900">
+                <div class="font-bold text-slate-900 dark:text-slate-100">
                   {{ act.causer_name }}
-                  <span class="font-normal text-slate-500">melakukan</span>
-                  <span class="font-semibold text-[#005851]">{{ act.event || 'aktivitas' }}</span>
+                  <span class="font-normal text-slate-500 dark:text-slate-400">melakukan</span>
+                  <span class="font-semibold text-[#005851] dark:text-[#5eead4]">{{ act.event || 'aktivitas' }}</span>
                 </div>
-                <div class="text-slate-600 text-[11px]">
+                <div class="text-slate-600 dark:text-slate-300 text-[11px]">
                   {{ act.description }}
                 </div>
               </div>
             </div>
-            <span class="text-[10px] text-slate-400 shrink-0 ml-2 font-mono">
+            <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 ml-2 font-mono">
               {{ act.created_at }}
             </span>
           </div>
@@ -2974,22 +3028,22 @@ const modaReadinessRadarOption = computed(() => {
           <div
             v-for="lh in recent_logins"
             :key="lh.id"
-            class="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-100 text-xs"
+            class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-[#16202a] border border-slate-100 dark:border-slate-800 text-xs"
           >
             <div class="flex items-center gap-2">
-              <div class="w-6 h-6 rounded-full bg-[#E6F7F5] text-[#005851] flex items-center justify-center shrink-0">
+              <div class="w-6 h-6 rounded-full bg-[#E6F7F5] dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#5eead4] flex items-center justify-center shrink-0">
                 <LogIn class="w-3 h-3" />
               </div>
               <div>
-                <div class="font-bold text-slate-900">{{ lh.user_name }} ({{ lh.email }})</div>
-                <div class="text-[10px] text-slate-500 font-mono">IP: {{ lh.ip_address }} &bull; Perangkat: {{ lh.device }}</div>
+                <div class="font-bold text-slate-900 dark:text-slate-100">{{ lh.user_name }} ({{ lh.email }})</div>
+                <div class="text-[10px] text-slate-500 dark:text-slate-400 font-mono">IP: {{ lh.ip_address }} &bull; Perangkat: {{ lh.device }}</div>
               </div>
             </div>
             <div class="text-right">
-              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6] font-mono">
+              <span class="px-1.5 py-0.2 rounded text-[9px] font-bold bg-[#E6F7F5] dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#5eead4] border border-[#99DFD6] dark:border-[#00A99D]/40 font-mono">
                 {{ lh.status }}
               </span>
-              <div class="text-[10px] text-slate-400 mt-0.5 font-mono">{{ lh.login_at }}</div>
+              <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 font-mono">{{ lh.login_at }}</div>
             </div>
           </div>
         </div>

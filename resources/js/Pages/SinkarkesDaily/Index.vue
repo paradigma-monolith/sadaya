@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
 import { toast } from 'vue-sonner';
+import { useConfirm } from '@/composables/useConfirm';
 import {
   Ship,
   Plane,
@@ -293,8 +294,16 @@ const saveDailyRecord = () => {
   });
 };
 
-const deleteRecord = (record) => {
-  if (!confirm(`Hapus entri harian ${record.transport_type.toUpperCase()} tanggal ${record.tanggal} (${record.wilker})? Nilai di SINKARKES akan otomatis dikurangi.`)) {
+const { confirmDialog } = useConfirm();
+
+const deleteRecord = async (record) => {
+  const ok = await confirmDialog({
+    title: 'Hapus Entri Rekap Harian?',
+    message: `Hapus entri harian ${record.transport_type.toUpperCase()} tanggal ${record.tanggal} (${record.wilker})? Nilai di SINKARKES akan otomatis dikurangi.`,
+    confirmText: 'Hapus Entri',
+    variant: 'danger',
+  });
+  if (!ok) {
     return;
   }
   router.delete(`/sinkarkes-daily/${record.id}`, {
@@ -632,12 +641,12 @@ const formatDateId = (isoDate) => {
           <button
             type="button"
             @click="switchTab('akumulasi')"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
+            class="clinical-tab cursor-pointer"
             :class="activeTab === 'akumulasi'
-              ? 'bg-rose-600 text-white shadow-sm'
-              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
+              ? '!bg-rose-600 !text-white !border-rose-600 shadow-sm'
+              : 'clinical-tab-inactive'"
           >
-            <Calculator class="w-4 h-4" />
+            <Calculator class="w-3.5 h-3.5" />
             <span>Akumulasi &rarr; Formulir SINKARKES</span>
           </button>
         </div>

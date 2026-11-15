@@ -2,8 +2,10 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import ClinicalSkeleton from '../../Components/ClinicalSkeleton.vue';
 import schemaData from '../../data/sinkarkes_schema.json';
 import { toast } from 'vue-sonner';
+import { useConfirm } from '@/composables/useConfirm';
 import {
   FileSpreadsheet,
   BarChart3,
@@ -347,6 +349,9 @@ const nextMonth = () => {
   }
 };
 
+const { confirmDialog } = useConfirm();
+const isLoadingPeriod = ref(false);
+
 // Period filter change (Wilker or Year)
 const handlePeriodChange = () => {
   router.get('/sinkarkes', {
@@ -356,13 +361,21 @@ const handlePeriodChange = () => {
   }, {
     preserveState: true,
     replace: true,
+    onStart: () => { isLoadingPeriod.value = true; },
+    onFinish: () => { isLoadingPeriod.value = false; },
   });
 };
 
 // Clear active month form data
-const resetActiveMonth = () => {
+const resetActiveMonth = async () => {
   const monthLabel = monthsList.value.find(m => m.id === activeMonth.value)?.label;
-  if (confirm(`Apakah Anda yakin ingin mengosongkan seluruh isian data bulan ${monthLabel} ${selectedYear.value}?`)) {
+  const ok = await confirmDialog({
+    title: `Kosongkan Data ${monthLabel} ${selectedYear.value}?`,
+    message: `Seluruh isian formulir bulan ${monthLabel} ${selectedYear.value} pada seksi aktif akan dikosongkan. Perubahan baru bersifat sementara sampai Anda menekan Simpan Data.`,
+    confirmText: 'Ya, Kosongkan Bulan Ini',
+    variant: 'warning',
+  });
+  if (ok) {
     localMonthlyData.value[activeMonth.value] = {};
     isDirty.value = true;
     toast.info('Isian bulan aktif telah dikosongkan.');
@@ -795,12 +808,14 @@ onUnmounted(() => {
       </div>
 
       <!-- Main Form Data Table -->
-      <div class="w-full clinical-surface overflow-hidden">
-        <div class="w-full overflow-x-auto">
+      <ClinicalSkeleton v-if="isLoadingPeriod" variant="table" :rows="8" :cols="6" />
+
+      <div v-else class="w-full clinical-surface overflow-hidden">
+        <div class="w-full overflow-auto max-h-[72vh]">
           <table class="w-full min-w-[680px] text-left text-xs border-collapse">
-            <!-- Table Header -->
-            <thead>
-              <tr class="bg-slate-100/90 dark:bg-[#16202a] text-slate-700 dark:text-slate-200 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
+            <!-- Sticky Table Header -->
+            <thead class="sticky top-0 z-20 shadow-xs">
+              <tr class="bg-slate-100 dark:bg-[#16202a] text-slate-700 dark:text-slate-200 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
                 <th class="py-2.5 px-3 sm:px-4 w-14 text-center whitespace-nowrap">Row</th>
                 <th class="py-2.5 px-2 sm:px-3 w-16 text-center whitespace-nowrap">No</th>
                 <th class="py-2.5 px-3 sm:px-4 w-full min-w-[280px] sm:min-w-[420px]">
@@ -808,7 +823,7 @@ onUnmounted(() => {
                 </th>
                 <th class="py-2.5 px-2 sm:px-3 w-24 text-center whitespace-nowrap">Satuan</th>
                 <th class="py-2.5 px-2 sm:px-3 w-28 text-center whitespace-nowrap">Tipe</th>
-                <th class="py-2.5 px-3 sm:px-5 w-48 sm:w-60 text-right whitespace-nowrap bg-slate-200/50 dark:bg-[#1b2733]">
+                <th class="py-2.5 px-3 sm:px-5 w-48 sm:w-60 text-right whitespace-nowrap bg-slate-200 dark:bg-[#1b2733]">
                   Nilai ({{ monthsList.find(m => m.id === activeMonth)?.label }})
                 </th>
               </tr>
@@ -1215,6 +1230,42 @@ onUnmounted(() => {
             </div>
 
           </div>
+        </div>
+      </transition>
+
+      <!-- Floating Sticky Save Bar (muncul otomatis saat ada perubahan belum disimpan) -->
+      <transition
+        enter-active-class="transition duration-200 ease-out"
+        enter-from-class="translate-y-6 opacity-0"
+        enter-to-class="translate-y-0 opacity-100"
+        leave-active-class="transition duration-150 ease-in"
+        leave-from-class="translate-y-0 opacity-100"
+        leave-to-class="translate-y-6 opacity-0"
+      >
+        <div
+          v-if="isDirty && !showImportModal"
+          class="fixed bottom-4 left-3 right-20 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:w-full z-30 max-w-lg bg-slate-900 dark:bg-[#0f1720] text-white border border-amber-400/50 rounded-xl shadow-2xl px-3.5 sm:px-4 py-2.5 flex items-center justify-between gap-2.5"
+        >
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+            <div class="min-w-0">
+              <p class="text-xs font-bold truncate">Perubahan SINKARKES belum disimpan</p>
+              <p class="text-[10px] text-slate-300 font-mono truncate">
+                {{ selectedWilker }} &bull; {{ monthsList.find(m => m.id === activeMonth)?.label }} {{ selectedYear }}
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            @click="saveReport()"
+            :disabled="isSaving"
+            class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold text-[#002B27] bg-[#99CC33] hover:bg-[#8ec226] disabled:opacity-50 transition-colors cursor-pointer shrink-0"
+          >
+            <Save v-if="!isSaving" class="w-3.5 h-3.5" />
+            <span v-else class="w-3.5 h-3.5 border-2 border-[#002B27] border-t-transparent rounded-full animate-spin"></span>
+            <span>{{ isSaving ? 'Menyimpan...' : 'Simpan Sekarang' }}</span>
+          </button>
         </div>
       </transition>
 

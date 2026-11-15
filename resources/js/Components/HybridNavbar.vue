@@ -26,6 +26,8 @@ import {
 import AdminSidebar from './AdminSidebar.vue';
 import FloatingChat from './FloatingChat.vue';
 import CommandPalette from './CommandPalette.vue';
+import ConfirmDialog from './ConfirmDialog.vue';
+import ClinicalSkeleton from './ClinicalSkeleton.vue';
 import { Toaster } from 'vue-sonner';
 import { useSidebar } from '@/composables/useSidebar';
 import { useTheme } from '@/composables/useTheme';
@@ -135,10 +137,12 @@ const brandBadge = computed(() => {
 const inertiaDropdownOpen = ref(false);
 const spaDropdownOpen = ref(false);
 const showNotifications = ref(false);
+const showUserMenu = ref(false);
 
 const inertiaDropdownRef = ref(null);
 const spaDropdownRef = ref(null);
 const notifDropdownRef = ref(null);
+const userDropdownRef = ref(null);
 
 const isInertiaActive = computed(() => {
   return !isSpa.value && ['dashboard', 'map', 'products', 'audit'].includes(activeNav.value);
@@ -153,6 +157,7 @@ const toggleInertiaDropdown = () => {
   if (inertiaDropdownOpen.value) {
     spaDropdownOpen.value = false;
     showNotifications.value = false;
+    showUserMenu.value = false;
   }
 };
 
@@ -161,6 +166,7 @@ const toggleSpaDropdown = () => {
   if (spaDropdownOpen.value) {
     inertiaDropdownOpen.value = false;
     showNotifications.value = false;
+    showUserMenu.value = false;
   }
 };
 
@@ -169,6 +175,17 @@ const toggleNotifications = () => {
   if (showNotifications.value) {
     inertiaDropdownOpen.value = false;
     spaDropdownOpen.value = false;
+    showUserMenu.value = false;
+    fetchNotifications();
+  }
+};
+
+const toggleUserMenu = () => {
+  showUserMenu.value = !showUserMenu.value;
+  if (showUserMenu.value) {
+    inertiaDropdownOpen.value = false;
+    spaDropdownOpen.value = false;
+    showNotifications.value = false;
   }
 };
 
@@ -176,6 +193,7 @@ const closeAllDropdowns = () => {
   inertiaDropdownOpen.value = false;
   spaDropdownOpen.value = false;
   showNotifications.value = false;
+  showUserMenu.value = false;
 };
 
 const handleClickOutside = (e) => {
@@ -187,6 +205,9 @@ const handleClickOutside = (e) => {
   }
   if (notifDropdownRef.value && !notifDropdownRef.value.contains(e.target)) {
     showNotifications.value = false;
+  }
+  if (userDropdownRef.value && !userDropdownRef.value.contains(e.target)) {
+    showUserMenu.value = false;
   }
 };
 
@@ -252,9 +273,13 @@ const openCommandPalette = () => {
 // Real-Time Notifications State
 const unreadCount = ref(0);
 const notifications = ref([]);
+const isLoadingNotifications = ref(false);
 
 const fetchNotifications = async () => {
   if (!currentUser.value) return;
+  if (notifications.value.length === 0) {
+    isLoadingNotifications.value = true;
+  }
   try {
     const res = await fetch(getUrl('/notifications'));
     if (res.ok) {
@@ -264,6 +289,8 @@ const fetchNotifications = async () => {
     }
   } catch (e) {
     // silent fallback
+  } finally {
+    isLoadingNotifications.value = false;
   }
 };
 
@@ -551,64 +578,124 @@ const handleLogout = () => {
                     </div>
 
                     <div class="flex-1 min-h-0 overflow-y-auto space-y-2 overscroll-contain pr-1">
-                      <div 
-                        v-for="n in notifications" 
-                        :key="n.id" 
-                        @click="markSingleRead(n)"
-                        class="p-2.5 rounded-xl text-xs transition-colors cursor-pointer hover:border-[#99DFD6] dark:hover:border-[#00A99D]/50 border" 
-                        :class="n.read_at ? 'bg-slate-50 dark:bg-[#16202a] border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400' : 'bg-[#E6F7F5]/50 dark:bg-[#00A99D]/10 border-[#99DFD6] dark:border-[#00A99D]/40 text-slate-800 dark:text-slate-100'"
-                      >
-                        <div class="flex items-start justify-between gap-1.5">
-                          <div class="font-semibold text-[#005851] dark:text-[#4fd1c5] text-xs leading-tight">
-                            {{ n.data?.title || 'Pemberitahuan Sistem' }}
-                          </div>
-                          <span v-if="!n.read_at" class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0 mt-1"></span>
-                        </div>
-                        <div class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                          {{ n.data?.message }}
-                        </div>
-                        <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 font-mono">
-                          {{ n.data?.time || 'baru saja' }}
-                        </div>
-                      </div>
+                      <ClinicalSkeleton v-if="isLoadingNotifications && notifications.length === 0" variant="lines" :rows="3" />
 
-                      <div v-if="notifications.length === 0" class="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
-                        <Radio class="w-6 h-6 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                        <p>Belum ada notifikasi baru.</p>
-                      </div>
+                      <template v-else>
+                        <div 
+                          v-for="n in notifications" 
+                          :key="n.id" 
+                          @click="markSingleRead(n)"
+                          class="p-2.5 rounded-xl text-xs transition-colors cursor-pointer hover:border-[#99DFD6] dark:hover:border-[#00A99D]/50 border" 
+                          :class="n.read_at ? 'bg-slate-50 dark:bg-[#16202a] border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400' : 'bg-[#E6F7F5]/50 dark:bg-[#00A99D]/10 border-[#99DFD6] dark:border-[#00A99D]/40 text-slate-800 dark:text-slate-100'"
+                        >
+                          <div class="flex items-start justify-between gap-1.5">
+                            <div class="font-semibold text-[#005851] dark:text-[#4fd1c5] text-xs leading-tight">
+                              {{ n.data?.title || 'Pemberitahuan Sistem' }}
+                            </div>
+                            <span v-if="!n.read_at" class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0 mt-1"></span>
+                          </div>
+                          <div class="text-[11px] text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                            {{ n.data?.message }}
+                          </div>
+                          <div class="text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 font-mono">
+                            {{ n.data?.time || 'baru saja' }}
+                          </div>
+                        </div>
+
+                        <div v-if="notifications.length === 0" class="py-8 text-center text-xs text-slate-400 dark:text-slate-500">
+                          <Radio class="w-6 h-6 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                          <p>Belum ada notifikasi baru.</p>
+                        </div>
+                      </template>
                     </div>
                   </div>
                 </Transition>
               </div>
 
-              <!-- User Profile Avatar Pill -->
-              <a
-                :href="getUrl('/profile')"
-                @click="handleNav('/profile', $event)"
-                title="Kelola Profil Akun"
-                class="flex items-center gap-2 p-1 sm:pr-3 rounded-full bg-white dark:bg-[#16202a] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all group cursor-pointer shrink-0 max-w-[180px]"
-              >
-                <img
-                  :src="currentUser?.avatar_url || 'https://ui-avatars.com/api/?name=Admin&background=0f172a&color=fff'"
-                  :alt="currentUser?.name || 'User'"
-                  class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
-                />
-                <div class="hidden md:block text-left min-w-0 flex-1">
-                  <span class="block font-semibold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 dark:group-hover:text-white truncate text-xs leading-tight">
-                    {{ currentUser?.name }}
-                  </span>
-                </div>
-              </a>
+              <!-- User Account Dropdown Menu (Accessible on Mobile & Desktop) -->
+              <div class="relative shrink-0" ref="userDropdownRef">
+                <button
+                  type="button"
+                  @click="toggleUserMenu"
+                  title="Menu Akun Pengguna"
+                  class="flex items-center gap-1.5 p-1 sm:pr-2.5 rounded-full bg-white dark:bg-[#16202a] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all group cursor-pointer max-w-[190px]"
+                >
+                  <img
+                    :src="currentUser?.avatar_url || 'https://ui-avatars.com/api/?name=Admin&background=0f172a&color=fff'"
+                    :alt="currentUser?.name || 'User'"
+                    class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                  />
+                  <div class="hidden md:block text-left min-w-0 flex-1">
+                    <span class="block font-semibold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 dark:group-hover:text-white truncate text-xs leading-tight">
+                      {{ currentUser?.name }}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    class="w-3.5 h-3.5 text-slate-400 hidden sm:block transition-transform duration-150"
+                    :class="showUserMenu ? 'rotate-180 text-[#00A99D]' : ''"
+                  />
+                </button>
 
-              <!-- Logout Button -->
-              <button
-                type="button"
-                @click="handleLogout"
-                title="Keluar dari sesi"
-                class="hidden md:inline-flex items-center gap-1 p-1.5 rounded-lg text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 bg-white dark:bg-[#16202a] hover:bg-rose-50 dark:hover:bg-rose-950/50 border border-slate-200 dark:border-slate-700 hover:border-rose-200 dark:hover:border-rose-800 transition-all cursor-pointer shrink-0"
-              >
-                <LogOut class="w-3.5 h-3.5" />
-              </button>
+                <Transition
+                  enter-active-class="transition duration-150 ease-out"
+                  enter-from-class="transform opacity-0 scale-95 -translate-y-1"
+                  enter-to-class="transform opacity-100 scale-100 translate-y-0"
+                  leave-active-class="transition duration-100 ease-in"
+                  leave-from-class="transform opacity-100 scale-100 translate-y-0"
+                  leave-to-class="transform opacity-0 scale-95 -translate-y-1"
+                >
+                  <div
+                    v-if="showUserMenu"
+                    class="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-[#111820] border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl py-1.5 z-50 text-xs"
+                  >
+                    <div class="px-3.5 py-2 border-b border-slate-100 dark:border-slate-800">
+                      <p class="font-bold text-slate-900 dark:text-slate-100 truncate">
+                        {{ currentUser?.name || 'Administrator' }}
+                      </p>
+                      <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                        {{ currentUser?.email || currentUser?.roles?.[0] || 'BKK Kelas I Bandung' }}
+                      </p>
+                    </div>
+
+                    <div class="p-1 space-y-0.5">
+                      <a
+                        :href="getUrl('/profile')"
+                        @click="handleNav('/profile', $event)"
+                        class="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium transition-colors cursor-pointer"
+                      >
+                        <UserIcon class="w-3.5 h-3.5 text-[#00A99D]" />
+                        <span>Profil &amp; Keamanan</span>
+                      </a>
+
+                      <button
+                        type="button"
+                        @click="toggleTheme(); showUserMenu = false"
+                        class="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium transition-colors cursor-pointer"
+                      >
+                        <span class="flex items-center gap-2">
+                          <Sun v-if="isDark" class="w-3.5 h-3.5 text-amber-400" />
+                          <Moon v-else class="w-3.5 h-3.5 text-slate-500" />
+                          <span>{{ isDark ? 'Mode Terang' : 'Mode Gelap' }}</span>
+                        </span>
+                        <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+                          {{ isDark ? 'DARK' : 'LIGHT' }}
+                        </span>
+                      </button>
+                    </div>
+
+                    <div class="border-t border-slate-100 dark:border-slate-800 p-1 mt-0.5">
+                      <button
+                        type="button"
+                        @click="handleLogout"
+                        class="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 font-semibold transition-colors cursor-pointer"
+                      >
+                        <LogOut class="w-3.5 h-3.5" />
+                        <span>Keluar dari Sesi</span>
+                      </button>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
             </div>
           </div>
         </div>
@@ -662,6 +749,9 @@ const handleLogout = () => {
 
     <!-- Global Command Palette Modal (Ctrl + K) -->
     <CommandPalette ref="commandPaletteRef" :mode="mode" />
+
+    <!-- Global In-App Confirm Dialog -->
+    <ConfirmDialog />
 
     <!-- Vue Sonner Global Rich Toasts -->
     <Toaster position="top-right" richColors :theme="isDark ? 'dark' : 'light'" />

@@ -2,6 +2,8 @@
 import { ref, computed, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import { toast } from 'vue-sonner';
+import { useConfirm } from '@/composables/useConfirm';
 import {
   Leaf,
   Utensils,
@@ -573,9 +575,11 @@ const openAddSarana = (type = 'tpp') => {
   showAddSaranaModal.value = true;
 };
 
+const { confirmDialog } = useConfirm();
+
 const submitSarana = async () => {
   if (!saranaForm.value.nama) {
-    alert('Nama sarana / gedung wajib diisi!');
+    toast.warning('Nama sarana / gedung wajib diisi!');
     return;
   }
   isSubmittingSarana.value = true;
@@ -611,12 +615,12 @@ const submitSarana = async () => {
 
     const res = await axios.post(endpoint, payload);
     if (res.data.success) {
-      alert(res.data.message);
+      toast.success(res.data.message || 'Data sarana berhasil disimpan');
       showAddSaranaModal.value = false;
       router.reload();
     }
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menyimpan data sarana.');
+    toast.error(err.response?.data?.message || 'Gagal menyimpan data sarana.');
   } finally {
     isSubmittingSarana.value = false;
   }
@@ -1412,11 +1416,11 @@ const submitPengendalian = async () => {
     };
 
     const res = await axios.post(`/prl/sivera/${pengendalianItem.value.id}/pengendalian`, payload);
-    alert(res.data.message);
+    toast.success(res.data.message || 'Tindakan pengendalian berhasil disimpan');
     showPengendalianModal.value = false;
     router.reload();
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menyimpan tindakan pengendalian.');
+    toast.error(err.response?.data?.message || 'Gagal menyimpan tindakan pengendalian.');
   } finally {
     isSubmittingPengendalian.value = false;
   }
@@ -1459,7 +1463,7 @@ const submitInspeksi = async () => {
   try {
     if (addInspeksiType.value === 'tpp') {
       if (!formTpp.value.nama_tpp) {
-        alert('Nama TPP wajib diisi atau dipilih!');
+        toast.warning('Nama TPP wajib diisi atau dipilih!');
         isSubmittingInspeksi.value = false;
         return;
       }
@@ -1491,10 +1495,10 @@ const submitInspeksi = async () => {
         saran_rencana_tindakan: formTpp.value.saran_rencana_tindakan,
       };
       const res = await axios.post('/prl/inspeksi/tpp', payload);
-      alert(res.data.message);
+      toast.success(res.data.message || 'Inspeksi TPP disimpan');
     } else if (addInspeksiType.value === 'sab') {
       if (!formSab.value.nama_sab) {
-        alert('Nama SAB wajib diisi atau dipilih!');
+        toast.warning('Nama SAB wajib diisi atau dipilih!');
         isSubmittingInspeksi.value = false;
         return;
       }
@@ -1527,10 +1531,10 @@ const submitInspeksi = async () => {
         saran_rencana_tindakan: formSab.value.saran_rencana_tindakan,
       };
       const res = await axios.post('/prl/inspeksi/sab', payload);
-      alert(res.data.message);
+      toast.success(res.data.message || 'Inspeksi SAB disimpan');
     } else if (addInspeksiType.value === 'hsbu') {
       if (!formHsbu.value.nama_gedung) {
-        alert('Nama Gedung HSBU wajib diisi atau dipilih!');
+        toast.warning('Nama Gedung HSBU wajib diisi atau dipilih!');
         isSubmittingInspeksi.value = false;
         return;
       }
@@ -1557,7 +1561,7 @@ const submitInspeksi = async () => {
         catatan: formHsbu.value.catatan,
       };
       const res = await axios.post('/prl/inspeksi/hsbu', payload);
-      alert(res.data.message);
+      toast.success(res.data.message || 'Inspeksi HSBU disimpan');
     } else if (addInspeksiType.value === 'sivera') {
       let payload = {};
 
@@ -1725,7 +1729,7 @@ const submitInspeksi = async () => {
       } else {
         res = await axios.post('/prl/sivera', payload);
       }
-      alert(res.data.message);
+      toast.success(res.data.message || 'Data surveilans disimpan');
     }
 
     showAddInspeksiModal.value = false;
@@ -1733,7 +1737,7 @@ const submitInspeksi = async () => {
     editId.value = null;
     router.reload();
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menyimpan data.');
+    toast.error(err.response?.data?.message || 'Gagal menyimpan data.');
   } finally {
     isSubmittingInspeksi.value = false;
   }
@@ -1741,15 +1745,21 @@ const submitInspeksi = async () => {
 
 // Delete Record
 const deleteInspection = async (item, type) => {
-  if (!confirm(`Apakah Anda yakin ingin menghapus catatan ${item.nama_tpp || item.nama_sab || item.nama_gedung || item.jenis_vektor}?`)) {
+  const ok = await confirmDialog({
+    title: 'Hapus Catatan?',
+    message: `Apakah Anda yakin ingin menghapus catatan ${item.nama_tpp || item.nama_sab || item.nama_gedung || item.jenis_vektor}?`,
+    confirmText: 'Ya, Hapus',
+    variant: 'danger',
+  });
+  if (!ok) {
     return;
   }
   try {
     const res = await axios.delete(`/prl/inspeksi/${type}/${item.id}`);
-    alert(res.data.message);
+    toast.success(res.data.message || 'Data berhasil dihapus');
     router.reload();
   } catch (err) {
-    alert(err.response?.data?.message || 'Gagal menghapus data.');
+    toast.error(err.response?.data?.message || 'Gagal menghapus data.');
   }
 };
 
@@ -1939,18 +1949,23 @@ const handleSaveSyncConfig = () => {
       modules: syncForm.value.modules,
     };
     localStorage.setItem('prl_sync_config', JSON.stringify(saved));
-    alert('Pengaturan koneksi sumber PRL berhasil disimpan.');
+    toast.success('Pengaturan koneksi sumber PRL berhasil disimpan.');
   } catch (e) {}
 };
 
 const handleRunSync = async () => {
   if (syncForm.value.modules.length === 0) {
-    alert('Pilih setidaknya 1 modul yang akan disinkronkan.');
+    toast.warning('Pilih setidaknya 1 modul yang akan disinkronkan.');
     return;
   }
 
   if (syncForm.value.truncate_first) {
-    const confirmed = confirm('PERINGATAN: Anda memilih opsi Kosongkan Tabel (Truncate). Seluruh data lokal modul terpilih akan dihapus sebelum sinkronisasi. Lanjutkan?');
+    const confirmed = await confirmDialog({
+      title: 'Kosongkan Tabel Sebelum Sinkronisasi?',
+      message: 'PERINGATAN: Anda memilih opsi Kosongkan Tabel (Truncate). Seluruh data lokal modul terpilih akan dihapus sebelum sinkronisasi. Lanjutkan?',
+      confirmText: 'Ya, Kosongkan & Sinkronkan',
+      variant: 'danger',
+    });
     if (!confirmed) return;
   }
 

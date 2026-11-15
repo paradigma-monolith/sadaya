@@ -116,18 +116,37 @@ const handleLogout = () => {
 // Collapsible dropdown state for sidebar sections & submenus
 const openSections = ref({});
 const openSubMenus = ref({});
+const hoveredTooltip = ref(null);
+
+const showCollapsedTooltip = (label, e) => {
+  if (!isCollapsed.value || !e?.currentTarget) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  hoveredTooltip.value = {
+    label,
+    top: rect.top + rect.height / 2,
+    left: rect.right + 10,
+  };
+};
+
+const hideCollapsedTooltip = () => {
+  hoveredTooltip.value = null;
+};
+
+const getSectionKey = (section) => section.key || section.title;
 
 const isSectionOpen = (section) => {
   if (section.collapsible === false) return true;
-  if (openSections.value[section.title] === undefined) {
+  const key = getSectionKey(section);
+  if (openSections.value[key] === undefined) {
     const hasActive = section.items && section.items.some(i => i.active || (i.children && i.children.some(c => c.active)));
-    openSections.value[section.title] = hasActive ? true : false;
+    openSections.value[key] = hasActive ? true : false;
   }
-  return !!openSections.value[section.title];
+  return !!openSections.value[key];
 };
 
-const toggleSection = (title) => {
-  openSections.value[title] = !openSections.value[title];
+const toggleSection = (section) => {
+  const key = getSectionKey(section);
+  openSections.value[key] = !openSections.value[key];
   try {
     localStorage.setItem('sadaya_sidebar_sections', JSON.stringify(openSections.value));
   } catch (e) {}
@@ -170,9 +189,10 @@ onMounted(() => {
   // Ensure section & submenu containing active route is always expanded
   navSections.value.forEach((sec) => {
     if (sec.items) {
+      const secKey = getSectionKey(sec);
       const secHasActive = sec.items.some(i => i.active || (i.children && i.children.some(c => c.active)));
       if (secHasActive) {
-        openSections.value[sec.title] = true;
+        openSections.value[secKey] = true;
       }
       sec.items.forEach((item) => {
         if (item.children && item.children.some(c => c.active)) {
@@ -188,6 +208,7 @@ const navSections = computed(() => {
 
   return [
     {
+      key: 'menu-utama',
       title: 'MENU UTAMA',
       collapsible: false,
       items: [
@@ -208,7 +229,9 @@ const navSections = computed(() => {
       ],
     },
     {
-      title: 'Tim Kerja Pengawasan Faktor Risiko Kesehatan Alat Angkut dan Barang',
+      key: 'Tim Kerja Pengawasan Faktor Risiko Kesehatan Alat Angkut dan Barang',
+      title: 'Alat Angkut & Barang',
+      fullTitle: 'Tim Kerja Pengawasan Faktor Risiko Kesehatan Alat Angkut dan Barang',
       icon: Ship,
       iconColor: 'text-cyan-600',
       collapsible: true,
@@ -258,7 +281,9 @@ const navSections = computed(() => {
       ],
     },
     {
-      title: 'TIM KERJA PENGAWASAN FAKTOR RISIKO KESEHATAN LINGKUNGAN',
+      key: 'TIM KERJA PENGAWASAN FAKTOR RISIKO KESEHATAN LINGKUNGAN',
+      title: 'Kesehatan Lingkungan',
+      fullTitle: 'Tim Kerja Pengawasan Faktor Risiko Kesehatan Lingkungan',
       icon: Leaf,
       iconColor: 'text-emerald-600',
       collapsible: true,
@@ -384,7 +409,7 @@ const navSections = computed(() => {
       </div>
 
       <!-- Navigation Links Container -->
-      <div class="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-2">
+      <div @scroll="hideCollapsedTooltip" class="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-2">
         <div v-for="(section, sIndex) in navSections" :key="sIndex" class="space-y-0.5">
           <!-- Collapsed Mode Thin Divider -->
           <div v-if="isCollapsed" class="h-[1px] bg-slate-100 dark:bg-slate-800 my-1.5 mx-1"></div>
@@ -397,34 +422,34 @@ const navSections = computed(() => {
             {{ section.title }}
           </div>
 
-          <!-- Collapsible Section Dropdown Button (e.g. TIM KERJA ...) -->
+          <!-- Collapsible Section Dropdown Button -->
           <button
             v-else
             type="button"
-            @click="toggleSection(section.title)"
-            class="w-full flex items-start justify-between px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer group text-left select-none"
+            @click="toggleSection(section)"
+            class="w-full flex items-center justify-between px-2 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider transition-colors cursor-pointer group text-left select-none"
             :class="[
               isSectionOpen(section) 
                 ? 'bg-slate-50 dark:bg-slate-800/70 text-slate-800 dark:text-slate-200' 
                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50/70 dark:hover:bg-slate-800/50'
             ]"
-            :title="`Klik untuk ${isSectionOpen(section) ? 'menutup' : 'membuka'} menu`"
+            :title="`${section.fullTitle || section.title} (Klik untuk ${isSectionOpen(section) ? 'menutup' : 'membuka'})`"
           >
-            <div class="flex items-start gap-1.5 min-w-0 flex-1 pr-1">
+            <div class="flex items-center gap-1.5 min-w-0 flex-1 pr-1">
               <component 
                 v-if="section.icon"
                 :is="section.icon"
-                class="w-3.5 h-3.5 shrink-0 transition-colors mt-0.5"
+                class="w-3.5 h-3.5 shrink-0 transition-colors"
                 :class="section.iconColor || 'text-slate-500 dark:text-slate-400'"
               />
-              <span class="leading-snug font-bold break-words whitespace-normal text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">{{ section.title }}</span>
+              <span class="leading-snug font-bold truncate text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">{{ section.title }}</span>
               <span 
                 v-if="section.items && section.items.some(i => i.active)"
-                class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0 mt-1"
+                class="w-1.5 h-1.5 rounded-full bg-[#00A99D] shrink-0"
                 title="Bagian ini berisi menu yang sedang aktif"
               ></span>
             </div>
-            <div class="flex items-center gap-1 shrink-0 ml-1 mt-0.5">
+            <div class="flex items-center gap-1 shrink-0 ml-1">
               <span 
                 v-if="section.items?.length"
                 class="text-[9px] font-semibold px-1.5 py-0.2 rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:bg-slate-300/80 dark:group-hover:bg-slate-700 transition-colors tabular-nums"
@@ -530,7 +555,9 @@ const navSections = computed(() => {
                   :href="item.url"
                   :target="item.external ? '_blank' : '_self'"
                   :rel="item.external ? 'noopener noreferrer' : null"
-                  @click="handleNavClick(item.path, item.external, $event)"
+                  @click="hideCollapsedTooltip(); handleNavClick(item.path, item.external, $event)"
+                  @mouseenter="showCollapsedTooltip(item.name, $event)"
+                  @mouseleave="hideCollapsedTooltip"
                   class="flex items-start rounded-md text-[12px] transition-colors group relative cursor-pointer"
                   :class="[
                     isCollapsed ? 'justify-center py-2 px-1.5' : 'gap-2 px-2.5 py-1.5',
@@ -538,7 +565,6 @@ const navSections = computed(() => {
                       ? 'bg-[#E6F7F5]/90 dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#4fd1c5] font-semibold'
                       : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#4fd1c5] hover:bg-slate-50 dark:hover:bg-slate-800/60 font-medium'
                   ]"
-                  :title="isCollapsed ? item.name : ''"
                 >
                   <!-- Left Active Indicator Bar -->
                   <span v-if="item.active" class="absolute left-0 top-1 bottom-1 w-[3px] bg-[#00A99D] rounded-r-full"></span>
@@ -564,14 +590,6 @@ const navSections = computed(() => {
                         class="w-3 h-3 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200" 
                       />
                     </div>
-                  </div>
-
-                  <!-- Tooltip Popup when collapsed -->
-                  <div 
-                    v-if="isCollapsed" 
-                    class="absolute left-full ml-3 px-2.5 py-1 bg-slate-900 dark:bg-slate-800 text-white text-[11px] font-medium rounded-md shadow-lg border border-slate-700 whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-50"
-                  >
-                    {{ item.name }}
                   </div>
                 </a>
               </template>
@@ -617,5 +635,16 @@ const navSections = computed(() => {
       </div>
 
     </aside>
+
+    <!-- Floating Collapsed Tooltip via Teleport (never clipped by overflow-y-auto) -->
+    <Teleport to="body">
+      <div
+        v-if="isCollapsed && hoveredTooltip"
+        class="fixed z-[80] -translate-y-1/2 px-2.5 py-1 bg-slate-900 dark:bg-slate-800 text-white text-[11px] font-medium rounded-md shadow-xl border border-slate-700 whitespace-nowrap pointer-events-none"
+        :style="{ top: `${hoveredTooltip.top}px`, left: `${hoveredTooltip.left}px` }"
+      >
+        {{ hoveredTooltip.label }}
+      </div>
+    </Teleport>
   </div>
 </template>
