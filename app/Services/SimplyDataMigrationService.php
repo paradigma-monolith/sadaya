@@ -16,6 +16,7 @@ use App\Models\ShipHealthSurveillance;
 use App\Models\ShipSanitationInspection;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -219,6 +220,92 @@ class SimplyDataMigrationService
     }
 
     /**
+     * Encrypt a database secret value at rest using Laravel Crypt.
+     */
+    public static function encryptSecret(?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+        if (str_starts_with($value, 'enc:')) {
+            return $value;
+        }
+
+        return 'enc:'.Crypt::encryptString($value);
+    }
+
+    /**
+     * Decrypt an encrypted secret value with transparent plain-text legacy fallback.
+     */
+    public static function decryptSecret(?string $value): string
+    {
+        if ($value === null || $value === '') {
+            return '';
+        }
+        if (! str_starts_with($value, 'enc:')) {
+            return $value;
+        }
+
+        try {
+            return Crypt::decryptString(substr($value, 4));
+        } catch (Throwable) {
+            return '';
+        }
+    }
+
+    /**
+     * Load module database configurations with decrypted passwords.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    public static function loadSavedModuleConfigs(): array
+    {
+        $savedPath = storage_path('app/simply_migration_configs.json');
+        if (! file_exists($savedPath)) {
+            return [];
+        }
+
+        $saved = json_decode((string) file_get_contents($savedPath), true);
+        if (! is_array($saved)) {
+            return [];
+        }
+
+        foreach ($saved as &$vals) {
+            if (is_array($vals) && isset($vals['password'])) {
+                $vals['password'] = self::decryptSecret((string) $vals['password']);
+            }
+        }
+        unset($vals);
+
+        return $saved;
+    }
+
+    /**
+     * Persist module database configurations with passwords encrypted at rest.
+     *
+     * @param  array<string, array<string, mixed>>  $modules
+     */
+    public static function saveSavedModuleConfigs(array $modules): void
+    {
+        $payload = [];
+        foreach ($modules as $k => $vals) {
+            if (! is_array($vals)) {
+                continue;
+            }
+            $copy = $vals;
+            if (! empty($copy['password'])) {
+                $copy['password'] = self::encryptSecret((string) $copy['password']);
+            }
+            $payload[$k] = $copy;
+        }
+
+        file_put_contents(
+            storage_path('app/simply_migration_configs.json'),
+            json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES)
+        );
+    }
+
+    /**
      * Resolve effective credentials and target DB/table for a module.
      * Checks per-module credentials first, falls back to saved config, global credentials, then module default config.
      */
@@ -230,15 +317,9 @@ class SimplyDataMigrationService
         // Check if credentials are nested under modules[module]
         $modCreds = $credentials['modules'][$module] ?? [];
 
-        // Read persistent stored configurations if available
-        $savedPath = storage_path('app/simply_migration_configs.json');
-        $savedMod = [];
-        if (file_exists($savedPath)) {
-            $saved = json_decode(file_get_contents($savedPath), true);
-            if (is_array($saved) && isset($saved[$module]) && is_array($saved[$module])) {
-                $savedMod = $saved[$module];
-            }
-        }
+        // Read persistent stored configurations (with decrypted passwords) if available
+        $saved = self::loadSavedModuleConfigs();
+        $savedMod = (isset($saved[$module]) && is_array($saved[$module])) ? $saved[$module] : [];
 
         $host = !empty($modCreds['host'])
             ? $modCreds['host']

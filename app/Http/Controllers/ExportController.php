@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Exports\AuditLogsExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Gate;
+use Maatwebsite\Excel\Excel as ExcelFormat;
 use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Activitylog\Models\Activity;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -16,7 +18,9 @@ class ExportController extends Controller
      */
     public function exportExcel(): BinaryFileResponse
     {
-        return Excel::download(new AuditLogsExport, 'audit-logs-' . date('Y-m-d') . '.xlsx');
+        Gate::authorize('export', Activity::class);
+
+        return Excel::download(new AuditLogsExport, 'audit-logs-'.date('Y-m-d').'.xlsx');
     }
 
     /**
@@ -24,7 +28,9 @@ class ExportController extends Controller
      */
     public function exportCsv(): BinaryFileResponse
     {
-        return Excel::download(new AuditLogsExport, 'audit-logs-' . date('Y-m-d') . '.csv', \Maatwebsite\Excel\Excel::CSV);
+        Gate::authorize('export', Activity::class);
+
+        return Excel::download(new AuditLogsExport, 'audit-logs-'.date('Y-m-d').'.csv', ExcelFormat::CSV);
     }
 
     /**
@@ -32,13 +38,15 @@ class ExportController extends Controller
      */
     public function exportPdf(): Response
     {
+        Gate::authorize('export', Activity::class);
+
         $activities = Activity::with('causer')->latest()->take(100)->get();
         $pdf = Pdf::loadView('exports.audit-logs-pdf', [
             'activities' => $activities,
             'generatedAt' => now(),
         ]);
 
-        return $pdf->download('audit-logs-' . date('Y-m-d') . '.pdf');
+        return $pdf->download('audit-logs-'.date('Y-m-d').'.pdf');
     }
 
     /**
@@ -49,8 +57,8 @@ class ExportController extends Controller
         $pdf = Pdf::loadView('docs.manual-book-pdf', [
             'generatedAt' => now(),
         ])
-        ->setPaper('a4', 'portrait')
-        ->setOption(['isRemoteEnabled' => true, 'isHtml5ParserEnabled' => true, 'isPhpEnabled' => true]);
+            ->setPaper('a4', 'portrait')
+            ->setOption(['isRemoteEnabled' => false, 'isHtml5ParserEnabled' => true, 'isPhpEnabled' => false]);
 
         return $pdf->download('MANUAL_BOOK_STARTERKIT_PARADIGMA.pdf');
     }

@@ -1,1 +1,0 @@
-import{g as o,l as c}from"./vendor-icons-BdDPHU_j.js";function i(t,u=350){let e=null;const n=(...l)=>{e&&clearTimeout(e),e=setTimeout(()=>{e=null,t(...l)},u)};return n.cancel=()=>{e&&(clearTimeout(e),e=null)},o()&&c(()=>{n.cancel()}),n}export{i as u};

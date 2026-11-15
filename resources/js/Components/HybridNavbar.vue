@@ -1,23 +1,14 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { usePage, router as inertiaRouter } from '@inertiajs/vue3';
-import { useRouter } from 'vue-router';
 import { 
   LogOut, 
   User as UserIcon, 
   Bell, 
-  History, 
-  BookOpen, 
-  Sparkles, 
   CheckCheck, 
   Radio,
   Menu,
-  Compass,
   ChevronDown,
-  LayoutDashboard,
-  Layers,
-  Package,
-  Home,
   X,
   Search,
   Sun,
@@ -35,15 +26,13 @@ import { useTheme } from '@/composables/useTheme';
 const props = defineProps({
   mode: {
     type: String,
-    default: 'inertia', // 'inertia' | 'spa'
+    default: 'inertia',
   },
   currentRoute: {
     type: String,
     default: '',
   },
 });
-
-const isSpa = computed(() => props.mode === 'spa');
 
 const prefix = computed(() => {
   if (typeof window !== 'undefined' && window.location.pathname.includes('/hybridlaravel/public')) {
@@ -53,14 +42,6 @@ const prefix = computed(() => {
 });
 
 const getUrl = (path) => `${prefix.value}${path}`;
-
-// Safely obtain Vue Router if mounted in SPA context
-let vueRouter = null;
-try {
-  vueRouter = useRouter();
-} catch (e) {
-  vueRouter = null;
-}
 
 // Compute active navigation item with automatic URL pathname fallback
 const activeNav = computed(() => {
@@ -112,69 +93,20 @@ const breadcrumbLabel = computed(() => {
     sanitasi: 'Sanitasi Lingkungan',
     sivera: 'SIVERA',
     'database-import': 'Import Database',
-    spa: 'Workspace SPA',
   };
   return labels[activeNav.value] || 'Portal Karantina Kesehatan';
 });
 
-// Dynamic brand pill badge depending on context (SPA Mode, Inertia Bridge)
-const brandBadge = computed(() => {
-  if (isSpa.value) {
-    return {
-      text: 'SPA Mode',
-      badgeClass: 'bg-emerald-50 border-emerald-200 text-emerald-700',
-      iconClass: 'bg-slate-900 text-white shadow-sm',
-    };
-  }
-  return {
-    text: 'Kelas I Bandung',
-    badgeClass: 'bg-slate-100 border-slate-200 text-slate-700',
-    iconClass: 'bg-slate-900 text-white shadow-sm',
-  };
-});
-
 // Dropdown Navigation States & Element References
-const inertiaDropdownOpen = ref(false);
-const spaDropdownOpen = ref(false);
 const showNotifications = ref(false);
 const showUserMenu = ref(false);
 
-const inertiaDropdownRef = ref(null);
-const spaDropdownRef = ref(null);
 const notifDropdownRef = ref(null);
 const userDropdownRef = ref(null);
-
-const isInertiaActive = computed(() => {
-  return !isSpa.value && ['dashboard', 'map', 'products', 'audit'].includes(activeNav.value);
-});
-
-const isSpaActive = computed(() => {
-  return isSpa.value || ['api-explorer'].includes(activeNav.value);
-});
-
-const toggleInertiaDropdown = () => {
-  inertiaDropdownOpen.value = !inertiaDropdownOpen.value;
-  if (inertiaDropdownOpen.value) {
-    spaDropdownOpen.value = false;
-    showNotifications.value = false;
-    showUserMenu.value = false;
-  }
-};
-
-const toggleSpaDropdown = () => {
-  spaDropdownOpen.value = !spaDropdownOpen.value;
-  if (spaDropdownOpen.value) {
-    inertiaDropdownOpen.value = false;
-    showNotifications.value = false;
-    showUserMenu.value = false;
-  }
-};
 
 const toggleNotifications = () => {
   showNotifications.value = !showNotifications.value;
   if (showNotifications.value) {
-    inertiaDropdownOpen.value = false;
-    spaDropdownOpen.value = false;
     showUserMenu.value = false;
     fetchNotifications();
   }
@@ -183,26 +115,16 @@ const toggleNotifications = () => {
 const toggleUserMenu = () => {
   showUserMenu.value = !showUserMenu.value;
   if (showUserMenu.value) {
-    inertiaDropdownOpen.value = false;
-    spaDropdownOpen.value = false;
     showNotifications.value = false;
   }
 };
 
 const closeAllDropdowns = () => {
-  inertiaDropdownOpen.value = false;
-  spaDropdownOpen.value = false;
   showNotifications.value = false;
   showUserMenu.value = false;
 };
 
 const handleClickOutside = (e) => {
-  if (inertiaDropdownRef.value && !inertiaDropdownRef.value.contains(e.target)) {
-    inertiaDropdownOpen.value = false;
-  }
-  if (spaDropdownRef.value && !spaDropdownRef.value.contains(e.target)) {
-    spaDropdownOpen.value = false;
-  }
   if (notifDropdownRef.value && !notifDropdownRef.value.contains(e.target)) {
     showNotifications.value = false;
   }
@@ -211,22 +133,11 @@ const handleClickOutside = (e) => {
   }
 };
 
-// Seamless client-side navigation (Eliminates jarring full-page reloads)
+// Seamless client-side navigation
 const handleNav = (targetPath, e) => {
   closeAllDropdowns();
 
-  // Case 1: In SPA mode & clicking an SPA link -> instantaneous Vue Router push
-  if (isSpa.value && (targetPath === '/spa' || targetPath.startsWith('/spa/'))) {
-    if (vueRouter) {
-      if (e) e.preventDefault();
-      const internalRoute = targetPath.replace(/^\/spa/, '') || '/';
-      vueRouter.push(internalRoute);
-      return;
-    }
-  }
-
-  // Case 2: In Inertia mode & clicking an Inertia/Hub link -> smooth Inertia visit
-  if (!isSpa.value && !targetPath.startsWith('/spa') && !targetPath.startsWith('/docs') && !targetPath.startsWith('/pulse')) {
+  if (!targetPath.startsWith('/docs') && !targetPath.startsWith('/pulse')) {
     try {
       if (inertiaRouter && typeof inertiaRouter.visit === 'function') {
         if (e) e.preventDefault();
@@ -235,15 +146,10 @@ const handleNav = (targetPath, e) => {
       }
     } catch (err) {}
   }
-
-  // Case 3: Crossing paradigms (Inertia <-> SPA) or external docs -> let browser navigate cleanly
 };
 
-// Safely access current authenticated user in either Inertia or SPA mode
+// Safely access current authenticated user
 const currentUser = computed(() => {
-  if (isSpa.value) {
-    return (typeof window !== 'undefined' && window.authUser) ? window.authUser : null;
-  }
   try {
     const page = usePage();
     return page?.props?.auth?.user || null;

@@ -47,14 +47,11 @@ class SimplySyncUsers extends Command
         if ($this->option('database')) $credentials['database'] = $this->option('database');
         if ($this->option('table')) $credentials['table'] = $this->option('table');
 
-        // Check persistent module configs
-        $savedPath = storage_path('app/simply_migration_configs.json');
-        if (file_exists($savedPath)) {
-            $saved = json_decode(file_get_contents($savedPath), true);
-            if (is_array($saved)) {
-                $credentials['modules'] = $saved;
-                $this->info("ℹ️  Memuat konfigurasi MySQL dari penyimpanan lokal.");
-            }
+        // Check persistent module configs (decrypted transparently)
+        $saved = SimplyDataMigrationService::loadSavedModuleConfigs();
+        if (! empty($saved)) {
+            $credentials['modules'] = $saved;
+            $this->info('ℹ️  Memuat konfigurasi MySQL terenkripsi dari penyimpanan lokal.');
         }
 
         $force = (bool)$this->option('force');

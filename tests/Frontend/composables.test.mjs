@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { useDate } from '../../resources/js/composables/useDate.js';
 import { useTheme } from '../../resources/js/composables/useTheme.js';
 import { useDebouncedFn } from '../../resources/js/composables/useDebouncedFn.js';
+import { useFormDraft } from '../../resources/js/composables/useFormDraft.js';
 import {
   formatDate as formatSanitasiDate,
   getRiskBadgeClass as getSanitasiRiskBadgeClass,
@@ -89,4 +90,36 @@ test('useTheme toggles and sets explicit dark/light state safely in non-DOM runt
   setTheme('light');
   assert.equal(isDark.value, false);
 });
+
+test('useFormDraft saves, restores, expires stale entries, and clears corrupted drafts', () => {
+  const store = new Map();
+  const mockStorage = {
+    getItem: (k) => (store.has(k) ? store.get(k) : null),
+    setItem: (k, v) => store.set(k, v),
+    removeItem: (k) => store.delete(k),
+  };
+
+  const draft = useFormDraft('test:draft', { storage: mockStorage, maxAgeMs: 5000 });
+  assert.equal(draft.hasDraft(), false);
+  assert.equal(draft.restore(), null);
+
+  assert.equal(draft.save({ wilker: 'Cirebon', count: 4 }), true);
+  assert.equal(draft.hasDraft(), true);
+  assert.deepEqual(draft.restore(), { wilker: 'Cirebon', count: 4 });
+
+  // Corrupted JSON clears cleanly without throwing
+  mockStorage.setItem('test:draft', '{invalid-json');
+  assert.equal(draft.restore(), null);
+  assert.equal(draft.hasDraft(), false);
+
+  // Expired draft clears automatically
+  mockStorage.setItem('test:draft', JSON.stringify({ updatedAt: Date.now() - 10000, data: { stale: true } }));
+  assert.equal(draft.restore(), null);
+  assert.equal(draft.hasDraft(), false);
+
+  draft.save({ fresh: true });
+  draft.clear();
+  assert.equal(draft.hasDraft(), false);
+});
+
 

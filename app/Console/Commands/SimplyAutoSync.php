@@ -83,12 +83,9 @@ class SimplyAutoSync extends Command
             'password' => 'mysql',
         ];
 
-        $dbConfigPath = storage_path('app/simply_migration_configs.json');
-        if (file_exists($dbConfigPath)) {
-            $savedDb = json_decode(file_get_contents($dbConfigPath), true);
-            if (is_array($savedDb)) {
-                $credentials['modules'] = $savedDb;
-            }
+        $savedDb = SimplyDataMigrationService::loadSavedModuleConfigs();
+        if (! empty($savedDb)) {
+            $credentials['modules'] = $savedDb;
         }
 
         $modulesToSync = !empty($config['modules']) ? $config['modules'] : array_keys($service->getModuleConfigs());

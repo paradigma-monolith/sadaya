@@ -12,13 +12,10 @@ import {
   Search, 
   LayoutDashboard, 
   Layers, 
-  BookOpen, 
-  Activity, 
   History, 
   User, 
   Moon, 
   Sun, 
-  LogOut, 
   CornerDownLeft, 
   Loader2,
   Sparkles,
@@ -36,14 +33,13 @@ import {
   Database
 } from 'lucide-vue-next';
 import { router as inertiaRouter } from '@inertiajs/vue3';
-import { useRouter } from 'vue-router';
 import { useTheme } from '@/composables/useTheme';
 import ClinicalSkeleton from './ClinicalSkeleton.vue';
 
 const props = defineProps({
   mode: {
     type: String,
-    default: 'inertia', // 'inertia' | 'spa'
+    default: 'inertia',
   },
 });
 
@@ -56,13 +52,6 @@ const searchResults = ref({
   users: [],
   navigation: [],
 });
-
-let vueRouter = null;
-try {
-  vueRouter = useRouter();
-} catch (e) {
-  vueRouter = null;
-}
 
 const prefix = computed(() => {
   if (typeof window !== 'undefined' && window.location.pathname.includes('/hybridlaravel/public')) {
@@ -236,15 +225,8 @@ const defaultActions = computed(() => [
 
 const navigateTo = (path) => {
   isOpen.value = false;
-  if (props.mode === 'spa' && (path === '/spa' || path.startsWith('/spa/'))) {
-    if (vueRouter) {
-      const internal = path.replace(/^\/spa/, '') || '/';
-      vueRouter.push(internal);
-      return;
-    }
-  }
 
-  if (props.mode !== 'spa' && !path.startsWith('/spa') && !path.startsWith('/docs') && !path.startsWith('/pulse')) {
+  if (!path.startsWith('/docs') && !path.startsWith('/pulse')) {
     try {
       if (inertiaRouter && typeof inertiaRouter.visit === 'function') {
         inertiaRouter.visit(getUrl(path));

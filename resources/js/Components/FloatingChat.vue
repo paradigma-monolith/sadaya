@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { usePage } from '@inertiajs/vue3';
 import { 
   MessageSquare, 
@@ -9,9 +9,7 @@ import {
   Maximize2, 
   Radio, 
   Sparkles, 
-  User as UserIcon,
   CheckCheck,
-  Bot,
   Volume2,
   VolumeX,
   RotateCw
@@ -20,11 +18,9 @@ import {
 const props = defineProps({
   mode: {
     type: String,
-    default: 'inertia', // 'inertia' | 'spa'
+    default: 'inertia',
   },
 });
-
-const isSpa = computed(() => props.mode === 'spa');
 
 const prefix = computed(() => {
   if (typeof window !== 'undefined' && window.location.pathname.includes('/hybridlaravel/public')) {
@@ -37,9 +33,6 @@ const getUrl = (path) => `${prefix.value}${path}`;
 
 // Safely resolve active authenticated user
 const currentUser = computed(() => {
-  if (isSpa.value) {
-    return (typeof window !== 'undefined' && window.authUser) ? window.authUser : null;
-  }
   try {
     const page = usePage();
     return page?.props?.auth?.user || null;

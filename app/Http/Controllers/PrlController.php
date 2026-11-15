@@ -2,15 +2,24 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Prl\StoreHsbuRequest;
+use App\Http\Requests\Prl\StoreInspeksiHsbuRequest;
+use App\Http\Requests\Prl\StoreInspeksiSabRequest;
+use App\Http\Requests\Prl\StoreInspeksiTppRequest;
+use App\Http\Requests\Prl\StoreSabRequest;
+use App\Http\Requests\Prl\StoreTppRequest;
+use App\Http\Requests\Sivera\StoreSiveraRequest;
+use App\Http\Requests\Sivera\UpdatePengendalianSiveraRequest;
 use App\Models\KantorWilker;
 use App\Models\PrlHsbu;
 use App\Models\PrlInspeksiHsbu;
 use App\Models\PrlInspeksiSab;
 use App\Models\PrlInspeksiTpp;
 use App\Models\PrlSab;
-use App\Models\PrlSiveraVektor;
 use App\Models\PrlTpp;
+use App\Models\User;
 use App\Services\SimplyDataMigrationService;
+use App\Services\SiveraService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -29,6 +38,7 @@ class PrlController extends Controller
         if ($tab === 'sivera' || $request->is('*/sivera*')) {
             return $this->siveraIndex($request);
         }
+
         return $this->sanitasiIndex($request);
     }
 
@@ -110,95 +120,37 @@ class PrlController extends Controller
         }
 
         // Per-page settings from request (default 25)
-        $perPageTpp = min(1000, max(5, (int)$request->input('per_page_tpp', 25)));
-        $perPageSab = min(1000, max(5, (int)$request->input('per_page_sab', 25)));
-        $perPageHsbu = min(1000, max(5, (int)$request->input('per_page_hsbu', 25)));
-        $perPageSivera = min(1000, max(5, (int)$request->input('per_page_sivera', 25)));
-        $siveraVektor = $request->input('sivera_vektor', $request->input('jenis_vektor', 'Dashboard'));
-
-        // SIVERA Global Stats & Dashboard Metrics (calculated from entire database, not page slice)
-        $siveraAllCount = PrlSiveraVektor::count();
-        $siveraMemenuhi = PrlSiveraVektor::where('baku_mutu_status', 'Memenuhi Syarat')->count();
-        $siveraDiatasBaku = PrlSiveraVektor::where('baku_mutu_status', '!=', 'Memenuhi Syarat')->count();
-        $siveraKepatuhan = $siveraAllCount > 0 ? round(($siveraMemenuhi / $siveraAllCount) * 100, 1) : 0;
-
-        $siveraWilkerBreakdown = [];
-        foreach ($wilkerOptions as $wk) {
-            $wTotal = PrlSiveraVektor::where('wilker', $wk)->count();
-            if ($wTotal > 0) {
-                $wMs = PrlSiveraVektor::where('wilker', $wk)->where('baku_mutu_status', 'Memenuhi Syarat')->count();
-                $siveraWilkerBreakdown[] = [
-                    'wilker' => $wk,
-                    'total' => $wTotal,
-                    'ms' => $wMs,
-                    'tms' => $wTotal - $wMs,
-                ];
-            }
-        }
-
-        $siveraDashboardData = $this->computeSiveraDashboardData($wilkerOptions);
-
-        $siveraDashboardMetrics = [
-            'totalSurveilans' => $siveraAllCount,
-            'totalMs' => $siveraMemenuhi,
-            'totalTms' => $siveraDiatasBaku,
-            'kepatuhanPct' => $siveraKepatuhan,
-            'jentikCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Jentik Aedes%')->count(),
-            'jentikMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Jentik Aedes%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'jentikAbjAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Jentik Aedes%')->avg('nilai_indeks'), 1),
-            'lalatCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Lalat%')->count(),
-            'lalatMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Lalat%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'lalatFiAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Lalat%')->avg('nilai_indeks'), 1),
-            'kecoaCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Kecoa%')->count(),
-            'kecoaMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Kecoa%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'kecoaIdxAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Kecoa%')->avg('nilai_indeks'), 1),
-            'tikusCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Tikus%')->count(),
-            'tikusMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Tikus%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'tikusTrapAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Tikus%')->avg('nilai_indeks'), 1),
-            'pinjalCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Pinjal%')->count(),
-            'pinjalMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Pinjal%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'anophelesJentikCount' => PrlSiveraVektor::where(function ($q) {
-                $q->where('jenis_vektor', 'like', '%anopheles%jentik%')
-                  ->orWhere('jenis_vektor', 'like', '%jentik%anopheles%')
-                  ->orWhere('jenis_vektor', 'Anopheles (Jentik)')
-                  ->orWhere('jenis_vektor', 'Jentik Anopheles');
-            })->count(),
-            'anophelesJentikMs' => PrlSiveraVektor::where(function ($q) {
-                $q->where('jenis_vektor', 'like', '%anopheles%jentik%')
-                  ->orWhere('jenis_vektor', 'like', '%jentik%anopheles%')
-                  ->orWhere('jenis_vektor', 'Anopheles (Jentik)')
-                  ->orWhere('jenis_vektor', 'Jentik Anopheles');
-            })->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'anophelesNyamukCount' => PrlSiveraVektor::where(function ($q) {
-                $q->where('jenis_vektor', 'like', '%anopheles%nyamuk%')
-                  ->orWhere('jenis_vektor', 'like', '%nyamuk%anopheles%')
-                  ->orWhere('jenis_vektor', 'Anopheles (Nyamuk)')
-                  ->orWhere('jenis_vektor', 'Nyamuk Anopheles');
-            })->count(),
-            'anophelesNyamukMs' => PrlSiveraVektor::where(function ($q) {
-                $q->where('jenis_vektor', 'like', '%anopheles%nyamuk%')
-                  ->orWhere('jenis_vektor', 'like', '%nyamuk%anopheles%')
-                  ->orWhere('jenis_vektor', 'Anopheles (Nyamuk)')
-                  ->orWhere('jenis_vektor', 'Nyamuk Anopheles');
-            })->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'wilkerBreakdown' => $siveraWilkerBreakdown,
-        ];
+        $perPageTpp = min(1000, max(5, (int) $request->input('per_page_tpp', 25)));
+        $perPageSab = min(1000, max(5, (int) $request->input('per_page_sab', 25)));
+        $perPageHsbu = min(1000, max(5, (int) $request->input('per_page_hsbu', 25)));
 
         // 1. TPP Inspections Query
         $qTpp = PrlInspeksiTpp::query()->latest('tanggal_inspeksi')->latest('id');
         if ($search) {
             $qTpp->where(function ($q) use ($search) {
                 $q->where('nama_tpp', 'like', "%{$search}%")
-                  ->orWhere('penanggung_jawab_tpp', 'like', "%{$search}%")
-                  ->orWhere('nama_pemeriksa', 'like', "%{$search}%");
+                    ->orWhere('penanggung_jawab_tpp', 'like', "%{$search}%")
+                    ->orWhere('nama_pemeriksa', 'like', "%{$search}%");
             });
         }
-        if ($wilker) $qTpp->where('wilker', $wilker);
-        if ($tingkatRisiko) $qTpp->where('tingkat_risiko', $tingkatRisiko);
-        if ($tglMulai) $qTpp->whereDate('tanggal_inspeksi', '>=', $tglMulai);
-        if ($tglSelesai) $qTpp->whereDate('tanggal_inspeksi', '<=', $tglSelesai);
-        if ($tahun) $qTpp->whereYear('tanggal_inspeksi', $tahun);
-        if ($bulan) $qTpp->whereMonth('tanggal_inspeksi', $bulan);
+        if ($wilker) {
+            $qTpp->where('wilker', $wilker);
+        }
+        if ($tingkatRisiko) {
+            $qTpp->where('tingkat_risiko', $tingkatRisiko);
+        }
+        if ($tglMulai) {
+            $qTpp->whereDate('tanggal_inspeksi', '>=', $tglMulai);
+        }
+        if ($tglSelesai) {
+            $qTpp->whereDate('tanggal_inspeksi', '<=', $tglSelesai);
+        }
+        if ($tahun) {
+            $qTpp->whereYear('tanggal_inspeksi', $tahun);
+        }
+        if ($bulan) {
+            $qTpp->whereMonth('tanggal_inspeksi', $bulan);
+        }
         $inspeksiTpp = $qTpp->paginate($perPageTpp, ['*'], 'page_tpp')->withQueryString();
 
         // 2. SAB Inspections Query
@@ -206,16 +158,28 @@ class PrlController extends Controller
         if ($search) {
             $qSab->where(function ($q) use ($search) {
                 $q->where('nama_sab', 'like', "%{$search}%")
-                  ->orWhere('penanggung_jawab_sab', 'like', "%{$search}%")
-                  ->orWhere('nama_pemeriksa', 'like', "%{$search}%");
+                    ->orWhere('penanggung_jawab_sab', 'like', "%{$search}%")
+                    ->orWhere('nama_pemeriksa', 'like', "%{$search}%");
             });
         }
-        if ($wilker) $qSab->where('wilker', $wilker);
-        if ($tingkatRisiko) $qSab->where('tingkat_risiko', $tingkatRisiko);
-        if ($tglMulai) $qSab->whereDate('tanggal_inspeksi', '>=', $tglMulai);
-        if ($tglSelesai) $qSab->whereDate('tanggal_inspeksi', '<=', $tglSelesai);
-        if ($tahun) $qSab->whereYear('tanggal_inspeksi', $tahun);
-        if ($bulan) $qSab->whereMonth('tanggal_inspeksi', $bulan);
+        if ($wilker) {
+            $qSab->where('wilker', $wilker);
+        }
+        if ($tingkatRisiko) {
+            $qSab->where('tingkat_risiko', $tingkatRisiko);
+        }
+        if ($tglMulai) {
+            $qSab->whereDate('tanggal_inspeksi', '>=', $tglMulai);
+        }
+        if ($tglSelesai) {
+            $qSab->whereDate('tanggal_inspeksi', '<=', $tglSelesai);
+        }
+        if ($tahun) {
+            $qSab->whereYear('tanggal_inspeksi', $tahun);
+        }
+        if ($bulan) {
+            $qSab->whereMonth('tanggal_inspeksi', $bulan);
+        }
         $inspeksiSab = $qSab->paginate($perPageSab, ['*'], 'page_sab')->withQueryString();
 
         // 3. HSBU Inspections Query
@@ -223,67 +187,29 @@ class PrlController extends Controller
         if ($search) {
             $qHsbu->where(function ($q) use ($search) {
                 $q->where('nama_gedung', 'like', "%{$search}%")
-                  ->orWhere('penanggung_jawab_hsbu', 'like', "%{$search}%")
-                  ->orWhere('nama_pemeriksa', 'like', "%{$search}%");
+                    ->orWhere('penanggung_jawab_hsbu', 'like', "%{$search}%")
+                    ->orWhere('nama_pemeriksa', 'like', "%{$search}%");
             });
         }
-        if ($wilker) $qHsbu->where('wilker', $wilker);
-        if ($tingkatRisiko) $qHsbu->where('tingkat_risiko', $tingkatRisiko);
-        if ($tglMulai) $qHsbu->whereDate('tanggal_inspeksi', '>=', $tglMulai);
-        if ($tglSelesai) $qHsbu->whereDate('tanggal_inspeksi', '<=', $tglSelesai);
-        if ($tahun) $qHsbu->whereYear('tanggal_inspeksi', $tahun);
-        if ($bulan) $qHsbu->whereMonth('tanggal_inspeksi', $bulan);
-        $inspeksiHsbu = $qHsbu->paginate($perPageHsbu, ['*'], 'page_hsbu')->withQueryString();
-
-        // 4. SIVERA Vektor Query (Supporting individual vector sub-tabs & search)
-        $qSivera = PrlSiveraVektor::query()->latest('tanggal')->latest('id');
-        if ($search) {
-            $qSivera->where(function ($q) use ($search) {
-                $q->where('jenis_vektor', 'like', "%{$search}%")
-                  ->orWhere('lokasi', 'like', "%{$search}%")
-                  ->orWhere('wilker', 'like', "%{$search}%")
-                  ->orWhere('parameter_utama', 'like', "%{$search}%");
-            });
+        if ($wilker) {
+            $qHsbu->where('wilker', $wilker);
         }
-        if ($wilker) $qSivera->where('wilker', $wilker);
         if ($tingkatRisiko) {
-            if (in_array(strtolower($tingkatRisiko), ['rendah', 'ms', 'memenuhi syarat', 'aman'])) {
-                $qSivera->where('baku_mutu_status', 'Memenuhi Syarat');
-            } elseif (in_array(strtolower($tingkatRisiko), ['tinggi', 'tms', 'di atas baku mutu', 'sedang', 'bahaya'])) {
-                $qSivera->where('baku_mutu_status', '!=', 'Memenuhi Syarat');
-            } else {
-                $qSivera->where('baku_mutu_status', 'like', "%{$tingkatRisiko}%");
-            }
+            $qHsbu->where('tingkat_risiko', $tingkatRisiko);
         }
-        if ($tglMulai) $qSivera->whereDate('tanggal', '>=', $tglMulai);
-        if ($tglSelesai) $qSivera->whereDate('tanggal', '<=', $tglSelesai);
-        if ($tahun) $qSivera->whereYear('tanggal', $tahun);
-        if ($bulan) $qSivera->whereMonth('tanggal', $bulan);
-
-        if ($siveraVektor && $siveraVektor !== 'Dashboard' && $siveraVektor !== 'Semua Data') {
-            if (str_contains(strtolower($siveraVektor), 'anopheles')) {
-                if (str_contains(strtolower($siveraVektor), 'jentik')) {
-                    $qSivera->where(function ($q) {
-                        $q->where('jenis_vektor', 'like', '%anopheles%jentik%')
-                          ->orWhere('jenis_vektor', 'like', '%jentik%anopheles%')
-                          ->orWhere('jenis_vektor', 'Anopheles (Jentik)')
-                          ->orWhere('jenis_vektor', 'Jentik Anopheles');
-                    });
-                } elseif (str_contains(strtolower($siveraVektor), 'nyamuk')) {
-                    $qSivera->where(function ($q) {
-                        $q->where('jenis_vektor', 'like', '%anopheles%nyamuk%')
-                          ->orWhere('jenis_vektor', 'like', '%nyamuk%anopheles%')
-                          ->orWhere('jenis_vektor', 'Anopheles (Nyamuk)')
-                          ->orWhere('jenis_vektor', 'Nyamuk Anopheles');
-                    });
-                } else {
-                    $qSivera->where('jenis_vektor', 'like', '%anopheles%');
-                }
-            } else {
-                $qSivera->where('jenis_vektor', 'like', "%{$siveraVektor}%");
-            }
+        if ($tglMulai) {
+            $qHsbu->whereDate('tanggal_inspeksi', '>=', $tglMulai);
         }
-        $siveraList = $qSivera->paginate($perPageSivera, ['*'], 'page_sivera')->withQueryString();
+        if ($tglSelesai) {
+            $qHsbu->whereDate('tanggal_inspeksi', '<=', $tglSelesai);
+        }
+        if ($tahun) {
+            $qHsbu->whereYear('tanggal_inspeksi', $tahun);
+        }
+        if ($bulan) {
+            $qHsbu->whereMonth('tanggal_inspeksi', $bulan);
+        }
+        $inspeksiHsbu = $qHsbu->paginate($perPageHsbu, ['*'], 'page_hsbu')->withQueryString();
 
         // Master Sarana Lists (for quick lookup / registers / forms)
         $masterTpp = PrlTpp::orderBy('nama_tpp')->get(['id', 'nama_tpp', 'wilker', 'penanggung_jawab', 'jml_karyawan', 'kapasitas_produksi']);
@@ -291,7 +217,7 @@ class PrlController extends Controller
         $masterHsbu = PrlHsbu::orderBy('nama_gedung')->get(['id', 'nama_gedung', 'wilker', 'penanggung_jawab', 'jml_karyawan']);
 
         // Pemeriksa / Inspector Options
-        $usersList = \App\Models\User::orderBy('name')->pluck('name')->toArray();
+        $usersList = User::orderBy('name')->pluck('name')->toArray();
         $inspList = array_merge(
             PrlInspeksiTpp::distinct()->whereNotNull('nama_pemeriksa')->pluck('nama_pemeriksa')->toArray(),
             PrlInspeksiSab::distinct()->whereNotNull('nama_pemeriksa')->pluck('nama_pemeriksa')->toArray(),
@@ -299,9 +225,9 @@ class PrlController extends Controller
         );
         $pemeriksaAgg = [];
         foreach (array_merge($usersList, $inspList) as $raw) {
-            foreach (preg_split('/[,|]/', (string)$raw) as $part) {
+            foreach (preg_split('/[,|]/', (string) $raw) as $part) {
                 $trimmed = trim($part);
-                if ($trimmed !== '' && !is_numeric($trimmed)) {
+                if ($trimmed !== '' && ! is_numeric($trimmed)) {
                     $pemeriksaAgg[$trimmed] = true;
                 }
             }
@@ -354,177 +280,17 @@ class PrlController extends Controller
      */
     public function siveraIndex(Request $request): Response
     {
-        $search = $request->query('search');
-        $wilker = $request->query('wilker');
-        $tingkatRisiko = $request->query('tingkat_risiko');
-        $tglMulai = $request->query('tgl_mulai', $request->query('tanggal_mulai'));
-        $tglSelesai = $request->query('tgl_selesai', $request->query('tanggal_selesai'));
-        $tahun = $request->query('tahun');
-        $bulan = $request->query('bulan');
-        $perPageSivera = min(1000, max(5, (int)$request->input('per_page_sivera', 25)));
-        $siveraVektor = $request->input('sivera_vektor', $request->input('vektor', $request->input('jenis_vektor', 'Dashboard')));
-
-        // Available Wilker List
-        try {
-            $officialWilkers = KantorWilker::pluck('nama')->toArray();
-        } catch (\Throwable $e) {
-            $officialWilkers = [];
-        }
-        $observedWilkers = PrlSiveraVektor::distinct()->pluck('wilker')->toArray();
-        $wilkerOptions = array_values(array_unique(array_filter(array_merge($officialWilkers, $observedWilkers))));
-
-        // SIVERA Global Stats & Dashboard Metrics
-        $siveraAllCount = PrlSiveraVektor::count();
-        $siveraMemenuhi = PrlSiveraVektor::where('baku_mutu_status', 'Memenuhi Syarat')->count();
-        $siveraDiatasBaku = PrlSiveraVektor::where('baku_mutu_status', '!=', 'Memenuhi Syarat')->count();
-        $siveraKepatuhan = $siveraAllCount > 0 ? round(($siveraMemenuhi / $siveraAllCount) * 100, 1) : 0;
-
-        $siveraDashboardData = $this->computeSiveraDashboardData($wilkerOptions);
-
-        $siveraDashboardMetrics = [
-            'totalSurveilans' => $siveraAllCount,
-            'totalMs' => $siveraMemenuhi,
-            'totalTms' => $siveraDiatasBaku,
-            'kepatuhanPct' => $siveraKepatuhan,
-            'jentikCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Jentik Aedes%')->count(),
-            'jentikMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Jentik Aedes%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'jentikAbjAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Jentik Aedes%')->avg('nilai_indeks'), 1),
-            'lalatCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Lalat%')->count(),
-            'lalatMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Lalat%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'lalatFiAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Lalat%')->avg('nilai_indeks'), 1),
-            'kecoaCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Kecoa%')->count(),
-            'kecoaMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Kecoa%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'kecoaIdxAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Kecoa%')->avg('nilai_indeks'), 1),
-            'tikusCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Tikus%')->count(),
-            'tikusMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Tikus%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'tikusTrapAvg' => round((float)PrlSiveraVektor::where('jenis_vektor', 'like', '%Tikus%')->avg('nilai_indeks'), 1),
-            'pinjalCount' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Pinjal%')->count(),
-            'pinjalMs' => PrlSiveraVektor::where('jenis_vektor', 'like', '%Pinjal%')->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'anophelesJentikCount' => PrlSiveraVektor::where(function ($q) {
-                $q->where('jenis_vektor', 'like', '%anopheles%jentik%')
-                  ->orWhere('jenis_vektor', 'like', '%jentik%anopheles%')
-                  ->orWhere('jenis_vektor', 'Anopheles (Jentik)')
-                  ->orWhere('jenis_vektor', 'Jentik Anopheles');
-            })->count(),
-            'anophelesJentikMs' => PrlSiveraVektor::where(function ($q) {
-                $q->where('jenis_vektor', 'like', '%anopheles%jentik%')
-                  ->orWhere('jenis_vektor', 'like', '%jentik%anopheles%')
-                  ->orWhere('jenis_vektor', 'Anopheles (Jentik)')
-                  ->orWhere('jenis_vektor', 'Jentik Anopheles');
-            })->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-            'anophelesNyamukCount' => PrlSiveraVektor::where(function ($q) {
-                $q->where('jenis_vektor', 'like', '%anopheles%nyamuk%')
-                  ->orWhere('jenis_vektor', 'like', '%nyamuk%anopheles%')
-                  ->orWhere('jenis_vektor', 'Anopheles (Nyamuk)')
-                  ->orWhere('jenis_vektor', 'Nyamuk Anopheles');
-            })->count(),
-            'anophelesNyamukMs' => PrlSiveraVektor::where(function ($q) {
-                $q->where('jenis_vektor', 'like', '%anopheles%nyamuk%')
-                  ->orWhere('jenis_vektor', 'like', '%nyamuk%anopheles%')
-                  ->orWhere('jenis_vektor', 'Anopheles (Nyamuk)')
-                  ->orWhere('jenis_vektor', 'Nyamuk Anopheles');
-            })->where('baku_mutu_status', 'Memenuhi Syarat')->count(),
-        ];
-
-        // SIVERA Vektor Query
-        $qSivera = PrlSiveraVektor::query()->latest('tanggal')->latest('id');
-        if ($search) {
-            $qSivera->where(function ($q) use ($search) {
-                $q->where('jenis_vektor', 'like', "%{$search}%")
-                  ->orWhere('lokasi', 'like', "%{$search}%")
-                  ->orWhere('wilker', 'like', "%{$search}%")
-                  ->orWhere('parameter_utama', 'like', "%{$search}%");
-            });
-        }
-        if ($wilker) $qSivera->where('wilker', $wilker);
-        if ($tingkatRisiko) {
-            if (in_array(strtolower($tingkatRisiko), ['rendah', 'ms', 'memenuhi syarat', 'aman'])) {
-                $qSivera->where('baku_mutu_status', 'Memenuhi Syarat');
-            } elseif (in_array(strtolower($tingkatRisiko), ['tinggi', 'tms', 'di atas baku mutu', 'sedang', 'bahaya'])) {
-                $qSivera->where('baku_mutu_status', '!=', 'Memenuhi Syarat');
-            } else {
-                $qSivera->where('baku_mutu_status', 'like', "%{$tingkatRisiko}%");
-            }
-        }
-        if ($tglMulai) $qSivera->whereDate('tanggal', '>=', $tglMulai);
-        if ($tglSelesai) $qSivera->whereDate('tanggal', '<=', $tglSelesai);
-        if ($tahun) $qSivera->whereYear('tanggal', $tahun);
-        if ($bulan) $qSivera->whereMonth('tanggal', $bulan);
-
-        if ($siveraVektor && !in_array(strtolower($siveraVektor), ['dashboard', 'semua data', 'semua', 'all'])) {
-            if (strtolower($siveraVektor) === 'jentik' || strtolower($siveraVektor) === 'jentik aedes') {
-                $qSivera->where('jenis_vektor', 'like', '%Jentik Aedes%');
-            } elseif (strtolower($siveraVektor) === 'lalat') {
-                $qSivera->where('jenis_vektor', 'like', '%Lalat%');
-            } elseif (strtolower($siveraVektor) === 'kecoa') {
-                $qSivera->where('jenis_vektor', 'like', '%Kecoa%');
-            } elseif (strtolower($siveraVektor) === 'tikus') {
-                $qSivera->where('jenis_vektor', 'like', '%Tikus%');
-            } elseif (strtolower($siveraVektor) === 'pinjal') {
-                $qSivera->where('jenis_vektor', 'like', '%Pinjal%');
-            } elseif (str_contains(strtolower($siveraVektor), 'jentik anopheles') || str_contains(strtolower($siveraVektor), 'anopheles jentik')) {
-                $qSivera->where(function ($q) {
-                    $q->where('jenis_vektor', 'like', '%anopheles%jentik%')
-                      ->orWhere('jenis_vektor', 'like', '%jentik%anopheles%')
-                      ->orWhere('jenis_vektor', 'Anopheles (Jentik)')
-                      ->orWhere('jenis_vektor', 'Jentik Anopheles');
-                });
-            } elseif (str_contains(strtolower($siveraVektor), 'nyamuk anopheles') || str_contains(strtolower($siveraVektor), 'anopheles nyamuk')) {
-                $qSivera->where(function ($q) {
-                    $q->where('jenis_vektor', 'like', '%anopheles%nyamuk%')
-                      ->orWhere('jenis_vektor', 'like', '%nyamuk%anopheles%')
-                      ->orWhere('jenis_vektor', 'Anopheles (Nyamuk)')
-                      ->orWhere('jenis_vektor', 'Nyamuk Anopheles');
-                });
-            } else {
-                $qSivera->where('jenis_vektor', 'like', "%{$siveraVektor}%");
-            }
-        }
-        $siveraList = $qSivera->paginate($perPageSivera, ['*'], 'page_sivera')->withQueryString();
-
-        // Pemeriksa Options
-        $usersList = \App\Models\User::orderBy('name')->pluck('name')->toArray();
-        $inspList = PrlSiveraVektor::distinct()->whereNotNull('created_by_name')->pluck('created_by_name')->toArray();
-        $pemeriksaAgg = [];
-        foreach (array_merge($usersList, $inspList) as $raw) {
-            foreach (preg_split('/[,|]/', (string)$raw) as $part) {
-                $trimmed = trim($part);
-                if ($trimmed !== '' && !is_numeric($trimmed)) {
-                    $pemeriksaAgg[$trimmed] = true;
-                }
-            }
-        }
-        $pemeriksaOptions = array_keys($pemeriksaAgg);
-        sort($pemeriksaOptions);
-
-        return Inertia::render('Sivera/Index', [
-            'filters' => [
-                'search' => $search,
-                'wilker' => $wilker,
-                'tingkat_risiko' => $tingkatRisiko,
-                'tgl_mulai' => $tglMulai,
-                'tgl_selesai' => $tglSelesai,
-                'tahun' => $tahun,
-                'bulan' => $bulan,
-                'sivera_vektor' => $siveraVektor,
-                'per_page_sivera' => $perPageSivera,
-            ],
-            'wilker_options' => $wilkerOptions,
-            'pemeriksa_options' => $pemeriksaOptions,
-            'sivera_dashboard_metrics' => $siveraDashboardMetrics,
-            'sivera_dashboard_data' => $siveraDashboardData,
-            'sivera_list' => $siveraList,
-        ]);
+        return app(SiveraController::class)->index($request);
     }
 
     public function exportSiveraExcel(Request $request): StreamedResponse
     {
-        return $this->exportExcel($request, 'sivera');
+        return app(SiveraController::class)->exportExcel();
     }
 
     public function destroySiveraRecord(Request $request, int $id): JsonResponse
     {
-        return $this->destroyInspeksi($request, 'sivera', $id);
+        return app(SiveraController::class)->destroy($id);
     }
 
     /**
@@ -532,7 +298,11 @@ class PrlController extends Controller
      */
     public function exportExcel(Request $request, string $type): StreamedResponse
     {
-        $filename = "Export_PRL_" . strtoupper($type) . "_" . date('Ymd_His') . ".csv";
+        if ($type === 'sivera') {
+            return app(SiveraService::class)->streamCsvExport();
+        }
+
+        $filename = 'Export_PRL_'.strtoupper($type).'_'.date('Ymd_His').'.csv';
 
         return response()->streamDownload(function () use ($type) {
             $handle = fopen('php://output', 'w');
@@ -595,46 +365,11 @@ class PrlController extends Controller
                         $r->catatan,
                     ]);
                 }
-            } elseif ($type === 'sivera') {
-                fputcsv($handle, ['No', 'Jenis Vektor', 'Wilayah Kerja', 'Lokasi', 'Tanggal', 'Parameter Utama', 'Nilai Indeks', 'Status Baku Mutu', 'Tindakan Pengendalian', 'Petugas']);
-                $nomor = 1;
-                foreach (PrlSiveraVektor::latest('tanggal')->cursor() as $r) {
-                    fputcsv($handle, [
-                        $nomor++,
-                        $r->jenis_vektor,
-                        $r->wilker,
-                        $r->lokasi,
-                        $r->tanggal?->format('d/m/Y') ?: '-',
-                        $r->parameter_utama,
-                        $r->nilai_indeks,
-                        $r->baku_mutu_status,
-                        $r->tindakan_pengendalian,
-                        $r->created_by_name,
-                    ]);
-                }
             }
             fclose($handle);
         }, $filename, [
             'Content-Type' => 'text/csv; charset=UTF-8',
         ]);
-    }
-
-    /**
-     * Get Kop Surat Base64.
-     */
-    private function getKopSuratBase64(): ?string
-    {
-        $possibleKopPaths = [
-            public_path('dist/img/Kop_BKK_bandung.png'),
-            public_path('images/Kop_BKK_bandung.png'),
-            public_path('storage/images/Kop_BKK_bandung.png'),
-        ];
-        foreach ($possibleKopPaths as $kp) {
-            if (file_exists($kp)) {
-                return 'data:image/png;base64,' . base64_encode(file_get_contents($kp));
-            }
-        }
-        return null;
     }
 
     /**
@@ -648,13 +383,13 @@ class PrlController extends Controller
 
         if ($type === 'tpp') {
             $item = PrlInspeksiTpp::findOrFail($id);
-            $title = "Laporan Inspeksi Higiene Sanitasi Pangan (TPP)";
+            $title = 'Laporan Inspeksi Higiene Sanitasi Pangan (TPP)';
         } elseif ($type === 'sab') {
             $item = PrlInspeksiSab::findOrFail($id);
-            $title = "Laporan Inspeksi Sanitasi Sarana Air Bersih (SAB)";
+            $title = 'Laporan Inspeksi Sanitasi Sarana Air Bersih (SAB)';
         } elseif ($type === 'hsbu') {
             $item = PrlInspeksiHsbu::findOrFail($id);
-            $title = "Laporan Inspeksi Higiene Sanitasi Bangunan dan Usaha (HSBU)";
+            $title = 'Laporan Inspeksi Higiene Sanitasi Bangunan dan Usaha (HSBU)';
         } else {
             abort(404, 'Jenis dokumen tidak dikenali.');
         }
@@ -663,261 +398,36 @@ class PrlController extends Controller
             'type' => $type,
             'title' => $title,
             'item' => $item,
-            'kop' => $this->getKopSuratBase64(),
+            'kop' => SiveraService::getKopSuratBase64(),
         ])->setPaper('a4', 'portrait');
 
         return $pdf->stream("Inspeksi_PRL_{$type}_{$id}.pdf");
     }
 
     /**
-     * Print SIVERA Official Surveillance & Control PDF report.
-     * Matches Simply CI4 Export/Pdf methods.
+     * Backward-compatibility delegates for SIVERA PDF endpoints.
      */
     public function printSiveraPdf(Request $request, int $id, ?string $tipe = null)
     {
-        $row = PrlSiveraVektor::findOrFail($id);
-        $jv = $row->jenis_vektor ?? '';
-        $detailData = is_array($row->detail_data) ? $row->detail_data : (json_decode($row->detail_data, true) ?: []);
-        $pengendalian = $detailData['pengendalian'] ?? [];
-
-        // Determine target date
-        $tglTarget = !empty($pengendalian['tanggal']) 
-            ? $pengendalian['tanggal'] 
-            : (!empty($detailData['tanggal_selesai']) ? $detailData['tanggal_selesai'] : ($row->tanggal ? $row->tanggal->format('Y-m-d') : date('Y-m-d')));
-        
-        $carbonDate = \Carbon\Carbon::parse($tglTarget)->locale('id');
-        $hariTanggal = $carbonDate->isoFormat('dddd, D MMMM Y');
-
-        $wilker = $row->wilker ?: 'Wilayah Kerja';
-        $namaPegawai = $row->created_by_name ?: (auth()->user()?->name ?: 'Petugas Pengendalian');
-        $persiapan = $pengendalian['persiapan'] ?? 'Persiapan alat perlindungan diri (APD), bahan pengendali, dan koordinasi lapangan.';
-        $catatanPengendalian = $row->tindakan_pengendalian ?: ($pengendalian['catatan'] ?? '');
-
-        // Determine specific report format
-        $judulKegiatan = 'PENGENDALIAN VEKTOR';
-        $alatDanBahan = [];
-        $alatDanBahanSplit = null;
-        $metodePengendalian = 'Kimia / Fisika / Biologi';
-        $jumlahInsektisida = '-';
-        $penggunaanSolar = '';
-        $penggunaanBensin = '';
-        $hasilSurvei = $row->parameter_utama ?: ($row->baku_mutu_status ?? '-');
-        $tabelLokasiLalat = null;
-        $tabelAnopheles12jam = null;
-        $anophelesTotalDalam = 0;
-        $anophelesTotalLuar = 0;
-        $anophelesTotalSemua = 0;
-
-        if (stripos($jv, 'Jentik Aedes') !== false || stripos($jv, 'Aedes') !== false) {
-            if ($tipe === 'fogging') {
-                $judulKegiatan = 'PENGENDALIAN VEKTOR DBD (FOGGING)';
-                $alatDanBahanSplit = [
-                    ['Mesin Fogging', 'Jerigen Solar', 'Jerigen Bensin', 'Bensin', 'Solar', 'Corong Besar (Ukuran 25)', 'Corong Kecil (Ukuran 9)', 'Batang Pengaduk'],
-                    ['Insektisida', 'Masker', 'Handscoon', 'Sarung Tangan Anti Panas', 'Gelas Ukur', 'Kunci Kunci Mesin Fogging', 'Ear Muff', 'Lap Fiber'],
-                ];
-                $metode = [];
-                if (!empty($pengendalian['nyamuk_fogging'])) $metode[] = 'Fogging / Pengasapan Termal';
-                if (!empty($pengendalian['nyamuk_fisik'])) $metode[] = 'Fisik (Raket nyamuk/Light trap)';
-                $metodePengendalian = !empty($metode) ? implode(', ', $metode) : 'Kimia (Thermal Fogging)';
-                
-                if (!empty($pengendalian['nyamuk_fogging_ml'])) {
-                    $ins = $pengendalian['nyamuk_fogging_ml'] . ' ml';
-                    $sub = [];
-                    if (!empty($pengendalian['nyamuk_fogging_bahan'])) $sub[] = 'Bahan: ' . $pengendalian['nyamuk_fogging_bahan'];
-                    if (!empty($pengendalian['nyamuk_fogging_merk'])) $sub[] = 'Merk: ' . $pengendalian['nyamuk_fogging_merk'];
-                    if (!empty($sub)) $ins .= ' (' . implode(', ', $sub) . ')';
-                    $jumlahInsektisida = $ins;
-                }
-                $penggunaanSolar = !empty($pengendalian['nyamuk_fogging_solar']) ? $pengendalian['nyamuk_fogging_solar'] . ' Liter' : '5 Liter';
-                $penggunaanBensin = !empty($pengendalian['nyamuk_fogging_bensin']) ? $pengendalian['nyamuk_fogging_bensin'] . ' Liter' : '2 Liter';
-            } else {
-                $judulKegiatan = 'PENGENDALIAN VEKTOR DBD (JENTIK)';
-                $alatDanBahan = [
-                    'Batang Pengaduk',
-                    'Larvasida (Abate / Temephos)',
-                    'Masker Medis',
-                    'Sarung Tangan (Handscoon)',
-                    'Alat Tulis & Senter',
-                    'Dokumentasi Kegiatan',
-                ];
-                $metode = [];
-                if (!empty($pengendalian['jentik_kimia'])) $metode[] = 'Kimia (Larvasidasi / Abatisasi)';
-                if (!empty($pengendalian['jentik_fisik'])) $metode[] = 'Fisik (3M Plus: Menguras & Menutup)';
-                if (!empty($pengendalian['jentik_biologi'])) $metode[] = 'Biologi (BTI / Ikan Pemakan Jentik)';
-                $metodePengendalian = !empty($metode) ? implode(', ', $metode) : 'Kimia (Larvasidasi selektif) & Fisik (PSN)';
-
-                $ins = [];
-                if (!empty($pengendalian['jentik_kimia_gram'])) $ins[] = $pengendalian['jentik_kimia_gram'] . ' gram';
-                if (!empty($pengendalian['jentik_kimia_sachet'])) $ins[] = $pengendalian['jentik_kimia_sachet'] . ' sachet';
-                $jumlahInsektisida = !empty($ins) ? implode(' / ', $ins) : ($row->tindakan_pengendalian ?: '-');
-            }
-        } elseif (stripos($jv, 'Lalat') !== false) {
-            $judulKegiatan = 'PENGENDALIAN VEKTOR LALAT';
-            $alatDanBahan = [
-                'Spray Can (Alat Semprot)',
-                'Insektisida Lalat / Fly Bait Granule',
-                'Fly Grill Standard Kemenkes',
-                'Hand Counter & Stopwatch',
-                'Masker & Sarung Tangan',
-                'Alat Tulis & Dokumentasi',
-            ];
-            $metode = [];
-            if (!empty($pengendalian['spraying'])) {
-                $metode[] = 'Residual Spraying';
-                if (!empty($pengendalian['spraying_ml'])) {
-                    $jumlahInsektisida = $pengendalian['spraying_ml'] . ' ml (Spraying)';
-                }
-            }
-            if (!empty($pengendalian['granule'])) {
-                $metode[] = 'Umpan Granule';
-                if (!empty($pengendalian['granule_gram'])) {
-                    $jumlahInsektisida = $pengendalian['granule_gram'] . ' gram (Granule)';
-                }
-            }
-            $metodePengendalian = !empty($metode) ? 'Kimia (' . implode(', ', $metode) . ')' : 'Kimia / Fisika (Sanitasi & Fly Trap)';
-
-            if (!empty($detailData['detail_lokasi']) && is_array($detailData['detail_lokasi'])) {
-                $tabelLokasiLalat = $detailData['detail_lokasi'];
-            } elseif (!empty($detailData['lokasi_items']) && is_array($detailData['lokasi_items'])) {
-                $tabelLokasiLalat = $detailData['lokasi_items'];
-            }
-        } elseif (stripos($jv, 'Kecoa') !== false) {
-            $judulKegiatan = 'PENGENDALIAN VEKTOR KECOA';
-            $alatDanBahan = [
-                'Perangkap Kecoa (Sticky Trap)',
-                'Gel Baiting / Umpan Racun Kecoa',
-                'Senter Penerangan Celah',
-                'Masker & Sarung Tangan',
-                'Alat Tulis & Dokumentasi',
-            ];
-            $metode = [];
-            if (!empty($pengendalian['retrapping'])) {
-                $metode[] = 'Pemasangan Retrapping';
-                $jumlahInsektisida = ($pengendalian['retrapping_trap'] ?? '10') . ' unit trap';
-            }
-            if (!empty($pengendalian['gel_bait'])) {
-                $metode[] = 'Aplikasi Gel Baiting';
-                $jumlahInsektisida = ($pengendalian['gel_bait_gram'] ?? '20') . ' gram gel';
-            }
-            $metodePengendalian = !empty($metode) ? implode(', ', $metode) : 'Fisik (Trapping) & Kimia (Gel Baiting)';
-        } elseif (stripos($jv, 'Tikus') !== false) {
-            $judulKegiatan = 'PENGENDALIAN DAN SURVEILANS TIKUS';
-            $alatDanBahan = [
-                'Perangkap Tikus (Live Trap / Snap Trap)',
-                'Umpan Menarik (Kelapa Bakar, Ikan Asin)',
-                'Kantong Kain Pengambil Tikus',
-                'Kloroform Pembius & Sisir Kutu',
-                'Timbangan Digital & Penggaris Ukur',
-                'Formulir Identifikasi Spesies Tikus',
-            ];
-            $metodePengendalian = $catatanPengendalian ?: 'Rat Proofing, Pemasangan Perangkap Permanen, dan Sanitasi Habitat';
-            $jumlahInsektisida = ($detailData['jml_perangkap_dipasang'] ?? 50) . ' trap terpasang';
-        } elseif (stripos($jv, 'Pinjal') !== false) {
-            $judulKegiatan = 'SURVEILANS DAN PENGENDALIAN PINJAL TIKUS';
-            $alatDanBahan = [
-                'Nampan Putih Berisi Air / Kloroform',
-                'Sisir Kutu Khusus Rodensia',
-                'Petridish & Kaca Pembesar / Mikroskop',
-                'Dusting Gun Insektisida',
-                'Alat Tulis & Lembar Surveilans Pinjal',
-            ];
-            $metodePengendalian = $catatanPengendalian ?: 'Dusting insektisida pada sarang tikus & perimeter pelabuhan';
-        } elseif (stripos($jv, 'Jentik Anopheles') !== false) {
-            $judulKegiatan = 'SURVEILANS HABITAT & PENGENDALIAN JENTIK ANOPHELES';
-            $alatDanBahan = [
-                'Dipper / Cidukan Jentik Standard',
-                'Pipet Tetes & Botol Sampel Air',
-                'pH Meter & Salinometer Pesisir',
-                'Larvasida Biologi (BTI / Bacillus thuringiensis)',
-                'Alat Tulis & GPS Tracking',
-            ];
-            $metodePengendalian = $catatanPengendalian ?: 'Pembersihan lumut air, sanitasi perindukan payau, dan larvasida biologi';
-        } elseif (stripos($jv, 'Nyamuk Anopheles') !== false) {
-            $judulKegiatan = 'SURVEILANS MALARIA (PENANGKAPAN NYAMUK ANOPHELES 12 JAM)';
-            $alatDanBahan = [
-                'Aspirator Penangkapan Nyamuk',
-                'Paper Cup Bertutup Kasa & Karet Gelang',
-                'Senter Kepala / Headlamp',
-                'Termohigrometer & Anemometer Portable',
-                'Kapas Beralkohol & Larutan Glukosa',
-                'Formulir Pencatatan 12 Jam (18.00-06.00 WIB)',
-            ];
-            $metodePengendalian = $catatanPengendalian ?: 'Indoor Residual Spraying (IRS) & Pembagian Kelambu Berinsektisida';
-
-            if (!empty($detailData['tangkapan_dalam']) && !empty($detailData['tangkapan_luar'])) {
-                $slots = [
-                    '18_19' => '18.00 - 19.00', '19_20' => '19.00 - 20.00', '20_21' => '20.00 - 21.00',
-                    '21_22' => '21.00 - 22.00', '22_23' => '22.00 - 23.00', '23_24' => '23.00 - 24.00',
-                    '24_01' => '24.00 - 01.00', '01_02' => '01.00 - 02.00', '02_03' => '02.00 - 03.00',
-                    '03_04' => '03.00 - 04.00', '04_05' => '04.00 - 05.00', '05_06' => '05.00 - 06.00',
-                ];
-                $tabelAnopheles12jam = [];
-                foreach ($slots as $k => $lbl) {
-                    $d = (int)($detailData['tangkapan_dalam'][$k] ?? 0);
-                    $l = (int)($detailData['tangkapan_luar'][$k] ?? 0);
-                    $anophelesTotalDalam += $d;
-                    $anophelesTotalLuar += $l;
-                    $tabelAnopheles12jam[] = [
-                        'label' => $lbl,
-                        'dalam' => $d,
-                        'luar' => $l,
-                        'total' => $d + $l,
-                    ];
-                }
-                $anophelesTotalSemua = $anophelesTotalDalam + $anophelesTotalLuar;
-            }
-        }
-
-        $pdf = Pdf::loadView('pdf.sivera_pdf', [
-            'title' => "Laporan " . ucwords(strtolower($judulKegiatan)),
-            'judul_kegiatan' => $judulKegiatan,
-            'wilker' => $wilker,
-            'hari_tanggal' => $hariTanggal,
-            'lokasi' => $row->lokasi ?: '-',
-            'persiapan' => $persiapan,
-            'alat_dan_bahan' => $alatDanBahan,
-            'alat_dan_bahan_split' => $alatDanBahanSplit,
-            'hasil_survei' => $hasilSurvei,
-            'metode_pengendalian' => $metodePengendalian,
-            'jumlah_insektisida' => $jumlahInsektisida,
-            'penggunaan_solar' => $penggunaanSolar,
-            'penggunaan_bensin' => $penggunaanBensin,
-            'catatan_pengendalian' => $catatanPengendalian,
-            'nama_pegawai' => $namaPegawai,
-            'tabel_lokasi_lalat' => $tabelLokasiLalat,
-            'tabel_anopheles_12jam' => $tabelAnopheles12jam,
-            'anopheles_total_dalam' => $anophelesTotalDalam,
-            'anopheles_total_luar' => $anophelesTotalLuar,
-            'anopheles_total_semua' => $anophelesTotalSemua,
-            'kop' => $this->getKopSuratBase64(),
-        ])->setPaper('a4', 'portrait');
-
-        $cleanFilename = str_replace([' ', '/', '\\'], '_', "Laporan_{$judulKegiatan}_{$row->id}");
-        return $pdf->stream("{$cleanFilename}.pdf");
+        return app(SiveraController::class)->printPdf($request, $id, $tipe);
     }
 
     public function printSiveraJentikPdf(Request $request, int $id, ?string $tipe = 'jentik')
     {
-        return $this->printSiveraPdf($request, $id, $tipe);
+        return app(SiveraController::class)->printJentikPdf($request, $id, $tipe);
     }
 
     public function printSiveraLalatPdf(Request $request, int $id)
     {
-        return $this->printSiveraPdf($request, $id, 'lalat');
+        return app(SiveraController::class)->printLalatPdf($request, $id);
     }
 
     /**
      * Store new master TPP sarana.
      */
-    public function storeTpp(Request $request): JsonResponse
+    public function storeTpp(StoreTppRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'wilker' => 'required|string|max:255',
-            'nama_tpp' => 'required|string|max:255',
-            'penanggung_jawab' => 'nullable|string|max:255',
-            'jml_karyawan' => 'nullable|string|max:255',
-            'kapasitas_produksi' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         $validated['created_by_name'] = $request->user()?->name;
         $tpp = PrlTpp::create($validated);
@@ -932,16 +442,9 @@ class PrlController extends Controller
     /**
      * Store new master SAB sarana.
      */
-    public function storeSab(Request $request): JsonResponse
+    public function storeSab(StoreSabRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'wilker' => 'required|string|max:255',
-            'nama_sab' => 'required|string|max:255',
-            'penanggung_jawab' => 'nullable|string|max:255',
-            'penanggung_jawab_no_hp' => 'nullable|string|max:30',
-            'sumber_air' => 'nullable|string|max:255',
-            'kapasitas_penampungan' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         $validated['created_by_name'] = $request->user()?->name;
         $sab = PrlSab::create($validated);
@@ -956,14 +459,9 @@ class PrlController extends Controller
     /**
      * Store new master HSBU sarana.
      */
-    public function storeHsbu(Request $request): JsonResponse
+    public function storeHsbu(StoreHsbuRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'wilker' => 'required|string|max:255',
-            'nama_gedung' => 'required|string|max:255',
-            'penanggung_jawab' => 'nullable|string|max:255',
-            'jml_karyawan' => 'nullable|string|max:255',
-        ]);
+        $validated = $request->validated();
 
         $validated['created_by_name'] = $request->user()?->name;
         $hsbu = PrlHsbu::create($validated);
@@ -978,35 +476,9 @@ class PrlController extends Controller
     /**
      * Store new Inspeksi TPP record.
      */
-    public function storeInspeksiTpp(Request $request): JsonResponse
+    public function storeInspeksiTpp(StoreInspeksiTppRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'wilker' => 'required|string|max:255',
-            'tanggal_inspeksi' => 'required|date',
-            'nama_tpp' => 'required|string|max:255',
-            'prl_tpp_id' => 'nullable|integer',
-            'penanggung_jawab_tpp' => 'nullable|string|max:255',
-            'jml_karyawan_tpp' => 'nullable|string|max:255',
-            'kapasitas_produksi_tpp' => 'nullable|string|max:255',
-            'nama_pemeriksa' => 'nullable|string|max:255',
-            'sec_a_satu' => 'nullable|string|max:10',
-            'sec_a_dua' => 'nullable|string|max:10',
-            'sec_a_tiga' => 'nullable|string|max:10',
-            'sec_a_skor' => 'nullable|integer',
-            'sec_b_satu' => 'nullable|string|max:10',
-            'sec_b_dua' => 'nullable|string|max:10',
-            'sec_b_tiga' => 'nullable|string|max:10',
-            'sec_b_skor' => 'nullable|integer',
-            'sec_c_skor' => 'nullable|integer',
-            'sec_c_keterangan' => 'nullable|string|max:255',
-            'sec_d_nilai_inspeksi_sebelumnya' => 'nullable|integer',
-            'sec_d_skor' => 'nullable|integer',
-            'hasil' => 'required|integer',
-            'tingkat_risiko' => 'required|string|in:Rendah,Sedang,Tinggi',
-            'kesimpulan' => 'nullable|string',
-            'makanan' => 'nullable|string',
-            'saran_rencana_tindakan' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         if (empty($validated['prl_tpp_id'])) {
             $tpp = PrlTpp::firstOrCreate(
@@ -1033,36 +505,9 @@ class PrlController extends Controller
     /**
      * Store new Inspeksi SAB record.
      */
-    public function storeInspeksiSab(Request $request): JsonResponse
+    public function storeInspeksiSab(StoreInspeksiSabRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'wilker' => 'required|string|max:255',
-            'tanggal_inspeksi' => 'required|date',
-            'nama_sab' => 'required|string|max:255',
-            'prl_sab_id' => 'nullable|integer',
-            'penanggung_jawab_sab' => 'nullable|string|max:255',
-            'penanggung_jawab_no_hp_sab' => 'nullable|string|max:30',
-            'sumber_air_sab' => 'nullable|string|max:255',
-            'kapasitas_penampungan_sab' => 'nullable|string|max:255',
-            'nama_pemeriksa' => 'nullable|string|max:255',
-            'sec_b_satu' => 'nullable|string|max:10',
-            'sec_b_dua' => 'nullable|string|max:10',
-            'sec_b_tiga' => 'nullable|string|max:10',
-            'sec_b_empat' => 'nullable|string|max:10',
-            'sec_c_satu' => 'nullable|string|max:10',
-            'sec_c_dua' => 'nullable|string|max:10',
-            'sec_c_tiga' => 'nullable|string|max:10',
-            'sec_c_empat' => 'nullable|string|max:10',
-            'sec_c_lima' => 'nullable|string|max:10',
-            'sec_c_enam' => 'nullable|string|max:10',
-            'sec_c_tujuh' => 'nullable|string|max:10',
-            'sec_c_delapan' => 'nullable|string|max:10',
-            'sec_c_sembilan' => 'nullable|string|max:10',
-            'sec_c_sepuluh' => 'nullable|string|max:10',
-            'hasil' => 'required|integer',
-            'tingkat_risiko' => 'required|string',
-            'saran_rencana_tindakan' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         if (empty($validated['prl_sab_id'])) {
             $sab = PrlSab::firstOrCreate(
@@ -1090,22 +535,9 @@ class PrlController extends Controller
     /**
      * Store new Inspeksi HSBU record.
      */
-    public function storeInspeksiHsbu(Request $request): JsonResponse
+    public function storeInspeksiHsbu(StoreInspeksiHsbuRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'wilker' => 'required|string|max:255',
-            'tanggal_inspeksi' => 'required|date',
-            'nama_gedung' => 'required|string|max:255',
-            'prl_hsbu_id' => 'nullable|integer',
-            'penanggung_jawab_hsbu' => 'nullable|string|max:255',
-            'jml_karyawan_hsbu' => 'nullable|string|max:255',
-            'nama_pemeriksa' => 'nullable|string|max:255',
-            'komponen_penilaian' => 'nullable|array',
-            'total' => 'required|numeric',
-            'tingkat_risiko' => 'required|string|in:Rendah,Sedang,Tinggi',
-            'saran_rencana_tindakan' => 'nullable|string',
-            'catatan' => 'nullable|string',
-        ]);
+        $validated = $request->validated();
 
         if (empty($validated['prl_hsbu_id'])) {
             $hsbu = PrlHsbu::firstOrCreate(
@@ -1131,18 +563,21 @@ class PrlController extends Controller
     public function tppTab(Request $request): Response
     {
         $request->merge(['tab' => 'tpp']);
+
         return $this->sanitasiIndex($request);
     }
 
     public function sabTab(Request $request): Response
     {
         $request->merge(['tab' => 'sab']);
+
         return $this->sanitasiIndex($request);
     }
 
     public function hsbuTab(Request $request): Response
     {
         $request->merge(['tab' => 'hsbu']);
+
         return $this->sanitasiIndex($request);
     }
 
@@ -1152,87 +587,27 @@ class PrlController extends Controller
     }
 
     /**
-     * Store new SIVERA Vektor record.
+     * Store new SIVERA Vektor record (backward-compatible delegate).
      */
-    public function storeSivera(Request $request): JsonResponse
+    public function storeSivera(StoreSiveraRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'jenis_vektor' => 'required|string|max:50',
-            'wilker' => 'required|string|max:255',
-            'lokasi' => 'required|string|max:255',
-            'tanggal' => 'required|date',
-            'parameter_utama' => 'required|string|max:255',
-            'nilai_indeks' => 'required|numeric',
-            'baku_mutu_status' => 'required|string|max:50',
-            'tindakan_pengendalian' => 'nullable|string',
-            'detail_data' => 'nullable|array',
-        ]);
-
-        $validated['created_by_name'] = $request->user()?->name;
-        $sivera = PrlSiveraVektor::create($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Data Surveilans Vektor (SIVERA) berhasil disimpan.',
-            'data' => $sivera,
-        ]);
+        return app(SiveraController::class)->store($request);
     }
 
     /**
-     * Update an existing SIVERA record.
+     * Update an existing SIVERA record (backward-compatible delegate).
      */
-    public function updateSivera(Request $request, int $id): JsonResponse
+    public function updateSivera(StoreSiveraRequest $request, int $id): JsonResponse
     {
-        $sivera = PrlSiveraVektor::findOrFail($id);
-
-        $validated = $request->validate([
-            'jenis_vektor' => 'required|string|max:50',
-            'wilker' => 'required|string|max:255',
-            'lokasi' => 'required|string|max:255',
-            'tanggal' => 'required|date',
-            'parameter_utama' => 'required|string|max:255',
-            'nilai_indeks' => 'required|numeric',
-            'baku_mutu_status' => 'required|string|max:50',
-            'tindakan_pengendalian' => 'nullable|string',
-            'detail_data' => 'nullable|array',
-        ]);
-
-        $sivera->update($validated);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Data Surveilans Vektor (SIVERA) berhasil diperbarui.',
-            'data' => $sivera,
-        ]);
+        return app(SiveraController::class)->update($request, $id);
     }
 
     /**
-     * Update tindakan pengendalian for SIVERA record.
+     * Update tindakan pengendalian for SIVERA record (backward-compatible delegate).
      */
-    public function updatePengendalianSivera(Request $request, int $id): JsonResponse
+    public function updatePengendalianSivera(UpdatePengendalianSiveraRequest $request, int $id): JsonResponse
     {
-        $sivera = PrlSiveraVektor::findOrFail($id);
-
-        $validated = $request->validate([
-            'tindakan_pengendalian' => 'required|string',
-            'pengendalian_detail' => 'nullable|array',
-        ]);
-
-        $detail = $sivera->detail_data ?? [];
-        if (!empty($validated['pengendalian_detail'])) {
-            $detail['pengendalian'] = $validated['pengendalian_detail'];
-        }
-
-        $sivera->update([
-            'tindakan_pengendalian' => $validated['tindakan_pengendalian'],
-            'detail_data' => $detail,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Tindakan pengendalian berhasil disimpan.',
-            'data' => $sivera,
-        ]);
+        return app(SiveraController::class)->updatePengendalian($request, $id);
     }
 
     /**
@@ -1240,6 +615,10 @@ class PrlController extends Controller
      */
     public function destroyInspeksi(Request $request, string $type, int $id): JsonResponse
     {
+        if ($type === 'sivera') {
+            return app(SiveraController::class)->destroy($id);
+        }
+
         $deleted = false;
         if ($type === 'tpp') {
             $deleted = PrlInspeksiTpp::findOrFail($id)->delete();
@@ -1247,12 +626,10 @@ class PrlController extends Controller
             $deleted = PrlInspeksiSab::findOrFail($id)->delete();
         } elseif ($type === 'hsbu') {
             $deleted = PrlInspeksiHsbu::findOrFail($id)->delete();
-        } elseif ($type === 'sivera') {
-            $deleted = PrlSiveraVektor::findOrFail($id)->delete();
         }
 
         return response()->json([
-            'success' => (bool)$deleted,
+            'success' => (bool) $deleted,
             'message' => 'Data riwayat inspeksi berhasil dihapus.',
         ]);
     }
@@ -1272,7 +649,7 @@ class PrlController extends Controller
         }
 
         return response()->json([
-            'success' => (bool)$deleted,
+            'success' => (bool) $deleted,
             'message' => 'Data master sarana berhasil dihapus.',
         ]);
     }
@@ -1285,6 +662,7 @@ class PrlController extends Controller
         $payload = $request->all();
         $targetModule = $request->input('target_module', 'prl_sivera');
         $res = $service->testModule($targetModule, $payload);
+
         return response()->json([
             'success' => ($res['connected'] && $res['table_exists']),
             'message' => ($res['connected'] && $res['table_exists'])
@@ -1306,13 +684,13 @@ class PrlController extends Controller
 
         $credentials = $request->all();
         $options = [
-            'skip_duplicate' => (bool)$request->input('skip_duplicate', true),
-            'truncate_first' => (bool)$request->input('truncate_first', false),
-            'dry_run' => (bool)$request->input('dry_run', false),
+            'skip_duplicate' => (bool) $request->input('skip_duplicate', true),
+            'truncate_first' => (bool) $request->input('truncate_first', false),
+            'dry_run' => (bool) $request->input('dry_run', false),
         ];
 
         // Privilege check: Truncate requires Super Admin
-        if ($options['truncate_first'] && !$request->user()->hasRole('Super Admin')) {
+        if ($options['truncate_first'] && ! $request->user()->hasRole('Super Admin')) {
             return response()->json([
                 'success' => false,
                 'message' => 'Akses Ditolak: Opsi mengosongkan tabel (Truncate) hanya diizinkan untuk Super Admin.',
@@ -1343,327 +721,4 @@ class PrlController extends Controller
             'details' => $results,
         ]);
     }
-
-    /**
-     * Compute comprehensive SIVERA dashboard dataset: summary KPIs, cross-tabulated charts, and wilker detail matrix.
-     */
-    protected function computeSiveraDashboardData(array $wilkerOptions): array
-    {
-        $records = PrlSiveraVektor::all();
-
-        $wilkerSet = [];
-        foreach ($wilkerOptions as $wo) {
-            $wo = trim($wo ?: '');
-            if ($wo !== '') {
-                $wilkerSet[$wo] = true;
-            }
-        }
-        foreach ($records as $r) {
-            $w = trim($r->wilker ?: '');
-            if ($w !== '') {
-                $wilkerSet[$w] = true;
-            }
-        }
-        $labels = array_keys($wilkerSet);
-        sort($labels);
-        if (empty($labels)) {
-            $labels = ['Wilayah Kerja Patimban', 'Wilayah Kerja Cirebon', 'Wilayah Kerja Indramayu', 'Wilayah Kerja Pelabuharatu'];
-        }
-
-        $summary = [
-            'total_surveilans' => $records->count(),
-            'jentik' => 0,
-            'kontainer_positif' => 0,
-            'kontainer_diperiksa' => 0,
-            'rumah_diperiksa' => 0,
-            'rumah_positif' => 0,
-            'abj_avg' => 100,
-            'lalat' => 0,
-            'avg_lalat' => 0,
-            'lalat_ms' => 0,
-            'lalat_tms' => 0,
-            'kecoa' => 0,
-            'kecoa_perangkap' => 0,
-            'kecoa_tertangkap' => 0,
-            'avg_kecoa' => 0,
-            'tikus' => 0,
-            'tikus_perangkap' => 0,
-            'tikus_tertangkap' => 0,
-            'avg_success_trap' => 0,
-            'pinjal' => 0,
-            'pinjal_umum' => 0,
-            'pinjal_khusus' => 0,
-            'anopheles_jentik' => 0,
-            'anopheles_nyamuk' => 0,
-            'avg_indeks_habitat' => 0,
-            'avg_mbr' => 0,
-            'total_ms' => 0,
-            'total_tms' => 0,
-            'kepatuhan_pct' => 100,
-        ];
-
-        $kecoaSpeciesList = [
-            'Periplatena americana' => 'P. americana',
-            'Blatella germanica' => 'B. germanica',
-            'Supella longipalpa' => 'S. longipalpa',
-            'Neostylopiga rhombifolia' => 'N. rhombifolia',
-            'Lain-Lain' => 'Lain-Lain',
-        ];
-
-        $kecoaChart = [];
-        foreach ($kecoaSpeciesList as $short) {
-            $kecoaChart[$short] = array_fill(0, count($labels), 0);
-        }
-
-        $lalatStatusChart = [
-            'MS' => array_fill(0, count($labels), 0),
-            'TMS' => array_fill(0, count($labels), 0),
-        ];
-
-        $jenisKontainerChart = [];
-
-        $tikusSpeciesList = [
-            'Rattus norvegicus' => 'R. norvegicus',
-            'Rattus tanezumi' => 'R. tanezumi',
-            'Mus musculus' => 'M. musculus',
-            'Suncus murinus' => 'S. murinus',
-            'Lain-Lain' => 'Lain-Lain',
-        ];
-
-        $spesiesTikusChart = [];
-        foreach ($tikusSpeciesList as $short) {
-            $spesiesTikusChart[$short] = array_fill(0, count($labels), 0);
-        }
-
-        $wilkerDetail = [];
-        foreach ($labels as $w) {
-            $wilkerDetail[$w] = [
-                'wilker' => $w,
-                'total_surveilans' => 0,
-                'jentik_survei' => 0,
-                'jentik_kontainer_diperiksa' => 0,
-                'jentik_kontainer_positif' => 0,
-                'jentik_rumah_diperiksa' => 0,
-                'jentik_rumah_positif' => 0,
-                'abj' => 100,
-                'lalat_survei' => 0,
-                'lalat_rata_sum' => 0,
-                'lalat_avg' => 0,
-                'lalat_ms' => 0,
-                'lalat_tms' => 0,
-                'kecoa_survei' => 0,
-                'kecoa_perangkap' => 0,
-                'kecoa_tertangkap' => 0,
-                'kecoa_kepadatan' => 0,
-                'tikus_survei' => 0,
-                'tikus_perangkap' => 0,
-                'tikus_tertangkap' => 0,
-                'tikus_success_trap_sum' => 0,
-                'tikus_success_trap_avg' => 0,
-                'pinjal_survei' => 0,
-                'pinjal_umum' => 0,
-                'pinjal_khusus' => 0,
-                'anopheles_jentik_survei' => 0,
-                'anopheles_habitat_sum' => 0,
-                'anopheles_habitat_avg' => 0,
-                'anopheles_nyamuk_survei' => 0,
-                'anopheles_mbr_sum' => 0,
-                'anopheles_mbr_avg' => 0,
-            ];
-        }
-
-        $lalatValues = [];
-        $tikusTrapValues = [];
-        $abjValues = [];
-        $anophelesHabitatValues = [];
-        $anophelesMbrValues = [];
-
-        foreach ($records as $r) {
-            $w = trim($r->wilker ?: $labels[0]);
-            $wIdx = array_search($w, $labels);
-            if ($wIdx === false) {
-                $w = $labels[0];
-                $wIdx = 0;
-            }
-
-            $jv = strtolower($r->jenis_vektor ?: '');
-            $dt = is_array($r->detail_data) ? $r->detail_data : (json_decode($r->detail_data, true) ?: []);
-
-            $wilkerDetail[$w]['total_surveilans']++;
-
-            if (str_contains($jv, 'jentik') && !str_contains($jv, 'anopheles')) {
-                $summary['jentik']++;
-                $kp = (int)($dt['jml_kontainer_positif'] ?? 0);
-                $kd = (int)($dt['jml_kontainer_diperiksa'] ?? 0);
-                $rp = (int)($dt['jml_rumah_positif'] ?? 0);
-                $rd = (int)($dt['jml_rumah_diperiksa'] ?? 0);
-
-                $summary['kontainer_positif'] += $kp;
-                $summary['kontainer_diperiksa'] += $kd;
-                $summary['rumah_positif'] += $rp;
-                $summary['rumah_diperiksa'] += $rd;
-
-                $abj = $r->nilai_indeks > 0 ? (float)$r->nilai_indeks : ($rd > 0 ? round((($rd - $rp) / $rd) * 100, 1) : 100);
-                $abjValues[] = $abj;
-
-                $wilkerDetail[$w]['jentik_survei']++;
-                $wilkerDetail[$w]['jentik_kontainer_positif'] += $kp;
-                $wilkerDetail[$w]['jentik_kontainer_diperiksa'] += $kd;
-                $wilkerDetail[$w]['jentik_rumah_positif'] += $rp;
-                $wilkerDetail[$w]['jentik_rumah_diperiksa'] += $rd;
-
-                $rawK = (string)($dt['jenis_kontainer'] ?? '');
-                $parts = array_filter(array_map('trim', explode(',', $rawK)));
-                foreach ($parts as $p) {
-                    $jenisKontainerChart[$p] = ($jenisKontainerChart[$p] ?? 0) + 1;
-                }
-            } elseif (str_contains($jv, 'lalat')) {
-                $summary['lalat']++;
-                $fi = (float)($r->nilai_indeks ?: ($dt['rata_rata'] ?? 0));
-                $lalatValues[] = $fi;
-                $isMs = $fi < 2.0;
-                if ($isMs) {
-                    $summary['lalat_ms']++;
-                    $lalatStatusChart['MS'][$wIdx]++;
-                    $wilkerDetail[$w]['lalat_ms']++;
-                } else {
-                    $summary['lalat_tms']++;
-                    $lalatStatusChart['TMS'][$wIdx]++;
-                    $wilkerDetail[$w]['lalat_tms']++;
-                }
-
-                $wilkerDetail[$w]['lalat_survei']++;
-                $wilkerDetail[$w]['lalat_rata_sum'] += $fi;
-            } elseif (str_contains($jv, 'kecoa')) {
-                $summary['kecoa']++;
-                $kt = (int)($dt['jml_kecoa_tertangkap'] ?? 0);
-                $kp = (int)($dt['perangkap_terpasang'] ?? 0);
-                $summary['kecoa_tertangkap'] += $kt;
-                $summary['kecoa_perangkap'] += $kp;
-
-                $wilkerDetail[$w]['kecoa_survei']++;
-                $wilkerDetail[$w]['kecoa_tertangkap'] += $kt;
-                $wilkerDetail[$w]['kecoa_perangkap'] += $kp;
-
-                $spesiesRaw = $dt['spesies_tertangkap'] ?? null;
-                if (is_string($spesiesRaw)) {
-                    $spesiesRaw = json_decode($spesiesRaw, true);
-                }
-                if (is_array($spesiesRaw)) {
-                    foreach ($spesiesRaw as $spName => $count) {
-                        $lbl = $kecoaSpeciesList[$spName] ?? 'Lain-Lain';
-                        $kecoaChart[$lbl][$wIdx] += (int)$count;
-                    }
-                }
-            } elseif (str_contains($jv, 'tikus')) {
-                $summary['tikus']++;
-                $tt = (int)($dt['jml_tikus_tertangkap'] ?? 0);
-                $tp = (int)($dt['jml_perangkap_dipasang'] ?? 0);
-                $trapPct = (float)($r->nilai_indeks ?: ($dt['success_trap'] ?? 0));
-                $tikusTrapValues[] = $trapPct;
-                $summary['tikus_tertangkap'] += $tt;
-                $summary['tikus_perangkap'] += $tp;
-
-                $wilkerDetail[$w]['tikus_survei']++;
-                $wilkerDetail[$w]['tikus_tertangkap'] += $tt;
-                $wilkerDetail[$w]['tikus_perangkap'] += $tp;
-                $wilkerDetail[$w]['tikus_success_trap_sum'] += $trapPct;
-
-                $rawSp = $dt['spesies'] ?? $dt['spesies_tikus'] ?? null;
-                if (is_string($rawSp) && str_starts_with(trim($rawSp), '{')) {
-                    $rawSp = json_decode($rawSp, true);
-                }
-                if (is_array($rawSp)) {
-                    foreach ($rawSp as $spName => $count) {
-                        $lbl = $tikusSpeciesList[$spName] ?? 'Lain-Lain';
-                        $spesiesTikusChart[$lbl][$wIdx] += (int)$count;
-                    }
-                } elseif (is_string($rawSp) && !empty(trim($rawSp))) {
-                    $lbl = $tikusSpeciesList[trim($rawSp)] ?? 'Lain-Lain';
-                    $spesiesTikusChart[$lbl][$wIdx] += 1;
-                }
-            } elseif (str_contains($jv, 'pinjal')) {
-                $summary['pinjal']++;
-                $pu = (int)($dt['pinjal_umum'] ?? 0);
-                $pk = (int)($dt['pinjal_khusus'] ?? 0);
-                $summary['pinjal_umum'] += $pu;
-                $summary['pinjal_khusus'] += $pk;
-
-                $wilkerDetail[$w]['pinjal_survei']++;
-                $wilkerDetail[$w]['pinjal_umum'] += $pu;
-                $wilkerDetail[$w]['pinjal_khusus'] += $pk;
-            } elseif (str_contains($jv, 'anopheles')) {
-                if (str_contains($jv, 'jentik')) {
-                    $summary['anopheles_jentik']++;
-                    $hi = (float)($r->nilai_indeks ?: ($dt['indeks_habitat'] ?? 0));
-                    $anophelesHabitatValues[] = $hi;
-                    $wilkerDetail[$w]['anopheles_jentik_survei']++;
-                    $wilkerDetail[$w]['anopheles_habitat_sum'] += $hi;
-                } else {
-                    $summary['anopheles_nyamuk']++;
-                    $mbr = (float)($r->nilai_indeks ?: ($dt['mbr'] ?? 0));
-                    $anophelesMbrValues[] = $mbr;
-                    $wilkerDetail[$w]['anopheles_nyamuk_survei']++;
-                    $wilkerDetail[$w]['anopheles_mbr_sum'] += $mbr;
-                }
-            }
-
-            if ($r->baku_mutu_status === 'Memenuhi Syarat') {
-                $summary['total_ms']++;
-            } else {
-                $summary['total_tms']++;
-            }
-        }
-
-        $summary['avg_lalat'] = count($lalatValues) > 0 ? round(array_sum($lalatValues) / count($lalatValues), 2) : 0;
-        $summary['avg_success_trap'] = count($tikusTrapValues) > 0 ? round(array_sum($tikusTrapValues) / count($tikusTrapValues), 2) : 0;
-        $summary['abj_avg'] = count($abjValues) > 0 ? round(array_sum($abjValues) / count($abjValues), 1) : 100;
-        $summary['avg_kecoa'] = $summary['kecoa_perangkap'] > 0 ? round($summary['kecoa_tertangkap'] / $summary['kecoa_perangkap'], 2) : 0;
-        $summary['avg_indeks_habitat'] = count($anophelesHabitatValues) > 0 ? round(array_sum($anophelesHabitatValues) / count($anophelesHabitatValues), 1) : 0;
-        $summary['avg_mbr'] = count($anophelesMbrValues) > 0 ? round(array_sum($anophelesMbrValues) / count($anophelesMbrValues), 2) : 0;
-        $summary['kepatuhan_pct'] = $summary['total_surveilans'] > 0 ? round(($summary['total_ms'] / $summary['total_surveilans']) * 100, 1) : 100;
-
-        // Sort jentik container positive frequencies descending
-        arsort($jenisKontainerChart);
-        $formattedKontainer = [];
-        $totalKontainerTemuan = array_sum($jenisKontainerChart);
-        foreach ($jenisKontainerChart as $name => $count) {
-            $formattedKontainer[] = [
-                'name' => $name,
-                'count' => $count,
-                'pct' => $totalKontainerTemuan > 0 ? round(($count / $totalKontainerTemuan) * 100, 1) : 0,
-            ];
-        }
-
-        foreach ($wilkerDetail as $w => &$item) {
-            $item['lalat_avg'] = $item['lalat_survei'] > 0 ? round($item['lalat_rata_sum'] / $item['lalat_survei'], 2) : 0;
-            $item['tikus_success_trap_avg'] = $item['tikus_survei'] > 0 ? round($item['tikus_success_trap_sum'] / $item['tikus_survei'], 2) : 0;
-            $item['kecoa_kepadatan'] = $item['kecoa_perangkap'] > 0 ? round($item['kecoa_tertangkap'] / $item['kecoa_perangkap'], 2) : 0;
-            if ($item['jentik_rumah_diperiksa'] > 0) {
-                $item['abj'] = round((($item['jentik_rumah_diperiksa'] - $item['jentik_rumah_positif']) / $item['jentik_rumah_diperiksa']) * 100, 1);
-            } elseif ($item['jentik_kontainer_diperiksa'] > 0) {
-                $item['abj'] = round((($item['jentik_kontainer_diperiksa'] - $item['jentik_kontainer_positif']) / $item['jentik_kontainer_diperiksa']) * 100, 1);
-            } else {
-                $item['abj'] = 100;
-            }
-            $item['anopheles_habitat_avg'] = $item['anopheles_jentik_survei'] > 0 ? round($item['anopheles_habitat_sum'] / $item['anopheles_jentik_survei'], 1) : 0;
-            $item['anopheles_mbr_avg'] = $item['anopheles_nyamuk_survei'] > 0 ? round($item['anopheles_mbr_sum'] / $item['anopheles_nyamuk_survei'], 2) : 0;
-        }
-        unset($item);
-
-        return [
-            'labels' => $labels,
-            'summary' => $summary,
-            'charts' => [
-                'kecoa' => $kecoaChart,
-                'lalat_status' => $lalatStatusChart,
-                'jentik_kontainer' => $formattedKontainer,
-                'jentik_kontainer_map' => $jenisKontainerChart,
-                'spesies_tikus' => $spesiesTikusChart,
-            ],
-            'wilker_detail' => array_values($wilkerDetail),
-        ];
-    }
 }
-
-

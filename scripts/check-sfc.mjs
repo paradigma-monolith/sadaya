@@ -78,9 +78,62 @@ const collectUnlabelledButtons = (nodes = [], issues = []) => {
   return issues;
 };
 
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Collect identifier references across the compiled <script setup> AST while
+ * skipping import declarations and non-computed property/member keys.
+ */
+const collectAstIdentifiers = (node, refs = new Set()) => {
+  if (!node || typeof node !== 'object') return refs;
+  if (Array.isArray(node)) {
+    for (const item of node) collectAstIdentifiers(item, refs);
+    return refs;
+  }
+  if (node.type === 'ImportDeclaration') return refs;
+  if (node.type === 'Identifier') {
+    refs.add(node.name);
+    return refs;
+  }
+  for (const [key, val] of Object.entries(node)) {
+    if (key === 'loc' || key === 'start' || key === 'end' || key === 'extra') continue;
+    if ((node.type === 'MemberExpression' || node.type === 'OptionalMemberExpression') && key === 'property' && !node.computed) {
+      continue;
+    }
+    if (node.type === 'ObjectProperty' && key === 'key' && !node.computed && !node.shorthand) {
+      continue;
+    }
+    if ((node.type === 'ObjectMethod' || node.type === 'ClassMethod' || node.type === 'ClassProperty') && key === 'key' && !node.computed) {
+      continue;
+    }
+    collectAstIdentifiers(val, refs);
+  }
+  return refs;
+};
+
+/**
+ * Find non-type top-level <script setup> imports that are referenced neither
+ * in the script AST nor in the compiled Vue render function.
+ */
+const findUnusedSetupImports = (compiledScript, templateCode = '') => {
+  if (!compiledScript?.imports) return [];
+  const setupImports = Object.entries(compiledScript.imports).filter(([, info]) => info.isFromSetup && !info.isType);
+  if (setupImports.length === 0) return [];
+
+  const scriptRefs = collectAstIdentifiers(compiledScript.scriptSetupAst || []);
+  const unused = [];
+  for (const [name] of setupImports) {
+    if (scriptRefs.has(name)) continue;
+    if (templateCode && new RegExp(`\\b${escapeRegex(name)}\\b`).test(templateCode)) continue;
+    unused.push(name);
+  }
+  return unused;
+};
+
 const files = collectVueFiles(JS_DIR);
 const compileErrors = [];
 const a11yWarnings = [];
+const unusedImports = [];
 
 for (const file of files) {
   const rel = path.relative(ROOT_DIR, file).replace(/\\/g, '/');
@@ -104,6 +157,7 @@ for (const file of files) {
     }
   }
 
+  let templateCode = '';
   if (descriptor.template) {
     const templateResult = compileTemplate({
       source: descriptor.template.content,
@@ -113,6 +167,7 @@ for (const file of files) {
         bindingMetadata: compiledScript?.bindings,
       },
     });
+    templateCode = templateResult.code || '';
     if (templateResult.errors.length > 0) {
       for (const err of templateResult.errors) {
         const msg = typeof err === 'string' ? err : err.message;
@@ -127,6 +182,13 @@ for (const file of files) {
       }
     }
   }
+
+  if (descriptor.scriptSetup && compiledScript) {
+    const unused = findUnusedSetupImports(compiledScript, templateCode);
+    if (unused.length > 0) {
+      unusedImports.push(`${rel}: unused import(s): ${unused.join(', ')}`);
+    }
+  }
 }
 
 console.log(`Checked ${files.length} Vue SFC files.`);
@@ -136,13 +198,18 @@ if (a11yWarnings.length > 0) {
   for (const w of a11yWarnings) console.error(`  - ${w}`);
 }
 
+if (unusedImports.length > 0) {
+  console.error(`\n[LINT] Found ${unusedImports.length} SFC file(s) with unused <script setup> imports:`);
+  for (const u of unusedImports) console.error(`  - ${u}`);
+}
+
 if (compileErrors.length > 0) {
   console.error(`\n[SFC] Found ${compileErrors.length} compile error(s):`);
   for (const e of compileErrors) console.error(`  - ${e}`);
 }
 
-if (compileErrors.length > 0 || a11yWarnings.length > 0) {
+if (compileErrors.length > 0 || a11yWarnings.length > 0 || unusedImports.length > 0) {
   process.exit(1);
 }
 
-console.log('All Vue SFCs parsed, compiled, and passed icon-button a11y checks.');
+console.log('All Vue SFCs parsed, compiled, passed unused-import checks, and passed icon-button a11y checks.');

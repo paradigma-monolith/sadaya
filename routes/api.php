@@ -1,8 +1,11 @@
 <?php
 
 use App\Http\Controllers\Api\ActivityLogApiController;
+use App\Http\Controllers\Api\GlobalSearchController;
+use App\Http\Controllers\Api\MediaApiController;
 use App\Http\Controllers\Api\ProfileApiController;
 use App\Http\Controllers\Api\StatsApiController;
+use App\Http\Controllers\Api\UsersApiController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\NotificationController;
 use Illuminate\Http\Request;
@@ -16,14 +19,9 @@ Route::get('/user', function (Request $request) {
     ]);
 })->middleware('auth:sanctum');
 
-Route::prefix('v1')->group(function () {
-    // Public telemetry & system stats for SPA
+Route::prefix('v1')->middleware('throttle:api')->group(function () {
+    // System telemetry endpoint (sensitive DB fields redacted for guests)
     Route::get('/stats', [StatsApiController::class, 'index']);
-
-    // Exports API (Audit Logs)
-    Route::get('/exports/audit-logs/excel', [ExportController::class, 'exportExcel']);
-    Route::get('/exports/audit-logs/csv', [ExportController::class, 'exportCsv']);
-    Route::get('/exports/audit-logs/pdf', [ExportController::class, 'exportPdf']);
 
     // Protected API Routes
     Route::middleware('auth:sanctum')->group(function () {
@@ -34,8 +32,17 @@ Route::prefix('v1')->group(function () {
         Route::post('/profile/avatar', [ProfileApiController::class, 'updateAvatar']);
         Route::get('/profile/login-histories', [ProfileApiController::class, 'loginHistories']);
 
-        // Audit Trail Logs
-        Route::get('/audit-logs', [ActivityLogApiController::class, 'index']);
+        // Restricted Audit Trail & Export Endpoints (Super Admin / Admin)
+        Route::middleware('role:Super Admin|Admin')->group(function () {
+            Route::get('/audit-logs', [ActivityLogApiController::class, 'index']);
+            Route::get('/users', [UsersApiController::class, 'index']);
+
+            Route::middleware('throttle:exports')->group(function () {
+                Route::get('/exports/audit-logs/excel', [ExportController::class, 'exportExcel']);
+                Route::get('/exports/audit-logs/csv', [ExportController::class, 'exportCsv']);
+                Route::get('/exports/audit-logs/pdf', [ExportController::class, 'exportPdf']);
+            });
+        });
 
         // Notifications
         Route::get('/notifications', [NotificationController::class, 'index']);
@@ -43,14 +50,11 @@ Route::prefix('v1')->group(function () {
         Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
 
         // Laravel Scout Global Search
-        Route::get('/search', [\App\Http\Controllers\Api\GlobalSearchController::class, 'index']);
+        Route::get('/search', [GlobalSearchController::class, 'index']);
 
         // Spatie MediaLibrary Endpoints
-        Route::get('/media', [\App\Http\Controllers\Api\MediaApiController::class, 'index']);
-        Route::post('/media/upload', [\App\Http\Controllers\Api\MediaApiController::class, 'upload']);
-        Route::delete('/media/{id}', [\App\Http\Controllers\Api\MediaApiController::class, 'destroy']);
-
-        // Spatie QueryBuilder Resource Example (Paginated & Filtered Users)
-        Route::get('/users', [\App\Http\Controllers\Api\UsersApiController::class, 'index']);
+        Route::get('/media', [MediaApiController::class, 'index']);
+        Route::post('/media/upload', [MediaApiController::class, 'upload']);
+        Route::delete('/media/{id}', [MediaApiController::class, 'destroy']);
     });
 });

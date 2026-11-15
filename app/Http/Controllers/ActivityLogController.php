@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\LoginHistory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Activitylog\Models\Activity;
@@ -15,6 +16,8 @@ class ActivityLogController extends Controller
      */
     public function index(Request $request): Response
     {
+        Gate::authorize('viewAny', Activity::class);
+
         $activities = Activity::with('causer')
             ->latest()
             ->paginate(15);

@@ -12,7 +12,6 @@ import {
   Smartphone, 
   Tablet, 
   Laptop,
-  ShieldCheck,
   Activity
 } from 'lucide-vue-next';
 

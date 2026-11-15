@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
 use App\Services\LoginHistoryService;
 use App\Services\SimplyDataMigrationService;
@@ -33,23 +34,12 @@ class AuthController extends Controller
      * Handle an incoming authentication request.
      * Supports login via Simply Username (NIP/Handle) or Email, with automatic Simply credential sync.
      */
-    public function login(Request $request): RedirectResponse
+    public function login(LoginRequest $request): RedirectResponse
     {
-        $loginInput = trim((string)($request->input('login') ?? $request->input('email', '')));
-        $request->merge([
-            'login' => $loginInput,
-            'email' => $loginInput,
-        ]);
+        $request->ensureIsNotRateLimited();
 
-        $request->validate([
-            'login' => ['required', 'string'],
-            'password' => ['required', 'string'],
-        ], [
-            'login.required' => 'Username, NIP, atau Email wajib diisi.',
-            'password.required' => 'Kata sandi wajib diisi.',
-        ]);
-
-        $password = (string)$request->input('password');
+        $loginInput = (string) $request->input('login');
+        $password = (string) $request->input('password');
         $remember = $request->boolean('remember');
 
         // 1. Try local Sadaya database first (matched by username OR email)
@@ -58,6 +48,7 @@ class AuthController extends Controller
             ->first();
 
         if ($user && Hash::check($password, $user->password)) {
+            $request->clearRateLimiter();
             Auth::login($user, $remember);
             $request->session()->regenerate();
 
@@ -70,6 +61,7 @@ class AuthController extends Controller
         // 2. Fallback: Authenticate directly against Simply database
         $simplyUser = SimplyDataMigrationService::findAndVerifySimplyUser($loginInput, $password);
         if ($simplyUser) {
+            $request->clearRateLimiter();
             $syncedUser = SimplyDataMigrationService::syncUserFromSimplyData($simplyUser);
             Auth::login($syncedUser, $remember);
             $request->session()->regenerate();
@@ -79,7 +71,8 @@ class AuthController extends Controller
             return redirect()->intended(route('home'));
         }
 
-        // 3. Record failed login attempt for security audit
+        // 3. Record failed login attempt and enforce progressive brute-force throttling
+        $request->hitRateLimiter();
         LoginHistoryService::recordFailed($loginInput, $request);
 
         return back()->withErrors([

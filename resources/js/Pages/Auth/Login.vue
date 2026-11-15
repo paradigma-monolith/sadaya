@@ -3,12 +3,10 @@ import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { 
   LogIn, 
-  Mail, 
   Lock, 
   Eye, 
   EyeOff, 
   ShieldCheck, 
-  Sparkles, 
   CheckCircle2, 
   AlertCircle,
   Layers,

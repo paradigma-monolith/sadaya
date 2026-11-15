@@ -1,5 +1,6 @@
 <?php
 
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -7,23 +8,27 @@ use Illuminate\Support\Facades\Schedule;
 // Automatic Background Synchronization for Simply (CI4) Database
 Schedule::command('simply:auto-sync')->everyMinute()->withoutOverlapping();
 
+// Daily audit log retention & backup cleanup maintenance
+Schedule::command('activitylog:clean --days=180')->dailyAt('02:30')->withoutOverlapping();
+Schedule::command('backup:clean')->dailyAt('03:00')->withoutOverlapping();
+
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
 Artisan::command('docs:generate-pdf', function () {
     $this->info('Generating Manual Book PDF...');
-    
+
     // Ensure public/docs directory exists
-    if (!file_exists(public_path('docs'))) {
+    if (! file_exists(public_path('docs'))) {
         mkdir(public_path('docs'), 0755, true);
     }
 
-    $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('docs.manual-book-pdf', [
+    $pdf = Pdf::loadView('docs.manual-book-pdf', [
         'generatedAt' => now(),
     ])
-    ->setPaper('a4', 'portrait')
-    ->setOption(['isRemoteEnabled' => true, 'isHtml5ParserEnabled' => true, 'isPhpEnabled' => true]);
+        ->setPaper('a4', 'portrait')
+        ->setOption(['isRemoteEnabled' => true, 'isHtml5ParserEnabled' => true, 'isPhpEnabled' => true]);
 
     $publicPath = public_path('docs/MANUAL_BOOK_STARTERKIT_PARADIGMA.pdf');
     $rootPath = base_path('MANUAL_BOOK_STARTERKIT_PARADIGMA.pdf');
@@ -31,7 +36,7 @@ Artisan::command('docs:generate-pdf', function () {
     $pdf->save($publicPath);
     $pdf->save($rootPath);
 
-    $this->info("Manual Book PDF generated successfully!");
+    $this->info('Manual Book PDF generated successfully!');
     $this->line("- Root: {$rootPath}");
     $this->line("- Public: {$publicPath}");
 })->purpose('Generate comprehensive Manual Book PDF for Starter Kit');

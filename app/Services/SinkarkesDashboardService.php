@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\KantorWilker;
 use App\Models\SinkarkesReport;
+use App\Support\DashboardCache;
 
 class SinkarkesDashboardService
 {
@@ -12,16 +13,30 @@ class SinkarkesDashboardService
     public function __construct()
     {
         $schemaPath = app_path('Data/sinkarkes_schema.json');
-        if (!file_exists($schemaPath)) {
+        if (! file_exists($schemaPath)) {
             $schemaPath = storage_path('app/sinkarkes_schema.json');
         }
         $this->schema = file_exists($schemaPath) ? json_decode(file_get_contents($schemaPath), true) : ['sections' => []];
     }
 
     /**
-     * Compute and compile complete dashboard statistics, matrix, and chart series.
+     * Compute and compile complete dashboard statistics, matrix, and chart series (version-cached).
      */
     public function getDashboardData(int $year, ?string $wilker = null): array
+    {
+        $normalizedWilker = ($wilker && $wilker !== 'all') ? strtolower(trim($wilker)) : 'all';
+
+        return DashboardCache::remember(
+            "sinkarkes:{$year}:".md5($normalizedWilker),
+            120,
+            fn () => $this->computeDashboardData($year, $wilker)
+        );
+    }
+
+    /**
+     * Perform the uncached SINKARKES dashboard computation.
+     */
+    protected function computeDashboardData(int $year, ?string $wilker = null): array
     {
         // 1. Get Canonical Wilayah Kerja list
         try {
@@ -30,7 +45,7 @@ class SinkarkesDashboardService
             $dbWilkers = [];
         }
 
-        $wilkerOptions = !empty($dbWilkers) ? array_values($dbWilkers) : [
+        $wilkerOptions = ! empty($dbWilkers) ? array_values($dbWilkers) : [
             'Induk BKK Bandung',
             'POS Bandara Husen',
             'Wilker Cirebon',
@@ -43,14 +58,14 @@ class SinkarkesDashboardService
         // 2. Fetch all reports for this year
         $query = SinkarkesReport::with(['updater:id,name'])->where('year', $year);
 
-        $isFilteredWilker = ($wilker && $wilker !== 'all' && !empty($wilker));
+        $isFilteredWilker = ($wilker && $wilker !== 'all' && ! empty($wilker));
         if ($isFilteredWilker) {
             $query->where(function ($q) use ($wilker) {
                 $q->where('wilker', $wilker);
                 if (stripos($wilker, 'Husen') !== false || stripos($wilker, 'Husein') !== false) {
                     $q->orWhere('wilker', 'BANDARA HUSEIN')
-                      ->orWhere('wilker', 'Bandara Husein')
-                      ->orWhere('wilker', 'POS Bandara Husen');
+                        ->orWhere('wilker', 'Bandara Husein')
+                        ->orWhere('wilker', 'POS Bandara Husen');
                 }
             });
         }
@@ -74,8 +89,8 @@ class SinkarkesDashboardService
 
             $wilkerMonthData[$canonical][$month] = $computed;
             $wilkerMonthMeta[$canonical][$month] = [
-                'has_data' => !empty($raw),
-                'filled_count' => count(array_filter($raw, fn($v) => $v !== null && $v !== '')),
+                'has_data' => ! empty($raw),
+                'filled_count' => count(array_filter($raw, fn ($v) => $v !== null && $v !== '')),
                 'status' => $rep->status ?? 'submitted',
                 'updated_at' => $rep->updated_at ? $rep->updated_at->format('d M Y H:i') : null,
                 'updater' => $rep->updater?->name ?? 'Petugas BKK',
@@ -125,7 +140,7 @@ class SinkarkesDashboardService
                     $mData = $wilkerMonthData[$w][$m] ?? [];
                     foreach ($mData as $rowNum => $val) {
                         if (is_numeric($val)) {
-                            $activeWilkerData[$m][$rowNum] = ($activeWilkerData[$m][$rowNum] ?? 0) + (float)$val;
+                            $activeWilkerData[$m][$rowNum] = ($activeWilkerData[$m][$rowNum] ?? 0) + (float) $val;
                         }
                     }
                 }
@@ -133,15 +148,16 @@ class SinkarkesDashboardService
         }
 
         // Helper to sum row values across months
-        $sumRow = function (int $rowNum, array $monthsRange = null) use ($activeWilkerData): float {
+        $sumRow = function (int $rowNum, ?array $monthsRange = null) use ($activeWilkerData): float {
             $range = $monthsRange ?? range(1, 12);
             $total = 0;
             foreach ($range as $m) {
                 $v = $activeWilkerData[$m][$rowNum] ?? 0;
                 if (is_numeric($v)) {
-                    $total += (float)$v;
+                    $total += (float) $v;
                 }
             }
+
             return $total;
         };
 
@@ -149,8 +165,9 @@ class SinkarkesDashboardService
         $getMonthlyRow = function (int $rowNum) use ($activeWilkerData): array {
             $res = [];
             for ($m = 1; $m <= 12; $m++) {
-                $res[] = (float)($activeWilkerData[$m][$rowNum] ?? 0);
+                $res[] = (float) ($activeWilkerData[$m][$rowNum] ?? 0);
             }
+
             return $res;
         };
 
@@ -212,7 +229,9 @@ class SinkarkesDashboardService
         $tpmSehat = $sumRow(286);
         $tpmTidakSehat = $sumRow(287);
         $totalTPM = $sumRow(285);
-        if ($totalTPM == 0) $totalTPM = $tpmSehat + $tpmTidakSehat;
+        if ($totalTPM == 0) {
+            $totalTPM = $tpmSehat + $tpmTidakSehat;
+        }
 
         $airBaik = $sumRow(275) + $sumRow(278) + $sumRow(281);
         $airTidakBaik = $sumRow(276) + $sumRow(279) + $sumRow(282);
@@ -247,10 +266,10 @@ class SinkarkesDashboardService
         $crewMonthly = [];
 
         for ($m = 1; $m <= 12; $m++) {
-            $planeMonthly[] = (float)(($activeWilkerData[$m][21] ?? 0) + ($activeWilkerData[$m][30] ?? 0));
-            $shipMonthly[] = (float)(($activeWilkerData[$m][7] ?? 0) + ($activeWilkerData[$m][14] ?? 0));
-            $passengerMonthly[] = (float)(($activeWilkerData[$m][37] ?? 0) + ($activeWilkerData[$m][44] ?? 0) + ($activeWilkerData[$m][51] ?? 0) + ($activeWilkerData[$m][58] ?? 0));
-            $crewMonthly[] = (float)(($activeWilkerData[$m][65] ?? 0) + ($activeWilkerData[$m][72] ?? 0) + ($activeWilkerData[$m][79] ?? 0) + ($activeWilkerData[$m][86] ?? 0));
+            $planeMonthly[] = (float) (($activeWilkerData[$m][21] ?? 0) + ($activeWilkerData[$m][30] ?? 0));
+            $shipMonthly[] = (float) (($activeWilkerData[$m][7] ?? 0) + ($activeWilkerData[$m][14] ?? 0));
+            $passengerMonthly[] = (float) (($activeWilkerData[$m][37] ?? 0) + ($activeWilkerData[$m][44] ?? 0) + ($activeWilkerData[$m][51] ?? 0) + ($activeWilkerData[$m][58] ?? 0));
+            $crewMonthly[] = (float) (($activeWilkerData[$m][65] ?? 0) + ($activeWilkerData[$m][72] ?? 0) + ($activeWilkerData[$m][79] ?? 0) + ($activeWilkerData[$m][86] ?? 0));
         }
 
         $trafficChart = [
@@ -273,7 +292,7 @@ class SinkarkesDashboardService
             ['name' => 'Surat Izin Jenazah', 'value' => $ijinJenazah],
         ];
         // Filter non-zero, or keep top items
-        $filteredDocData = array_values(array_filter($docData, fn($d) => $d['value'] > 0));
+        $filteredDocData = array_values(array_filter($docData, fn ($d) => $d['value'] > 0));
         if (empty($filteredDocData)) {
             $filteredDocData = $docData; // fallback structure for clean chart rendering
         }
@@ -289,11 +308,11 @@ class SinkarkesDashboardService
 
             for ($m = 1; $m <= 12; $m++) {
                 $d = $wilkerMonthData[$w][$m] ?? [];
-                $wPlanes += (float)(($d[21] ?? 0) + ($d[30] ?? 0));
-                $wShips += (float)(($d[7] ?? 0) + ($d[14] ?? 0));
-                $wPass += (float)(($d[37] ?? 0) + ($d[44] ?? 0) + ($d[51] ?? 0) + ($d[58] ?? 0));
-                $wDocs += (float)(($d[93] ?? 0) + ($d[94] ?? 0) + ($d[95] ?? 0) + ($d[96] ?? 0) + ($d[99] ?? 0) + ($d[102] ?? 0) + ($d[107] ?? 0));
-                $wHealth += (float)(($d[160] ?? 0) + ($d[184] ?? 0) + ($d[207] ?? 0));
+                $wPlanes += (float) (($d[21] ?? 0) + ($d[30] ?? 0));
+                $wShips += (float) (($d[7] ?? 0) + ($d[14] ?? 0));
+                $wPass += (float) (($d[37] ?? 0) + ($d[44] ?? 0) + ($d[51] ?? 0) + ($d[58] ?? 0));
+                $wDocs += (float) (($d[93] ?? 0) + ($d[94] ?? 0) + ($d[95] ?? 0) + ($d[96] ?? 0) + ($d[99] ?? 0) + ($d[102] ?? 0) + ($d[107] ?? 0));
+                $wHealth += (float) (($d[160] ?? 0) + ($d[184] ?? 0) + ($d[207] ?? 0));
             }
 
             $wilkerComparison[] = [
@@ -313,11 +332,11 @@ class SinkarkesDashboardService
         $icvMonthly = [];
 
         for ($m = 1; $m <= 12; $m++) {
-            $poliklinikMonthly[] = (float)($activeWilkerData[$m][160] ?? 0);
-            $sehatMonthly[] = (float)($activeWilkerData[$m][184] ?? 0);
-            $icvSum = (float)($activeWilkerData[$m][207] ?? 0);
+            $poliklinikMonthly[] = (float) ($activeWilkerData[$m][160] ?? 0);
+            $sehatMonthly[] = (float) ($activeWilkerData[$m][184] ?? 0);
+            $icvSum = (float) ($activeWilkerData[$m][207] ?? 0);
             if ($icvSum == 0) {
-                $icvSum = (float)(($activeWilkerData[$m][210] ?? 0) + ($activeWilkerData[$m][211] ?? 0) + ($activeWilkerData[$m][212] ?? 0) + ($activeWilkerData[$m][213] ?? 0) + ($activeWilkerData[$m][220] ?? 0) + ($activeWilkerData[$m][221] ?? 0) + ($activeWilkerData[$m][222] ?? 0) + ($activeWilkerData[$m][223] ?? 0));
+                $icvSum = (float) (($activeWilkerData[$m][210] ?? 0) + ($activeWilkerData[$m][211] ?? 0) + ($activeWilkerData[$m][212] ?? 0) + ($activeWilkerData[$m][213] ?? 0) + ($activeWilkerData[$m][220] ?? 0) + ($activeWilkerData[$m][221] ?? 0) + ($activeWilkerData[$m][222] ?? 0) + ($activeWilkerData[$m][223] ?? 0));
             }
             $icvMonthly[] = $icvSum;
         }
@@ -398,15 +417,15 @@ class SinkarkesDashboardService
             for ($m = 1; $m <= 12; $m++) {
                 $val = 0;
                 if (isset($def['row'])) {
-                    $val = (float)($activeWilkerData[$m][$def['row']] ?? 0);
+                    $val = (float) ($activeWilkerData[$m][$def['row']] ?? 0);
                 } elseif (isset($def['rows_sum'])) {
                     foreach ($def['rows_sum'] as $r) {
-                        $val += (float)($activeWilkerData[$m][$r] ?? 0);
+                        $val += (float) ($activeWilkerData[$m][$r] ?? 0);
                     }
                 } elseif (($def['special'] ?? '') === 'icv') {
-                    $val = (float)($activeWilkerData[$m][207] ?? 0);
+                    $val = (float) ($activeWilkerData[$m][207] ?? 0);
                     if ($val == 0) {
-                        $val = (float)(
+                        $val = (float) (
                             ($activeWilkerData[$m][210] ?? 0) +
                             ($activeWilkerData[$m][211] ?? 0) +
                             ($activeWilkerData[$m][212] ?? 0) +
@@ -451,7 +470,7 @@ class SinkarkesDashboardService
             for ($m = 1; $m <= 12; $m++) {
                 $d = $wilkerMonthData[$w][$m] ?? [];
                 // Sum all key operational activity in this wilker this month
-                $mSum = (float)(
+                $mSum = (float) (
                     ($d[7] ?? 0) + ($d[14] ?? 0) + ($d[21] ?? 0) + ($d[30] ?? 0) +
                     ($d[37] ?? 0) + ($d[44] ?? 0) + ($d[51] ?? 0) + ($d[58] ?? 0) +
                     ($d[65] ?? 0) + ($d[72] ?? 0) + ($d[79] ?? 0) + ($d[86] ?? 0) +
@@ -463,7 +482,7 @@ class SinkarkesDashboardService
                 $wTotalYear += $mSum;
                 $wilkerGrandMonthly[$m] += $mSum;
 
-                if (!empty($d)) {
+                if (! empty($d)) {
                     $wFilledCount++;
                 }
             }
@@ -493,7 +512,7 @@ class SinkarkesDashboardService
         return [
             'year' => $year,
             'wilker' => $wilker ?? 'all',
-            'is_consolidated' => !$isFilteredWilker,
+            'is_consolidated' => ! $isFilteredWilker,
             'wilker_options' => $wilkerOptions,
             'kpi' => $kpi,
             'matrix' => $matrix,
@@ -537,7 +556,7 @@ class SinkarkesDashboardService
         for ($m = 1; $m <= 12; $m++) {
             $mTotal = 0;
             foreach ($summaryTable as $row) {
-                $mTotal += (float)($row['months'][$m] ?? 0);
+                $mTotal += (float) ($row['months'][$m] ?? 0);
             }
             if ($mTotal > 0) {
                 $globalActiveMonths[] = $m;
@@ -566,7 +585,7 @@ class SinkarkesDashboardService
             // Collect non-zero months for this specific series
             $nonZeroVals = [];
             for ($m = 1; $m <= 12; $m++) {
-                $val = (float)($monthsMap[$m] ?? 0);
+                $val = (float) ($monthsMap[$m] ?? 0);
                 if ($val > 0) {
                     $nonZeroVals[$m] = $val;
                 }
@@ -583,7 +602,7 @@ class SinkarkesDashboardService
             $valsList = array_values($nonZeroVals);
             $k = count($valsList);
             if ($k >= 2) {
-                $window = max(1, (int)floor($k / 2));
+                $window = max(1, (int) floor($k / 2));
                 $earlySlice = array_slice($valsList, 0, $window);
                 $lateSlice = array_slice($valsList, -$window);
                 $vAwal = array_sum($earlySlice) / count($earlySlice);
@@ -614,7 +633,7 @@ class SinkarkesDashboardService
             $annualized2026 = 0;
 
             for ($m = 1; $m <= 12; $m++) {
-                $actualM = (float)($monthsMap[$m] ?? 0);
+                $actualM = (float) ($monthsMap[$m] ?? 0);
                 if ($actualM > 0 || in_array($m, $globalActiveMonths, true)) {
                     $months2026Est[$m] = $actualM;
                 } else {
@@ -683,7 +702,7 @@ class SinkarkesDashboardService
         foreach ($summaryTable as $item) {
             $sec = $item['section'];
             $fallbackRate = $defaultSectionCagr[$sec] ?? 8.5;
-            $calc = $computeSeriesCagr($item['months'], (float)$item['total_year'], $fallbackRate);
+            $calc = $computeSeriesCagr($item['months'], (float) $item['total_year'], $fallbackRate);
 
             for ($m = 1; $m <= 12; $m++) {
                 $monthlyTotals2026Est[$m] += $calc['months_2026_est'][$m];
@@ -729,6 +748,7 @@ class SinkarkesDashboardService
                     return $ind;
                 }
             }
+
             return [
                 'actual_2026' => 0,
                 'annualized_2026' => 0,
@@ -830,7 +850,7 @@ class SinkarkesDashboardService
         $wilkerGrandTotal2027 = 0;
 
         foreach ($wilkerMonthlyTotals as $idx => $wRow) {
-            $wCalc = $computeSeriesCagr($wRow['months'], (float)$wRow['total_year'], $avgCagrRate);
+            $wCalc = $computeSeriesCagr($wRow['months'], (float) $wRow['total_year'], $avgCagrRate);
             $wComp = $wilkerComparison[$idx] ?? [
                 'short_name' => $wRow['wilker'],
                 'total_alat_angkut' => 0,
@@ -877,20 +897,20 @@ class SinkarkesDashboardService
         $orangMonthly2027 = [];
 
         for ($m = 1; $m <= 12; $m++) {
-            $alatAngkutMonthly2026[] = (float)(
+            $alatAngkutMonthly2026[] = (float) (
                 ($kapalDatangProj['months_2026_est'][$m] ?? 0) +
                 ($kapalBerangkatProj['months_2026_est'][$m] ?? 0) +
                 ($pesawatDatangProj['months_2026_est'][$m] ?? 0) +
                 ($pesawatBerangkatProj['months_2026_est'][$m] ?? 0)
             );
-            $alatAngkutMonthly2027[] = (float)(
+            $alatAngkutMonthly2027[] = (float) (
                 ($kapalDatangProj['months_2027'][$m] ?? 0) +
                 ($kapalBerangkatProj['months_2027'][$m] ?? 0) +
                 ($pesawatDatangProj['months_2027'][$m] ?? 0) +
                 ($pesawatBerangkatProj['months_2027'][$m] ?? 0)
             );
 
-            $orangMonthly2026[] = (float)(
+            $orangMonthly2026[] = (float) (
                 ($pnpKapalD['months_2026_est'][$m] ?? 0) +
                 ($pnpKapalB['months_2026_est'][$m] ?? 0) +
                 ($pnpPswtD['months_2026_est'][$m] ?? 0) +
@@ -898,7 +918,7 @@ class SinkarkesDashboardService
                 ($abkProj['months_2026_est'][$m] ?? 0) +
                 ($crewPswtProj['months_2026_est'][$m] ?? 0)
             );
-            $orangMonthly2027[] = (float)(
+            $orangMonthly2027[] = (float) (
                 ($pnpKapalD['months_2027'][$m] ?? 0) +
                 ($pnpKapalB['months_2027'][$m] ?? 0) +
                 ($pnpPswtD['months_2027'][$m] ?? 0) +
@@ -989,7 +1009,7 @@ class SinkarkesDashboardService
         $vals = [];
         foreach ($rawVals as $k => $v) {
             if ($v !== null && $v !== '') {
-                $vals[$k] = is_numeric($v) ? (float)$v : $v;
+                $vals[$k] = is_numeric($v) ? (float) $v : $v;
             }
         }
 
@@ -1000,10 +1020,10 @@ class SinkarkesDashboardService
             $passes++;
             foreach ($this->schema['sections'] ?? [] as $sec) {
                 foreach ($sec['items'] ?? [] as $item) {
-                    if (($item['type'] ?? '') === 'summary' && !empty($item['formula_rows'])) {
+                    if (($item['type'] ?? '') === 'summary' && ! empty($item['formula_rows'])) {
                         $sum = 0;
                         foreach ($item['formula_rows'] as $r) {
-                            $sum += (isset($vals[$r]) && is_numeric($vals[$r])) ? (float)$vals[$r] : 0;
+                            $sum += (isset($vals[$r]) && is_numeric($vals[$r])) ? (float) $vals[$r] : 0;
                         }
                         $cur = $vals[$item['excel_row']] ?? null;
                         if ($cur !== $sum) {
@@ -1023,23 +1043,38 @@ class SinkarkesDashboardService
      */
     protected function canonicalizeWilker(?string $wilker, array $options): string
     {
-        if (!$wilker) return $options[0] ?? 'Induk BKK Bandung';
+        if (! $wilker) {
+            return $options[0] ?? 'Induk BKK Bandung';
+        }
 
         foreach ($options as $opt) {
-            if (strcasecmp($opt, $wilker) === 0) return $opt;
+            if (strcasecmp($opt, $wilker) === 0) {
+                return $opt;
+            }
         }
 
         if (stripos($wilker, 'Husen') !== false || stripos($wilker, 'Husein') !== false) {
             return 'POS Bandara Husen';
         }
-        if (stripos($wilker, 'Kertajati') !== false) return 'Wilker Kertajati';
-        if (stripos($wilker, 'Cirebon') !== false) return 'Wilker Cirebon';
-        if (stripos($wilker, 'Indramayu') !== false || stripos($wilker, 'Balongan') !== false) return 'Wilker Indramayu';
-        if (stripos($wilker, 'Patimban') !== false) return 'Wilker Patimban';
-        if (stripos($wilker, 'Ratu') !== false) return 'Wilker Pelabuharatu';
-        if (stripos($wilker, 'Induk') !== false || stripos($wilker, 'Bandung') !== false) return 'Induk BKK Bandung';
+        if (stripos($wilker, 'Kertajati') !== false) {
+            return 'Wilker Kertajati';
+        }
+        if (stripos($wilker, 'Cirebon') !== false) {
+            return 'Wilker Cirebon';
+        }
+        if (stripos($wilker, 'Indramayu') !== false || stripos($wilker, 'Balongan') !== false) {
+            return 'Wilker Indramayu';
+        }
+        if (stripos($wilker, 'Patimban') !== false) {
+            return 'Wilker Patimban';
+        }
+        if (stripos($wilker, 'Ratu') !== false) {
+            return 'Wilker Pelabuharatu';
+        }
+        if (stripos($wilker, 'Induk') !== false || stripos($wilker, 'Bandung') !== false) {
+            return 'Induk BKK Bandung';
+        }
 
         return $wilker;
     }
 }
-

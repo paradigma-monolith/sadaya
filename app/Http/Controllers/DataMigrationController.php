@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\RunSimplyAutoSyncJob;
 use App\Services\SimplyDataMigrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,7 +18,7 @@ class DataMigrationController extends Controller
     protected function authorizeAdmin(Request $request): void
     {
         $user = $request->user();
-        if (!$user || (!$user->hasRole('Super Admin') && !$user->hasRole('Admin'))) {
+        if (! $user || (! $user->hasRole('Super Admin') && ! $user->hasRole('Admin'))) {
             abort(403, 'Akses Ditolak: Pusat Migrasi Basis Data hanya dapat diakses oleh Administrator.');
         }
     }
@@ -42,16 +43,11 @@ class DataMigrationController extends Controller
             ];
         }
 
-        // Merge saved persistent configs from storage if available
-        $savedPath = storage_path('app/simply_migration_configs.json');
-        if (file_exists($savedPath)) {
-            $saved = json_decode(file_get_contents($savedPath), true);
-            if (is_array($saved)) {
-                foreach ($saved as $k => $vals) {
-                    if (isset($defaultModuleConfigs[$k]) && is_array($vals)) {
-                        $defaultModuleConfigs[$k] = array_merge($defaultModuleConfigs[$k], $vals);
-                    }
-                }
+        // Merge saved persistent configs from storage (passwords decrypted transparently)
+        $saved = SimplyDataMigrationService::loadSavedModuleConfigs();
+        foreach ($saved as $k => $vals) {
+            if (isset($defaultModuleConfigs[$k]) && is_array($vals)) {
+                $defaultModuleConfigs[$k] = array_merge($defaultModuleConfigs[$k], $vals);
             }
         }
 
@@ -82,7 +78,7 @@ class DataMigrationController extends Controller
                 'port' => $cfg['port'] ?? 3306,
                 'username' => $cfg['username'] ?? 'root',
                 'password' => '', // Redacted for credential protection
-                'has_password' => !empty($cfg['password']),
+                'has_password' => ! empty($cfg['password']),
                 'database' => $cfg['database'] ?? '',
                 'table' => $cfg['table'] ?? '',
             ];
@@ -112,27 +108,23 @@ class DataMigrationController extends Controller
         $this->authorizeAdmin($request);
 
         $modules = $request->input('modules', []);
-        if (!is_array($modules)) {
+        if (! is_array($modules)) {
             return response()->json(['success' => false, 'message' => 'Data konfigurasi tidak valid.'], 422);
         }
 
-        $savedPath = storage_path('app/simply_migration_configs.json');
-        $existing = [];
-        if (file_exists($savedPath)) {
-            $existing = json_decode(file_get_contents($savedPath), true) ?: [];
-        }
+        $existing = SimplyDataMigrationService::loadSavedModuleConfigs();
 
         // Retain stored password if client sent an empty string (credential masking)
         foreach ($modules as $k => &$vals) {
             if (is_array($vals)) {
-                if (empty($vals['password']) && !empty($existing[$k]['password'])) {
+                if (empty($vals['password']) && ! empty($existing[$k]['password'])) {
                     $vals['password'] = $existing[$k]['password'];
                 }
             }
         }
         unset($vals);
 
-        file_put_contents($savedPath, json_encode($modules, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        SimplyDataMigrationService::saveSavedModuleConfigs($modules);
 
         // Audit Trail
         if (function_exists('activity')) {
@@ -158,8 +150,8 @@ class DataMigrationController extends Controller
     {
         $this->authorizeAdmin($request);
 
-        $enabled = (bool)$request->input('enabled', false);
-        $frequency = (string)$request->input('frequency', 'hourly');
+        $enabled = (bool) $request->input('enabled', false);
+        $frequency = (string) $request->input('frequency', 'hourly');
         $modules = $request->input('modules', []);
 
         $autoSyncPath = storage_path('app/simply_sync_schedule.json');
@@ -208,11 +200,21 @@ class DataMigrationController extends Controller
     }
 
     /**
-     * Force run auto-sync immediately from web UI.
+     * Force run auto-sync immediately (or queue it when async=true) from web UI.
      */
     public function runAutoSyncNow(Request $request, SimplyDataMigrationService $service): JsonResponse
     {
         $this->authorizeAdmin($request);
+
+        if ($request->boolean('async')) {
+            RunSimplyAutoSyncJob::dispatch($request->user()?->id);
+
+            return response()->json([
+                'success' => true,
+                'queued' => true,
+                'message' => 'Sinkronisasi otomatis telah dijadwalkan di antrean latar belakang.',
+            ], 202);
+        }
 
         Artisan::call('simply:auto-sync', ['--force' => true]);
         $output = Artisan::output();
@@ -254,6 +256,7 @@ class DataMigrationController extends Controller
 
         if ($targetModule && $targetModule !== 'all') {
             $res = $service->testModule($targetModule, $payload);
+
             return response()->json([
                 'success' => ($res['connected'] && $res['table_exists']),
                 'message' => ($res['connected'] && $res['table_exists'])
@@ -279,16 +282,16 @@ class DataMigrationController extends Controller
         $module = $request->input('module', 'all');
         $credentials = $request->all();
         $options = [
-            'skip_duplicate' => (bool)$request->input('skip_duplicate', true),
-            'truncate_first' => (bool)$request->input('truncate_first', false),
-            'recalculate_pnbp' => (bool)$request->input('recalculate_pnbp', true),
-            'normalize_ports' => (bool)$request->input('normalize_ports', true),
-            'dry_run' => (bool)$request->input('dry_run', false),
+            'skip_duplicate' => (bool) $request->input('skip_duplicate', true),
+            'truncate_first' => (bool) $request->input('truncate_first', false),
+            'recalculate_pnbp' => (bool) $request->input('recalculate_pnbp', true),
+            'normalize_ports' => (bool) $request->input('normalize_ports', true),
+            'dry_run' => (bool) $request->input('dry_run', false),
         ];
 
         // Privilege Check: Truncating database tables is strictly limited to Super Admin
         if ($options['truncate_first']) {
-            if (!$request->user()->hasRole('Super Admin')) {
+            if (! $request->user()->hasRole('Super Admin')) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Akses Ditolak: Opsi mengosongkan tabel (Truncate) hanya diizinkan untuk peran Super Admin.',
@@ -336,13 +339,13 @@ class DataMigrationController extends Controller
         $module = $request->input('module');
         $file = $request->file('file');
         $options = [
-            'skip_duplicate' => (bool)$request->input('skip_duplicate', true),
-            'truncate_first' => (bool)$request->input('truncate_first', false),
+            'skip_duplicate' => (bool) $request->input('skip_duplicate', true),
+            'truncate_first' => (bool) $request->input('truncate_first', false),
         ];
 
         // Privilege Check: Truncate requires Super Admin
         if ($options['truncate_first']) {
-            if (!$request->user()->hasRole('Super Admin')) {
+            if (! $request->user()->hasRole('Super Admin')) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Akses Ditolak: Opsi mengosongkan tabel (Truncate) hanya diizinkan untuk peran Super Admin.',
@@ -369,4 +372,3 @@ class DataMigrationController extends Controller
         return response()->json($result);
     }
 }
-

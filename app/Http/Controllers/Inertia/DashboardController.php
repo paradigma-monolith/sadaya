@@ -10,6 +10,7 @@ use App\Models\LoginHistory;
 use App\Models\ShipSanitationInspection;
 use App\Models\User;
 use App\Services\SinkarkesDashboardService;
+use App\Support\DashboardCache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Schema;
@@ -25,36 +26,46 @@ class DashboardController extends Controller
      */
     public static function getBkkOffices(): array
     {
-        try {
-            if (Schema::hasTable('kantor_wilkers')) {
-                $dbOffices = KantorWilker::orderBy('no')->get();
-                if ($dbOffices->isNotEmpty()) {
-                    return $dbOffices->map(function ($o) {
-                        return [
-                            'no' => $o->no,
-                            'code' => $o->kode,
-                            'name' => $o->nama,
-                            'short_name' => $o->nama_pendek ?: $o->nama,
-                            'zone' => $o->zona ?: 'Jawa Barat',
-                            'type' => $o->tipe,
-                            'moda' => $o->moda ?: 'Operasional',
-                            'address' => $o->alamat,
-                            'lat' => (float) $o->latitude,
-                            'lng' => (float) $o->longitude,
-                            'is_hq' => (bool) $o->is_induk,
-                            'highlight' => $o->is_induk ? 'orange' : 'white',
-                            'status' => $o->is_active ? 'ACTIVE' : 'INACTIVE',
-                            'personnel' => $o->is_induk ? 68 : 24,
-                            'readiness' => 97,
-                            'daily_ops' => $o->is_induk ? 42 : 28,
-                        ];
-                    })->toArray();
+        return DashboardCache::rememberOffices(function (): array {
+            try {
+                if (Schema::hasTable('kantor_wilkers')) {
+                    $dbOffices = KantorWilker::orderBy('no')->get();
+                    if ($dbOffices->isNotEmpty()) {
+                        return $dbOffices->map(function ($o) {
+                            return [
+                                'no' => $o->no,
+                                'code' => $o->kode,
+                                'name' => $o->nama,
+                                'short_name' => $o->nama_pendek ?: $o->nama,
+                                'zone' => $o->zona ?: 'Jawa Barat',
+                                'type' => $o->tipe,
+                                'moda' => $o->moda ?: 'Operasional',
+                                'address' => $o->alamat,
+                                'lat' => (float) $o->latitude,
+                                'lng' => (float) $o->longitude,
+                                'is_hq' => (bool) $o->is_induk,
+                                'highlight' => $o->is_induk ? 'orange' : 'white',
+                                'status' => $o->is_active ? 'ACTIVE' : 'INACTIVE',
+                                'personnel' => $o->is_induk ? 68 : 24,
+                                'readiness' => 97,
+                                'daily_ops' => $o->is_induk ? 42 : 28,
+                            ];
+                        })->toArray();
+                    }
                 }
+            } catch (\Throwable $e) {
+                // fallback below
             }
-        } catch (\Throwable $e) {
-            // fallback below
-        }
 
+            return self::fallbackOffices();
+        });
+    }
+
+    /**
+     * Static fallback offices used when kantor_wilkers has not been seeded yet.
+     */
+    protected static function fallbackOffices(): array
+    {
         return [
             [
                 'no' => 1,
@@ -231,7 +242,7 @@ class DashboardController extends Controller
 
         foreach ($offices as $o) {
             foreach (self::OFFICE_KEYWORDS as $codeFragment => $keywords) {
-                if (!str_contains(strtoupper((string) $o['code']), $codeFragment)) {
+                if (! str_contains(strtoupper((string) $o['code']), $codeFragment)) {
                     continue;
                 }
                 foreach ($keywords as $kw) {
@@ -254,6 +265,50 @@ class DashboardController extends Controller
         $offices = self::getBkkOffices();
         $today = Carbon::today();
         $periodDays = 30;
+
+        $overview = DashboardCache::remember(
+            "overview:{$today->toDateString()}",
+            120,
+            fn (): array => $this->computeOverviewAnalytics($offices, $today, $periodDays)
+        );
+
+        // ------------------------------------------------------------------
+        // SINKARKES Executive Analytics & Total Summary Integration
+        // ------------------------------------------------------------------
+        $sinkarkesYear = (int) $request->query('year', 2026);
+        $sinkarkesWilker = (string) $request->query('wilker', 'all');
+        try {
+            $sinkarkesData = $sinkarkesService->getDashboardData($sinkarkesYear, $sinkarkesWilker);
+        } catch (\Throwable $e) {
+            $sinkarkesData = [
+                'year' => $sinkarkesYear,
+                'wilker' => $sinkarkesWilker,
+                'is_consolidated' => true,
+                'wilker_options' => collect($offices)->pluck('short_name')->values()->toArray(),
+                'kpi' => [],
+                'matrix' => [],
+                'traffic_chart' => [],
+                'document_chart' => [],
+                'wilker_comparison' => [],
+                'health_chart' => [],
+                'environment_chart' => [],
+                'summary_table' => ['items' => [], 'monthly_totals' => [], 'total_year' => 0, 'section_totals' => []],
+                'wilker_summary' => ['items' => [], 'monthly_totals' => [], 'total_year' => 0],
+            ];
+        }
+
+        return Inertia::render('Inertia/Dashboard', array_merge($overview, [
+            'generated_at' => now('Asia/Jakarta')->translatedFormat('d M Y, H:i').' WIB',
+            'bkk_offices' => $offices,
+            'sinkarkes' => $sinkarkesData,
+        ]));
+    }
+
+    /**
+     * Compute cross-module overview metrics, feeds, and summary counts.
+     */
+    protected function computeOverviewAnalytics(array $offices, Carbon $today, int $periodDays): array
+    {
         $periodStart = $today->copy()->subDays($periodDays - 1);
         $prevStart = $periodStart->copy()->subDays($periodDays);
         $prevEnd = $periodStart->copy()->subDay();
@@ -276,7 +331,7 @@ class DashboardController extends Controller
                     'module' => 'aircraft',
                     'id' => $r->id,
                     'registration_no' => $r->registration_no,
-                    'subject' => trim(($r->tanda_kebangsaan ?: '-') . ($r->pemilik ? " · {$r->pemilik}" : '')),
+                    'subject' => trim(($r->tanda_kebangsaan ?: '-').($r->pemilik ? " · {$r->pemilik}" : '')),
                     'officer' => $r->petugas_bkk_nama,
                     'date' => $r->tanggal ? Carbon::parse($r->tanggal) : Carbon::parse($r->created_at),
                     'created_at' => Carbon::parse($r->created_at),
@@ -367,7 +422,7 @@ class DashboardController extends Controller
                 $status = is_array($area) ? ($area['status'] ?? $area['result'] ?? '') : '';
                 if (stripos((string) $status, 'Ditemukan Faktor Risiko') !== false && stripos((string) $status, 'Tidak') === false) {
                     $hasRisk = true;
-                    $name = $area['nama'] ?? $area['area_name'] ?? ('Area #' . (is_numeric($idx) ? $idx + 1 : $idx));
+                    $name = $area['nama'] ?? $area['area_name'] ?? ('Area #'.(is_numeric($idx) ? $idx + 1 : $idx));
                     $riskAreaCounter[$name] = ($riskAreaCounter[$name] ?? 0) + 1;
                 }
             }
@@ -473,7 +528,7 @@ class DashboardController extends Controller
         $officeStats = collect($offices)->map(function ($o) use ($records, $inPeriod) {
             $set = $records->where('office_no', $o['no']);
             $last = $set->sortByDesc(fn ($r) => $r['date']->timestamp)->first();
-            $modaLower = strtolower($o['moda'] . ' ' . $o['type']);
+            $modaLower = strtolower($o['moda'].' '.$o['type']);
 
             return [
                 'no' => $o['no'],
@@ -508,7 +563,7 @@ class DashboardController extends Controller
         // ------------------------------------------------------------------
         $officeNames = collect($offices)->pluck('short_name', 'no');
         $recentInspections = $records
-            ->sortByDesc(fn ($r) => $r['created_at']->format('YmdHis') . $r['date']->format('Ymd'))
+            ->sortByDesc(fn ($r) => $r['created_at']->format('YmdHis').$r['date']->format('Ymd'))
             ->take(12)
             ->map(fn ($r) => [
                 'module' => $r['module'],
@@ -523,7 +578,7 @@ class DashboardController extends Controller
                 'status_label' => self::STATUS_LABELS[$r['status']] ?? ucfirst($r['status']),
                 'result' => $r['result'],
                 'result_ok' => $r['result_ok'],
-                'url' => self::MODULE_META[$r['module']]['url'] . '?search=' . urlencode((string) $r['registration_no']),
+                'url' => self::MODULE_META[$r['module']]['url'].'?search='.urlencode((string) $r['registration_no']),
             ])
             ->values();
 
@@ -557,33 +612,9 @@ class DashboardController extends Controller
                 'login_at' => $lh->login_at ? Carbon::parse($lh->login_at)->diffForHumans() : '-',
             ]);
 
-        // ------------------------------------------------------------------
-        // 8. SINKARKES Executive Analytics & Total Summary Integration
-        // ------------------------------------------------------------------
-        $sinkarkesYear = (int) $request->query('year', 2026);
-        $sinkarkesWilker = $request->query('wilker', 'all');
-        try {
-            $sinkarkesData = $sinkarkesService->getDashboardData($sinkarkesYear, $sinkarkesWilker);
-        } catch (\Throwable $e) {
-            $sinkarkesData = [
-                'year' => $sinkarkesYear,
-                'wilker' => $sinkarkesWilker,
-                'is_consolidated' => true,
-                'wilker_options' => collect($offices)->pluck('short_name')->values()->toArray(),
-                'kpi' => [],
-                'matrix' => [],
-                'traffic_chart' => [],
-                'document_chart' => [],
-                'wilker_comparison' => [],
-                'health_chart' => [],
-                'environment_chart' => [],
-                'summary_table' => ['items' => [], 'monthly_totals' => [], 'total_year' => 0, 'section_totals' => []],
-                'wilker_summary' => ['items' => [], 'monthly_totals' => [], 'total_year' => 0],
-            ];
-        }
+        $totalUsers = User::count();
 
-        return Inertia::render('Inertia/Dashboard', [
-            'generated_at' => now('Asia/Jakarta')->translatedFormat('d M Y, H:i') . ' WIB',
+        return [
             'period' => [
                 'days' => $periodDays,
                 'start' => $periodStart->translatedFormat('d M Y'),
@@ -601,18 +632,16 @@ class DashboardController extends Controller
             'recent_inspections' => $recentInspections,
             'recent_activities' => $recentActivities,
             'recent_logins' => $recentLogins,
-            'bkk_offices' => $offices,
-            'sinkarkes' => $sinkarkesData,
             'metrics' => array_merge($kpi, [
-                'total_users' => User::count(),
+                'total_users' => $totalUsers,
                 'total_inspections' => $kpi['total'],
                 'compliance_rate' => $kpi['compliance_rate'],
             ]),
             'users' => [
-                'total' => User::count(),
+                'total' => $totalUsers,
                 'roles' => class_exists(Role::class) ? Role::count() : 0,
                 'activities' => Activity::count(),
             ],
-        ]);
+        ];
     }
 }

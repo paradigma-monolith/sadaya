@@ -1,22 +1,17 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
 import BaseChart from '../../Components/BaseChart.vue';
 import { useDate } from '../../composables/useDate';
 import {
   Plane,
-  ShieldCheck,
   AlertTriangle,
-  FileCheck,
   CheckCircle2,
-  XCircle,
-  ExternalLink,
   Plus,
   ArrowRight,
   Download,
   ListOrdered,
-  Calendar,
   Activity
 } from 'lucide-vue-next';
 

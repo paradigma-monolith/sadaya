@@ -1,0 +1,25 @@
+{
+  "name": "SADAYA — BKK Kelas I Bandung",
+  "short_name": "SADAYA",
+  "description": "Sistem Aplikasi Data dan Layanan Terpadu Balai Kekarantinaan Kesehatan Kelas I Bandung",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#00A99D",
+  "background_color": "#f4f7f9",
+  "lang": "id",
+  "icons": [
+    {
+      "src": "/Logo%20BKK%20Bandung.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

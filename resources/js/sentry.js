@@ -3,9 +3,8 @@
  * Avoids eagerly bundling @sentry/vue when Sentry DSN is dormant.
  *
  * @param {import('vue').App} app - Vue application instance
- * @param {import('vue-router').Router|null} router - Optional Vue Router instance
  */
-export async function initSentry(app, router = null) {
+export async function initSentry(app) {
   const dsn = import.meta.env.VITE_SENTRY_DSN_PUBLIC;
 
   if (!dsn || dsn.trim() === '') {
@@ -18,9 +17,7 @@ export async function initSentry(app, router = null) {
   const Sentry = await import('@sentry/vue');
 
   const integrations = [
-    router
-      ? Sentry.browserTracingIntegration({ router })
-      : Sentry.browserTracingIntegration(),
+    Sentry.browserTracingIntegration(),
     Sentry.replayIntegration({
       maskAllText: false,
       blockAllMedia: false,

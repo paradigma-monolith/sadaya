@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Gate;
 use Spatie\Activitylog\Models\Activity;
 
 class ActivityLogApiController extends Controller
@@ -13,6 +14,8 @@ class ActivityLogApiController extends Controller
      */
     public function index(): JsonResponse
     {
+        Gate::authorize('viewAny', Activity::class);
+
         $activities = Activity::with('causer')
             ->latest()
             ->paginate(15);

@@ -1,35 +1,21 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { usePage, router as inertiaRouter } from '@inertiajs/vue3';
-import { useRouter } from 'vue-router';
 import { 
-  Home, 
   LayoutDashboard, 
-  Boxes, 
-  ShoppingBag, 
-  Compass, 
   History, 
   User as UserIcon, 
-  BookOpen, 
-  Activity, 
   LogOut, 
-  ChevronLeft, 
-  ChevronRight, 
   ChevronDown,
   ClipboardCheck,
   FileCheck,
-  Layers,
   X,
   ShieldCheck,
   FileSpreadsheet,
-  BarChart3,
   Ship,
   ExternalLink,
   Database,
   Leaf,
-  Utensils,
-  Droplets,
-  Building2,
   Bug,
   CalendarDays
 } from 'lucide-vue-next';
@@ -38,15 +24,13 @@ import { useSidebar } from '@/composables/useSidebar';
 const props = defineProps({
   mode: {
     type: String,
-    default: 'inertia', // 'inertia' | 'spa'
+    default: 'inertia',
   },
   currentRoute: {
     type: String,
     default: '',
   },
 });
-
-const isSpa = computed(() => props.mode === 'spa');
 
 const prefix = computed(() => {
   if (typeof window !== 'undefined' && window.location.pathname.includes('/hybridlaravel/public')) {
@@ -57,19 +41,8 @@ const prefix = computed(() => {
 
 const getUrl = (path) => `${prefix.value}${path}`;
 
-// Safely obtain Vue Router if in SPA mode
-let vueRouter = null;
-try {
-  vueRouter = useRouter();
-} catch (e) {
-  vueRouter = null;
-}
-
 // Safely resolve active authenticated user
 const currentUser = computed(() => {
-  if (isSpa.value) {
-    return (typeof window !== 'undefined' && window.authUser) ? window.authUser : null;
-  }
   try {
     const page = usePage();
     return page?.props?.auth?.user || null;
@@ -87,18 +60,7 @@ const handleNavClick = (targetPath, isExternal, e) => {
   }
   if (isExternal || !targetPath) return;
 
-  // Case 1: In SPA mode & clicking an SPA link -> instantaneous Vue Router push
-  if (isSpa.value && (targetPath === '/spa' || targetPath.startsWith('/spa/'))) {
-    if (vueRouter) {
-      if (e) e.preventDefault();
-      const internalRoute = targetPath.replace(/^\/spa/, '') || '/';
-      vueRouter.push(internalRoute);
-      return;
-    }
-  }
-
-  // Case 2: In Inertia mode & clicking an Inertia/Hub link -> smooth Inertia visit
-  if (!isSpa.value && !targetPath.startsWith('/spa') && !targetPath.startsWith('/docs') && !targetPath.startsWith('/pulse') && !targetPath.startsWith('/travelconsent')) {
+  if (!targetPath.startsWith('/docs') && !targetPath.startsWith('/pulse') && !targetPath.startsWith('/travelconsent')) {
     try {
       if (inertiaRouter && typeof inertiaRouter.visit === 'function') {
         if (e) e.preventDefault();
@@ -218,7 +180,7 @@ const navSections = computed(() => {
           url: getUrl('/dashboard'),
           icon: LayoutDashboard,
           iconColor: 'text-[#00A99D]',
-          active: !isSpa.value && (
+          active: (
             props.currentRoute === 'dashboard' || 
             props.currentRoute === 'home' || 
             props.currentRoute === 'sinkarkes-dashboard' ||

@@ -7,18 +7,24 @@ use App\Http\Controllers\Inertia\DashboardController;
 use App\Models\AircraftSanitationInspection;
 use App\Models\LoginHistory;
 use App\Models\User;
+use App\Services\RedisService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Schema;
+use Laravel\Octane\Octane;
+use Laravel\Pulse\Pulse;
+use Laravel\Reverb\ReverbServiceProvider;
+use Sentry\Laravel\Integration;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
 class StatsApiController extends Controller
 {
     /**
-     * Return architectural and system stats for Traditional SPA.
+     * Return architectural and system telemetry stats.
      */
     public function index(): JsonResponse
     {
+        $isAdmin = auth('sanctum')->user()?->hasAnyRole(['Super Admin', 'Admin']) ?? false;
         $hasInspectionTable = Schema::hasTable('aircraft_sanitation_inspections');
         $totalInspections = $hasInspectionTable ? AircraftSanitationInspection::count() : 0;
         $layakCount = $hasInspectionTable ? AircraftSanitationInspection::where('kesimpulan', 'layak')->count() : 0;
@@ -29,48 +35,47 @@ class StatsApiController extends Controller
             'status' => 'success',
             'bkk_offices' => DashboardController::getBkkOffices(),
             'architecture' => [
-                'type' => 'Hybrid Architecture',
-                'active_channel' => 'Traditional SPA (Vue 3 Client-Side + REST API)',
-                'bridge' => 'Inertia.js Bridge co-existing in same codebase',
+                'type' => 'Inertia Monolith + REST API',
+                'active_channel' => 'Inertia.js Bridge + Versioned JSON API',
                 'database' => [
-                    'driver' => 'MySQL',
-                    'database' => config('database.connections.mysql.database'),
+                    'driver' => config('database.default'),
+                    'database' => $isAdmin ? config('database.connections.mysql.database') : 'redacted',
                     'connection' => 'Active',
                 ],
             ],
             'metrics' => [
                 'total_users' => User::count(),
                 'total_roles' => class_exists(Role::class) ? Role::count() : 3,
-                'total_activities' => Activity::count(),
-                'total_login_sessions' => LoginHistory::count(),
+                'total_activities' => $isAdmin ? Activity::count() : null,
+                'total_login_sessions' => $isAdmin ? LoginHistory::count() : null,
                 'total_inspections' => $totalInspections,
                 'layak_count' => $layakCount,
                 'tidak_layak_count' => $tidakLayakCount,
                 'compliance_rate' => $complianceRate,
             ],
             'server' => [
-                'php_version' => PHP_VERSION,
-                'laravel_version' => app()->version(),
+                'php_version' => $isAdmin ? PHP_VERSION : PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION,
+                'laravel_version' => $isAdmin ? app()->version() : '12.x',
                 'api_endpoint' => url('/api/v1'),
             ],
             'infrastructure' => [
                 'octane' => [
-                    'installed' => class_exists(\Laravel\Octane\Octane::class),
+                    'installed' => class_exists(Octane::class),
                     'server' => config('octane.server', 'roadrunner'),
                     'in_octane' => isset($_SERVER['LARAVEL_OCTANE']),
                 ],
-                'redis' => \App\Services\RedisService::getTelemetry(),
+                'redis' => RedisService::getTelemetry(),
                 'sentry' => [
-                    'installed' => class_exists(\Sentry\Laravel\Integration::class),
-                    'configured' => !empty(config('sentry.dsn')),
+                    'installed' => class_exists(Integration::class),
+                    'configured' => ! empty(config('sentry.dsn')),
                 ],
                 'pulse' => [
-                    'installed' => class_exists(\Laravel\Pulse\Pulse::class),
+                    'installed' => class_exists(Pulse::class),
                     'enabled' => config('pulse.enabled', true),
                     'path' => config('pulse.path', 'pulse'),
                 ],
                 'reverb' => [
-                    'installed' => class_exists(\Laravel\Reverb\ReverbServiceProvider::class),
+                    'installed' => class_exists(ReverbServiceProvider::class),
                     'broadcaster' => config('broadcasting.default'),
                     'port' => config('reverb.servers.reverb.port', 8080),
                 ],

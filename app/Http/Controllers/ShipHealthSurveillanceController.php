@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ShipSurveillance\SubmitAssessmentRequest;
 use App\Models\KantorWilker;
 use App\Models\QuarantineCountry;
 use App\Models\QuarantineCountryImportLog;
 use App\Models\ShipHealthSurveillance;
 use App\Services\RedZonePdfImportService;
 use App\Services\ShipSurveillanceImportService;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -30,11 +33,11 @@ class ShipHealthSurveillanceController extends Controller
         $status = $request->input('status');
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
-        $selectedMonth = (int)$request->input('bulan', date('n'));
-        $selectedQuarter = (int)$request->input('triwulan', ceil(date('n') / 3));
-        $selectedYear = (int)$request->input('tahun', date('Y'));
+        $selectedMonth = (int) $request->input('bulan', date('n'));
+        $selectedQuarter = (int) $request->input('triwulan', ceil(date('n') / 3));
+        $selectedYear = (int) $request->input('tahun', date('Y'));
         $activeTab = $request->input('tab', 'data');
-        if (!in_array($activeTab, ['data', 'laporan', 'red-zones'], true)) {
+        if (! in_array($activeTab, ['data', 'laporan', 'red-zones'], true)) {
             $activeTab = 'data';
         }
 
@@ -93,11 +96,12 @@ class ShipHealthSurveillanceController extends Controller
             ->get()
             ->map(function ($row) use ($totalPnbp) {
                 $percentage = $totalPnbp > 0 ? round(($row->total_pnbp / $totalPnbp) * 100, 1) : 0;
+
                 return [
                     'pelabuhan' => $row->pelabuhan,
-                    'jumlah_kapal' => (int)$row->jumlah_kapal,
-                    'total_pnbp' => (float)$row->total_pnbp,
-                    'total_gt' => (int)$row->total_gt,
+                    'jumlah_kapal' => (int) $row->jumlah_kapal,
+                    'total_pnbp' => (float) $row->total_pnbp,
+                    'total_gt' => (int) $row->total_gt,
                     'persentase' => $percentage,
                 ];
             });
@@ -114,8 +118,8 @@ class ShipHealthSurveillanceController extends Controller
 
         // Target Kinerja Kapal Luar Negeri (PK)
         // Bulanan (Target default: 10 kapal LN per bulan)
-        $monthStartDate = \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->startOfMonth()->toDateString();
-        $monthEndDate = \Carbon\Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth()->toDateString();
+        $monthStartDate = Carbon::create($selectedYear, $selectedMonth, 1)->startOfMonth()->toDateString();
+        $monthEndDate = Carbon::create($selectedYear, $selectedMonth, 1)->endOfMonth()->toDateString();
         $realisasiBulanan = ShipHealthSurveillance::where('kategori', 'Luar Negeri')
             ->whereBetween('tanggal_kedatangan', [$monthStartDate, $monthEndDate])
             ->count();
@@ -125,8 +129,8 @@ class ShipHealthSurveillanceController extends Controller
         // Triwulanan (Target default: 30 kapal LN per triwulan)
         $quarterStartMonth = ($selectedQuarter - 1) * 3 + 1;
         $quarterEndMonth = $selectedQuarter * 3;
-        $quarterStartDate = \Carbon\Carbon::create($selectedYear, $quarterStartMonth, 1)->startOfMonth()->toDateString();
-        $quarterEndDate = \Carbon\Carbon::create($selectedYear, $quarterEndMonth, 1)->endOfMonth()->toDateString();
+        $quarterStartDate = Carbon::create($selectedYear, $quarterStartMonth, 1)->startOfMonth()->toDateString();
+        $quarterEndDate = Carbon::create($selectedYear, $quarterEndMonth, 1)->endOfMonth()->toDateString();
         $realisasiTriwulanan = ShipHealthSurveillance::where('kategori', 'Luar Negeri')
             ->whereBetween('tanggal_kedatangan', [$quarterStartDate, $quarterEndDate])
             ->count();
@@ -134,8 +138,8 @@ class ShipHealthSurveillanceController extends Controller
         $persenTriwulan = $targetTriwulan > 0 ? min(100, round(($realisasiTriwulanan / $targetTriwulan) * 100, 1)) : 0;
 
         // Tahunan (Target default: 120 kapal LN per tahun)
-        $yearStartDate = \Carbon\Carbon::create($selectedYear, 1, 1)->startOfYear()->toDateString();
-        $yearEndDate = \Carbon\Carbon::create($selectedYear, 12, 31)->endOfYear()->toDateString();
+        $yearStartDate = Carbon::create($selectedYear, 1, 1)->startOfYear()->toDateString();
+        $yearEndDate = Carbon::create($selectedYear, 12, 31)->endOfYear()->toDateString();
         $realisasiTahunan = ShipHealthSurveillance::where('kategori', 'Luar Negeri')
             ->whereBetween('tanggal_kedatangan', [$yearStartDate, $yearEndDate])
             ->count();
@@ -241,7 +245,7 @@ class ShipHealthSurveillanceController extends Controller
         ]);
 
         $item = ShipHealthSurveillance::findOrFail($id);
-        $gt = (int)$request->input('gross_tonnage');
+        $gt = (int) $request->input('gross_tonnage');
         $pnbp = ShipHealthSurveillance::calculatePnbp($gt);
 
         $item->update([
@@ -256,7 +260,7 @@ class ShipHealthSurveillanceController extends Controller
                 'id' => $item->id,
                 'gross_tonnage' => $item->gross_tonnage,
                 'estimasi_pnbp' => $item->estimasi_pnbp,
-                'formatted_pnbp' => 'Rp ' . number_format($item->estimasi_pnbp, 0, ',', '.'),
+                'formatted_pnbp' => 'Rp '.number_format($item->estimasi_pnbp, 0, ',', '.'),
             ],
         ]);
     }
@@ -286,12 +290,12 @@ class ShipHealthSurveillanceController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Status pengawasan kapal berhasil diverifikasi sebagai ' . $item->hasil_status . '.',
+                'message' => 'Status pengawasan kapal berhasil diverifikasi sebagai '.$item->hasil_status.'.',
                 'data' => $item,
             ]);
         }
 
-        return back()->with('success', 'Status pengawasan kapal ' . $item->nama_kapal . ' berhasil diverifikasi sebagai ' . $item->hasil_status . '.');
+        return back()->with('success', 'Status pengawasan kapal '.$item->nama_kapal.' berhasil diverifikasi sebagai '.$item->hasil_status.'.');
     }
 
     /**
@@ -311,7 +315,7 @@ class ShipHealthSurveillanceController extends Controller
      */
     public function export(Request $request): StreamedResponse
     {
-        $filename = 'Laporan_Pengawasan_Kapal_' . date('Ymd_His') . '.csv';
+        $filename = 'Laporan_Pengawasan_Kapal_'.date('Ymd_His').'.csv';
 
         $query = ShipHealthSurveillance::latest('tanggal_kedatangan');
 
@@ -340,7 +344,7 @@ class ShipHealthSurveillanceController extends Controller
 
         $callback = function () use ($records) {
             $handle = fopen('php://output', 'w');
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF)); // UTF-8 BOM
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM
 
             fputcsv($handle, [
                 'No',
@@ -420,23 +424,9 @@ class ShipHealthSurveillanceController extends Controller
     /**
      * Handle submission of ship health quarantine assessment form.
      */
-    public function submitAssessment(Request $request): RedirectResponse
+    public function submitAssessment(SubmitAssessmentRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'nama_kapal' => ['required', 'string', 'max:255'],
-            'datang_dari' => ['required', 'string', 'max:255'],
-            'origin_country' => ['nullable', 'string', 'max:100'],
-            'pelabuhan' => ['required', 'string', 'max:255'],
-            'tanggal_kedatangan' => ['required', 'date'],
-            'gross_tonnage' => ['required', 'numeric', 'min:0'],
-            'jml_crew' => ['required', 'integer', 'min:1'],
-            'kategori' => ['required', 'string', 'in:Dalam Negeri,Luar Negeri'],
-            'skoring' => ['nullable', 'integer'],
-            'kresiko' => ['nullable', 'string', 'max:50'],
-            'hasil_status' => ['nullable', 'string', 'max:50'],
-            'surat_pernyataan_nahkoda' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png,doc,docx', 'max:5120'],
-            'checklist_dokumen' => ['nullable', 'array'],
-        ]);
+        $validated = $request->validated();
 
         // Upload Master's statement if present
         $suratPath = null;
@@ -453,29 +443,29 @@ class ShipHealthSurveillanceController extends Controller
             $rawQ1 = $request->input('Q1');
             if (is_array($rawQ1)) {
                 $selectedCountries = array_values(array_filter(array_map('trim', $rawQ1), fn ($v) => $v !== ''));
-            } elseif (is_string($rawQ1) && !is_numeric($rawQ1) && trim($rawQ1) !== '') {
+            } elseif (is_string($rawQ1) && ! is_numeric($rawQ1) && trim($rawQ1) !== '') {
                 $selectedCountries = [trim($rawQ1)];
-            } elseif (!$request->has('Q1') && !empty($validated['origin_country'])) {
+            } elseif (! $request->has('Q1') && ! empty($validated['origin_country'])) {
                 $selectedCountries = [trim($validated['origin_country'])];
             }
 
-            if (!empty($selectedCountries)) {
+            if (! empty($selectedCountries)) {
                 $negaraSinggah = mb_substr(implode(', ', $selectedCountries), 0, 255);
                 $q1Score = ShipHealthSurveillance::hasRedZoneCountry($selectedCountries) ? 20 : 0;
             } elseif (is_numeric($rawQ1)) {
-                $q1Score = (int)$rawQ1;
+                $q1Score = (int) $rawQ1;
             }
         }
 
         // Collect structured question answers (1 through 19) & compute authoritative score
         $questions = [];
-        $q7Score = (int)$request->input('Q7', 0);
+        $q7Score = (int) $request->input('Q7', 0);
         $totalScore = 0;
 
         foreach (ShipHealthSurveillance::QUARANTINE_QUESTIONS as $i => $questionText) {
             if ($i === 1) {
                 $answerLabel = $isInternational
-                    ? (!empty($selectedCountries) ? implode(', ', $selectedCountries) : '-')
+                    ? (! empty($selectedCountries) ? implode(', ', $selectedCountries) : '-')
                     : 'Tidak Berlaku (Domestik)';
                 $questions[$i] = [
                     'text' => $questionText,
@@ -483,10 +473,11 @@ class ShipHealthSurveillanceController extends Controller
                     'score' => $q1Score,
                 ];
                 $totalScore += $q1Score;
+
                 continue;
             }
 
-            $val = (int)$request->input("Q{$i}", 0);
+            $val = (int) $request->input("Q{$i}", 0);
             if ($i === 8 && $q7Score <= 0) {
                 $val = 0;
             }
@@ -505,10 +496,10 @@ class ShipHealthSurveillanceController extends Controller
 
         $score = $totalScore;
         $riskData = ShipHealthSurveillance::calculateRisk($score);
-        $gt = (int)$validated['gross_tonnage'];
+        $gt = (int) $validated['gross_tonnage'];
         $pnbp = ShipHealthSurveillance::calculatePnbp($gt);
 
-        $regNo = 'MDH-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(5));
+        $regNo = 'MDH-'.date('Ymd').'-'.strtoupper(Str::random(5));
 
         $record = ShipHealthSurveillance::create([
             'registration_no' => $regNo,
@@ -518,7 +509,7 @@ class ShipHealthSurveillanceController extends Controller
             'pelabuhan' => $validated['pelabuhan'],
             'tanggal_kedatangan' => $validated['tanggal_kedatangan'],
             'gross_tonnage' => $gt,
-            'jml_crew' => (int)$validated['jml_crew'],
+            'jml_crew' => (int) $validated['jml_crew'],
             'negara_singgah_14_hari' => $negaraSinggah,
             'kategori' => $validated['kategori'],
             'questions' => $questions,
@@ -532,7 +523,7 @@ class ShipHealthSurveillanceController extends Controller
         ]);
 
         return redirect()->route('ship-surveillance.receipt', $record->registration_no)
-            ->with('success', 'Formulir Karantina Kesehatan Kapal berhasil dikirim. Nomor Registrasi: ' . $record->registration_no);
+            ->with('success', 'Formulir Karantina Kesehatan Kapal berhasil dikirim. Nomor Registrasi: '.$record->registration_no);
     }
 
     /**
@@ -573,10 +564,10 @@ class ShipHealthSurveillanceController extends Controller
     {
         $config = $request->only(['host', 'port', 'database', 'username', 'password', 'table']);
         $options = [
-            'skip_duplicate' => (bool)$request->input('skip_duplicate', true),
-            'recalculate_pnbp' => (bool)$request->input('recalculate_pnbp', true),
-            'normalize_ports' => (bool)$request->input('normalize_ports', true),
-            'truncate_first' => (bool)$request->input('truncate_first', false),
+            'skip_duplicate' => (bool) $request->input('skip_duplicate', true),
+            'recalculate_pnbp' => (bool) $request->input('recalculate_pnbp', true),
+            'normalize_ports' => (bool) $request->input('normalize_ports', true),
+            'truncate_first' => (bool) $request->input('truncate_first', false),
         ];
 
         $result = $service->importFromMysql($config, $options);
@@ -594,10 +585,10 @@ class ShipHealthSurveillanceController extends Controller
         ]);
 
         $options = [
-            'skip_duplicate' => (bool)$request->input('skip_duplicate', true),
-            'recalculate_pnbp' => (bool)$request->input('recalculate_pnbp', true),
-            'normalize_ports' => (bool)$request->input('normalize_ports', true),
-            'truncate_first' => (bool)$request->input('truncate_first', false),
+            'skip_duplicate' => (bool) $request->input('skip_duplicate', true),
+            'recalculate_pnbp' => (bool) $request->input('recalculate_pnbp', true),
+            'normalize_ports' => (bool) $request->input('normalize_ports', true),
+            'truncate_first' => (bool) $request->input('truncate_first', false),
         ];
 
         $result = $service->importFromFile($request->file('file'), $options);
@@ -610,7 +601,7 @@ class ShipHealthSurveillanceController extends Controller
      */
     protected function buildRedZonesPayload(): array
     {
-        if (!Schema::hasTable('quarantine_countries')) {
+        if (! Schema::hasTable('quarantine_countries')) {
             $countries = [];
             foreach (ShipHealthSurveillance::QUARANTINE_COUNTRIES as $name => $isRed) {
                 $countries[] = [
@@ -711,7 +702,7 @@ class ShipHealthSurveillanceController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal membaca berkas PDF: ' . $e->getMessage(),
+                'message' => 'Gagal membaca berkas PDF: '.$e->getMessage(),
             ], 422);
         }
 
@@ -777,7 +768,7 @@ class ShipHealthSurveillanceController extends Controller
         $item = QuarantineCountry::findOrFail($country);
         $nextStatus = $request->has('is_red_zone')
             ? (bool) $request->boolean('is_red_zone')
-            : !$item->is_red_zone;
+            : ! $item->is_red_zone;
 
         $item->update([
             'is_red_zone' => $nextStatus,
@@ -786,7 +777,7 @@ class ShipHealthSurveillanceController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "{$item->name} diubah menjadi " . ($nextStatus ? 'Zona Merah (+20 skor)' : 'Zona Aman (0 skor)') . '.',
+            'message' => "{$item->name} diubah menjadi ".($nextStatus ? 'Zona Merah (+20 skor)' : 'Zona Aman (0 skor)').'.',
             'data' => $this->buildRedZonesPayload(),
         ]);
     }
@@ -830,4 +821,3 @@ class ShipHealthSurveillanceController extends Controller
         ]);
     }
 }
-

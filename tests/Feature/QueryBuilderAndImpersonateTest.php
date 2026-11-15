@@ -13,21 +13,31 @@ class QueryBuilderAndImpersonateTest extends TestCase
 
     public function test_query_builder_filters_and_sorts_users(): void
     {
+        $adminRole = Role::firstOrCreate(['name' => 'Admin', 'guard_name' => 'web']);
+        $staffRole = Role::firstOrCreate(['name' => 'Staff', 'guard_name' => 'web']);
+
         $admin = User::factory()->create([
             'name' => 'Alice Admin',
             'email' => 'alice@example.com',
         ]);
+        $admin->assignRole($adminRole);
 
         $bob = User::factory()->create([
             'name' => 'Bob Builder',
             'email' => 'bob@example.com',
         ]);
+        $bob->assignRole($staffRole);
 
         $response = $this->actingAs($admin, 'sanctum')->getJson('/api/v1/users?filter[name]=Bob');
 
         $response->assertStatus(200);
         $response->assertJsonCount(1, 'data');
         $response->assertJsonPath('data.0.name', 'Bob Builder');
+
+        // Regular Staff cannot access user listing API
+        $this->actingAs($bob, 'sanctum')
+            ->getJson('/api/v1/users')
+            ->assertStatus(403);
     }
 
     public function test_super_admin_can_impersonate_user_and_leave(): void

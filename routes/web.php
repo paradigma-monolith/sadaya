@@ -4,15 +4,19 @@ use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AircraftInspectionController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\DataMigrationController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\FlightMedicalInspectionController;
 use App\Http\Controllers\Inertia\DashboardController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PrlController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ShipHealthSurveillanceController;
 use App\Http\Controllers\ShipInspectionController;
 use App\Http\Controllers\SinkarkesController;
 use App\Http\Controllers\SinkarkesDailyController;
+use App\Http\Controllers\SiveraController;
 use App\Http\Controllers\TravelConsentController;
 use App\Http\Controllers\TravelConsentHubController;
 use Illuminate\Support\Facades\Route;
@@ -30,13 +34,17 @@ use Illuminate\Support\Facades\Route;
 // --- Guest Authentication Routes ---
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:login');
 
     // Password Reset
     Route::get('/forgot-password', [PasswordResetController::class, 'showForgotForm'])->name('password.request');
-    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])->name('password.email');
+    Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLink'])
+        ->middleware('throttle:password-reset')
+        ->name('password.email');
     Route::get('/reset-password/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
-    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])->name('password.update');
+    Route::post('/reset-password', [PasswordResetController::class, 'resetPassword'])
+        ->middleware('throttle:password-reset')
+        ->name('password.update');
 });
 
 // --- Convenient Top-Level Shortcut & Alias Routes (Redirect to travelconsent & ship-surveillance) ---
@@ -59,7 +67,9 @@ Route::prefix('ship-surveillance')->name('ship-surveillance.')->group(function (
     Route::get('/portal', [ShipHealthSurveillanceController::class, 'publicPortal'])->name('portal');
     Route::get('/assessment/domestic', [ShipHealthSurveillanceController::class, 'publicDomestic'])->name('assessment.domestic');
     Route::get('/assessment/international', [ShipHealthSurveillanceController::class, 'publicInternational'])->name('assessment.international');
-    Route::post('/assessment/submit', [ShipHealthSurveillanceController::class, 'submitAssessment'])->name('assessment.submit');
+    Route::post('/assessment/submit', [ShipHealthSurveillanceController::class, 'submitAssessment'])
+        ->middleware('throttle:public-submit')
+        ->name('assessment.submit');
     Route::get('/receipt/{registration_no}', [ShipHealthSurveillanceController::class, 'receipt'])->name('receipt');
 });
 
@@ -72,24 +82,32 @@ Route::prefix('travelconsent')->name('travelconsent.')->group(function () {
     // Aircraft Sanitation
     Route::get('/public_aircraft', [TravelConsentController::class, 'publicAircraft'])->name('public_aircraft');
     Route::get('/aircraft', [TravelConsentController::class, 'publicAircraft'])->name('aircraft');
-    Route::post('/submit_aircraft', [TravelConsentController::class, 'submitAircraft'])->name('submit_aircraft');
+    Route::post('/submit_aircraft', [TravelConsentController::class, 'submitAircraft'])
+        ->middleware('throttle:public-submit')
+        ->name('submit_aircraft');
     Route::get('/receipt/{registration_no}', [TravelConsentController::class, 'receipt'])->name('receipt');
     Route::get('/pdf/{registration_no}', [TravelConsentController::class, 'downloadPdf'])->name('public_pdf');
 
     // Ship Sanitation (SSCC / SSCEC - Sertifikat Pengendalian Sanitasi Kapal)
     Route::get('/public_sanitasi', [TravelConsentController::class, 'publicSanitasi'])->name('public_sanitasi');
-    Route::post('/submit_sanitasi', [TravelConsentController::class, 'submitSanitasi'])->name('submit_sanitasi');
+    Route::post('/submit_sanitasi', [TravelConsentController::class, 'submitSanitasi'])
+        ->middleware('throttle:public-submit')
+        ->name('submit_sanitasi');
     Route::get('/receipt_sanitasi/{registration_no}', [TravelConsentController::class, 'receiptSanitasi'])->name('receipt_sanitasi');
     Route::get('/doc_sanitasi/{id}', [TravelConsentController::class, 'docSanitasi'])->name('doc_sanitasi');
 
     // Pemakaian Alat Kesehatan Kotak P3K & Emergensi Pesawat
     Route::get('/public_alat', [TravelConsentController::class, 'publicAlat'])->name('public_alat');
-    Route::post('/submit_alat', [TravelConsentController::class, 'submitAlat'])->name('submit_alat');
+    Route::post('/submit_alat', [TravelConsentController::class, 'submitAlat'])
+        ->middleware('throttle:public-submit')
+        ->name('submit_alat');
     Route::get('/receipt_alat/{registration_no}', [TravelConsentController::class, 'receiptAlat'])->name('receipt_alat');
 
     // Pemakaian Obat-obatan Kotak P3K & Emergensi Pesawat
     Route::get('/public_obat', [TravelConsentController::class, 'publicObat'])->name('public_obat');
-    Route::post('/submit_obat', [TravelConsentController::class, 'submitObat'])->name('submit_obat');
+    Route::post('/submit_obat', [TravelConsentController::class, 'submitObat'])
+        ->middleware('throttle:public-submit')
+        ->name('submit_obat');
     Route::get('/receipt_obat/{registration_no}', [TravelConsentController::class, 'receiptObat'])->name('receipt_obat');
 });
 
@@ -113,8 +131,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
 
-    // System Activity & Audit Trail
-    Route::get('/audit-logs', [ActivityLogController::class, 'index'])->name('audit.index');
+    // System Activity & Audit Trail (Restricted to Admin / Super Admin)
+    Route::get('/audit-logs', [ActivityLogController::class, 'index'])
+        ->middleware('role:Super Admin|Admin')
+        ->name('audit.index');
 
     // Unified Travel Consent Multi-Tab Hub
     Route::prefix('travel-consent')->name('travel-consent.')->group(function () {
@@ -199,83 +219,86 @@ Route::middleware('auth')->group(function () {
 
     // Sanitasi Lingkungan (Pengawasan TPP, SAB, HSBU)
     Route::prefix('sanitasi-lingkungan')->name('sanitasi.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\PrlController::class, 'sanitasiIndex'])->name('index');
-        Route::get('/tpp', [\App\Http\Controllers\PrlController::class, 'tppTab'])->name('tpp');
-        Route::get('/sab', [\App\Http\Controllers\PrlController::class, 'sabTab'])->name('sab');
-        Route::get('/hsbu', [\App\Http\Controllers\PrlController::class, 'hsbuTab'])->name('hsbu');
-        Route::get('/export/{type}', [\App\Http\Controllers\PrlController::class, 'exportExcel'])->name('export');
-        Route::get('/inspeksi/{type}/{id}/pdf', [\App\Http\Controllers\PrlController::class, 'printPdf'])->name('pdf');
-        Route::post('/tpp', [\App\Http\Controllers\PrlController::class, 'storeTpp'])->name('storeTpp');
-        Route::post('/sab', [\App\Http\Controllers\PrlController::class, 'storeSab'])->name('storeSab');
-        Route::post('/hsbu', [\App\Http\Controllers\PrlController::class, 'storeHsbu'])->name('storeHsbu');
-        Route::post('/inspeksi/tpp', [\App\Http\Controllers\PrlController::class, 'storeInspeksiTpp'])->name('storeInspeksiTpp');
-        Route::post('/inspeksi/sab', [\App\Http\Controllers\PrlController::class, 'storeInspeksiSab'])->name('storeInspeksiSab');
-        Route::post('/inspeksi/hsbu', [\App\Http\Controllers\PrlController::class, 'storeInspeksiHsbu'])->name('storeInspeksiHsbu');
-        Route::delete('/inspeksi/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroyInspeksi'])->name('destroyInspeksi');
-        Route::delete('/sarana/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroySarana'])->name('destroySarana');
+        Route::get('/', [PrlController::class, 'sanitasiIndex'])->name('index');
+        Route::get('/tpp', [PrlController::class, 'tppTab'])->name('tpp');
+        Route::get('/sab', [PrlController::class, 'sabTab'])->name('sab');
+        Route::get('/hsbu', [PrlController::class, 'hsbuTab'])->name('hsbu');
+        Route::get('/export/{type}', [PrlController::class, 'exportExcel'])->name('export');
+        Route::get('/inspeksi/{type}/{id}/pdf', [PrlController::class, 'printPdf'])->name('pdf');
+        Route::post('/tpp', [PrlController::class, 'storeTpp'])->name('storeTpp');
+        Route::post('/sab', [PrlController::class, 'storeSab'])->name('storeSab');
+        Route::post('/hsbu', [PrlController::class, 'storeHsbu'])->name('storeHsbu');
+        Route::post('/inspeksi/tpp', [PrlController::class, 'storeInspeksiTpp'])->name('storeInspeksiTpp');
+        Route::post('/inspeksi/sab', [PrlController::class, 'storeInspeksiSab'])->name('storeInspeksiSab');
+        Route::post('/inspeksi/hsbu', [PrlController::class, 'storeInspeksiHsbu'])->name('storeInspeksiHsbu');
+        Route::delete('/inspeksi/{type}/{id}', [PrlController::class, 'destroyInspeksi'])->name('destroyInspeksi');
+        Route::delete('/sarana/{type}/{id}', [PrlController::class, 'destroySarana'])->name('destroySarana');
     });
 
     // Surveilans Vektor dan Reservoar (SIVERA)
     Route::prefix('sivera')->name('sivera.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\PrlController::class, 'siveraIndex'])->name('index');
-        Route::get('/dashboard', [\App\Http\Controllers\PrlController::class, 'siveraIndex'])->name('dashboard');
-        Route::get('/vektor/{vektor}', [\App\Http\Controllers\PrlController::class, 'siveraIndex'])->name('vektor');
-        Route::get('/export', [\App\Http\Controllers\PrlController::class, 'exportSiveraExcel'])->name('export');
-        Route::get('/{id}/pdf/{tipe?}', [\App\Http\Controllers\PrlController::class, 'printSiveraPdf'])->name('pdf');
-        Route::get('/jentik/pdf/{id}/{tipe?}', [\App\Http\Controllers\PrlController::class, 'printSiveraJentikPdf'])->name('jentik.pdf');
-        Route::get('/lalat/pdf/{id}', [\App\Http\Controllers\PrlController::class, 'printSiveraLalatPdf'])->name('lalat.pdf');
-        Route::post('/', [\App\Http\Controllers\PrlController::class, 'storeSivera'])->name('store');
-        Route::put('/{id}', [\App\Http\Controllers\PrlController::class, 'updateSivera'])->name('update');
-        Route::post('/{id}/pengendalian', [\App\Http\Controllers\PrlController::class, 'updatePengendalianSivera'])->name('pengendalian');
-        Route::delete('/{id}', [\App\Http\Controllers\PrlController::class, 'destroySiveraRecord'])->name('destroy');
+        Route::get('/', [SiveraController::class, 'index'])->name('index');
+        Route::get('/dashboard', [SiveraController::class, 'index'])->name('dashboard');
+        Route::get('/vektor/{vektor}', [SiveraController::class, 'index'])->name('vektor');
+        Route::get('/export', [SiveraController::class, 'exportExcel'])->name('export');
+        Route::get('/{id}/pdf/{tipe?}', [SiveraController::class, 'printPdf'])->name('pdf');
+        Route::get('/jentik/pdf/{id}/{tipe?}', [SiveraController::class, 'printJentikPdf'])->name('jentik.pdf');
+        Route::get('/lalat/pdf/{id}', [SiveraController::class, 'printLalatPdf'])->name('lalat.pdf');
+        Route::post('/', [SiveraController::class, 'store'])->name('store');
+        Route::put('/{id}', [SiveraController::class, 'update'])->name('update');
+        Route::post('/{id}/pengendalian', [SiveraController::class, 'updatePengendalian'])->name('pengendalian');
+        Route::delete('/{id}', [SiveraController::class, 'destroy'])->name('destroy');
     });
 
     // Pengendalian Risiko Lingkungan (PRL / KESLING - Backwards Compatibility Aliases)
     Route::prefix('prl')->name('prl.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\PrlController::class, 'index'])->name('index');
-        Route::get('/tpp', [\App\Http\Controllers\PrlController::class, 'tppTab'])->name('tpp');
-        Route::get('/sab', [\App\Http\Controllers\PrlController::class, 'sabTab'])->name('sab');
-        Route::get('/hsbu', [\App\Http\Controllers\PrlController::class, 'hsbuTab'])->name('hsbu');
-        Route::get('/sivera', [\App\Http\Controllers\PrlController::class, 'siveraTab'])->name('sivera');
-        Route::get('/export/{type}', [\App\Http\Controllers\PrlController::class, 'exportExcel'])->name('export');
-        Route::get('/inspeksi/{type}/{id}/pdf', [\App\Http\Controllers\PrlController::class, 'printPdf'])->name('pdf');
-        Route::get('/sivera/{id}/pdf/{tipe?}', [\App\Http\Controllers\PrlController::class, 'printSiveraPdf'])->name('sivera.pdf');
-        Route::get('/sivera_jentik/pdf/{id}/{tipe?}', [\App\Http\Controllers\PrlController::class, 'printSiveraJentikPdf'])->name('sivera.jentik.pdf');
-        Route::get('/sivera_lalat/pdf/{id}', [\App\Http\Controllers\PrlController::class, 'printSiveraLalatPdf'])->name('sivera.lalat.pdf');
-        Route::post('/tpp', [\App\Http\Controllers\PrlController::class, 'storeTpp'])->name('storeTpp');
-        Route::post('/sab', [\App\Http\Controllers\PrlController::class, 'storeSab'])->name('storeSab');
-        Route::post('/hsbu', [\App\Http\Controllers\PrlController::class, 'storeHsbu'])->name('storeHsbu');
-        Route::post('/inspeksi/tpp', [\App\Http\Controllers\PrlController::class, 'storeInspeksiTpp'])->name('storeInspeksiTpp');
-        Route::post('/inspeksi/sab', [\App\Http\Controllers\PrlController::class, 'storeInspeksiSab'])->name('storeInspeksiSab');
-        Route::post('/inspeksi/hsbu', [\App\Http\Controllers\PrlController::class, 'storeInspeksiHsbu'])->name('storeInspeksiHsbu');
-        Route::post('/sivera', [\App\Http\Controllers\PrlController::class, 'storeSivera'])->name('storeSivera');
-        Route::put('/sivera/{id}', [\App\Http\Controllers\PrlController::class, 'updateSivera'])->name('updateSivera');
-        Route::post('/sivera/{id}/pengendalian', [\App\Http\Controllers\PrlController::class, 'updatePengendalianSivera'])->name('updatePengendalianSivera');
-        Route::delete('/inspeksi/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroyInspeksi'])->name('destroyInspeksi');
-        Route::delete('/sarana/{type}/{id}', [\App\Http\Controllers\PrlController::class, 'destroySarana'])->name('destroySarana');
-        Route::post('/sync', [\App\Http\Controllers\PrlController::class, 'syncFromSimply'])->name('sync');
-        Route::post('/test-connection', [\App\Http\Controllers\PrlController::class, 'testSimplyConnection'])->name('testConnection');
+        Route::get('/', [PrlController::class, 'index'])->name('index');
+        Route::get('/tpp', [PrlController::class, 'tppTab'])->name('tpp');
+        Route::get('/sab', [PrlController::class, 'sabTab'])->name('sab');
+        Route::get('/hsbu', [PrlController::class, 'hsbuTab'])->name('hsbu');
+        Route::get('/sivera', [PrlController::class, 'siveraTab'])->name('sivera');
+        Route::get('/export/{type}', [PrlController::class, 'exportExcel'])->name('export');
+        Route::get('/inspeksi/{type}/{id}/pdf', [PrlController::class, 'printPdf'])->name('pdf');
+        Route::get('/sivera/{id}/pdf/{tipe?}', [PrlController::class, 'printSiveraPdf'])->name('sivera.pdf');
+        Route::get('/sivera_jentik/pdf/{id}/{tipe?}', [PrlController::class, 'printSiveraJentikPdf'])->name('sivera.jentik.pdf');
+        Route::get('/sivera_lalat/pdf/{id}', [PrlController::class, 'printSiveraLalatPdf'])->name('sivera.lalat.pdf');
+        Route::post('/tpp', [PrlController::class, 'storeTpp'])->name('storeTpp');
+        Route::post('/sab', [PrlController::class, 'storeSab'])->name('storeSab');
+        Route::post('/hsbu', [PrlController::class, 'storeHsbu'])->name('storeHsbu');
+        Route::post('/inspeksi/tpp', [PrlController::class, 'storeInspeksiTpp'])->name('storeInspeksiTpp');
+        Route::post('/inspeksi/sab', [PrlController::class, 'storeInspeksiSab'])->name('storeInspeksiSab');
+        Route::post('/inspeksi/hsbu', [PrlController::class, 'storeInspeksiHsbu'])->name('storeInspeksiHsbu');
+        Route::post('/sivera', [PrlController::class, 'storeSivera'])->name('storeSivera');
+        Route::put('/sivera/{id}', [PrlController::class, 'updateSivera'])->name('updateSivera');
+        Route::post('/sivera/{id}/pengendalian', [PrlController::class, 'updatePengendalianSivera'])->name('updatePengendalianSivera');
+        Route::delete('/inspeksi/{type}/{id}', [PrlController::class, 'destroyInspeksi'])->name('destroyInspeksi');
+        Route::delete('/sarana/{type}/{id}', [PrlController::class, 'destroySarana'])->name('destroySarana');
+        Route::post('/sync', [PrlController::class, 'syncFromSimply'])->name('sync');
+        Route::post('/test-connection', [PrlController::class, 'testSimplyConnection'])->name('testConnection');
     });
 
-    // System Data Exports (Excel, CSV, PDF)
-    Route::prefix('exports/audit-logs')->name('exports.audit.')->group(function () {
-        Route::get('/excel', [ExportController::class, 'exportExcel'])->name('excel');
-        Route::get('/csv', [ExportController::class, 'exportCsv'])->name('csv');
-        Route::get('/pdf', [ExportController::class, 'exportPdf'])->name('pdf');
-    });
+    // System Data Exports (Excel, CSV, PDF — Admin / Super Admin)
+    Route::prefix('exports/audit-logs')
+        ->middleware(['role:Super Admin|Admin', 'throttle:exports'])
+        ->name('exports.audit.')
+        ->group(function () {
+            Route::get('/excel', [ExportController::class, 'exportExcel'])->name('excel');
+            Route::get('/csv', [ExportController::class, 'exportCsv'])->name('csv');
+            Route::get('/pdf', [ExportController::class, 'exportPdf'])->name('pdf');
+        });
 
     // Dokumentasi Manual Book PDF
     Route::get('/docs/manual-book/download', [ExportController::class, 'exportManualBookPdf'])->name('docs.manual-book.download');
 
     // Pusat Migrasi & Import Database Simply (CI4) -> Sadaya (Hanya Super Admin & Admin)
     Route::prefix('database-import')->middleware('role:Super Admin|Admin')->name('database-import.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\DataMigrationController::class, 'index'])->name('index');
-        Route::post('/save-config', [\App\Http\Controllers\DataMigrationController::class, 'saveConfig'])->name('saveConfig');
-        Route::post('/save-auto-sync', [\App\Http\Controllers\DataMigrationController::class, 'saveAutoSync'])->name('saveAutoSync');
-        Route::post('/sync-now', [\App\Http\Controllers\DataMigrationController::class, 'runAutoSyncNow'])->name('syncNow');
-        Route::post('/test-connection', [\App\Http\Controllers\DataMigrationController::class, 'testConnection'])->name('test');
-        Route::post('/migrate', [\App\Http\Controllers\DataMigrationController::class, 'migrate'])->name('migrate');
-        Route::post('/import-file', [\App\Http\Controllers\DataMigrationController::class, 'importFile'])->name('importFile');
+        Route::get('/', [DataMigrationController::class, 'index'])->name('index');
+        Route::post('/save-config', [DataMigrationController::class, 'saveConfig'])->name('saveConfig');
+        Route::post('/save-auto-sync', [DataMigrationController::class, 'saveAutoSync'])->name('saveAutoSync');
+        Route::post('/sync-now', [DataMigrationController::class, 'runAutoSyncNow'])->name('syncNow');
+        Route::post('/test-connection', [DataMigrationController::class, 'testConnection'])->name('test');
+        Route::post('/migrate', [DataMigrationController::class, 'migrate'])->name('migrate');
+        Route::post('/import-file', [DataMigrationController::class, 'importFile'])->name('importFile');
     });
 
     // In-App & Real-Time Notifications (Reverb WebSocket Powered)
@@ -286,8 +309,8 @@ Route::middleware('auth')->group(function () {
     });
 
     // Real-Time Live Chat (Reverb WebSocket Powered)
-    Route::get('/chat/messages', [\App\Http\Controllers\ChatController::class, 'index'])->name('chat.index');
-    Route::post('/chat/messages', [\App\Http\Controllers\ChatController::class, 'send'])->name('chat.send');
+    Route::get('/chat/messages', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('/chat/messages', [ChatController::class, 'send'])->name('chat.send');
 
     // User Impersonation Routes (/impersonate/take/{id} & /impersonate/leave)
     Route::impersonate();

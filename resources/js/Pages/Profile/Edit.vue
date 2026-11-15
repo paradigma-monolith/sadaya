@@ -22,9 +22,7 @@ import {
   Smartphone,
   Tablet,
   Laptop,
-  Users,
-  Activity,
-  Radio
+  Users
 } from 'lucide-vue-next';
 
 const props = defineProps({
