@@ -71,7 +71,7 @@ const createRasterStyle = (subdomains, tileTemplate, attribution, paint = {}) =>
   ],
 });
 
-// Style definitions for Light / OSM / Voyager and genuine Dark Mode
+// Style definitions using 100% keyless OpenStreetMap raster tiles (Dark mode styled via canvas filter)
 const STYLES = {
   osm: createRasterStyle(
     ['a', 'b', 'c'],
@@ -90,19 +90,18 @@ const STYLES = {
   ),
   light: createRasterStyle(
     ['a', 'b', 'c'],
-    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap &copy; CARTO'
+    'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors'
   ),
   dark: createRasterStyle(
-    ['a', 'b', 'c', 'd'],
-    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap &copy; CARTO',
-    { 'raster-brightness-min': 0.04, 'raster-contrast': 0.08 }
+    ['a', 'b', 'c'],
+    'https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors'
   ),
   voyager: createRasterStyle(
-    ['a', 'b', 'c', 'd'],
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-    '&copy; OpenStreetMap &copy; CARTO'
+    ['a', 'b', 'c'],
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    '&copy; OpenStreetMap contributors'
   ),
 };
 
@@ -241,15 +240,16 @@ const renderNetworkLines = (targetMap) => {
         features,
       },
     });
+    const isDarkCanvas = currentStyleKey.value === 'dark';
     if (!map.getLayer('bkk-wilker-links-glow')) {
       map.addLayer({
         id: 'bkk-wilker-links-glow',
         type: 'line',
         source: 'bkk-wilker-links',
         paint: {
-          'line-color': '#99CC33',
+          'line-color': isDarkCanvas ? '#2e6000' : '#99CC33',
           'line-width': 6,
-          'line-opacity': 0.45,
+          'line-opacity': isDarkCanvas ? 0.55 : 0.45,
           'line-blur': 2,
         },
       });
@@ -260,7 +260,7 @@ const renderNetworkLines = (targetMap) => {
         type: 'line',
         source: 'bkk-wilker-links',
         paint: {
-          'line-color': '#00A99D',
+          'line-color': isDarkCanvas ? '#003b36' : '#00A99D',
           'line-width': 2.2,
           'line-dasharray': [3, 2],
           'line-opacity': 0.95,
@@ -489,13 +489,44 @@ defineExpose({
 </script>
 
 <template>
-  <div class="relative w-full h-full overflow-hidden bg-slate-100 dark:bg-[#0b151a]">
+  <div
+    class="relative w-full h-full overflow-hidden bg-slate-100 dark:bg-[#0b151a]"
+    :class="{ 'bkk-map-dark-canvas': currentStyleKey === 'dark' }"
+  >
     <div ref="mapContainer" :style="{ height, width: '100%' }" class="w-full h-full"></div>
     <slot name="overlay"></slot>
   </div>
 </template>
 
 <style>
+.bkk-map-dark-canvas .maplibregl-canvas {
+  filter: invert(93%) hue-rotate(180deg) brightness(90%) contrast(106%) saturate(82%);
+}
+
+html.dark .maplibregl-ctrl-group {
+  background: rgba(0, 34, 31, 0.92);
+  border: 1px solid rgba(0, 169, 157, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+}
+
+html.dark .maplibregl-ctrl-group button + button {
+  border-top-color: rgba(0, 169, 157, 0.25);
+}
+
+html.dark .maplibregl-ctrl-group button:hover {
+  background-color: rgba(0, 88, 81, 0.85);
+}
+
+html.dark .maplibregl-ctrl button .maplibregl-ctrl-icon {
+  filter: invert(0.92) hue-rotate(180deg) brightness(1.05);
+}
+
+html.dark .maplibregl-ctrl-scale {
+  background-color: rgba(0, 34, 31, 0.88);
+  border-color: rgba(153, 223, 214, 0.75);
+  color: #e6f7f5;
+}
+
 @keyframes maplibre-pulse-ping {
   0% {
     transform: scale(0.85);

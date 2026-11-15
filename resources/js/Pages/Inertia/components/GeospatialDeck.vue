@@ -16,8 +16,6 @@ import {
   Crosshair,
   Terminal,
   MapPin,
-  Activity,
-  ShieldCheck,
 } from 'lucide-vue-next';
 
 const BaseMap = defineAsyncComponent(() => import('../../../Components/BaseMap.vue'));
@@ -49,6 +47,8 @@ const dialBeamRef = ref(null);
 const mapBeamRef = ref(null);
 const dialAzmRef = ref(null);
 const mapAzmRef = ref(null);
+const wingAzmRef = ref(null);
+const wingBarRef = ref(null);
 const shouldMountMap = ref(false);
 let mapObserver = null;
 const activeMapLayer = ref('auto');
@@ -63,7 +63,6 @@ const hoveredRadarBlip = ref(null);
 
 // Real-time 60fps sweep synchronization & discrete target capture engine
 const blipHits = reactive({});
-const interceptFeed = ref([]);
 const lastInterceptedNode = ref(null);
 const pingWaveTick = ref(0);
 const pendingTimers = new Set();
@@ -73,14 +72,16 @@ let currentSweepDeg = 0;
 let lastRafTs = 0;
 let lastHudTextTs = 0;
 
-const polarDegreeTicks = Array.from({ length: 36 }, (_, idx) => {
-  const deg = idx * 10;
+const polarDegreeTicks = Array.from({ length: 72 }, (_, idx) => {
+  const deg = idx * 5;
   const rad = (deg * Math.PI) / 180;
+  const isCardinal = deg % 90 === 0;
   const isMajor = deg % 30 === 0;
-  const rOuter = 48.2;
-  const rInner = isMajor ? 44.8 : 46.5;
+  const rOuter = 48.8;
+  const rInner = isCardinal ? 44.0 : (isMajor ? 45.2 : 47.0);
   return {
     deg,
+    isCardinal,
     isMajor,
     x1: (50 + rOuter * Math.sin(rad)).toFixed(2),
     y1: (50 - rOuter * Math.cos(rad)).toFixed(2),
@@ -144,6 +145,33 @@ const spectrumBars = computed(() => {
   ];
 });
 
+const wingTransponders = computed(() => {
+  return (props.radarBlips || [])
+    .filter((b) => !b.is_hq)
+    .slice()
+    .sort((a, b) => Number(a.bearingDeg || 0) - Number(b.bearingDeg || 0))
+    .slice(0, 6);
+});
+
+const networkStats = computed(() => {
+  const markers = props.bkkMapMarkers || [];
+  let air = 0;
+  let sea = 0;
+  let pending = 0;
+  for (const m of markers) {
+    const ml = `${m?.moda || ''} ${m?.type || ''}`.toLowerCase();
+    if (m?.is_hq || ml.includes('udara') || ml.includes('bandara')) air += 1;
+    else if (ml.includes('laut') || ml.includes('pelabuhan')) sea += 1;
+    pending += Number(m?.pending || 0);
+  }
+  return {
+    totalNodes: markers.length || 0,
+    airCount: air,
+    seaCount: sea,
+    totalPending: pending,
+  };
+});
+
 const isBlipHot = (no) => Boolean(blipHits[no]);
 
 const registerBlipCapture = (blip) => {
@@ -169,28 +197,6 @@ const registerBlipCapture = (blip) => {
       distanceKm: blip.distanceKm,
       totalDocs: Number(blip.total || 0),
     };
-
-    const nowStr = new Date().toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-      hour12: false,
-    });
-
-    interceptFeed.value = [
-      {
-        key: `${hitNo}-${seq}`,
-        no: blip.no,
-        shortCode: blip.shortCode,
-        shortTitle: blip.shortTitle,
-        bearingFormatted: `${String(blip.bearingDeg).padStart(3, '0')}°`,
-        sector: getCompassSector(blip.bearingDeg),
-        distanceKm: blip.distanceKm,
-        totalDocs: Number(blip.total || 0),
-        timeStr: nowStr,
-      },
-      ...interceptFeed.value,
-    ].slice(0, 3);
   }
 };
 
@@ -215,6 +221,9 @@ const runSweepFrame = (ts) => {
   if (mapBeamRef.value) {
     mapBeamRef.value.style.transform = transformVal;
   }
+  if (wingBarRef.value) {
+    wingBarRef.value.style.transform = `scaleX(${Math.max(0.02, nextDeg / 360).toFixed(3)})`;
+  }
 
   if (ts - lastHudTextTs >= 65) {
     lastHudTextTs = ts;
@@ -223,6 +232,9 @@ const runSweepFrame = (ts) => {
     const sec = getCompassSector(rounded);
     if (dialAzmRef.value) {
       dialAzmRef.value.textContent = `${padAzm}° ${sec}`;
+    }
+    if (wingAzmRef.value) {
+      wingAzmRef.value.textContent = `${padAzm}° ${sec}`;
     }
     if (mapAzmRef.value) {
       mapAzmRef.value.textContent = `${padAzm}° ${sec} ACTV`;
@@ -505,10 +517,10 @@ defineExpose({ flyToNode });
 
     <!-- Centerpiece Body: Map + Tactical Wilker Telemetry Dock -->
     <div class="grid grid-cols-1 lg:grid-cols-12 lg:items-stretch divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800 bg-slate-100 dark:bg-[#00221F]">
-      <!-- Large WebGL Map Area (8 Cols) -->
+      <!-- Large WebGL Map Area -->
       <div
         ref="mapViewportRef"
-        class="lg:col-span-8 relative min-w-0 bg-slate-100 dark:bg-[#00221F] overflow-hidden h-[320px] sm:h-[380px] lg:h-auto lg:min-h-[470px]"
+        class="lg:col-span-7 2xl:col-span-8 relative min-w-0 bg-slate-100 dark:bg-[#00221F] overflow-hidden h-[320px] sm:h-[380px] lg:h-auto lg:min-h-[470px]"
       >
         <div class="w-full h-full lg:absolute lg:inset-0">
           <BaseMap
@@ -644,34 +656,43 @@ defineExpose({ flyToNode });
         </div>
       </div>
 
-      <!-- Side Cockpit: Interactive Circular Polar Sonar Radar Scanner (4 Cols) -->
-      <div class="lg:col-span-4 bg-gradient-to-b from-[#F4FBF9] to-[#E9F7F4] dark:from-[#002824] dark:to-[#001F1C] text-slate-800 dark:text-white p-3.5 flex flex-col justify-between gap-2.5 relative overflow-hidden border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-[#004D44]">
-        <!-- Subtle Tactical Ambient Scanline -->
+      <!-- Side Cockpit: 3-Zone Sci-Fi Holographic Polar Radar Command -->
+      <div
+        class="lg:col-span-5 2xl:col-span-4 radar-holo-deck text-slate-800 dark:text-white p-3 sm:p-3.5 flex flex-col justify-between gap-2.5 relative overflow-hidden border-t lg:border-t-0 lg:border-l border-[#99DFD6]/80 dark:border-[#00A99D]/35"
+        :class="isDark ? 'radar-deck-dark' : 'radar-deck-light'"
+      >
+        <!-- Holographic Micro-Grid & Laser Scanline -->
+        <div class="radar-holo-grid pointer-events-none"></div>
         <div class="radar-panel-scanline pointer-events-none"></div>
 
         <!-- Radar Cockpit Header -->
-        <div class="relative z-10 flex items-start justify-between gap-2">
+        <div class="relative z-10 flex items-start justify-between gap-2 pb-1.5 border-b border-[#00A99D]/20 dark:border-[#00A99D]/30">
           <div class="min-w-0">
             <div class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-[#00A99D] dark:bg-[#99CC33] animate-pulse shrink-0"></span>
-              <h3 class="text-xs font-bold tracking-tight text-[#004640] dark:text-white uppercase truncate">
+              <span class="relative flex h-2 w-2 shrink-0">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#7CA622] dark:bg-[#99CC33] opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-[#00A99D] dark:bg-[#99CC33]"></span>
+              </span>
+              <h3 class="text-xs font-extrabold tracking-wide text-[#004640] dark:text-white uppercase truncate">
                 Radar Jaringan Wilker
               </h3>
               <span
-                class="px-1.5 py-[1px] rounded text-[9px] font-mono font-bold border shrink-0"
+                class="sci-fi-chip px-1.5 py-[1px] text-[8.5px] font-mono font-bold tracking-wider border shrink-0"
                 :class="radarSweepSpeed === 'fast'
-                  ? 'bg-[#99CC33]/20 text-[#557A18] dark:text-[#99CC33] border-[#99CC33]/50'
-                  : 'bg-[#00A99D]/10 text-[#005851] dark:text-[#5eead4] border-[#00A99D]/30'"
+                  ? 'bg-[#99CC33]/20 text-[#4c6f10] dark:text-[#99CC33] border-[#99CC33]/60'
+                  : 'bg-[#00A99D]/12 text-[#005851] dark:text-[#5eead4] border-[#00A99D]/45'"
               >
-                {{ isSonarPinging ? 'IFF PING' : (radarSweepSpeed === 'fast' ? '2x TRACK' : 'LIVE SWEEP') }}
+                {{ isSonarPinging ? 'IFF//PING' : (radarSweepSpeed === 'fast' ? '2x//HYPER' : 'LIVE//SCAN') }}
               </span>
             </div>
-            <div class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-[#007B72] dark:text-[#99DFD6] font-mono tabular-nums">
-              <span>RNG 150 KM</span>
-              <span class="opacity-40">&bull;</span>
+            <div class="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[9.5px] text-[#007B72] dark:text-[#99DFD6] font-mono tabular-nums tracking-tight">
+              <span class="text-[#00A99D] dark:text-[#5eead4] font-bold">SYS//BKK-07</span>
+              <span class="opacity-35">|</span>
+              <span>RNG 150K</span>
+              <span class="opacity-35">&bull;</span>
               <span>AZM <strong ref="dialAzmRef" class="text-[#004640] dark:text-[#99CC33]">000&deg; U</strong></span>
-              <span class="opacity-40">&bull;</span>
-              <span>NODE {{ radarBlips.length }}/{{ bkkMapMarkers.length }}</span>
+              <span class="opacity-35">&bull;</span>
+              <span>ND {{ radarBlips.length }}/{{ bkkMapMarkers.length }}</span>
             </div>
           </div>
 
@@ -679,10 +700,10 @@ defineExpose({ flyToNode });
             <button
               type="button"
               @click="emit('update:radarSweepSpeed', radarSweepSpeed === 'normal' ? 'fast' : 'normal')"
-              class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold border transition-colors cursor-pointer"
+              class="sci-fi-chip px-2 py-0.5 text-[9.5px] font-mono font-bold border transition-all cursor-pointer"
               :class="radarSweepSpeed === 'fast'
-                ? 'bg-[#99CC33] text-[#002B27] border-[#99CC33]'
-                : 'bg-white dark:bg-[#003B36] text-[#005851] dark:text-[#99DFD6] border-[#99DFD6] dark:border-[#00A99D]/40 hover:bg-[#E6F7F5] dark:hover:text-white'"
+                ? 'bg-[#99CC33] text-[#002B27] border-[#99CC33] shadow-[0_0_10px_rgba(153,204,51,0.4)]'
+                : 'bg-white/90 dark:bg-[#002E29] text-[#005851] dark:text-[#99DFD6] border-[#00A99D]/45 hover:bg-[#E6F7F5] dark:hover:text-white'"
               title="Ubah kecepatan putaran radar"
             >
               {{ radarSweepSpeed === 'fast' ? '2x FAST' : '1x SCAN' }}
@@ -690,7 +711,7 @@ defineExpose({ flyToNode });
             <button
               type="button"
               @click="emit('trigger-ping')"
-              class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#00A99D]/15 dark:bg-[#00A99D]/25 hover:bg-[#00A99D] text-[#005851] dark:text-white hover:text-white border border-[#00A99D]/40 dark:border-[#00A99D]/50 transition-colors cursor-pointer"
+              class="sci-fi-chip px-2 py-0.5 text-[9.5px] font-mono font-bold bg-[#005851] dark:bg-[#007B72] hover:bg-[#00A99D] dark:hover:bg-[#00A99D] text-white border border-[#00A99D]/70 dark:border-[#5eead4]/60 shadow-[0_0_8px_rgba(0,169,157,0.28)] transition-all cursor-pointer"
               title="Pancarkan sinyal IFF Sonar ke seluruh wilker"
             >
               PING
@@ -698,213 +719,488 @@ defineExpose({ flyToNode });
           </div>
         </div>
 
-        <!-- Circular Polar Radar Scope -->
-        <div class="relative z-10 my-0.5 flex items-center justify-center">
-          <div
-            class="radar-dial-surface relative w-56 h-56 sm:w-64 sm:h-64 xl:w-[266px] xl:h-[266px] max-w-full aspect-square shrink-0 rounded-full border-2 border-[#00A99D]/70 shadow-[0_8px_28px_rgba(0,169,157,0.16)] dark:shadow-[0_0_40px_rgba(0,169,157,0.3)] flex items-center justify-center overflow-hidden"
-            :class="isDark ? 'radar-dial-dark' : 'radar-dial-light'"
-          >
-            <!-- Precision SVG Polar Grid, Degree Ticks & Active Vector Telemetry Links -->
-            <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full pointer-events-none">
-              <!-- Outer Degree Tick Ring -->
-              <line
-                v-for="tick in polarDegreeTicks"
-                :key="`tick-${tick.deg}`"
-                :x1="tick.x1"
-                :y1="tick.y1"
-                :x2="tick.x2"
-                :y2="tick.y2"
-                :stroke="isDark ? (tick.isMajor ? 'rgba(153, 204, 51, 0.45)' : 'rgba(0, 169, 157, 0.25)') : (tick.isMajor ? 'rgba(0, 88, 81, 0.45)' : 'rgba(0, 169, 157, 0.28)')"
-                :stroke-width="tick.isMajor ? '0.45' : '0.25'"
-              />
+        <!-- 3-Zone Sci-Fi Holographic Stage -->
+        <div class="radar-cockpit-stage-wrap relative z-10 my-auto">
+          <!-- Optical HUD Conduit Traces Linking Left Wing <-> Gyro Gimbal <-> Right Wing -->
+          <svg viewBox="0 0 400 200" preserveAspectRatio="none" class="radar-hud-conduit pointer-events-none" aria-hidden="true">
+            <line x1="65" y1="62" x2="145" y2="62" stroke="rgba(0,169,157,0.28)" stroke-width="0.7" stroke-dasharray="3 2" />
+            <line x1="65" y1="138" x2="145" y2="138" stroke="rgba(0,169,157,0.28)" stroke-width="0.7" stroke-dasharray="3 2" />
+            <line x1="255" y1="62" x2="335" y2="62" stroke="rgba(0,169,157,0.28)" stroke-width="0.7" stroke-dasharray="3 2" />
+            <line x1="255" y1="138" x2="335" y2="138" stroke="rgba(0,169,157,0.28)" stroke-width="0.7" stroke-dasharray="3 2" />
+            <circle cx="110" cy="62" r="2.2" fill="#00A99D" opacity="0.65" />
+            <circle cx="290" cy="138" r="2.2" fill="#99CC33" opacity="0.7" />
+          </svg>
 
-              <!-- Calibrated Geodesic Range Rings (50 / 100 / 150 KM) -->
-              <circle cx="50" cy="50" r="15" fill="none" :stroke="isDark ? 'rgba(0,169,157,0.28)' : 'rgba(0,88,81,0.25)'" stroke-width="0.35" />
-              <circle cx="50" cy="50" r="30" fill="none" :stroke="isDark ? 'rgba(0,169,157,0.34)' : 'rgba(0,169,157,0.4)'" stroke-width="0.35" stroke-dasharray="1.3 1.3" />
-              <circle cx="50" cy="50" r="44" fill="none" :stroke="isDark ? 'rgba(0,169,157,0.28)' : 'rgba(0,88,81,0.28)'" stroke-width="0.35" />
+          <div class="radar-cockpit-stage">
+            <!-- LEFT WING: Sweep Waveform, Range Vector & Moda Sensor -->
+            <div class="radar-wing-left flex flex-col justify-between gap-1.5 text-[9px] font-mono tabular-nums">
+              <!-- SYS//01: Live Azimuth & Carrier Waveform -->
+              <div class="sci-fi-frame">
+                <div class="sci-fi-frame-inner bg-white/92 dark:bg-[#001614]/92 px-2 py-1.5 space-y-1">
+                  <div class="flex items-center justify-between gap-1 text-[7.5px] font-bold tracking-wider text-[#007B72] dark:text-[#5eead4] uppercase">
+                    <span>SYS//01 AZM</span>
+                    <span class="px-1 bg-[#E6F7F5] dark:bg-[#003B36] text-[#005851] dark:text-[#99CC33] rounded-xs">
+                      {{ radarSweepSpeed === 'fast' ? '30R' : '15R' }}
+                    </span>
+                  </div>
+                  <div ref="wingAzmRef" class="text-[11px] font-black text-[#004640] dark:text-[#99CC33] leading-none tracking-tight">
+                    000&deg; U
+                  </div>
 
-              <!-- Cardinal & Diagonal Axes -->
-              <line x1="6" y1="50" x2="94" y2="50" :stroke="isDark ? 'rgba(0,169,157,0.24)' : 'rgba(0,169,157,0.28)'" stroke-width="0.3" />
-              <line x1="50" y1="6" x2="50" y2="94" :stroke="isDark ? 'rgba(0,169,157,0.24)' : 'rgba(0,169,157,0.28)'" stroke-width="0.3" />
-              <line x1="18.8" y1="18.8" x2="81.2" y2="81.2" :stroke="isDark ? 'rgba(0,169,157,0.14)' : 'rgba(0,169,157,0.16)'" stroke-width="0.25" />
-              <line x1="81.2" y1="18.8" x2="18.8" y2="81.2" :stroke="isDark ? 'rgba(0,169,157,0.14)' : 'rgba(0,169,157,0.16)'" stroke-width="0.25" />
+                  <!-- Live Scrolling Dual-Harmonic Carrier Waveform -->
+                  <div class="relative w-full h-3.5 overflow-hidden rounded-xs bg-[#F0FAF8] dark:bg-[#002420] border border-[#00A99D]/20" aria-hidden="true">
+                    <div class="sci-fi-wave-track h-full flex">
+                      <svg viewBox="0 0 120 20" preserveAspectRatio="none" class="w-1/2 h-full shrink-0">
+                        <path
+                          d="M0 10 Q 7.5 2, 15 10 T 30 10 T 45 10 T 60 10 T 75 10 T 90 10 T 105 10 T 120 10"
+                          fill="none"
+                          :stroke="isDark ? '#5eead4' : '#00A99D'"
+                          stroke-width="1.3"
+                        />
+                        <path
+                          d="M0 10 Q 10 17, 20 10 T 40 10 T 60 10 T 80 10 T 100 10 T 120 10"
+                          fill="none"
+                          :stroke="isDark ? 'rgba(153,204,51,0.65)' : 'rgba(124,166,34,0.65)'"
+                          stroke-width="0.9"
+                        />
+                      </svg>
+                      <svg viewBox="0 0 120 20" preserveAspectRatio="none" class="w-1/2 h-full shrink-0">
+                        <path
+                          d="M0 10 Q 7.5 2, 15 10 T 30 10 T 45 10 T 60 10 T 75 10 T 90 10 T 105 10 T 120 10"
+                          fill="none"
+                          :stroke="isDark ? '#5eead4' : '#00A99D'"
+                          stroke-width="1.3"
+                        />
+                        <path
+                          d="M0 10 Q 10 17, 20 10 T 40 10 T 60 10 T 80 10 T 100 10 T 120 10"
+                          fill="none"
+                          :stroke="isDark ? 'rgba(153,204,51,0.65)' : 'rgba(124,166,34,0.65)'"
+                          stroke-width="0.9"
+                        />
+                      </svg>
+                    </div>
+                  </div>
 
-              <!-- Range Micro Annotations -->
-              <text x="51.2" y="34.2" class="radar-range-text" :fill="isDark ? 'rgba(153,223,214,0.55)' : 'rgba(0,88,81,0.55)'">50K</text>
-              <text x="51.2" y="19.2" class="radar-range-text" :fill="isDark ? 'rgba(153,223,214,0.55)' : 'rgba(0,88,81,0.55)'">100K</text>
+                  <div class="w-full h-1 rounded-xs bg-slate-200/80 dark:bg-[#002E29] overflow-hidden">
+                    <div
+                      ref="wingBarRef"
+                      class="w-full h-full origin-left bg-gradient-to-r from-[#005851] via-[#00A99D] to-[#99CC33] will-change-transform"
+                    ></div>
+                  </div>
+                </div>
+              </div>
 
-              <!-- Dynamic Vector Telemetry Links (Hub BDG -> Wilkers) -->
-              <g v-for="blip in radarBlips" :key="`vec-${blip.id}`">
-                <template v-if="!blip.is_hq">
-                  <!-- Ambient Link Mesh -->
-                  <line
-                    x1="50"
-                    y1="50"
-                    :x2="blip.x"
-                    :y2="blip.y"
-                    :stroke="isBlipHot(blip.no) || lockedRadarTarget?.no === blip.no
-                      ? (isDark ? 'rgba(153, 204, 51, 0.85)' : 'rgba(0, 123, 114, 0.82)')
-                      : (isDark ? 'rgba(0, 169, 157, 0.2)' : 'rgba(0, 169, 157, 0.25)')"
-                    :stroke-width="isBlipHot(blip.no) ? '0.65' : (lockedRadarTarget?.no === blip.no ? '0.5' : '0.28')"
-                    :stroke-dasharray="isBlipHot(blip.no) || lockedRadarTarget?.no === blip.no ? '1.8 1.2' : '1.2 1.8'"
-                    :class="isBlipHot(blip.no) || lockedRadarTarget?.no === blip.no ? 'radar-vector-flow' : ''"
-                  />
-                  <!-- Outbound RF Packet Trace When Intercepted or Pinged -->
-                  <line
-                    v-if="isBlipHot(blip.no) || isSonarPinging"
-                    x1="50"
-                    y1="50"
-                    :x2="blip.x"
-                    :y2="blip.y"
-                    pathLength="100"
-                    :stroke="isDark ? '#99CC33' : '#65A30D'"
-                    stroke-width="0.9"
-                    stroke-linecap="round"
-                    class="radar-packet-shoot"
-                  />
-                </template>
-              </g>
+              <!-- RNG//02: Target Vector Distance & Link Quality -->
+              <div v-if="lockedRadarMetrics" class="sci-fi-frame">
+                <div class="sci-fi-frame-inner bg-white/92 dark:bg-[#001614]/92 px-2 py-1.5 space-y-1">
+                  <div class="flex items-center justify-between text-[7.5px] font-bold tracking-wider text-[#007B72] dark:text-[#5eead4] uppercase">
+                    <span>RNG//02</span>
+                    <strong class="text-[#004640] dark:text-[#99CC33]">{{ lockedRadarTarget?.shortCode || 'BDG' }}</strong>
+                  </div>
+                  <div class="flex items-center justify-between text-[8.5px]">
+                    <span class="text-slate-500 dark:text-slate-400">JARAK</span>
+                    <strong class="text-[#004640] dark:text-white">{{ lockedRadarMetrics.distanceKm }} KM</strong>
+                  </div>
+                  <div class="w-full h-1 rounded-xs bg-slate-200/80 dark:bg-[#002E29] overflow-hidden">
+                    <div
+                      class="h-full bg-gradient-to-r from-[#00A99D] to-[#99CC33] transition-all duration-300"
+                      :style="{ width: `${Math.max(8, Math.min(100, Math.round((lockedRadarMetrics.distanceKm / 150) * 100)))}%` }"
+                    ></div>
+                  </div>
+                  <div class="flex items-center justify-between text-[8px] pt-0.5">
+                    <span class="text-slate-500 dark:text-slate-400">SIG</span>
+                    <strong class="text-[#007B72] dark:text-[#99CC33]">
+                      {{ lockedRadarMetrics.signalStrengthPct }}% &middot; {{ lockedRadarMetrics.linkLatencyMs }}ms
+                    </strong>
+                  </div>
+                </div>
+              </div>
 
-              <!-- Locked Target Focus Ring -->
-              <circle
-                v-if="lockedRadarMeta"
-                :cx="lockedRadarMeta.x"
-                :cy="lockedRadarMeta.y"
-                r="6.2"
-                fill="none"
-                :stroke="isDark ? '#99CC33' : '#005851'"
-                stroke-width="0.45"
-                stroke-dasharray="2.1 1.4"
-                class="radar-lock-svg-spin"
-              />
-            </svg>
-
-            <!-- 8-Point Compass Sector Markers -->
-            <span class="absolute top-1 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold text-[#557A18] dark:text-[#99CC33] bg-white/75 dark:bg-[#001715]/80 px-1 rounded">000&deg; U</span>
-            <span class="absolute bottom-1 left-1/2 -translate-x-1/2 text-[9px] font-mono font-bold text-[#005851] dark:text-[#00A99D] bg-white/75 dark:bg-[#001715]/80 px-1 rounded">180&deg; S</span>
-            <span class="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] font-mono font-bold text-[#005851] dark:text-[#00A99D] bg-white/75 dark:bg-[#001715]/80 px-0.5 rounded">090&deg; T</span>
-            <span class="absolute left-1.5 top-1/2 -translate-y-1/2 text-[9px] font-mono font-bold text-[#005851] dark:text-[#00A99D] bg-white/75 dark:bg-[#001715]/80 px-0.5 rounded">270&deg; B</span>
-            <span class="absolute top-[14%] right-[13%] text-[7.5px] font-mono font-semibold text-[#007B72]/75 dark:text-[#99DFD6]/65">TL</span>
-            <span class="absolute bottom-[14%] right-[13%] text-[7.5px] font-mono font-semibold text-[#007B72]/75 dark:text-[#99DFD6]/65">TG</span>
-            <span class="absolute bottom-[14%] left-[13%] text-[7.5px] font-mono font-semibold text-[#007B72]/75 dark:text-[#99DFD6]/65">BD</span>
-            <span class="absolute top-[14%] left-[13%] text-[7.5px] font-mono font-semibold text-[#007B72]/75 dark:text-[#99DFD6]/65">BL</span>
-
-            <!-- Synchronized 60fps Conic Phosphor Sweep + Razor Leading Needle -->
-            <div
-              ref="dialBeamRef"
-              class="absolute inset-0 rounded-full pointer-events-none will-change-transform"
-              :class="isDark ? 'radar-beam-dark' : 'radar-beam-light'"
-            >
-              <span class="absolute left-1/2 bottom-1/2 w-[1.5px] h-1/2 -translate-x-1/2 bg-gradient-to-t from-[#00A99D]/40 via-[#7CA622] to-[#d9f99d] dark:from-[#00A99D]/50 dark:via-[#99CC33] dark:to-white shadow-[0_0_8px_rgba(153,204,51,0.85)]"></span>
+              <!-- MOD//03: Sensor Sector Composition -->
+              <div class="sci-fi-frame">
+                <div class="sci-fi-frame-inner bg-white/92 dark:bg-[#001614]/92 px-2 py-1.5 space-y-1 text-[8px]">
+                  <div class="text-[7.5px] font-bold tracking-wider text-[#007B72] dark:text-[#5eead4] uppercase">
+                    MOD//03 GRID
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-500 dark:text-slate-400">UDARA</span>
+                    <strong class="text-[#005851] dark:text-[#5eead4]">{{ networkStats.airCount }} ND</strong>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-slate-500 dark:text-slate-400">LAUT</span>
+                    <strong class="text-[#005851] dark:text-[#99DFD6]">{{ networkStats.seaCount }} ND</strong>
+                  </div>
+                  <div class="flex items-center justify-between pt-0.5 border-t border-slate-100 dark:border-[#003B36]">
+                    <span class="text-slate-500 dark:text-slate-400">VERIF</span>
+                    <strong :class="networkStats.totalPending > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-[#007B72] dark:text-[#99CC33]'">
+                      {{ networkStats.totalPending > 0 ? `${networkStats.totalPending} ANTRE` : 'OK 0' }}
+                    </strong>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <!-- Dual Staggered Active Sonar Ping Shockwaves -->
-            <template v-if="isSonarPinging">
-              <div
-                :key="`dial-wave-a-${pingWaveTick}`"
-                class="absolute inset-3 rounded-full border-2 border-[#7CA622] dark:border-[#99CC33] sonar-shockwave pointer-events-none"
-              ></div>
-              <div
-                :key="`dial-wave-b-${pingWaveTick}`"
-                class="absolute inset-3 rounded-full border border-[#00A99D] dark:border-[#5eead4] sonar-shockwave sonar-shockwave-delay pointer-events-none"
-              ></div>
-            </template>
+            <!-- CENTER: Holographic Multi-Gimbal Polar Radar Scope -->
+            <div class="radar-center-scope">
+              <div class="relative p-1.5">
+                <!-- Outer Glowing Sci-Fi Targeting Brackets -->
+                <span class="absolute top-0 left-0 w-3.5 h-3.5 border-t-2 border-l-2 border-[#00A99D] dark:border-[#99CC33] pointer-events-none"></span>
+                <span class="absolute top-0 right-0 w-3.5 h-3.5 border-t-2 border-r-2 border-[#00A99D] dark:border-[#99CC33] pointer-events-none"></span>
+                <span class="absolute bottom-0 left-0 w-3.5 h-3.5 border-b-2 border-l-2 border-[#00A99D] dark:border-[#99CC33] pointer-events-none"></span>
+                <span class="absolute bottom-0 right-0 w-3.5 h-3.5 border-b-2 border-r-2 border-[#00A99D] dark:border-[#99CC33] pointer-events-none"></span>
 
-            <!-- Interactive Multi-Animated Wilker Blips -->
-            <button
-              v-for="blip in radarBlips"
-              :key="`radar-blip-${blip.id}`"
-              type="button"
-              @click="emit('select-office', blip)"
-              @mouseenter="hoveredRadarBlip = blip"
-              @mouseleave="hoveredRadarBlip = null"
-              class="absolute -translate-x-1/2 -translate-y-1/2 z-20 group/blip cursor-pointer focus:outline-none"
-              :style="{ left: `${blip.x}%`, top: `${blip.y}%` }"
-              :aria-label="`Pilih ${blip.shortTitle}: ${blip.distanceKm} km`"
-              :title="`${blip.shortTitle}: ${blip.distanceKm} km (${blip.bearingDeg}°)`"
-            >
-              <!-- Capture Animations When Swept By Radar Beam -->
-              <template v-if="blipHits[blip.no]">
-                <span
-                  :key="`cap-p-${blip.no}-${blipHits[blip.no].seq}`"
-                  class="absolute inset-0 rounded-full border-2 border-[#7CA622] dark:border-[#99CC33] blip-capture-wave pointer-events-none"
-                ></span>
-                <span
-                  :key="`cap-s-${blip.no}-${blipHits[blip.no].seq}`"
-                  class="absolute inset-0 rounded-full border border-dashed border-[#00A99D] dark:border-[#5eead4] blip-capture-wave-secondary pointer-events-none"
-                ></span>
-                <span
-                  v-if="!blip.is_hq"
-                  :key="`cap-tag-${blip.no}-${blipHits[blip.no].seq}`"
-                  class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 pointer-events-none"
+                <!-- Outer Gyroscopic Azimuth Bezel -->
+                <div
+                  class="radar-bezel-dial-size relative aspect-square shrink-0 rounded-full border border-[#00A99D]/65 bg-[#E4F6F3]/85 dark:bg-[#001311]/95 shadow-[0_0_32px_rgba(0,169,157,0.2)] dark:shadow-[0_0_46px_rgba(0,169,157,0.34)] flex items-center justify-center"
                 >
-                  <span class="block px-1.5 py-[1px] rounded bg-[#004640] dark:bg-[#99CC33] text-white dark:text-[#001F1C] text-[8px] font-mono font-bold whitespace-nowrap shadow-sm blip-capture-tag">
-                    {{ blip.shortCode }}&middot;{{ blip.distanceKm }}K
+                  <!-- Multi-Layer Counter-Rotating Orbital Gimbal Rings -->
+                  <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full pointer-events-none">
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="49.1"
+                      fill="none"
+                      :stroke="isDark ? 'rgba(94,234,212,0.45)' : 'rgba(0,169,157,0.48)'"
+                      stroke-width="0.45"
+                      stroke-dasharray="4.2 2.2 1.1 2.2"
+                      class="radar-outer-bezel-spin"
+                    />
+                    <circle
+                      cx="50"
+                      cy="50"
+                      r="46.2"
+                      fill="none"
+                      :stroke="isDark ? 'rgba(153,204,51,0.52)' : 'rgba(124,166,34,0.48)'"
+                      stroke-width="0.55"
+                      stroke-dasharray="14 22.3"
+                      class="radar-inner-gimbal-spin"
+                    />
+                  </svg>
+
+                  <!-- Cardinal & Diagonal Compass Markers Outside Plot Glass -->
+                  <span class="absolute top-[2px] left-1/2 -translate-x-1/2 text-[8.5px] font-mono font-extrabold text-[#557A18] dark:text-[#99CC33] leading-none">000&deg;U</span>
+                  <span class="absolute bottom-[2px] left-1/2 -translate-x-1/2 text-[8.5px] font-mono font-extrabold text-[#005851] dark:text-[#5eead4] leading-none">180&deg;S</span>
+                  <span class="absolute right-[3px] top-1/2 -translate-y-1/2 text-[8.5px] font-mono font-extrabold text-[#005851] dark:text-[#5eead4] leading-none">090T</span>
+                  <span class="absolute left-[3px] top-1/2 -translate-y-1/2 text-[8.5px] font-mono font-extrabold text-[#005851] dark:text-[#5eead4] leading-none">270B</span>
+                  <span class="absolute top-[13%] right-[13%] text-[7px] font-mono font-bold text-[#007B72]/85 dark:text-[#99DFD6]/75">TL</span>
+                  <span class="absolute bottom-[13%] right-[13%] text-[7px] font-mono font-bold text-[#007B72]/85 dark:text-[#99DFD6]/75">TG</span>
+                  <span class="absolute bottom-[13%] left-[13%] text-[7px] font-mono font-bold text-[#007B72]/85 dark:text-[#99DFD6]/75">BD</span>
+                  <span class="absolute top-[13%] left-[13%] text-[7px] font-mono font-bold text-[#007B72]/85 dark:text-[#99DFD6]/75">BL</span>
+
+                  <!-- Inner Holographic Polar Glass Scope -->
+                  <div
+                    class="radar-dial-surface absolute inset-[16px] sm:inset-[17px] rounded-full border border-[#00A99D]/80 overflow-hidden flex items-center justify-center"
+                    :class="isDark ? 'radar-dial-dark' : 'radar-dial-light'"
+                  >
+                    <!-- Precision SVG Polar Grid, Holographic Target Lasers & Vector Links -->
+                    <svg viewBox="0 0 100 100" class="absolute inset-0 w-full h-full pointer-events-none">
+                      <!-- 72 Degree Tick Ring (5° / 30° / 90°) -->
+                      <line
+                        v-for="tick in polarDegreeTicks"
+                        :key="`tick-${tick.deg}`"
+                        :x1="tick.x1"
+                        :y1="tick.y1"
+                        :x2="tick.x2"
+                        :y2="tick.y2"
+                        :stroke="isDark ? (tick.isCardinal ? 'rgba(153, 204, 51, 0.78)' : tick.isMajor ? 'rgba(153, 204, 51, 0.44)' : 'rgba(0, 169, 157, 0.24)') : (tick.isCardinal ? 'rgba(0, 88, 81, 0.7)' : tick.isMajor ? 'rgba(0, 88, 81, 0.4)' : 'rgba(0, 169, 157, 0.26)')"
+                        :stroke-width="tick.isCardinal ? '0.62' : tick.isMajor ? '0.4' : '0.22'"
+                      />
+
+                      <!-- Calibrated Geodesic Range Rings (50 / 100 / 150 KM) -->
+                      <circle cx="50" cy="50" r="15" fill="none" :stroke="isDark ? 'rgba(0,169,157,0.34)' : 'rgba(0,88,81,0.28)'" stroke-width="0.38" />
+                      <circle cx="50" cy="50" r="30" fill="none" :stroke="isDark ? 'rgba(0,169,157,0.4)' : 'rgba(0,169,157,0.45)'" stroke-width="0.38" stroke-dasharray="1.4 1.2" />
+                      <circle cx="50" cy="50" r="44" fill="none" :stroke="isDark ? 'rgba(0,169,157,0.34)' : 'rgba(0,88,81,0.32)'" stroke-width="0.38" />
+
+                      <!-- Center Ion Beacon Pulse Ring -->
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="8"
+                        fill="none"
+                        :stroke="isDark ? 'rgba(153,204,51,0.65)' : 'rgba(0,169,157,0.5)'"
+                        stroke-width="0.45"
+                        class="radar-hub-ion-pulse"
+                      />
+
+                      <!-- Cardinal & Diagonal Axes -->
+                      <line x1="6" y1="50" x2="94" y2="50" :stroke="isDark ? 'rgba(0,169,157,0.26)' : 'rgba(0,169,157,0.3)'" stroke-width="0.3" />
+                      <line x1="50" y1="6" x2="50" y2="94" :stroke="isDark ? 'rgba(0,169,157,0.26)' : 'rgba(0,169,157,0.3)'" stroke-width="0.3" />
+                      <line x1="18.8" y1="18.8" x2="81.2" y2="81.2" :stroke="isDark ? 'rgba(0,169,157,0.16)' : 'rgba(0,169,157,0.18)'" stroke-width="0.25" />
+                      <line x1="81.2" y1="18.8" x2="18.8" y2="81.2" :stroke="isDark ? 'rgba(0,169,157,0.16)' : 'rgba(0,169,157,0.18)'" stroke-width="0.25" />
+
+                      <!-- Laser Axis Lock Crosshairs Intersecting Locked Target -->
+                      <template v-if="lockedRadarMeta && !lockedRadarMeta.is_hq">
+                        <line
+                          x1="4"
+                          :y1="lockedRadarMeta.y"
+                          x2="96"
+                          :y2="lockedRadarMeta.y"
+                          :stroke="isDark ? 'rgba(153,204,51,0.35)' : 'rgba(0,123,114,0.3)'"
+                          stroke-width="0.28"
+                          stroke-dasharray="1.2 1.6"
+                        />
+                        <line
+                          :x1="lockedRadarMeta.x"
+                          y1="4"
+                          :x2="lockedRadarMeta.x"
+                          y2="96"
+                          :stroke="isDark ? 'rgba(153,204,51,0.35)' : 'rgba(0,123,114,0.3)'"
+                          stroke-width="0.28"
+                          stroke-dasharray="1.2 1.6"
+                        />
+                      </template>
+
+                      <!-- Range Micro Annotations -->
+                      <text x="51.2" y="34.2" class="radar-range-text" :fill="isDark ? 'rgba(153,223,214,0.65)' : 'rgba(0,88,81,0.65)'">50K</text>
+                      <text x="51.2" y="19.2" class="radar-range-text" :fill="isDark ? 'rgba(153,223,214,0.65)' : 'rgba(0,88,81,0.65)'">100K</text>
+
+                      <!-- Dynamic Vector Telemetry Links (Hub BDG -> Wilkers) -->
+                      <g v-for="blip in radarBlips" :key="`vec-${blip.id}`">
+                        <template v-if="!blip.is_hq">
+                          <line
+                            x1="50"
+                            y1="50"
+                            :x2="blip.x"
+                            :y2="blip.y"
+                            :stroke="isBlipHot(blip.no) || lockedRadarTarget?.no === blip.no
+                              ? (isDark ? 'rgba(153, 204, 51, 0.9)' : 'rgba(0, 123, 114, 0.85)')
+                              : (isDark ? 'rgba(0, 169, 157, 0.24)' : 'rgba(0, 169, 157, 0.28)')"
+                            :stroke-width="isBlipHot(blip.no) ? '0.72' : (lockedRadarTarget?.no === blip.no ? '0.55' : '0.28')"
+                            :stroke-dasharray="isBlipHot(blip.no) || lockedRadarTarget?.no === blip.no ? '1.8 1.2' : '1.2 1.8'"
+                            :class="isBlipHot(blip.no) || lockedRadarTarget?.no === blip.no ? 'radar-vector-flow' : ''"
+                          />
+                          <line
+                            v-if="isBlipHot(blip.no) || isSonarPinging"
+                            x1="50"
+                            y1="50"
+                            :x2="blip.x"
+                            :y2="blip.y"
+                            pathLength="100"
+                            :stroke="isDark ? '#99CC33' : '#65A30D'"
+                            stroke-width="1.0"
+                            stroke-linecap="round"
+                            class="radar-packet-shoot"
+                          />
+                        </template>
+                      </g>
+
+                      <!-- Dual Counter-Rotating Sci-Fi Target Lock Rings -->
+                      <g v-if="lockedRadarMeta">
+                        <circle
+                          :cx="lockedRadarMeta.x"
+                          :cy="lockedRadarMeta.y"
+                          r="6.4"
+                          fill="none"
+                          :stroke="isDark ? '#99CC33' : '#005851'"
+                          stroke-width="0.5"
+                          stroke-dasharray="2.4 1.6"
+                          class="radar-lock-svg-spin"
+                        />
+                        <rect
+                          :x="lockedRadarMeta.x - 4.4"
+                          :y="lockedRadarMeta.y - 4.4"
+                          width="8.8"
+                          height="8.8"
+                          fill="none"
+                          :stroke="isDark ? 'rgba(94,234,212,0.75)' : 'rgba(0,169,157,0.75)'"
+                          stroke-width="0.4"
+                          stroke-dasharray="2.2 6.6"
+                          class="radar-lock-svg-ccw"
+                        />
+                      </g>
+                    </svg>
+
+                    <!-- Synchronized 60fps Conic Phosphor Sweep + Plasma Laser Needle -->
+                    <div
+                      ref="dialBeamRef"
+                      class="absolute inset-0 rounded-full pointer-events-none will-change-transform"
+                      :class="isDark ? 'radar-beam-dark' : 'radar-beam-light'"
+                    >
+                      <span class="absolute left-1/2 bottom-1/2 w-[2px] h-1/2 -translate-x-1/2 bg-gradient-to-t from-[#00A99D]/45 via-[#7CA622] to-[#ecfccb] dark:from-[#00A99D]/55 dark:via-[#99CC33] dark:to-white shadow-[0_0_12px_rgba(153,204,51,0.95)]"></span>
+                    </div>
+
+                    <!-- Dual Staggered Active Sonar Ping Shockwaves -->
+                    <template v-if="isSonarPinging">
+                      <div
+                        :key="`dial-wave-a-${pingWaveTick}`"
+                        class="absolute inset-2 rounded-full border-2 border-[#7CA622] dark:border-[#99CC33] sonar-shockwave pointer-events-none"
+                      ></div>
+                      <div
+                        :key="`dial-wave-b-${pingWaveTick}`"
+                        class="absolute inset-2 rounded-full border border-[#00A99D] dark:border-[#5eead4] sonar-shockwave sonar-shockwave-delay pointer-events-none"
+                      ></div>
+                    </template>
+
+                    <!-- Interactive Multi-Animated Wilker Blips -->
+                    <button
+                      v-for="blip in radarBlips"
+                      :key="`radar-blip-${blip.id}`"
+                      type="button"
+                      @click="emit('select-office', blip)"
+                      @mouseenter="hoveredRadarBlip = blip"
+                      @mouseleave="hoveredRadarBlip = null"
+                      class="absolute -translate-x-1/2 -translate-y-1/2 z-20 group/blip cursor-pointer focus:outline-none"
+                      :style="{ left: `${blip.x}%`, top: `${blip.y}%` }"
+                      :aria-label="`Pilih ${blip.shortTitle}: ${blip.distanceKm} km`"
+                      :title="`${blip.shortTitle}: ${blip.distanceKm} km (${blip.bearingDeg}°)`"
+                    >
+                      <!-- Capture Animations When Swept By Radar Beam -->
+                      <template v-if="blipHits[blip.no]">
+                        <span
+                          :key="`cap-p-${blip.no}-${blipHits[blip.no].seq}`"
+                          class="absolute inset-0 rounded-full border-2 border-[#7CA622] dark:border-[#99CC33] blip-capture-wave pointer-events-none"
+                        ></span>
+                        <span
+                          :key="`cap-s-${blip.no}-${blipHits[blip.no].seq}`"
+                          class="absolute inset-0 rounded-full border border-dashed border-[#00A99D] dark:border-[#5eead4] blip-capture-wave-secondary pointer-events-none"
+                        ></span>
+                        <!-- Single Non-Overlapping Sci-Fi Callout Tag -->
+                        <span
+                          v-if="!blip.is_hq && (hoveredRadarBlip?.no === blip.no || lastInterceptedNode?.no === blip.no)"
+                          :key="`cap-tag-${blip.no}-${blipHits[blip.no].seq}`"
+                          class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 pointer-events-none z-30"
+                        >
+                          <span class="sci-fi-chip block px-1.5 py-[1px] bg-[#004640] dark:bg-[#99CC33] text-white dark:text-[#001F1C] border border-[#99CC33]/70 text-[7.5px] font-mono font-bold whitespace-nowrap shadow-[0_0_8px_rgba(0,169,157,0.45)] blip-capture-tag">
+                            {{ blip.shortCode }}//{{ blip.distanceKm }}K
+                          </span>
+                        </span>
+                      </template>
+
+                      <!-- Staggered Active-IFF Transponder Echo On PING -->
+                      <span
+                        v-if="isSonarPinging"
+                        :key="`ping-${blip.no}-${pingWaveTick}`"
+                        class="absolute -inset-1 rounded-full border border-[#00A99D] dark:border-[#99CC33] blip-ping-reply pointer-events-none"
+                        :style="{ animationDelay: `${Math.min(520, (blip.distanceKm || 0) * 4)}ms` }"
+                      ></span>
+
+                      <!-- Rotating Corner Targeting Reticle When Locked -->
+                      <span
+                        v-if="lockedRadarTarget?.no === blip.no"
+                        class="absolute -inset-2 pointer-events-none radar-lock-reticle"
+                      >
+                        <span class="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[#005851] dark:border-[#99CC33]"></span>
+                        <span class="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[#005851] dark:border-[#99CC33]"></span>
+                        <span class="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-[#005851] dark:border-[#99CC33]"></span>
+                        <span class="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[#005851] dark:border-[#99CC33]"></span>
+                      </span>
+
+                      <!-- Ambient Halo -->
+                      <span
+                        class="absolute -inset-1 rounded-full transition-all duration-300"
+                        :class="isBlipHot(blip.no)
+                          ? 'bg-[#99CC33]/70 scale-125'
+                          : blip.is_hq
+                          ? 'bg-[#99CC33]/45'
+                          : selectedOffice?.no === blip.no
+                          ? 'bg-[#00A99D]/60'
+                          : 'bg-[#00A99D]/20'"
+                      ></span>
+
+                      <!-- Blip Core Badge -->
+                      <span
+                        class="relative flex items-center justify-center rounded-full font-mono font-black transition-transform group-hover/blip:scale-125 shadow-md"
+                        :class="[
+                          isBlipHot(blip.no) ? 'blip-core-surge' : '',
+                          blip.is_hq
+                            ? 'w-5 h-5 bg-[#99CC33] text-[#001F1C] text-[8px] ring-2 ring-[#005851] dark:ring-white'
+                            : selectedOffice?.no === blip.no
+                            ? 'w-4.5 h-4.5 bg-[#00A99D] text-white text-[8px] ring-2 ring-[#005851] dark:ring-[#99CC33]'
+                            : isBlipHot(blip.no)
+                            ? 'w-4.5 h-4.5 bg-[#005851] dark:bg-[#99CC33] text-white dark:text-[#001F1C] text-[7.5px] ring-2 ring-[#99CC33] dark:ring-white'
+                            : 'w-4 h-4 bg-white dark:bg-[#005851] text-[#005851] dark:text-[#99DFD6] text-[7px] border border-[#00A99D]'
+                        ]"
+                      >
+                        {{ blip.shortCode }}
+                      </span>
+
+                      <!-- Pending Verification Signal Dot -->
+                      <span
+                        v-if="(blip.pending || 0) > 0 && !blip.is_hq"
+                        class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-amber-500 ring-1 ring-white dark:ring-[#001715]"
+                        :title="`${blip.pending} dokumen menunggu verifikasi`"
+                      ></span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RIGHT WING: Clockwise Live Transponder RX Array & Target Status -->
+            <div class="radar-wing-right flex flex-col justify-between gap-1.5 text-[9px] font-mono tabular-nums">
+              <div class="sci-fi-frame flex-1 flex flex-col">
+                <div class="sci-fi-frame-inner bg-white/92 dark:bg-[#001614]/92 px-2 py-1.5 flex-1 flex flex-col justify-start gap-1.5">
+                  <div class="flex items-center justify-between pb-1 border-b border-[#00A99D]/20 dark:border-[#00A99D]/25 text-[7.5px] font-bold tracking-wider text-[#007B72] dark:text-[#5eead4] uppercase">
+                    <span>RX//ARRAY</span>
+                    <span class="text-[#005851] dark:text-[#99CC33]">{{ wingTransponders.length }} CH</span>
+                  </div>
+                  <div class="space-y-1">
+                    <button
+                      v-for="node in wingTransponders"
+                      :key="`wing-rx-${node.id}`"
+                      type="button"
+                      @click="emit('select-office', node)"
+                      @mouseenter="hoveredRadarBlip = node"
+                      @mouseleave="hoveredRadarBlip = null"
+                      class="w-full flex items-center justify-between gap-1 px-1.5 py-[3px] rounded-xs border text-left transition-all cursor-pointer"
+                      :class="isBlipHot(node.no)
+                        ? 'bg-[#99CC33]/24 dark:bg-[#99CC33]/22 border-[#7CA622] dark:border-[#99CC33] text-[#004640] dark:text-white shadow-[0_0_8px_rgba(153,204,51,0.3)]'
+                        : selectedOffice?.no === node.no
+                        ? 'bg-[#00A99D]/18 border-[#00A99D] text-[#004640] dark:text-white font-bold'
+                        : 'bg-slate-50/80 dark:bg-[#002320]/75 border-slate-200/75 dark:border-[#003B36] text-slate-600 dark:text-slate-300 hover:border-[#00A99D]/75'"
+                      :title="`${node.shortTitle} (${node.bearingDeg}° · ${node.distanceKm} KM)`"
+                    >
+                      <span class="flex items-center gap-1 min-w-0">
+                        <span
+                          class="w-1.5 h-1.5 rounded-full shrink-0"
+                          :class="isBlipHot(node.no)
+                            ? 'bg-[#7CA622] dark:bg-[#99CC33] animate-ping'
+                            : selectedOffice?.no === node.no
+                            ? 'bg-[#00A99D]'
+                            : 'bg-slate-300 dark:bg-slate-600'"
+                        ></span>
+                        <strong class="text-[8.5px] font-bold truncate">{{ node.shortCode }}</strong>
+                      </span>
+
+                      <span class="flex items-center gap-1 shrink-0">
+                        <!-- 3-Bar Segmented Micro Link Strength -->
+                        <span class="flex items-end gap-[1px] h-2" aria-hidden="true">
+                          <span class="w-[1.5px] h-1 bg-[#00A99D]"></span>
+                          <span class="w-[1.5px] h-1.5" :class="Number(node.distanceKm || 0) <= 115 ? 'bg-[#00A99D]' : 'bg-slate-300 dark:bg-slate-600'"></span>
+                          <span class="w-[1.5px] h-2" :class="Number(node.distanceKm || 0) <= 85 ? (isBlipHot(node.no) ? 'bg-[#7CA622] dark:bg-[#99CC33]' : 'bg-[#00A99D]') : 'bg-slate-300 dark:bg-slate-600'"></span>
+                        </span>
+                        <span class="text-[7.5px] text-[#007B72] dark:text-[#99DFD6]">
+                          {{ node.distanceKm }}K
+                        </span>
+                      </span>
+                    </button>
+                  </div>
+                  <div class="mt-auto pt-1 border-t border-[#00A99D]/15 dark:border-[#00A99D]/25 flex items-center justify-between text-[7px] font-bold tracking-wider uppercase">
+                    <span class="text-slate-400 dark:text-[#99DFD6]/70">IFF//RX</span>
+                    <span class="text-[#007B72] dark:text-[#99CC33] truncate">
+                      {{ lastInterceptedNode ? `${lastInterceptedNode.shortCode} SYNC` : 'STANDBY' }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Target Status Cell -->
+              <div v-if="lockedRadarMetrics" class="sci-fi-frame">
+                <div class="sci-fi-frame-inner bg-white/92 dark:bg-[#001614]/92 px-2 py-1.5 flex items-center justify-between gap-1 text-[8px]">
+                  <span class="text-slate-500 dark:text-slate-400">
+                    DOK <strong class="text-[#004640] dark:text-white">{{ lockedRadarMetrics.totalDocs }}</strong>
                   </span>
-                </span>
-              </template>
-
-              <!-- Staggered Active-IFF Transponder Echo On PING -->
-              <span
-                v-if="isSonarPinging"
-                :key="`ping-${blip.no}-${pingWaveTick}`"
-                class="absolute -inset-1 rounded-full border border-[#00A99D] dark:border-[#99CC33] blip-ping-reply pointer-events-none"
-                :style="{ animationDelay: `${Math.min(520, (blip.distanceKm || 0) * 4)}ms` }"
-              ></span>
-
-              <!-- Rotating Corner Targeting Reticle When Locked -->
-              <span
-                v-if="lockedRadarTarget?.no === blip.no"
-                class="absolute -inset-2 pointer-events-none radar-lock-reticle"
-              >
-                <span class="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[#005851] dark:border-[#99CC33]"></span>
-                <span class="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[#005851] dark:border-[#99CC33]"></span>
-                <span class="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-[#005851] dark:border-[#99CC33]"></span>
-                <span class="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[#005851] dark:border-[#99CC33]"></span>
-              </span>
-
-              <!-- Ambient Halo -->
-              <span
-                class="absolute -inset-1 rounded-full transition-all duration-300"
-                :class="isBlipHot(blip.no)
-                  ? 'bg-[#99CC33]/65 scale-125'
-                  : blip.is_hq
-                  ? 'bg-[#99CC33]/40'
-                  : selectedOffice?.no === blip.no
-                  ? 'bg-[#00A99D]/55'
-                  : 'bg-[#00A99D]/20'"
-              ></span>
-
-              <!-- Blip Core Badge -->
-              <span
-                class="relative flex items-center justify-center rounded-full font-mono font-black transition-transform group-hover/blip:scale-125 shadow-md"
-                :class="[
-                  isBlipHot(blip.no) ? 'blip-core-surge' : '',
-                  blip.is_hq
-                    ? 'w-5 h-5 bg-[#99CC33] text-[#001F1C] text-[8px] ring-2 ring-[#005851] dark:ring-white'
-                    : selectedOffice?.no === blip.no
-                    ? 'w-4.5 h-4.5 bg-[#00A99D] text-white text-[8px] ring-2 ring-[#005851] dark:ring-[#99CC33]'
-                    : isBlipHot(blip.no)
-                    ? 'w-4.5 h-4.5 bg-[#005851] dark:bg-[#99CC33] text-white dark:text-[#001F1C] text-[7.5px] ring-2 ring-[#99CC33] dark:ring-white'
-                    : 'w-4 h-4 bg-white dark:bg-[#005851] text-[#005851] dark:text-[#99DFD6] text-[7px] border border-[#00A99D]'
-                ]"
-              >
-                {{ blip.shortCode }}
-              </span>
-
-              <!-- Pending Verification Signal Dot -->
-              <span
-                v-if="(blip.pending || 0) > 0 && !blip.is_hq"
-                class="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-amber-500 ring-1 ring-white dark:ring-[#001715]"
-                :title="`${blip.pending} dokumen menunggu verifikasi`"
-              ></span>
-            </button>
+                  <span class="text-[#007B72] dark:text-[#99CC33] font-bold">
+                    {{ lockedRadarMetrics.sinkarkes.compliancePercent !== null ? `SK ${lockedRadarMetrics.sinkarkes.compliancePercent}%` : `${lockedRadarMetrics.approved} OK` }}
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Complex Tactical Dossier & Sweep Intercept Feed -->
+        <!-- Radar Moda Filter & Sci-Fi Target Lock Footer -->
         <div class="relative z-10 space-y-2">
-          <!-- Moda Filter Pills + Live Sweep Intercept Chip -->
           <div class="flex flex-wrap items-center justify-between gap-1.5 text-[10px] font-mono">
             <div class="flex items-center gap-1">
               <button
@@ -913,10 +1209,10 @@ defineExpose({ flyToNode });
                 type="button"
                 :aria-pressed="activeRadarFilter === rf.id"
                 @click="emit('update:activeRadarFilter', rf.id)"
-                class="px-2 py-0.5 rounded border transition-all cursor-pointer"
+                class="sci-fi-chip px-2 py-0.5 border transition-all cursor-pointer"
                 :class="activeRadarFilter === rf.id
-                  ? 'bg-[#005851] dark:bg-[#00A99D] text-white border-[#005851] dark:border-[#00A99D] font-bold shadow-xs'
-                  : 'bg-white dark:bg-[#00221F] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#004D44] hover:border-[#00A99D] hover:text-[#005851] dark:hover:text-white'"
+                  ? 'bg-[#005851] dark:bg-[#00A99D] text-white border-[#005851] dark:border-[#00A99D] font-bold shadow-[0_0_10px_rgba(0,169,157,0.28)]'
+                  : 'bg-white/90 dark:bg-[#001D1A] text-slate-600 dark:text-slate-300 border-slate-200 dark:border-[#004D44] hover:border-[#00A99D] hover:text-[#005851] dark:hover:text-white'"
               >
                 {{ rf.label }}
               </button>
@@ -924,135 +1220,53 @@ defineExpose({ flyToNode });
 
             <div
               v-if="lastInterceptedNode"
-              class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/90 dark:bg-[#001715] border border-[#99DFD6] dark:border-[#00A99D]/40 text-[#005851] dark:text-[#99CC33] font-bold tabular-nums"
+              class="sci-fi-chip inline-flex items-center gap-1 px-2 py-0.5 bg-white/90 dark:bg-[#001715] border border-[#00A99D]/45 text-[#005851] dark:text-[#99CC33] font-bold tabular-nums shadow-xs"
             >
               <span class="w-1.5 h-1.5 rounded-full bg-[#7CA622] dark:bg-[#99CC33] animate-ping"></span>
-              <span>SIG: {{ lastInterceptedNode.shortCode }} &middot; {{ lastInterceptedNode.distanceKm }}K</span>
+              <span>SIG//{{ lastInterceptedNode.shortCode }} &middot; {{ lastInterceptedNode.distanceKm }}K</span>
             </div>
           </div>
 
-          <!-- Target Acquisition Dossier Card -->
-          <div
-            v-if="lockedRadarTarget && lockedRadarMetrics"
-            class="p-2.5 rounded-xl bg-white/95 dark:bg-[#001715]/95 border border-[#99DFD6] dark:border-[#00A99D]/35 shadow-xs space-y-2 text-[10px] font-mono"
-          >
-            <!-- Top Identity & Live RF Equalizer -->
-            <div class="flex items-start justify-between gap-2 pb-1.5 border-b border-slate-100 dark:border-[#003B36]">
-              <div class="min-w-0">
-                <div class="flex items-center gap-1.5">
-                  <Crosshair class="w-3 h-3 text-[#00A99D] dark:text-[#99CC33] shrink-0" />
-                  <span class="px-1 py-[1px] rounded bg-[#005851] dark:bg-[#00A99D] text-white text-[9px] font-bold">
-                    {{ lockedRadarTarget.shortCode }}
+          <!-- Sci-Fi Chamfered Target Lock Identity Bar -->
+          <div v-if="lockedRadarTarget && lockedRadarMetrics" class="sci-fi-frame">
+            <div class="sci-fi-frame-inner bg-white/95 dark:bg-[#001614]/95 px-2.5 py-2 text-[10px] font-mono">
+              <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5">
+                    <Crosshair class="w-3 h-3 text-[#00A99D] dark:text-[#99CC33] shrink-0" />
+                    <span class="sci-fi-chip px-1.5 py-[1px] bg-[#005851] dark:bg-[#00A99D] text-white text-[8.5px] font-bold tracking-wider">
+                      {{ lockedRadarTarget.shortCode }}
+                    </span>
+                    <strong class="text-[11px] font-sans font-bold text-[#004640] dark:text-white truncate">
+                      {{ lockedRadarTarget.shortTitle }}
+                    </strong>
+                  </div>
+                  <div class="mt-0.5 text-[9px] text-slate-500 dark:text-[#99DFD6]/85 truncate tabular-nums">
+                    <span class="text-[#007B72] dark:text-[#5eead4] font-semibold">TGT LOCK</span>
+                    <span class="mx-1">&bull;</span>
+                    <span>{{ lockedRadarTarget.moda }}</span>
+                    <span class="mx-1">&bull;</span>
+                    <span>{{ lockedRadarMetrics.lat.toFixed(4) }}, {{ lockedRadarMetrics.lng.toFixed(4) }}</span>
+                  </div>
+                </div>
+
+                <!-- Animated 6-Bar Signal Spectrum Equalizer -->
+                <div class="flex flex-col items-end shrink-0">
+                  <div class="flex items-end gap-[2px] h-4" aria-hidden="true">
+                    <span
+                      v-for="(barPct, bIdx) in spectrumBars"
+                      :key="`eq-${bIdx}`"
+                      class="w-[3px] rounded-t-xs transition-all duration-300"
+                      :class="isBlipHot(lockedRadarTarget.no) ? 'bg-[#7CA622] dark:bg-[#99CC33]' : 'bg-[#00A99D]'"
+                      :style="{ height: `${barPct}%` }"
+                    ></span>
+                  </div>
+                  <span class="text-[9px] font-bold text-[#005851] dark:text-[#99CC33] tabular-nums mt-0.5">
+                    {{ lockedRadarMetrics.distanceKm }} KM &middot; {{ lockedRadarMetrics.bearingFormatted }} {{ lockedRadarMetrics.sector }}
                   </span>
-                  <strong class="text-[11px] font-sans font-bold text-[#004640] dark:text-white truncate">
-                    {{ lockedRadarTarget.shortTitle }}
-                  </strong>
-                </div>
-                <div class="mt-0.5 text-[9.5px] text-slate-500 dark:text-[#99DFD6]/85 truncate tabular-nums">
-                  <span>{{ lockedRadarTarget.moda }}</span>
-                  <span class="mx-1">&bull;</span>
-                  <span>LAT {{ lockedRadarMetrics.lat.toFixed(4) }}, {{ lockedRadarMetrics.lng.toFixed(4) }}</span>
                 </div>
               </div>
-
-              <!-- Animated 6-Bar Signal Spectrum Equalizer -->
-              <div class="flex flex-col items-end shrink-0">
-                <div class="flex items-end gap-[2px] h-4" aria-hidden="true">
-                  <span
-                    v-for="(barPct, bIdx) in spectrumBars"
-                    :key="`eq-${bIdx}`"
-                    class="w-[3px] rounded-t-xs transition-all duration-300"
-                    :class="isBlipHot(lockedRadarTarget.no) ? 'bg-[#7CA622] dark:bg-[#99CC33]' : 'bg-[#00A99D]'"
-                    :style="{ height: `${barPct}%` }"
-                  ></span>
-                </div>
-                <span class="text-[9px] font-bold text-[#005851] dark:text-[#99CC33] tabular-nums mt-0.5">
-                  {{ lockedRadarMetrics.distanceKm }} KM &middot; {{ lockedRadarMetrics.bearingFormatted }} {{ lockedRadarMetrics.sector }}
-                </span>
-              </div>
             </div>
-
-            <!-- 4-Cell Complex Operational Matrix -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 tabular-nums">
-              <div class="p-1.5 rounded-lg bg-[#F4FBF9] dark:bg-[#002320] border border-[#CFECE8] dark:border-[#004D44]">
-                <span class="text-[8.5px] text-slate-500 dark:text-slate-400 block uppercase">Dokumen</span>
-                <strong class="text-[11px] text-[#004640] dark:text-white">{{ lockedRadarMetrics.totalDocs }}</strong>
-                <span class="text-[8.5px] text-[#007B72] dark:text-[#99DFD6] block">{{ lockedRadarMetrics.periodDocs }} / 30h</span>
-              </div>
-              <div class="p-1.5 rounded-lg bg-[#F4FBF9] dark:bg-[#002320] border border-[#CFECE8] dark:border-[#004D44]">
-                <span class="text-[8.5px] text-slate-500 dark:text-slate-400 block uppercase">Armada Ops</span>
-                <strong class="text-[11px] text-[#004640] dark:text-white">Ps {{ lockedRadarMetrics.aircraft }}</strong>
-                <span class="text-[8.5px] text-[#007B72] dark:text-[#99DFD6] block">Kp {{ lockedRadarMetrics.ship }} kapal</span>
-              </div>
-              <div class="p-1.5 rounded-lg bg-[#F4FBF9] dark:bg-[#002320] border border-[#CFECE8] dark:border-[#004D44]">
-                <span class="text-[8.5px] text-slate-500 dark:text-slate-400 block uppercase">Medis P3K</span>
-                <strong class="text-[11px] text-[#004640] dark:text-white">Al {{ lockedRadarMetrics.alat }}</strong>
-                <span class="text-[8.5px] text-[#007B72] dark:text-[#99DFD6] block">Ob {{ lockedRadarMetrics.obat }} obat</span>
-              </div>
-              <div class="p-1.5 rounded-lg bg-[#F4FBF9] dark:bg-[#002320] border border-[#CFECE8] dark:border-[#004D44]">
-                <span class="text-[8.5px] text-slate-500 dark:text-slate-400 flex items-center gap-0.5 uppercase">
-                  <ShieldCheck class="w-2.5 h-2.5 text-[#00A99D]" />
-                  <span>SINKARKES</span>
-                </span>
-                <strong class="text-[11px] text-[#005851] dark:text-[#99CC33]">
-                  {{ lockedRadarMetrics.sinkarkes.compliancePercent !== null ? `${lockedRadarMetrics.sinkarkes.compliancePercent}%` : `${lockedRadarMetrics.approved} OK` }}
-                </strong>
-                <span class="text-[8.5px] text-[#007B72] dark:text-[#99DFD6] block">
-                  {{ lockedRadarMetrics.sinkarkes.filledMonths !== null ? `${lockedRadarMetrics.sinkarkes.filledMonths}/12 bln` : `${lockedRadarMetrics.pending} pending` }}
-                </span>
-              </div>
-            </div>
-
-            <!-- Network Share, Link Diagnostics & Annual SINKARKES Telemetry -->
-            <div class="space-y-1 pt-0.5">
-              <div class="flex items-center justify-between text-[9px] text-slate-500 dark:text-slate-300 tabular-nums">
-                <span>
-                  PANGSA BEBAN: <strong class="text-[#005851] dark:text-[#99DFD6]">{{ lockedRadarMetrics.loadSharePct }}%</strong>
-                  <span v-if="lockedRadarMetrics.sinkarkes.matched" class="ml-1.5 text-slate-400">
-                    &bull; THN: {{ lockedRadarMetrics.sinkarkes.alatAngkut.toLocaleString('id-ID') }} angkut
-                  </span>
-                </span>
-                <span class="text-[#007B72] dark:text-[#99CC33] font-semibold">
-                  SIG {{ lockedRadarMetrics.signalStrengthPct }}% &middot; {{ lockedRadarMetrics.linkLatencyMs }}ms
-                </span>
-              </div>
-              <div class="w-full h-1.5 rounded-full bg-slate-100 dark:bg-[#002E29] overflow-hidden">
-                <div
-                  class="h-full rounded-full bg-gradient-to-r from-[#005851] via-[#00A99D] to-[#99CC33] transition-all duration-500"
-                  :style="{ width: `${Math.max(8, lockedRadarMetrics.relativeLoadPct)}%` }"
-                ></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Live Sweep Intercept Log (Clickable Trace History) -->
-          <div class="px-2.5 py-1.5 rounded-xl bg-white/80 dark:bg-[#001715]/75 border border-slate-200/80 dark:border-[#004D44] text-[9.5px] font-mono">
-            <div class="flex items-center justify-between text-[9px] font-bold text-[#005851] dark:text-[#99DFD6] uppercase mb-1">
-              <span class="flex items-center gap-1">
-                <Activity class="w-3 h-3 text-[#00A99D] dark:text-[#99CC33]" />
-                <span>Log Tangkapan Radar</span>
-              </span>
-              <span class="text-slate-400 dark:text-slate-400 font-normal">{{ interceptFeed.length ? 'REAL-TIME RX' : 'STANDBY' }}</span>
-            </div>
-            <div v-if="interceptFeed.length > 0" class="space-y-0.5 tabular-nums">
-              <button
-                v-for="ev in interceptFeed"
-                :key="ev.key"
-                type="button"
-                @click="emit('select-office', bkkMapMarkers.find((m) => m.no === ev.no) || lockedRadarTarget)"
-                class="w-full flex items-center justify-between gap-1.5 px-1.5 py-0.5 rounded hover:bg-[#E6F7F5] dark:hover:bg-[#003B36] text-left transition-colors cursor-pointer"
-              >
-                <span class="flex items-center gap-1.5 min-w-0 truncate">
-                  <span class="text-slate-400">[{{ ev.timeStr }}]</span>
-                  <strong class="text-[#005851] dark:text-[#99CC33]">{{ ev.shortCode }}</strong>
-                  <span class="text-slate-600 dark:text-slate-300 truncate">{{ ev.bearingFormatted }} {{ ev.sector }} &middot; {{ ev.distanceKm }} KM</span>
-                </span>
-                <span class="text-[#007B72] dark:text-[#5eead4] shrink-0 font-semibold">{{ ev.totalDocs }} DOK</span>
-              </button>
-            </div>
-            <p v-else class="text-[9.5px] text-slate-400 dark:text-slate-400 italic py-0.5">
-              Memindai sektor 000&deg;&ndash;359&deg; untuk menangkap respons transponder wilker...
-            </p>
           </div>
         </div>
       </div>
@@ -1262,5 +1476,164 @@ defineExpose({ flyToNode });
   height: 44px;
   background: linear-gradient(180deg, transparent, rgba(0, 169, 157, 0.08), transparent);
   animation: radar-panel-scan 7s linear infinite;
+}
+
+.radar-cockpit-stage-wrap {
+  container-type: inline-size;
+  container-name: radar-stage;
+}
+
+.radar-cockpit-stage {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    'dial dial'
+    'left right';
+  gap: 0.625rem;
+  align-items: stretch;
+}
+
+.radar-hud-conduit {
+  display: none;
+}
+
+.radar-wing-left {
+  grid-area: left;
+  min-width: 0;
+}
+
+.radar-center-scope {
+  grid-area: dial;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radar-wing-right {
+  grid-area: right;
+  min-width: 0;
+}
+
+.radar-bezel-dial-size {
+  width: clamp(206px, 68cqw, 248px);
+  height: clamp(206px, 68cqw, 248px);
+}
+
+@container radar-stage (min-width: 370px) {
+  .radar-cockpit-stage {
+    grid-template-columns: minmax(78px, 1fr) auto minmax(78px, 1fr);
+    grid-template-areas: 'left dial right';
+    gap: 0.5rem;
+  }
+
+  .radar-hud-conduit {
+    display: block;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+
+  .radar-bezel-dial-size {
+    width: clamp(190px, 46cqw, 248px);
+    height: clamp(190px, 46cqw, 248px);
+  }
+}
+
+.radar-deck-light.radar-holo-deck {
+  background: radial-gradient(circle at 50% 42%, #f7fdfb 0%, #eaf8f5 60%, #dcf2ee 100%);
+}
+
+.radar-deck-dark.radar-holo-deck {
+  background: radial-gradient(circle at 50% 42%, #002b26 0%, #001c19 58%, #001210 100%);
+}
+
+.radar-holo-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(0, 169, 157, 0.16) 1px, transparent 1px),
+    linear-gradient(to right, rgba(0, 169, 157, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 169, 157, 0.04) 1px, transparent 1px);
+  background-size: 18px 18px, 36px 36px, 36px 36px;
+}
+
+.radar-deck-dark .radar-holo-grid {
+  background-image:
+    radial-gradient(circle, rgba(94, 234, 212, 0.14) 1px, transparent 1px),
+    linear-gradient(to right, rgba(0, 169, 157, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 169, 157, 0.06) 1px, transparent 1px);
+}
+
+.sci-fi-frame {
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(0, 169, 157, 0.65), rgba(153, 204, 51, 0.35), rgba(0, 88, 81, 0.45));
+  clip-path: polygon(0 6px, 6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+  filter: drop-shadow(0 2px 6px rgba(0, 169, 157, 0.1));
+}
+
+.radar-deck-dark .sci-fi-frame {
+  background: linear-gradient(135deg, rgba(94, 234, 212, 0.55), rgba(153, 204, 51, 0.45), rgba(0, 169, 157, 0.4));
+  filter: drop-shadow(0 0 10px rgba(0, 169, 157, 0.18));
+}
+
+.sci-fi-frame-inner {
+  clip-path: polygon(0 6px, 6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%);
+}
+
+.sci-fi-chip {
+  clip-path: polygon(0 4px, 4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%);
+}
+
+@keyframes sci-fi-wave-scroll {
+  from {
+    transform: translateX(0%);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.sci-fi-wave-track {
+  width: 200%;
+  animation: sci-fi-wave-scroll 3.4s linear infinite;
+}
+
+@keyframes radar-hub-pulse {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.85;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.radar-hub-ion-pulse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: radar-hub-pulse 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.radar-outer-bezel-spin {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: radar-lock-spin 28s linear infinite reverse;
+}
+
+.radar-inner-gimbal-spin {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  animation: radar-lock-spin 22s linear infinite;
+}
+
+.radar-lock-svg-ccw {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: radar-lock-spin 8s linear infinite reverse;
 }
 </style>
