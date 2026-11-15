@@ -17,6 +17,12 @@ import {
   getLokasiLalatRata,
   getLokasiLalatStatus,
 } from '../../resources/js/Pages/Sivera/utils.js';
+import {
+  normalizeDeg,
+  getCompassSector,
+  didSweepCrossBearing,
+  computeRadarVectorMetrics,
+} from '../../resources/js/Pages/Inertia/components/radarTelemetryUtils.js';
 
 test('useDate formats valid dates and handles empty input', () => {
   const { formatDate, formatDateTime, fromNow } = useDate();
@@ -121,5 +127,62 @@ test('useFormDraft saves, restores, expires stale entries, and clears corrupted 
   draft.clear();
   assert.equal(draft.hasDraft(), false);
 });
+
+test('radarTelemetryUtils detects sweep crossings, compass sectors, and matches SINKARKES dossiers', () => {
+  assert.equal(normalizeDeg(-15), 345);
+  assert.equal(normalizeDeg(365), 5);
+  assert.equal(getCompassSector(0), 'U');
+  assert.equal(getCompassSector(46), 'TL');
+  assert.equal(getCompassSector(90), 'T');
+  assert.equal(getCompassSector(225), 'BD');
+  assert.equal(getCompassSector(315), 'BL');
+
+  // Sweep crossing including 358 -> 3 wrap-around and large-jump suppression
+  assert.equal(didSweepCrossBearing(88, 92, 90), true);
+  assert.equal(didSweepCrossBearing(92, 96, 90), false);
+  assert.equal(didSweepCrossBearing(358, 3, 0), true);
+  assert.equal(didSweepCrossBearing(358, 3, 2), true);
+  assert.equal(didSweepCrossBearing(0, 210, 90), false);
+
+  const markers = [
+    { no: 1, shortCode: 'BDG', total: 20, is_hq: true },
+    {
+      no: 5,
+      code: 'WLK-KJT-05',
+      shortCode: 'KJT',
+      shortTitle: 'Wilker Kertajati (BIJB)',
+      moda: 'Udara Internasional',
+      lat: -6.6561,
+      lng: 108.1578,
+      distanceKm: 66,
+      bearingDeg: 66,
+      total: 30,
+      period: 18,
+      aircraft: 22,
+      ship: 0,
+      alat: 5,
+      obat: 3,
+      approved: 28,
+      pending: 2,
+    },
+  ];
+  const sinkarkes = {
+    matrix: [{ wilker: 'Wilker Kertajati', compliance_percent: 92, filled_months: 11 }],
+    wilker_comparison: [{ name: 'Wilker Kertajati', short_name: 'Kertajati', total_alat_angkut: 145, total_orang: 9800 }],
+  };
+
+  const dossier = computeRadarVectorMetrics(markers[1], sinkarkes, 30, markers);
+  assert.equal(dossier.sector, 'TL');
+  assert.equal(dossier.bearingFormatted, '066°');
+  assert.equal(dossier.loadSharePct, 60);
+  assert.equal(dossier.relativeLoadPct, 100);
+  assert.equal(dossier.linkLatencyMs, 23);
+  assert.equal(dossier.signalStrengthPct, 90);
+  assert.equal(dossier.sinkarkes.matched, true);
+  assert.equal(dossier.sinkarkes.compliancePercent, 92);
+  assert.equal(dossier.sinkarkes.filledMonths, 11);
+  assert.equal(dossier.sinkarkes.alatAngkut, 145);
+});
+
 
 

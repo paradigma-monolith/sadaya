@@ -670,6 +670,8 @@ const radarBlips = computed(() => {
         :active-map-node="activeMapNode"
         :radar-blips="radarBlips"
         :radar-angle="radarAngle"
+        :sinkarkes="sinkarkes"
+        :max-office-total="maxOfficeTotal"
         v-model:radar-sweep-speed="radarSweepSpeed"
         v-model:active-radar-filter="activeRadarFilter"
         :is-sonar-pinging="isSonarPinging"
