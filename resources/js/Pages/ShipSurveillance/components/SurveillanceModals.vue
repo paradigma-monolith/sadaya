@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { useDate } from '../../../composables/useDate';
+import ClinicalModal from '../../../Components/ClinicalModal.vue';
 import {
   formatCurrency,
   formatNumber,
@@ -86,11 +87,14 @@ const submitVerify = () => {
   <!-- ============================================== -->
   <!-- MODAL DETAIL PEMERIKSAAN KARANTINA (TANGKAP)   -->
   <!-- ============================================== -->
-  <div
-    v-if="showDetailModal && activeItem"
-    class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+  <ClinicalModal
+    :open="Boolean(showDetailModal && activeItem)"
+    :title="activeItem ? `Detail Pemeriksaan ${activeItem.nama_kapal}` : 'Detail Pemeriksaan Kapal'"
+    max-width="max-w-3xl"
+    overlay-class="z-50 bg-slate-900/60 dark:bg-slate-950/75 backdrop-blur-sm"
+    @close="emit('close-detail')"
   >
-    <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] flex flex-col shadow-xl border border-slate-200 overflow-hidden">
+    <div v-if="activeItem" class="bg-white dark:bg-[#111820] rounded-xl w-full max-h-[90vh] flex flex-col shadow-xl border border-slate-200 dark:border-slate-700/90 overflow-hidden">
       <!-- Modal Header -->
       <div class="px-4 py-3.5 border-b border-emerald-950/20 flex items-center justify-between bg-[#004640] text-white">
         <div class="flex items-center gap-2.5">
@@ -242,16 +246,20 @@ const submitVerify = () => {
         </div>
       </div>
     </div>
-  </div>
+  </ClinicalModal>
 
   <!-- ========================================== -->
   <!-- MODAL VERIFIKASI KEPUTUSAN KARANTINA -->
   <!-- ========================================== -->
-  <div
-    v-if="showVerifyModal && verifyTarget"
-    class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+  <ClinicalModal
+    :open="Boolean(showVerifyModal && verifyTarget)"
+    title="Verifikasi Kedatangan Kapal"
+    max-width="max-w-md"
+    overlay-class="z-50 bg-slate-900/60 dark:bg-slate-950/75 backdrop-blur-sm"
+    :close-on-outside="!isSubmittingVerify"
+    @close="emit('close-verify')"
   >
-    <div class="bg-white rounded-xl max-w-md w-full shadow-xl border border-slate-200 overflow-hidden">
+    <div v-if="verifyTarget" class="bg-white dark:bg-[#111820] rounded-xl w-full shadow-xl border border-slate-200 dark:border-slate-700/90 overflow-hidden">
       <div class="px-4 py-3.5 border-b border-emerald-950/20 bg-[#004640] text-white flex items-center justify-between">
         <div class="flex items-center gap-2">
           <ShieldCheck class="w-4 h-4 text-emerald-300" />
@@ -335,6 +343,6 @@ const submitVerify = () => {
         </div>
       </form>
     </div>
-  </div>
+  </ClinicalModal>
 </template>
 

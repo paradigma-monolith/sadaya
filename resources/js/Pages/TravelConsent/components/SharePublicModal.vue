@@ -1,6 +1,8 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { Link2, X, Check, Copy, ExternalLink } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
+import ClinicalModal from '@/Components/ClinicalModal.vue';
 
 const props = defineProps({
   show: {
@@ -76,6 +78,7 @@ const copyUrl = async () => {
     document.body.removeChild(input);
   }
   copied.value = true;
+  toast.success('Tautan publik disalin ke clipboard.');
   setTimeout(() => {
     copied.value = false;
   }, 2500);
@@ -83,22 +86,24 @@ const copyUrl = async () => {
 </script>
 
 <template>
-  <div
-    v-if="show"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs"
-    @click.self="emit('close')"
+  <ClinicalModal
+    :open="show && Boolean(url)"
+    :title="title"
+    max-width="max-w-lg"
+    overlay-class="z-50 bg-slate-950/70 backdrop-blur-xs"
+    @close="emit('close')"
   >
-    <div class="bg-white border border-slate-200 rounded-xl w-full max-w-lg overflow-hidden shadow-xl p-5 relative">
+    <div class="bg-white dark:bg-[#111820] border border-slate-200 dark:border-slate-700/90 rounded-xl w-full overflow-hidden shadow-xl p-5 relative">
       <div class="flex items-start justify-between mb-3.5">
         <div class="flex items-center gap-2.5">
           <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" :class="(ACCENT_CLASSES[accent] || ACCENT_CLASSES.emerald).iconWrap">
             <Link2 class="w-4 h-4" />
           </div>
           <div>
-            <h3 class="text-sm font-bold text-slate-900 leading-tight">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white leading-tight">
               {{ title }}
             </h3>
-            <p class="text-xs text-slate-500 mt-0.5">
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               {{ subtitle }}
             </p>
           </div>
@@ -106,23 +111,23 @@ const copyUrl = async () => {
         <button
           type="button"
           @click="emit('close')"
-          class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100 cursor-pointer"
+          class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
         >
           <X class="w-4 h-4" />
         </button>
       </div>
 
-      <div v-if="metaRows.length" class="bg-slate-50 rounded-lg p-3 mb-3.5 text-xs space-y-1.5 border border-slate-200">
+      <div v-if="metaRows.length" class="bg-slate-50 dark:bg-[#16202a] rounded-lg p-3 mb-3.5 text-xs space-y-1.5 border border-slate-200 dark:border-slate-700/80">
         <div v-for="(row, idx) in metaRows" :key="idx" class="flex justify-between items-center gap-3">
-          <span class="text-slate-500 shrink-0">{{ row.label }}:</span>
-          <span :class="row.valueClass || 'font-medium text-slate-700 truncate max-w-[260px]'">
+          <span class="text-slate-500 dark:text-slate-400 shrink-0">{{ row.label }}:</span>
+          <span :class="row.valueClass || 'font-medium text-slate-700 dark:text-slate-200 truncate max-w-[260px]'">
             {{ row.value }}
           </span>
         </div>
       </div>
 
       <div class="space-y-1.5 mb-4">
-        <label class="block text-xs font-semibold text-slate-700">
+        <label class="block text-xs font-semibold text-slate-700 dark:text-slate-200">
           Tautan Dokumen Publik:
         </label>
         <div class="flex items-center gap-2">
@@ -145,7 +150,7 @@ const copyUrl = async () => {
         </div>
       </div>
 
-      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+      <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
         <a
           :href="url"
           target="_blank"
@@ -164,6 +169,6 @@ const copyUrl = async () => {
         </button>
       </div>
     </div>
-  </div>
+  </ClinicalModal>
 </template>
 

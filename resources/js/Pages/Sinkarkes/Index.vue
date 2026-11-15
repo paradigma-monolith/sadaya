@@ -3,9 +3,11 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
 import ClinicalSkeleton from '../../Components/ClinicalSkeleton.vue';
+import ClinicalModal from '../../Components/ClinicalModal.vue';
 import schemaData from '../../data/sinkarkes_schema.json';
 import { toast } from 'vue-sonner';
 import { useConfirm } from '@/composables/useConfirm';
+import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import {
   FileSpreadsheet,
   BarChart3,
@@ -351,6 +353,10 @@ const nextMonth = () => {
 
 const { confirmDialog } = useConfirm();
 const isLoadingPeriod = ref(false);
+
+useUnsavedGuard(isDirty, {
+  message: 'Anda memiliki perubahan data SINKARKES yang belum disimpan. Jika berpindah halaman atau filter periode sekarang, perubahan pada bulan aktif akan hilang.',
+});
 
 // Period filter change (Wilker or Year)
 const handlePeriodChange = () => {
@@ -1018,20 +1024,15 @@ onUnmounted(() => {
       </div>
 
       <!-- Import Excel Modal Dialog -->
-      <transition
-        enter-active-class="transition duration-200 ease-out"
-        enter-from-class="opacity-0 scale-95"
-        enter-to-class="opacity-100 scale-100"
-        leave-active-class="transition duration-150 ease-in"
-        leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 scale-95"
+      <ClinicalModal
+        :open="showImportModal"
+        title="Import Data SINKARKES BKK Bandung"
+        max-width="max-w-xl"
+        overlay-class="z-50 bg-slate-950/50 backdrop-blur-xs"
+        :close-on-outside="!isImporting"
+        @close="closeImportModal"
       >
-        <div
-          v-if="showImportModal"
-          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-xs overflow-y-auto"
-          @click.self="closeImportModal"
-        >
-          <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl shadow-2xl max-w-xl w-full p-5 sm:p-6 space-y-4 my-8">
+        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-[#232a36] rounded-3xl shadow-2xl w-full p-5 sm:p-6 space-y-4">
             
             <!-- Modal Header -->
             <div class="flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3.5">
@@ -1229,9 +1230,8 @@ onUnmounted(() => {
               </button>
             </div>
 
-          </div>
         </div>
-      </transition>
+      </ClinicalModal>
 
       <!-- Floating Sticky Save Bar (muncul otomatis saat ada perubahan belum disimpan) -->
       <transition

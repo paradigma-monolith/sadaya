@@ -2,10 +2,14 @@
 import { ref, computed } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import { toast } from 'vue-sonner';
+import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import { 
   User as UserIcon, 
   Mail, 
   Lock, 
+  Eye,
+  EyeOff,
   Camera, 
   ShieldCheck, 
   KeyRound, 
@@ -93,10 +97,18 @@ const profileForm = useForm({
 const updateProfile = () => {
   profileForm.patch(getUrl('/profile'), {
     preserveScroll: true,
+    onSuccess: () => {
+      profileForm.defaults();
+      toast.success('Profil berhasil diperbarui.');
+    },
   });
 };
 
 // Form 2: Password
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
+
 const passwordForm = useForm({
   current_password: '',
   password: '',
@@ -106,9 +118,16 @@ const passwordForm = useForm({
 const updatePassword = () => {
   passwordForm.put(getUrl('/profile/password'), {
     preserveScroll: true,
-    onSuccess: () => passwordForm.reset(),
+    onSuccess: () => {
+      passwordForm.reset();
+      toast.success('Kata sandi berhasil diperbarui.');
+    },
   });
 };
+
+useUnsavedGuard(() => profileForm.isDirty || passwordForm.isDirty, {
+  message: 'Anda memiliki perubahan informasi profil atau kata sandi yang belum disimpan. Jika berpindah halaman sekarang, perubahan tersebut akan hilang.',
+});
 
 // Form 3: Avatar Upload
 const avatarPreview = ref(props.user.avatar_url);
@@ -163,8 +182,8 @@ const triggerAvatarSelect = () => {
       </div>
 
       <!-- Flash Status -->
-      <div v-if="status" class="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs flex items-center gap-2">
-        <CheckCircle2 class="w-4 h-4 text-emerald-600 shrink-0" />
+      <div v-if="status" class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 text-xs flex items-center gap-2">
+        <CheckCircle2 class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
         <span>{{ status }}</span>
       </div>
 
@@ -192,14 +211,14 @@ const triggerAvatarSelect = () => {
               @change="handleAvatarChange"
             />
 
-            <h3 class="text-sm font-bold text-slate-900">{{ user.name }}</h3>
-            <p class="text-[11px] text-slate-500 font-mono mt-0.5 truncate">{{ user.email }}</p>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">{{ user.name }}</h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 font-mono mt-0.5 truncate">{{ user.email }}</p>
 
             <button
               type="button"
               @click="triggerAvatarSelect"
               :disabled="avatarForm.processing"
-              class="mt-3 w-full py-2 px-3 rounded-lg text-xs font-semibold bg-[#E6F7F5] text-[#005851] hover:bg-[#d5f2ee] border border-[#99DFD6] transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+              class="mt-3 w-full py-2 px-3 rounded-lg text-xs font-semibold bg-[#E6F7F5] dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#4fd1c5] hover:bg-[#d5f2ee] dark:hover:bg-[#00A99D]/25 border border-[#99DFD6] dark:border-[#00A99D]/40 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <UploadCloud class="w-3.5 h-3.5" />
               <span>{{ avatarForm.processing ? 'Mengunggah...' : 'Ubah Foto Avatar' }}</span>
@@ -211,15 +230,15 @@ const triggerAvatarSelect = () => {
 
           <!-- Permissions Badge Card -->
           <div class="clinical-surface p-4">
-            <h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 mb-2.5 flex items-center gap-1.5 font-mono">
+            <h4 class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2.5 flex items-center gap-1.5 font-mono">
               <ShieldCheck class="w-3.5 h-3.5 text-[#00A99D]" />
               <span>Izin Hak Akses (RBAC)</span>
             </h4>
             <div class="flex flex-wrap gap-1.5">
-              <span v-for="perm in user.permissions" :key="perm" class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 text-slate-700 border border-slate-200/80">
+              <span v-for="perm in user.permissions" :key="perm" class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-100 dark:bg-[#16202a] text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
                 {{ perm }}
               </span>
-              <span v-if="user.permissions.length === 0" class="text-xs text-slate-500 italic">
+              <span v-if="user.permissions.length === 0" class="text-xs text-slate-500 dark:text-slate-400 italic">
                 Akses level default
               </span>
             </div>
@@ -230,14 +249,14 @@ const triggerAvatarSelect = () => {
         <div class="lg:col-span-2 space-y-3">
           <!-- Profile Information Form -->
           <div class="clinical-surface p-4 sm:p-5">
-            <h3 class="text-sm font-bold text-slate-900 mb-0.5">Informasi Pengguna</h3>
-            <p class="text-xs text-slate-500 mb-4">Perbarui nama lengkap dan alamat email akun Anda.</p>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-0.5">Informasi Pengguna</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Perbarui nama lengkap dan alamat email akun Anda.</p>
 
             <form @submit.prevent="updateProfile" class="space-y-3.5">
               <div>
-                <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 font-mono">Nama Lengkap</label>
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-mono">Nama Lengkap</label>
                 <div class="mt-1 relative rounded-lg">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                     <UserIcon class="w-4 h-4" />
                   </div>
                   <input
@@ -251,9 +270,9 @@ const triggerAvatarSelect = () => {
               </div>
 
               <div>
-                <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 font-mono">Alamat Email</label>
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-mono">Alamat Email</label>
                 <div class="mt-1 relative rounded-lg">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                     <Mail class="w-4 h-4" />
                   </div>
                   <input
@@ -281,58 +300,85 @@ const triggerAvatarSelect = () => {
 
           <!-- Update Password Form -->
           <div class="clinical-surface p-5">
-            <h3 class="text-sm font-bold text-slate-900 mb-0.5">Keamanan Kata Sandi</h3>
-            <p class="text-xs text-slate-500 mb-4">Pastikan akun Anda menggunakan kata sandi yang kuat dan aman.</p>
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-0.5">Keamanan Kata Sandi</h3>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Pastikan akun Anda menggunakan kata sandi yang kuat dan aman.</p>
 
             <form @submit.prevent="updatePassword" class="space-y-3.5">
               <div>
-                <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 font-mono">Kata Sandi Saat Ini</label>
+                <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-mono">Kata Sandi Saat Ini</label>
                 <div class="mt-1 relative rounded-lg">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                     <Lock class="w-4 h-4" />
                   </div>
                   <input
                     v-model="passwordForm.current_password"
-                    type="password"
+                    :type="showCurrentPassword ? 'text' : 'password'"
                     required
                     placeholder="••••••••"
-                    class="clinical-input w-full pl-9 pr-3 font-mono"
+                    class="clinical-input w-full pl-9 pr-10 font-mono"
                   />
+                  <button
+                    type="button"
+                    @click="showCurrentPassword = !showCurrentPassword"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                    :aria-label="showCurrentPassword ? 'Sembunyikan kata sandi saat ini' : 'Lihat kata sandi saat ini'"
+                  >
+                    <EyeOff v-if="showCurrentPassword" class="w-4 h-4" />
+                    <Eye v-else class="w-4 h-4" />
+                  </button>
                 </div>
                 <p v-if="passwordForm.errors.current_password" class="text-xs text-rose-500 mt-1">{{ passwordForm.errors.current_password }}</p>
               </div>
 
               <div class="grid sm:grid-cols-2 gap-3">
                 <div>
-                  <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 font-mono">Kata Sandi Baru</label>
+                  <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-mono">Kata Sandi Baru</label>
                   <div class="mt-1 relative rounded-lg">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                       <KeyRound class="w-4 h-4" />
                     </div>
                     <input
                       v-model="passwordForm.password"
-                      type="password"
+                      :type="showNewPassword ? 'text' : 'password'"
                       required
                       placeholder="Minimal 8 karakter"
-                      class="clinical-input w-full pl-9 pr-3 font-mono"
+                      class="clinical-input w-full pl-9 pr-10 font-mono"
                     />
+                    <button
+                      type="button"
+                      @click="showNewPassword = !showNewPassword"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                      :aria-label="showNewPassword ? 'Sembunyikan kata sandi baru' : 'Lihat kata sandi baru'"
+                    >
+                      <EyeOff v-if="showNewPassword" class="w-4 h-4" />
+                      <Eye v-else class="w-4 h-4" />
+                    </button>
                   </div>
                   <p v-if="passwordForm.errors.password" class="text-xs text-rose-500 mt-1">{{ passwordForm.errors.password }}</p>
                 </div>
 
                 <div>
-                  <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 font-mono">Ulangi Kata Sandi Baru</label>
+                  <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 font-mono">Ulangi Kata Sandi Baru</label>
                   <div class="mt-1 relative rounded-lg">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 dark:text-slate-500">
                       <KeyRound class="w-4 h-4" />
                     </div>
                     <input
                       v-model="passwordForm.password_confirmation"
-                      type="password"
+                      :type="showConfirmPassword ? 'text' : 'password'"
                       required
                       placeholder="Konfirmasi sandi"
-                      class="clinical-input w-full pl-9 pr-3 font-mono"
+                      class="clinical-input w-full pl-9 pr-10 font-mono"
                     />
+                    <button
+                      type="button"
+                      @click="showConfirmPassword = !showConfirmPassword"
+                      class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                      :aria-label="showConfirmPassword ? 'Sembunyikan konfirmasi kata sandi' : 'Lihat konfirmasi kata sandi'"
+                    >
+                      <EyeOff v-if="showConfirmPassword" class="w-4 h-4" />
+                      <Eye v-else class="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -355,13 +401,13 @@ const triggerAvatarSelect = () => {
       <!-- Full-Width Section: Riwayat Sesi & Keamanan Login Pengguna -->
       <div class="clinical-surface p-5 transition-colors">
         <!-- Section Header -->
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-slate-100 mb-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
           <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-lg bg-teal-50 text-[#005851] border border-teal-200 flex items-center justify-center flex-shrink-0">
+            <div class="w-9 h-9 rounded-lg bg-teal-50 dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#4fd1c5] border border-teal-200 dark:border-[#00A99D]/35 flex items-center justify-center flex-shrink-0">
               <Globe class="w-4 h-4" />
             </div>
             <div>
-              <h2 class="text-sm font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                 <span>Riwayat Sesi &amp; Keamanan Login</span>
                 <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-100 dark:bg-cyan-950/70 text-cyan-700 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-700/60 font-mono">
                   IP &amp; Device Audit

@@ -24,6 +24,20 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    build: {
+        chunkSizeWarningLimit: 1200,
+        rollupOptions: {
+            output: {
+                manualChunks(id) {
+                    if (!id.includes('node_modules')) return;
+                    if (id.includes('echarts') || id.includes('zrender')) return 'vendor-echarts';
+                    if (id.includes('maplibre-gl')) return 'vendor-maplibre';
+                    if (id.includes('lucide-vue-next')) return 'vendor-icons';
+                    if (id.includes('reka-ui') || id.includes('vue-sonner')) return 'vendor-ui';
+                },
+            },
+        },
+    },
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './resources/js'),

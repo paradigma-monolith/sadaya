@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import ClinicalModal from '../../Components/ClinicalModal.vue';
 import { toast } from 'vue-sonner';
 import { useConfirm } from '@/composables/useConfirm';
 import {
@@ -892,11 +893,14 @@ onMounted(() => {
     </main>
 
     <!-- ==================== MODAL UPLOAD FILE BACKUP ==================== -->
-    <div
-      v-if="showUploadModal && uploadTargetModule"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+    <ClinicalModal
+      :open="Boolean(showUploadModal && uploadTargetModule)"
+      :title="`Import Berkas Backup: ${uploadTargetModule?.name || ''}`"
+      max-width="max-w-lg"
+      :close-on-outside="!isUploading"
+      @close="closeUploadModal"
     >
-      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-8">
+      <div v-if="uploadTargetModule" class="bg-white dark:bg-slate-900 rounded-3xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
         
         <!-- Header -->
         <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -990,14 +994,17 @@ onMounted(() => {
         </div>
 
       </div>
-    </div>
+    </ClinicalModal>
 
     <!-- ==================== MODAL KONFIGURASI DATABASE PER MODUL ==================== -->
-    <div
-      v-if="showConfigModal && configTargetModule"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+    <ClinicalModal
+      :open="Boolean(showConfigModal && configTargetModule)"
+      :title="`Konfigurasi Basis Data: ${configTargetModule?.name || ''}`"
+      max-width="max-w-xl"
+      :close-on-outside="!isSavingConfig"
+      @close="closeConfigModal"
     >
-      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-8">
+      <div v-if="configTargetModule" class="bg-white dark:bg-slate-900 rounded-3xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
         
         <!-- Modal Header -->
         <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -1149,14 +1156,17 @@ onMounted(() => {
         </div>
 
       </div>
-    </div>
+    </ClinicalModal>
 
     <!-- ==================== MODAL PENGATURAN SINKRONISASI OTOMATIS ==================== -->
-    <div
-      v-if="showAutoSyncModal"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+    <ClinicalModal
+      :open="showAutoSyncModal"
+      title="Pengaturan Sinkronisasi Otomatis"
+      max-width="max-w-xl"
+      :close-on-outside="!isSavingAutoSync && !isRunningSyncNow"
+      @close="showAutoSyncModal = false"
     >
-      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-8">
+      <div class="bg-white dark:bg-slate-900 rounded-3xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
         
         <!-- Header -->
         <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -1338,7 +1348,7 @@ onMounted(() => {
         </div>
 
       </div>
-    </div>
+    </ClinicalModal>
 
 
   </HybridNavbar>

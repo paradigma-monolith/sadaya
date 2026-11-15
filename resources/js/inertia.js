@@ -1,18 +1,23 @@
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
+import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { initSentry } from './sentry';
 import './echo';
 
 createInertiaApp({
-    title: (title) => title ? `${title} — Hybrid Laravel` : 'Hybrid Laravel Architecture',
-    resolve: (name) => {
-        const pages = import.meta.glob('./Pages/**/*.vue', { eager: true });
-        const page = pages[`./Pages/${name}.vue`];
-        if (!page) {
-            throw new Error(`Inertia page not found: ./Pages/${name}.vue`);
-        }
-        return page;
+    title: (title) => {
+        if (!title) return 'SADAYA — BKK Kelas I Bandung';
+        return /SADAYA|BKK/i.test(title) ? title : `${title} — SADAYA BKK Bandung`;
     },
+    resolve: (name) =>
+        resolvePageComponent(
+            `./Pages/${name}.vue`,
+            import.meta.glob([
+                './Pages/**/*.vue',
+                '!./Pages/**/tabs/**',
+                '!./Pages/**/components/**',
+            ]),
+        ),
     setup({ el, App, props, plugin }) {
         const app = createApp({ render: () => h(App, props) });
         app.use(plugin);
@@ -20,7 +25,7 @@ createInertiaApp({
         app.mount(el);
     },
     progress: {
-        color: '#6366f1',
+        color: '#00A99D',
         showSpinner: true,
     },
 });

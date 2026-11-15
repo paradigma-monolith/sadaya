@@ -1,7 +1,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue';
-import { Head, router, Link } from '@inertiajs/vue3';
+import { Head, router } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import ClinicalModal from '../../Components/ClinicalModal.vue';
+import PaginationBar from '../../Components/PaginationBar.vue';
 import { toast } from 'vue-sonner';
 import { useConfirm } from '@/composables/useConfirm';
 import {
@@ -2323,23 +2325,12 @@ const handleRunSync = async () => {
                 </select>
               </div>
             </div>
-            <div v-if="inspeksi_tpp.links && inspeksi_tpp.links.length > 3" class="flex items-center gap-1 flex-wrap">
-              <template v-for="(link, i) in inspeksi_tpp.links" :key="i">
-                <Link
-                  v-if="link.url"
-                  :href="link.url"
-                  v-html="link.label"
-                  preserve-state
-                  class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer"
-                  :class="link.active ? 'bg-[#00A99D] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                />
-                <span
-                  v-else
-                  v-html="link.label"
-                  class="px-2.5 py-1 text-slate-300 dark:text-slate-600 text-xs select-none"
-                />
-              </template>
-            </div>
+            <PaginationBar
+              :meta="inspeksi_tpp"
+              compact
+              :preserve-scroll="false"
+              active-class="bg-[#00A99D] text-white font-bold shadow-xs"
+            />
           </div>
         </div>
       </div>
@@ -2574,23 +2565,12 @@ const handleRunSync = async () => {
                 </select>
               </div>
             </div>
-            <div v-if="inspeksi_sab.links && inspeksi_sab.links.length > 3" class="flex items-center gap-1 flex-wrap">
-              <template v-for="(link, i) in inspeksi_sab.links" :key="i">
-                <Link
-                  v-if="link.url"
-                  :href="link.url"
-                  v-html="link.label"
-                  preserve-state
-                  class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer"
-                  :class="link.active ? 'bg-[#00A99D] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                />
-                <span
-                  v-else
-                  v-html="link.label"
-                  class="px-2.5 py-1 text-slate-300 dark:text-slate-600 text-xs select-none"
-                />
-              </template>
-            </div>
+            <PaginationBar
+              :meta="inspeksi_sab"
+              compact
+              :preserve-scroll="false"
+              active-class="bg-[#00A99D] text-white font-bold shadow-xs"
+            />
           </div>
         </div>
       </div>
@@ -2823,23 +2803,12 @@ const handleRunSync = async () => {
                 </select>
               </div>
             </div>
-            <div v-if="inspeksi_hsbu.links && inspeksi_hsbu.links.length > 3" class="flex items-center gap-1 flex-wrap">
-              <template v-for="(link, i) in inspeksi_hsbu.links" :key="i">
-                <Link
-                  v-if="link.url"
-                  :href="link.url"
-                  v-html="link.label"
-                  preserve-state
-                  class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer"
-                  :class="link.active ? 'bg-[#00A99D] text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                />
-                <span
-                  v-else
-                  v-html="link.label"
-                  class="px-2.5 py-1 text-slate-300 dark:text-slate-600 text-xs select-none"
-                />
-              </template>
-            </div>
+            <PaginationBar
+              :meta="inspeksi_hsbu"
+              compact
+              :preserve-scroll="false"
+              active-class="bg-[#00A99D] text-white font-bold shadow-xs"
+            />
           </div>
         </div>
       </div>
@@ -4379,23 +4348,12 @@ const handleRunSync = async () => {
                 </select>
               </div>
             </div>
-            <div v-if="sivera_list.links && sivera_list.links.length > 3" class="flex items-center gap-1 flex-wrap">
-              <template v-for="(link, i) in sivera_list.links" :key="i">
-                <Link
-                  v-if="link.url"
-                  :href="link.url"
-                  v-html="link.label"
-                  preserve-state
-                  class="px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer"
-                  :class="link.active ? 'bg-indigo-600 text-white font-bold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'"
-                />
-                <span
-                  v-else
-                  v-html="link.label"
-                  class="px-2.5 py-1 text-slate-300 dark:text-slate-600 text-xs select-none"
-                />
-              </template>
-            </div>
+            <PaginationBar
+              :meta="sivera_list"
+              compact
+              :preserve-scroll="false"
+              active-class="bg-indigo-600 text-white font-bold shadow-xs"
+            />
           </div>
         </div>
       </div>
@@ -4403,11 +4361,14 @@ const handleRunSync = async () => {
       <!-- ============================================================== -->
       <!-- MODAL INPUT INSPEKSI SANITASI & SIVERA                         -->
       <!-- ============================================================== -->
-      <div
-        v-if="showAddInspeksiModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+      <ClinicalModal
+        :open="showAddInspeksiModal"
+        :title="isEditMode ? 'Edit Catatan Surveilans Vektor (SIVERA)' : 'Input Inspeksi Sanitasi & Surveilans Baru'"
+        max-width="max-w-4xl"
+        :close-on-outside="!isSubmittingInspeksi"
+        @close="showAddInspeksiModal = false"
       >
-        <div class="relative w-full max-w-4xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-8">
+        <div class="relative w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <!-- Modal Header -->
           <div class="px-6 py-4 bg-gradient-to-r from-[#005851] to-[#00A99D] text-white flex items-center justify-between">
             <div class="flex items-center gap-2">
@@ -5637,16 +5598,19 @@ const handleRunSync = async () => {
             </button>
           </div>
         </div>
-      </div>
+      </ClinicalModal>
 
       <!-- ============================================================== -->
       <!-- MODAL TAMBAH SARANA BARU (TPP / SAB / HSBU)                    -->
       <!-- ============================================================== -->
-      <div
-        v-if="showAddSaranaModal"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+      <ClinicalModal
+        :open="showAddSaranaModal"
+        title="Pendaftaran Sarana Sanitasi Baru"
+        max-width="max-w-lg"
+        :close-on-outside="!isSubmittingSarana"
+        @close="showAddSaranaModal = false"
       >
-        <div class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div class="relative w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <div class="px-6 py-4 bg-gradient-to-r from-[#00A99D] to-[#005851] text-white flex items-center justify-between">
             <div class="flex items-center gap-2">
               <Plus class="w-5 h-5" />
@@ -5762,16 +5726,19 @@ const handleRunSync = async () => {
             </button>
           </div>
         </div>
-      </div>
+      </ClinicalModal>
 
       <!-- ============================================================== -->
       <!-- MODAL TINDAKAN PENGENDALIAN VEKTOR (SIMPLY CI4 PARITY)          -->
       <!-- ============================================================== -->
-      <div
-        v-if="showPengendalianModal && pengendalianItem"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto"
+      <ClinicalModal
+        :open="Boolean(showPengendalianModal && pengendalianItem)"
+        title="Catat Tindakan Pengendalian Vektor"
+        max-width="max-w-xl"
+        :close-on-outside="!isSubmittingPengendalian"
+        @close="showPengendalianModal = false"
       >
-        <div class="relative w-full max-w-xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden my-8">
+        <div v-if="pengendalianItem" class="relative w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <div class="px-6 py-4 bg-gradient-to-r from-teal-600 to-[#005851] text-white flex items-center justify-between">
             <div class="flex items-center gap-2">
               <ShieldCheck class="w-5 h-5" />
@@ -5970,16 +5937,18 @@ const handleRunSync = async () => {
             </button>
           </div>
         </div>
-      </div>
+      </ClinicalModal>
 
       <!-- ============================================================== -->
       <!-- MODAL DETAIL RINCIAN INSPEKSI / SIVERA                         -->
       <!-- ============================================================== -->
-      <div
-        v-if="showDetailModal && detailItem"
-        class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
+      <ClinicalModal
+        :open="Boolean(showDetailModal && detailItem)"
+        :title="`Rincian Data ${detailType === 'sivera' ? 'Surveilans SIVERA' : 'Inspeksi Sanitasi'}`"
+        max-width="max-w-2xl"
+        @close="closeDetail()"
       >
-        <div class="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+        <div v-if="detailItem" class="relative w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
           <div class="px-6 py-4 bg-gradient-to-r from-[#005851] to-[#00A99D] text-white flex items-center justify-between">
             <div class="flex items-center gap-2">
               <FileText class="w-5 h-5" />
@@ -6139,14 +6108,18 @@ const handleRunSync = async () => {
             </button>
           </div>
         </div>
-      </div>
+      </ClinicalModal>
 
       <!-- ==================== MODAL SINKRONISASI / MIGRASI DATA SIMPLY ==================== -->
-      <div
-        v-if="showSyncModal"
-        class="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+      <ClinicalModal
+        :open="showSyncModal"
+        title="Konfigurasi Database Sumber Sebelum Sinkronisasi"
+        max-width="max-w-2xl"
+        overlay-class="z-50 bg-black/60 backdrop-blur-xs"
+        :close-on-outside="!isSyncingData"
+        @close="closeSyncModal"
       >
-        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col my-8 animate-in fade-in zoom-in-95 duration-150">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150">
           <!-- Modal Header -->
           <div class="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4 bg-slate-50/50 dark:bg-slate-800/40">
             <div class="flex items-start gap-3">
@@ -6480,7 +6453,7 @@ const handleRunSync = async () => {
             </div>
           </div>
         </div>
-      </div>
+      </ClinicalModal>
 
     </main>
   </HybridNavbar>

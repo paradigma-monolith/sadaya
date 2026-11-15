@@ -285,32 +285,32 @@ onUnmounted(() => {
     >
       <div 
         v-if="isOpen"
-        class="mb-3 bg-white border border-slate-200/90 rounded-2xl shadow-2xl shadow-slate-900/10 flex flex-col overflow-hidden transition-all duration-200"
+        class="mb-3 bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-700/90 rounded-2xl shadow-2xl shadow-slate-900/10 dark:shadow-black/50 flex flex-col overflow-hidden transition-all duration-200"
         :class="isExpanded ? 'w-[calc(100vw-2rem)] sm:w-[460px] max-w-[460px] h-[min(600px,calc(100vh-100px))]' : 'w-[calc(100vw-2rem)] sm:w-[370px] max-w-[370px] h-[min(510px,calc(100vh-100px))]'"
       >
         <!-- Chat Header -->
-        <div class="px-4 py-3 bg-white border-b border-slate-100 flex items-center justify-between font-sans">
+        <div class="px-4 py-3 bg-white dark:bg-[#111820] border-b border-slate-100 dark:border-slate-800 flex items-center justify-between font-sans">
           <div class="flex items-center gap-2.5">
             <div class="relative">
               <div class="w-8 h-8 rounded-full bg-[#005851] flex items-center justify-center text-white shadow-xs">
                 <MessageSquare class="w-4 h-4" />
               </div>
               <span 
-                class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white"
+                class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-white dark:ring-[#111820]"
                 :class="wsConnected ? 'bg-[#99CC33]' : 'bg-[#00A99D]'"
                 :title="wsConnected ? 'Reverb WebSocket Aktif' : 'Polling Synced'"
               ></span>
             </div>
             <div>
               <div class="flex items-center gap-1.5">
-                <span class="text-xs font-bold text-[#005851] tracking-tight font-heading">Komunikasi Wilker BKK</span>
-                <span v-if="currentUser" class="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]">
+                <span class="text-xs font-bold text-[#005851] dark:text-[#4fd1c5] tracking-tight font-heading">Komunikasi Wilker BKK</span>
+                <span v-if="currentUser" class="text-[9px] font-medium px-1.5 py-0.5 rounded-md bg-[#E6F7F5] dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#4fd1c5] border border-[#99DFD6] dark:border-[#00A99D]/40">
                   {{ currentUser.name }}
                 </span>
               </div>
-              <div class="text-[10px] text-slate-400 flex items-center gap-1">
+              <div class="text-[10px] text-slate-400 dark:text-slate-500 flex items-center gap-1">
                 <Radio class="w-2.5 h-2.5 text-[#00A99D]" />
-                <span>Channel: <strong class="text-slate-600">chat-channel</strong></span>
+                <span>Channel: <strong class="text-slate-600 dark:text-slate-300">chat-channel</strong></span>
               </div>
             </div>
           </div>
@@ -321,18 +321,18 @@ onUnmounted(() => {
             <button
               type="button"
               @click="isMuted = !isMuted"
-              class="p-1.5 rounded-lg hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              class="p-1.5 rounded-lg hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               :title="isMuted ? 'Bunyikan nada' : 'Bisukan nada'"
             >
               <VolumeX v-if="isMuted" class="w-3.5 h-3.5 text-rose-500" />
-              <Volume2 v-else class="w-3.5 h-3.5 text-slate-500" />
+              <Volume2 v-else class="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
             </button>
 
             <!-- Refresh Messages -->
             <button
               type="button"
               @click="fetchMessages()"
-              class="p-1.5 rounded-lg hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              class="p-1.5 rounded-lg hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Perbarui riwayat"
             >
               <RotateCw class="w-3.5 h-3.5" />
@@ -342,7 +342,7 @@ onUnmounted(() => {
             <button 
               type="button" 
               @click="isExpanded = !isExpanded" 
-              class="p-1.5 rounded-lg hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              class="p-1.5 rounded-lg hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               :title="isExpanded ? 'Perkecil jendela' : 'Perbesar jendela'"
             >
               <Minimize2 v-if="isExpanded" class="w-3.5 h-3.5" />
@@ -353,7 +353,7 @@ onUnmounted(() => {
             <button 
               type="button" 
               @click="toggleChat" 
-              class="p-1.5 rounded-lg hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+              class="p-1.5 rounded-lg hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               title="Tutup obrolan"
             >
               <X class="w-3.5 h-3.5" />
@@ -364,15 +364,15 @@ onUnmounted(() => {
         <!-- Chat Stream Body -->
         <div 
           ref="messagesContainer"
-          class="flex-1 overflow-y-auto p-4 space-y-3 text-xs bg-white scroll-smooth"
+          class="flex-1 overflow-y-auto p-4 space-y-3 text-xs bg-white dark:bg-[#0b1116] scroll-smooth"
         >
           <!-- Intro Beacon Card -->
-          <div class="p-3 rounded-xl bg-[#E6F7F5]/50 border border-[#99DFD6]/60 text-[11px] text-slate-600 font-sans">
+          <div class="p-3 rounded-xl bg-[#E6F7F5]/50 dark:bg-[#00A99D]/10 border border-[#99DFD6]/60 dark:border-[#00A99D]/30 text-[11px] text-slate-600 dark:text-slate-300 font-sans">
             <div class="flex items-start gap-2">
               <Sparkles class="w-4 h-4 text-[#00A99D] flex-shrink-0 mt-0.5" />
               <div>
-                <p class="font-bold text-[#005851]">Koordinasi Induk & 6 Wilker BKK</p>
-                <p class="text-slate-500 text-[10px] mt-0.5 leading-relaxed">
+                <p class="font-bold text-[#005851] dark:text-[#4fd1c5]">Koordinasi Induk & 6 Wilker BKK</p>
+                <p class="text-slate-500 dark:text-slate-400 text-[10px] mt-0.5 leading-relaxed">
                   Pesan disiarkan instan ke seluruh petugas BKK Kelas I Bandung melalui <strong>Laravel Reverb</strong>.
                 </p>
               </div>
@@ -381,9 +381,9 @@ onUnmounted(() => {
 
           <!-- Empty State -->
           <div v-if="messages.length === 0" class="py-12 text-center text-slate-400">
-            <MessageSquare class="w-8 h-8 mx-auto mb-2 text-slate-300" />
-            <p class="text-xs font-medium text-slate-600">Belum ada obrolan.</p>
-            <p class="text-[10px] text-slate-400 mt-0.5">Kirim pesan pertama Anda kepada tim wilker!</p>
+            <MessageSquare class="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-700" />
+            <p class="text-xs font-medium text-slate-600 dark:text-slate-300">Belum ada obrolan.</p>
+            <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Kirim pesan pertama Anda kepada tim wilker!</p>
           </div>
 
           <!-- Messages Stream (Soft grey incoming & crisp blue outgoing like Image 2) -->
@@ -398,7 +398,7 @@ onUnmounted(() => {
               v-if="msg.user_id !== currentUser?.id"
               :src="msg.user_avatar || 'https://ui-avatars.com/api/?name=Petugas&background=0f172a&color=fff'"
               :alt="msg.user_name"
-              class="w-6 h-6 rounded-full object-cover border border-slate-200 flex-shrink-0 mb-1"
+              class="w-6 h-6 rounded-full object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0 mb-1"
             />
 
             <!-- Message Bubble -->
@@ -436,7 +436,7 @@ onUnmounted(() => {
         <!-- Send Error Alert Banner -->
         <div 
           v-if="sendError" 
-          class="px-3 py-1.5 bg-rose-50 border-t border-rose-200 text-[11px] text-rose-700 flex items-center justify-between gap-2"
+          class="px-3 py-1.5 bg-rose-50 dark:bg-rose-950/60 border-t border-rose-200 dark:border-rose-800 text-[11px] text-rose-700 dark:text-rose-200 flex items-center justify-between gap-2"
         >
           <div class="flex items-center gap-1.5 flex-1">
             <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
@@ -445,7 +445,7 @@ onUnmounted(() => {
           <button 
             type="button" 
             @click="sendError = ''" 
-            class="text-rose-500 hover:text-rose-800 p-0.5 rounded cursor-pointer"
+            class="text-rose-500 hover:text-rose-800 dark:hover:text-rose-300 p-0.5 rounded cursor-pointer"
           >
             <X class="w-3.5 h-3.5" />
           </button>
@@ -454,7 +454,7 @@ onUnmounted(() => {
         <!-- Chat Input Footer -->
         <form 
           @submit.prevent="sendMessage()" 
-          class="p-2 bg-white border-t border-slate-200/80 flex items-center gap-1.5 font-sans"
+          class="p-2 bg-white dark:bg-[#111820] border-t border-slate-200/80 dark:border-slate-800 flex items-center gap-1.5 font-sans"
         >
           <input
             v-model="inputMessage"
@@ -484,23 +484,23 @@ onUnmounted(() => {
       <button
         type="button"
         @click="toggleChat"
-        class="group relative flex items-center gap-2 px-3 py-1.5 rounded-full bg-white hover:bg-[#E6F7F5]/60 text-slate-900 border border-slate-200/90 hover:border-[#00A99D]/60 shadow-md transition-colors cursor-pointer"
-        :class="isOpen ? 'ring-2 ring-[#005851] ring-offset-1' : ''"
+        class="group relative flex items-center gap-2 px-3 py-1.5 rounded-full bg-white dark:bg-[#111820] hover:bg-[#E6F7F5]/60 dark:hover:bg-[#16202a] text-slate-900 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700 hover:border-[#00A99D]/60 shadow-md transition-colors cursor-pointer"
+        :class="isOpen ? 'ring-2 ring-[#005851] dark:ring-[#00A99D] ring-offset-1 dark:ring-offset-[#0b1116]' : ''"
         title="Buka Live Chat Reverb"
       >
         <div class="relative flex items-center justify-center w-6 h-6 rounded-full bg-[#005851] text-white">
           <MessageSquare class="w-3.5 h-3.5" />
           <span 
-            class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-1 ring-white"
+            class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full ring-1 ring-white dark:ring-[#111820]"
             :class="wsConnected ? 'bg-[#99CC33]' : 'bg-[#00A99D]'"
           ></span>
         </div>
 
         <div class="text-left pr-0.5">
-          <span class="block text-[11px] font-bold text-slate-900 tracking-tight leading-tight">
+          <span class="block text-[11px] font-bold text-slate-900 dark:text-slate-100 tracking-tight leading-tight">
             Live Chat
           </span>
-          <span class="block text-[9px] font-mono leading-none text-emerald-700 font-medium">
+          <span class="block text-[9px] font-mono leading-none text-emerald-700 dark:text-[#4fd1c5] font-medium">
             {{ wsConnected ? 'Reverb Active' : 'Online' }}
           </span>
         </div>

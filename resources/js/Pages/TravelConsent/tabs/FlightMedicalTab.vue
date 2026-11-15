@@ -5,7 +5,8 @@ import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
 import { useConfirm } from '@/composables/useConfirm';
 import SharePublicModal from '../components/SharePublicModal.vue';
-import PaginationBar from '../components/PaginationBar.vue';
+import PaginationBar from '@/Components/PaginationBar.vue';
+import ClinicalModal from '@/Components/ClinicalModal.vue';
 import {
   Activity,
   Briefcase,
@@ -548,12 +549,13 @@ const countUsed = (items) => {
     </div>
 
     <!-- Modal Detail & Verification -->
-    <div
-      v-if="showDetailModal && activeItem"
-      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
-      @click.self="closeDetail"
+    <ClinicalModal
+      :open="Boolean(showDetailModal && activeItem)"
+      :title="`Detail Kloter ${activeItem?.nomor_kloter || ''}`"
+      max-width="max-w-4xl"
+      @close="closeDetail"
     >
-      <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-4xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div v-if="activeItem" class="bg-white dark:bg-slate-900 rounded-3xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/60">
           <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-xl text-white flex items-center justify-center shadow-xs" :class="cfg.modalHeaderIcon">
@@ -820,7 +822,7 @@ const countUsed = (items) => {
           </div>
         </div>
       </div>
-    </div>
+    </ClinicalModal>
 
     <SharePublicModal
       :show="showShareModal && !!shareTarget"

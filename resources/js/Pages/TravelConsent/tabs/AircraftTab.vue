@@ -5,7 +5,8 @@ import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
 import { useConfirm } from '@/composables/useConfirm';
 import SharePublicModal from '../components/SharePublicModal.vue';
-import PaginationBar from '../components/PaginationBar.vue';
+import PaginationBar from '@/Components/PaginationBar.vue';
+import ClinicalModal from '@/Components/ClinicalModal.vue';
 import {
   Plane,
   ShieldCheck,
@@ -454,8 +455,14 @@ const deleteInspection = async (id, regNo) => {
     </div>
 
     <!-- Detail & Verification Modal -->
-    <div v-if="showDetailModal && activeInspection" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-sm" @click.self="closeDetail">
-      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+    <ClinicalModal
+      :open="Boolean(showDetailModal && activeInspection)"
+      :title="`Lembar Hasil Inspeksi • ${activeInspection?.registration_no || ''}`"
+      max-width="max-w-3xl"
+      overlay-class="z-50 bg-slate-950/80 backdrop-blur-sm"
+      @close="closeDetail"
+    >
+      <div v-if="activeInspection" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
         <div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold">
@@ -676,17 +683,20 @@ const deleteInspection = async (id, regNo) => {
           </div>
         </div>
       </div>
-    </div>
+    </ClinicalModal>
 
     <!-- Lightbox Photo Modal -->
-    <div
-      v-if="selectedPhotoModal"
-      class="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md"
-      @click="selectedPhotoModal = null"
+    <ClinicalModal
+      :open="Boolean(selectedPhotoModal)"
+      :title="selectedPhotoModal?.category || 'Dokumentasi Lapangan'"
+      max-width="max-w-4xl"
+      overlay-class="z-[60] bg-slate-950/85 backdrop-blur-md"
+      content-class="z-[60] max-h-[92vh] overflow-y-auto"
+      @close="selectedPhotoModal = null"
     >
       <div
-        class="relative max-w-4xl max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden p-3 shadow-2xl flex flex-col"
-        @click.stop
+        v-if="selectedPhotoModal"
+        class="relative w-full max-h-[90vh] bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden p-3 shadow-2xl flex flex-col"
       >
         <button
           type="button"
@@ -713,7 +723,7 @@ const deleteInspection = async (id, regNo) => {
           </div>
         </div>
       </div>
-    </div>
+    </ClinicalModal>
 
     <SharePublicModal
       :show="showShareModal && !!shareTarget"

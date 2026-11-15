@@ -2,8 +2,10 @@
 import { ref, computed, watch } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
+import ClinicalModal from '../../Components/ClinicalModal.vue';
 import { toast } from 'vue-sonner';
 import { useConfirm } from '@/composables/useConfirm';
+import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import {
   Ship,
   Plane,
@@ -295,6 +297,13 @@ const saveDailyRecord = () => {
 };
 
 const { confirmDialog } = useConfirm();
+
+useUnsavedGuard(
+  () => showForm.value && (Object.keys(formMetrics.value).length > 0 || Boolean(formNotes.value?.trim())),
+  {
+    message: 'Formulir rekap harian SINKARKES masih terbuka dan memiliki isian yang belum disimpan. Yakin ingin meninggalkan halaman ini?',
+  }
+);
 
 const deleteRecord = async (record) => {
   const ok = await confirmDialog({
@@ -1232,11 +1241,15 @@ const formatDateId = (isoDate) => {
       </div>
 
       <!-- Import Modal -->
-      <div
-        v-if="showImportModal"
-        class="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+      <ClinicalModal
+        :open="showImportModal"
+        title="Import Excel Rekap Harian Kapal & Pesawat"
+        max-width="max-w-lg"
+        overlay-class="z-50 bg-black/50 backdrop-blur-xs"
+        :close-on-outside="!isImporting"
+        @close="closeImportModal"
       >
-        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+        <div class="bg-white dark:bg-[#12161f] border border-slate-200 dark:border-slate-700 rounded-2xl w-full shadow-2xl overflow-hidden">
           <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
             <div class="flex items-center gap-2">
               <Upload class="w-5 h-5 text-[#00A99D]" />
@@ -1299,7 +1312,7 @@ const formatDateId = (isoDate) => {
             </button>
           </div>
         </div>
-      </div>
+      </ClinicalModal>
 
     </main>
   </HybridNavbar>
