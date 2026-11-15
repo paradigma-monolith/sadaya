@@ -8,7 +8,6 @@ import { toast } from 'vue-sonner';
 import { useConfirm } from '@/composables/useConfirm';
 import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import {
-  BarChart3,
   Save,
   Download,
   Calendar,
@@ -476,16 +475,6 @@ onUnmounted(() => {
             <Calendar class="w-3.5 h-3.5" />
             <span class="hidden sm:inline">Rekap Harian</span>
             <span class="sm:hidden">Harian</span>
-          </Link>
-
-          <!-- Dashboard Utama Button -->
-          <Link
-            :href="`/dashboard?year=${selectedYear}&wilker=${encodeURIComponent(selectedWilker)}#sinkarkes-section`"
-            class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/15 transition-colors"
-            title="Buka Dashboard Utama & Diagram Grafis SINKARKES"
-          >
-            <BarChart3 class="w-3.5 h-3.5 text-[#99CC33]" />
-            <span class="hidden sm:inline">Dashboard</span>
           </Link>
 
           <!-- Import Excel Button -->
