@@ -352,7 +352,7 @@ const setStyle = (styleKey) => {
   });
 };
 
-const fitAllMarkers = (padding = 50) => {
+const fitAllMarkers = (padding = { top: 45, bottom: 75, left: 50, right: 75 }) => {
   if (!mapInstance.value || !props.markers || props.markers.length === 0) return;
   const bounds = new maplibregl.LngLatBounds();
   props.markers.forEach((m) => {
@@ -373,7 +373,7 @@ const fitAllMarkers = (padding = 50) => {
 
 const resetView = () => {
   if (props.markers && props.markers.length > 0) {
-    fitAllMarkers(55);
+    fitAllMarkers({ top: 45, bottom: 75, left: 50, right: 75 });
   } else {
     flyTo(props.initialCenter, props.initialZoom, props.initialPitch, props.initialBearing);
   }

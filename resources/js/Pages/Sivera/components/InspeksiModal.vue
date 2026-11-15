@@ -681,9 +681,9 @@ const submitInspeksi = async () => {
   >
     <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-h-[92vh] overflow-hidden flex flex-col shadow-2xl animate-in fade-in zoom-in-95 duration-200">
       <!-- Modal Header -->
-      <div class="px-6 py-4 bg-gradient-to-r from-indigo-700 via-indigo-600 to-[#00A99D] text-white flex items-center justify-between">
+      <div class="px-6 py-4 bg-gradient-to-r from-[#005851] to-[#00A99D] text-white flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <Bug class="w-5 h-5 text-indigo-200" />
+          <Bug class="w-5 h-5 text-white" />
           <h3 class="text-base font-bold tracking-tight">{{ editItem?.id ? 'Perbarui Data Surveilans SIVERA' : 'Catat Data Surveilans Vektor (SIVERA)' }}</h3>
         </div>
         <button
@@ -727,7 +727,7 @@ const submitInspeksi = async () => {
         </button>
         <button
           type="button"
-          class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shrink-0 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-xs border border-slate-200 dark:border-slate-700"
+          class="flex-1 py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shrink-0 bg-white dark:bg-slate-900 text-[#005851] dark:text-[#00A99D] shadow-xs border border-slate-200 dark:border-slate-700"
         >
           <Bug class="w-4 h-4" />
           <span>Surveilans SIVERA (Vektor)</span>
@@ -743,7 +743,7 @@ const submitInspeksi = async () => {
             type="button"
             @click="siveraActiveVektor = vName"
             class="px-3 py-1.5 rounded-full text-xs font-bold transition shrink-0 cursor-pointer flex items-center gap-1.5"
-            :class="siveraActiveVektor === vName ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+            :class="siveraActiveVektor === vName ? 'bg-gradient-to-r from-[#005851] to-[#00A99D] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
           >
             <Bug class="w-3.5 h-3.5" />
             <span>{{ vName }}</span>
@@ -835,7 +835,7 @@ const submitInspeksi = async () => {
           type="button"
           @click="submitInspeksi()"
           :disabled="isSubmittingInspeksi"
-          class="px-5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-[#00A99D] text-xs font-bold text-white hover:brightness-105 transition shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+          class="px-5 py-2 rounded-xl bg-gradient-to-r from-[#00A99D] to-[#005851] text-xs font-bold text-white hover:brightness-105 transition shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
         >
           <Save class="w-4 h-4" />
           <span>{{ isSubmittingInspeksi ? 'Menyimpan...' : (editItem?.id ? 'Simpan Perubahan' : 'Simpan Data Surveilans') }}</span>

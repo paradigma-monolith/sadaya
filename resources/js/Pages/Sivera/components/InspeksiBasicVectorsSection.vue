@@ -30,9 +30,9 @@ const emit = defineEmits(['add-tikus-row', 'remove-tikus-row']);
 <template>
   <!-- 4.1 JENTIK AEDES SP. -->
   <div v-if="activeVektor === 'Jentik Aedes sp.'" class="space-y-4">
-    <div class="p-3 rounded-2xl bg-indigo-50/60 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-800/50">
-      <span class="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-        <Droplets class="w-4 h-4 text-indigo-600" />
+    <div class="p-3 rounded-2xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200/60 dark:border-teal-800/50">
+      <span class="text-xs font-bold text-[#005851] dark:text-teal-300 flex items-center gap-1.5">
+        <Droplets class="w-4 h-4 text-[#00A99D]" />
         <span>Surveilans Jentik Aedes sp. (Demam Berdarah Dengue)</span>
       </span>
     </div>
@@ -100,11 +100,11 @@ const emit = defineEmits(['add-tikus-row', 'remove-tikus-row']);
         </div>
       </div>
 
-      <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-indigo-100 dark:border-indigo-950 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-teal-200/80 dark:border-teal-900 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex flex-wrap items-center gap-4">
-          <div><span class="text-slate-400">House Index (HI):</span> <strong class="text-indigo-600 font-mono text-sm ml-1">{{ hiJentik }}%</strong></div>
-          <div><span class="text-slate-400">Container Index (CI):</span> <strong class="text-indigo-600 font-mono text-sm ml-1">{{ ciJentik }}%</strong></div>
-          <div><span class="text-slate-400">Breteau Index (BI):</span> <strong class="text-indigo-600 font-mono text-sm ml-1">{{ biJentik }}</strong></div>
+          <div><span class="text-slate-400">House Index (HI):</span> <strong class="text-[#005851] dark:text-[#00A99D] font-mono text-sm ml-1">{{ hiJentik }}%</strong></div>
+          <div><span class="text-slate-400">Container Index (CI):</span> <strong class="text-[#005851] dark:text-[#00A99D] font-mono text-sm ml-1">{{ ciJentik }}%</strong></div>
+          <div><span class="text-slate-400">Breteau Index (BI):</span> <strong class="text-[#005851] dark:text-[#00A99D] font-mono text-sm ml-1">{{ biJentik }}</strong></div>
           <div><span class="text-slate-400">Angka Bebas Jentik (ABJ):</span> <strong class="text-emerald-600 font-mono text-sm ml-1">{{ abjJentik }}%</strong></div>
         </div>
         <div>
@@ -117,7 +117,7 @@ const emit = defineEmits(['add-tikus-row', 'remove-tikus-row']);
       <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">Jenis Kontainer Positif yang Ditemukan</label>
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
         <label v-for="cName in ['Ban Bekas', 'Ember', 'Bak Mandi', 'Tatakan Dispenser Air Minum', 'Tanaman Penyimpan Air']" :key="cName" class="flex items-center gap-2 p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 cursor-pointer">
-          <input type="checkbox" :value="cName" v-model="formJentik.jenis_kontainer" />
+          <input type="checkbox" :value="cName" v-model="formJentik.jenis_kontainer" class="rounded accent-[#00A99D] text-teal-600 focus:ring-[#00A99D]" />
           <span>{{ cName }}</span>
         </label>
       </div>
@@ -282,7 +282,7 @@ const emit = defineEmits(['add-tikus-row', 'remove-tikus-row']);
       <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-between text-xs">
         <div>
           <span class="text-slate-500">Rumus: (Tikus / Perangkap) &times; 100% &bull;</span>
-          <span class="ml-1 text-slate-700 dark:text-slate-300 font-semibold">Success Trap: <strong class="text-indigo-600 font-mono text-base">{{ successTrapTikus }}%</strong></span>
+          <span class="ml-1 text-slate-700 dark:text-slate-300 font-semibold">Success Trap: <strong class="text-[#005851] dark:text-[#00A99D] font-mono text-base">{{ successTrapTikus }}%</strong></span>
         </div>
         <span class="px-3 py-1 rounded-full text-xs font-bold border" :class="getRiskBadgeClass(statusTikus)">
           {{ statusTikus }} (&lt; 1% MS)

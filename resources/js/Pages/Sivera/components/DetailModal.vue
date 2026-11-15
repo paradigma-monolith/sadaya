@@ -35,7 +35,7 @@ const emit = defineEmits(['close']);
   >
     <div v-if="item" class="relative w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
       <!-- Modal Header -->
-      <div class="px-6 py-4 bg-gradient-to-r from-indigo-700 to-[#00A99D] text-white flex items-center justify-between">
+      <div class="px-6 py-4 bg-gradient-to-r from-[#005851] to-[#00A99D] text-white flex items-center justify-between">
         <div class="flex items-center gap-2 min-w-0">
           <Bug class="w-5 h-5 shrink-0" />
           <h3 class="text-sm font-bold truncate">Rincian Surveilans Vektor: {{ item.jenis_vektor }}</h3>
@@ -116,17 +116,17 @@ const emit = defineEmits(['close']);
 
           <div v-if="detailType === 'sivera' && (item.jenis_vektor || '').includes('Nyamuk') && item.detail_data?.tangkapan_dalam" class="space-y-2">
             <span class="font-bold text-slate-700 dark:text-slate-300 block">Matriks Penangkapan Umpan Orang Malam (18.00 - 06.00 WIB):</span>
-            <div class="overflow-x-auto rounded-xl border border-purple-200 dark:border-purple-800">
+            <div class="overflow-x-auto rounded-xl border border-teal-200 dark:border-teal-800">
               <table class="w-full text-center text-xs bg-white dark:bg-slate-900 font-mono">
                 <thead>
-                  <tr class="bg-purple-100/70 dark:bg-purple-950/60 font-sans font-bold text-[11px] text-purple-900 dark:text-purple-200">
+                  <tr class="bg-teal-50 dark:bg-teal-950/50 font-sans font-bold text-[11px] text-[#005851] dark:text-teal-200">
                     <th class="py-1.5 px-2 text-left">Jam</th>
                     <th class="py-1.5 px-2">Dalam (D)</th>
                     <th class="py-1.5 px-2">Luar (L)</th>
                     <th class="py-1.5 px-2">Total</th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-purple-100 dark:divide-purple-900/40">
+                <tbody class="divide-y divide-teal-100 dark:divide-teal-900/40">
                   <tr v-for="slot in anophelesJamSlots" :key="slot.key">
                     <td class="py-1 px-2 text-left font-sans text-slate-600 dark:text-slate-300">{{ slot.label }}</td>
                     <td class="py-1 px-2">{{ item.detail_data.tangkapan_dalam[slot.key] || 0 }}</td>

@@ -167,7 +167,7 @@ const submitPengendalian = async () => {
     @close="!isSubmitting && emit('close')"
   >
     <div v-if="item" class="relative w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-      <div class="px-6 py-4 bg-gradient-to-r from-teal-600 to-[#005851] text-white flex items-center justify-between">
+      <div class="px-6 py-4 bg-gradient-to-r from-[#005851] to-[#00A99D] text-white flex items-center justify-between">
         <div class="flex items-center gap-2 min-w-0">
           <ShieldCheck class="w-5 h-5 shrink-0" />
           <div class="min-w-0">
@@ -215,7 +215,7 @@ const submitPengendalian = async () => {
             <div class="space-y-2">
               <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
                 <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
-                  <input type="checkbox" v-model="form.jentik_kimia" class="rounded text-teal-600" />
+                  <input type="checkbox" v-model="form.jentik_kimia" class="rounded accent-[#00A99D] text-teal-600" />
                   <span>Larvasidasi Kimia (Abatisasi / Temephos)</span>
                 </label>
                 <div v-if="form.jentik_kimia" class="grid grid-cols-2 gap-2 pl-6 pt-1">
@@ -232,18 +232,18 @@ const submitPengendalian = async () => {
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <label class="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer font-semibold text-slate-800 dark:text-slate-200">
-                  <input type="checkbox" v-model="form.jentik_fisik" class="rounded text-teal-600" />
+                  <input type="checkbox" v-model="form.jentik_fisik" class="rounded accent-[#00A99D] text-teal-600" />
                   <span>Pengendalian Fisik (3M Plus / Kuras / Tutup)</span>
                 </label>
                 <label class="flex items-center gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 cursor-pointer font-semibold text-slate-800 dark:text-slate-200">
-                  <input type="checkbox" v-model="form.jentik_biologi" class="rounded text-teal-600" />
+                  <input type="checkbox" v-model="form.jentik_biologi" class="rounded accent-[#00A99D] text-teal-600" />
                   <span>Biologi (BTI / Ikan Pemakan Jentik)</span>
                 </label>
               </div>
 
               <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 space-y-2">
                 <label class="flex items-center gap-2 cursor-pointer font-bold text-slate-800 dark:text-slate-200">
-                  <input type="checkbox" v-model="form.nyamuk_fogging" class="rounded text-teal-600" />
+                  <input type="checkbox" v-model="form.nyamuk_fogging" class="rounded accent-[#00A99D] text-teal-600" />
                   <span>Pengasapan / Fogging / ULV Nyamuk Dewasa</span>
                 </label>
                 <div v-if="form.nyamuk_fogging" class="grid grid-cols-1 sm:grid-cols-3 gap-2 pl-6 pt-1">
@@ -356,7 +356,7 @@ const submitPengendalian = async () => {
           type="button"
           @click="submitPengendalian()"
           :disabled="isSubmitting"
-          class="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-teal-600 to-[#005851] text-white hover:brightness-105 transition shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          class="px-5 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-[#00A99D] to-[#005851] text-white hover:brightness-105 transition shadow-sm flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
         >
           <Check class="w-4 h-4" />
           <span>{{ isSubmitting ? 'Menyimpan...' : 'Simpan Tindakan Pengendalian' }}</span>

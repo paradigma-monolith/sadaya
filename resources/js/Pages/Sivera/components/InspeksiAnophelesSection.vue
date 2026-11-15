@@ -106,7 +106,7 @@ defineProps({
           class="flex items-center gap-2 p-2 rounded-xl border transition cursor-pointer text-xs"
           :class="formJentik.jenis_habitat.includes(hab) ? 'bg-teal-50 dark:bg-teal-900/40 border-teal-500 font-bold text-teal-800 dark:text-teal-200' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'"
         >
-          <input type="checkbox" :value="hab" v-model="formJentik.jenis_habitat" class="rounded text-teal-600 focus:ring-teal-500" />
+          <input type="checkbox" :value="hab" v-model="formJentik.jenis_habitat" class="rounded accent-[#00A99D] text-teal-600 focus:ring-teal-500" />
           <span>{{ hab }}</span>
         </label>
       </div>
@@ -179,9 +179,9 @@ defineProps({
 
   <!-- 4.7 NYAMUK ANOPHELES DEWASA -->
   <div v-else-if="activeVektor === 'Nyamuk Anopheles'" class="space-y-4">
-    <div class="p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200/60 dark:border-purple-800/50">
-      <span class="text-xs font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
-        <Bug class="w-4 h-4 text-purple-600" />
+    <div class="p-3 rounded-2xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200/60 dark:border-teal-800/50">
+      <span class="text-xs font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1.5">
+        <Bug class="w-4 h-4 text-teal-600" />
         <span>Surveilans Nyamuk Anopheles Dewasa (Penangkapan Umpan Orang Malam - Matriks 12 Jam)</span>
       </span>
     </div>
@@ -230,10 +230,10 @@ defineProps({
       </div>
     </div>
 
-    <div class="p-4 rounded-2xl bg-purple-50/40 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 space-y-3">
+    <div class="p-4 rounded-2xl bg-teal-50/30 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800/60 space-y-3">
       <div class="flex items-center justify-between gap-2 flex-wrap">
-        <h4 class="text-xs font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
-          <Clock class="w-4 h-4 text-purple-600" />
+        <h4 class="text-xs font-bold text-[#005851] dark:text-teal-300 flex items-center gap-1.5">
+          <Clock class="w-4 h-4 text-[#00A99D]" />
           <span>Matriks Penangkapan Nyamuk 12 Jam (18.00 - 06.00 WIB)</span>
         </h4>
         <span class="text-xs font-mono font-bold text-slate-500">Total Man-Hours: {{ manHours }} jam-orang</span>
@@ -244,11 +244,11 @@ defineProps({
         <div
           v-for="slot in anophelesJamSlots"
           :key="`mob-${slot.key}`"
-          class="p-2.5 rounded-xl border border-purple-200 dark:border-purple-800 bg-white dark:bg-slate-900 space-y-2"
+          class="p-2.5 rounded-xl border border-teal-200 dark:border-teal-800 bg-white dark:bg-slate-900 space-y-2"
         >
           <div class="flex items-center justify-between text-xs">
             <span class="font-bold text-slate-800 dark:text-slate-100">{{ slot.label }}</span>
-            <span class="font-mono font-bold text-purple-700 dark:text-purple-300">
+            <span class="font-mono font-bold text-[#005851] dark:text-teal-300">
               Total: {{ Number(formNyamuk.tangkapan_dalam[slot.key] || 0) + Number(formNyamuk.tangkapan_luar[slot.key] || 0) }}
             </span>
           </div>
@@ -263,26 +263,26 @@ defineProps({
             </label>
           </div>
         </div>
-        <div class="p-2.5 rounded-xl bg-purple-100/70 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 flex items-center justify-between text-xs font-bold">
+        <div class="p-2.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 flex items-center justify-between text-xs font-bold">
           <span>TOTAL TERTANGKAP</span>
-          <span class="font-mono text-purple-800 dark:text-purple-200">
+          <span class="font-mono text-[#005851] dark:text-teal-200">
             D: {{ totalDalamNyamuk }} &bull; L: {{ totalLuarNyamuk }} &bull; {{ totalTertangkapNyamuk }} ekor
           </span>
         </div>
       </div>
 
-      <div class="hidden sm:block overflow-x-auto rounded-xl border border-purple-200 dark:border-purple-800">
+      <div class="hidden sm:block overflow-x-auto rounded-xl border border-teal-200 dark:border-teal-800">
         <table class="w-full text-xs text-center bg-white dark:bg-slate-900">
           <thead>
-            <tr class="bg-purple-100/70 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 text-[11px] font-bold">
+            <tr class="bg-teal-50 dark:bg-teal-950/60 text-[#005851] dark:text-teal-200 text-[11px] font-bold">
               <th class="py-2 px-3 text-left">Jam Penangkapan</th>
               <th class="py-2 px-3">Dalam Rumah (D)</th>
               <th class="py-2 px-3">Luar Rumah (L)</th>
               <th class="py-2 px-3">Total Jam (D+L)</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-purple-100 dark:divide-purple-900/40 font-mono">
-            <tr v-for="slot in anophelesJamSlots" :key="slot.key" class="hover:bg-purple-50/50 dark:hover:bg-purple-950/30">
+          <tbody class="divide-y divide-teal-100 dark:divide-teal-900/40 font-mono">
+            <tr v-for="slot in anophelesJamSlots" :key="slot.key" class="hover:bg-teal-50/50 dark:hover:bg-teal-950/30">
               <td class="py-1.5 px-3 text-left font-sans font-semibold text-slate-700 dark:text-slate-300 text-xs">{{ slot.label }}</td>
               <td class="py-1 px-3">
                 <input type="number" min="0" v-model.number="formNyamuk.tangkapan_dalam[slot.key]" class="w-16 py-1 text-center font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs" />
@@ -294,31 +294,31 @@ defineProps({
                 {{ Number(formNyamuk.tangkapan_dalam[slot.key] || 0) + Number(formNyamuk.tangkapan_luar[slot.key] || 0) }}
               </td>
             </tr>
-            <tr class="bg-purple-50 dark:bg-purple-950/80 font-bold border-t-2 border-purple-200 dark:border-purple-800 text-xs">
+            <tr class="bg-teal-50 dark:bg-teal-950/80 font-bold border-t-2 border-teal-200 dark:border-teal-800 text-xs">
               <td class="py-2.5 px-3 text-left font-sans">TOTAL TERTANGKAP</td>
-              <td class="py-2.5 px-3 text-purple-700 dark:text-purple-300 font-extrabold">{{ totalDalamNyamuk }} ekor</td>
-              <td class="py-2.5 px-3 text-purple-700 dark:text-purple-300 font-extrabold">{{ totalLuarNyamuk }} ekor</td>
-              <td class="py-2.5 px-3 text-purple-900 dark:text-purple-100 font-black">{{ totalTertangkapNyamuk }} ekor</td>
+              <td class="py-2.5 px-3 text-[#005851] dark:text-teal-300 font-extrabold">{{ totalDalamNyamuk }} ekor</td>
+              <td class="py-2.5 px-3 text-[#005851] dark:text-teal-300 font-extrabold">{{ totalLuarNyamuk }} ekor</td>
+              <td class="py-2.5 px-3 text-[#005851] dark:text-teal-100 font-black">{{ totalTertangkapNyamuk }} ekor</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800 text-xs">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-teal-200 dark:border-teal-800 text-xs">
         <div>
           <span class="text-slate-500 block text-[11px]">MHD Dalam Rumah (D):</span>
-          <strong class="text-purple-700 dark:text-purple-300 font-mono text-base">{{ mhdDalam }}</strong>
+          <strong class="text-[#005851] dark:text-[#00A99D] font-mono text-base">{{ mhdDalam }}</strong>
           <span class="text-[10px] text-slate-400 block">(Total D / Man-Hours)</span>
         </div>
         <div>
           <span class="text-slate-500 block text-[11px]">MHD Luar Rumah (L):</span>
-          <strong class="text-purple-700 dark:text-purple-300 font-mono text-base">{{ mhdLuar }}</strong>
+          <strong class="text-[#005851] dark:text-[#00A99D] font-mono text-base">{{ mhdLuar }}</strong>
           <span class="text-[10px] text-slate-400 block">(Total L / Man-Hours)</span>
         </div>
         <div>
           <span class="text-slate-500 block text-[11px]">MBR (Man Biting Rate):</span>
           <div class="flex items-center justify-between">
-            <strong class="text-purple-700 dark:text-purple-300 font-mono text-base">{{ mbrAnopheles }}</strong>
+            <strong class="text-[#005851] dark:text-[#00A99D] font-mono text-base">{{ mbrAnopheles }}</strong>
             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border" :class="getRiskBadgeClass(statusAnophelesNyamuk)">{{ statusAnophelesNyamuk }}</span>
           </div>
           <span class="text-[10px] text-slate-400 block">Temuan Nyamuk: <strong>{{ adaAnopheles }}</strong></span>

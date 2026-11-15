@@ -96,7 +96,7 @@ const vektorTabs = [
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
         <div>
           <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Bug class="w-4 h-4 text-indigo-500" />
+            <Bug class="w-4 h-4 text-[#00A99D]" />
             <span>Surveilans Vektor dan Reservoar (SIVERA)</span>
           </h2>
           <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Pemantauan 7 jenis vektor &amp; binatang pembawa penyakit (Jentik Aedes, Lalat, Kecoa, Tikus, Pinjal, Anopheles) di perimeter dan buffer.</p>
@@ -105,7 +105,7 @@ const vektorTabs = [
           <button
             type="button"
             @click="emit('open-add-inspeksi', 'sivera', siveraFilterVektor !== 'Semua Data' && siveraFilterVektor !== 'Dashboard' ? siveraFilterVektor : 'Jentik Aedes sp.')"
-            class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:brightness-105 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
+            class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#005851] to-[#00A99D] hover:brightness-105 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
             <Plus class="w-3.5 h-3.5" />
             <span>+ Catat Data Surveilans {{ siveraFilterVektor !== 'Semua Data' && siveraFilterVektor !== 'Dashboard' ? siveraFilterVektor : 'Baru' }}</span>
@@ -121,7 +121,7 @@ const vektorTabs = [
           type="button"
           @click="emit('switch-vektor', vTab)"
           class="px-3 py-1.5 rounded-full font-semibold transition shrink-0 cursor-pointer flex items-center gap-1.5"
-          :class="siveraFilterVektor === vTab ? 'bg-indigo-600 text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
+          :class="siveraFilterVektor === vTab ? 'bg-gradient-to-r from-[#005851] to-[#00A99D] text-white shadow-xs' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'"
         >
           <Activity v-if="vTab === 'Dashboard'" class="w-3.5 h-3.5" />
           <span>{{ vTab }}</span>
@@ -215,7 +215,7 @@ const vektorTabs = [
         <!-- Active filter pills -->
         <div v-if="hasActiveFilters" class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/50 flex items-center gap-2 flex-wrap text-xs">
           <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Filter Aktif:</span>
-          <span v-if="search" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-[11px]">
+          <span v-if="search" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/50 text-[#005851] dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-[11px]">
             Kata Kunci: "{{ search }}"
             <button type="button" @click="emit('update:search', ''); triggerImmediateFilter()" aria-label="Hapus filter kata kunci" class="hover:text-rose-600 font-bold cursor-pointer">&times;</button>
           </span>
@@ -223,7 +223,7 @@ const vektorTabs = [
             Wilker: {{ selectedWilker }}
             <button type="button" @click="emit('update:selectedWilker', ''); triggerImmediateFilter()" aria-label="Hapus filter wilker" class="hover:text-rose-600 font-bold cursor-pointer">&times;</button>
           </span>
-          <span v-if="selectedRisiko" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-[11px]">
+          <span v-if="selectedRisiko" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/50 text-[#005851] dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-[11px]">
             Status: {{ selectedRisiko }}
             <button type="button" @click="emit('update:selectedRisiko', ''); triggerImmediateFilter()" aria-label="Hapus filter status" class="hover:text-rose-600 font-bold cursor-pointer">&times;</button>
           </span>
@@ -241,7 +241,7 @@ const vektorTabs = [
       <div v-if="siveraFilterVektor === 'Dashboard'" class="space-y-6 mt-4">
         <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-900 via-teal-950 to-slate-900 border border-teal-500/30 text-white p-6 md:p-7 shadow-xl">
           <div class="absolute -right-12 -bottom-12 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          <div class="absolute -left-12 -top-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -left-12 -top-12 w-64 h-64 bg-[#00A99D]/10 rounded-full blur-3xl pointer-events-none"></div>
 
           <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
             <div class="max-w-2xl">

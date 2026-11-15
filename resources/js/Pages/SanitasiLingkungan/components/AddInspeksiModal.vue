@@ -469,7 +469,7 @@ const submitInspeksi = async () => {
           v-if="allowSivera"
           type="button"
           @click="allowNextNavigation(); emit('switch-sivera')"
-          class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer shrink-0 text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400"
+          class="px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer shrink-0 text-slate-500 hover:text-[#005851] dark:hover:text-[#00A99D]"
         >
           <Bug class="w-3.5 h-3.5" />
           <span>Surveilans SIVERA (Vektor)</span>

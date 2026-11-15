@@ -363,7 +363,7 @@ const vectorTabs = [
             <!-- Active filter pills -->
             <div v-if="search || selectedWilker || selectedRisiko || tglMulai || tglSelesai" class="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/50 flex items-center gap-2 flex-wrap text-xs">
               <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Filter Aktif:</span>
-              <span v-if="search" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-800 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 text-[11px]">
+              <span v-if="search" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 text-[#005851] border border-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800 text-[11px]">
                 Kata Kunci: "{{ search }}"
                 <button type="button" @click="search = ''; applyFilterImmediate()" aria-label="Hapus filter kata kunci" title="Hapus filter kata kunci" class="hover:text-rose-600 font-bold cursor-pointer">&times;</button>
               </span>
@@ -371,7 +371,7 @@ const vectorTabs = [
                 Wilker: {{ selectedWilker }}
                 <button type="button" @click="selectedWilker = ''; applyFilterImmediate()" aria-label="Hapus filter wilayah kerja" title="Hapus filter wilayah kerja" class="hover:text-rose-600 font-bold cursor-pointer">&times;</button>
               </span>
-              <span v-if="selectedRisiko" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800 text-[11px]">
+              <span v-if="selectedRisiko" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-teal-50 text-[#005851] border border-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:border-teal-800 text-[11px]">
                 Status: {{ selectedRisiko }}
                 <button type="button" @click="selectedRisiko = ''; applyFilterImmediate()" aria-label="Hapus filter status baku mutu" title="Hapus filter status baku mutu" class="hover:text-rose-600 font-bold cursor-pointer">&times;</button>
               </span>

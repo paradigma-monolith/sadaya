@@ -48,7 +48,7 @@ const needsControl = (item) => {
           <div class="min-w-0">
             <div class="flex items-center gap-1.5 flex-wrap">
               <span class="text-[10px] font-mono text-slate-400">#{{ idx + 1 }}</span>
-              <span class="font-bold text-indigo-600 dark:text-indigo-400">{{ item.jenis_vektor }}</span>
+              <span class="font-bold text-[#005851] dark:text-[#00A99D]">{{ item.jenis_vektor }}</span>
               <span class="text-slate-300 dark:text-slate-600">&bull;</span>
               <span class="font-mono text-[11px] text-slate-500">{{ formatDate(item.tanggal) }}</span>
             </div>
@@ -151,7 +151,7 @@ const needsControl = (item) => {
               @click="emit('edit', item)"
               aria-label="Edit Data Surveilans"
               title="Edit Data"
-              class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400 transition cursor-pointer"
+              class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-[#005851] dark:text-[#00A99D] transition cursor-pointer"
             >
               <Edit class="w-3.5 h-3.5" />
             </button>
@@ -203,7 +203,7 @@ const needsControl = (item) => {
             <td class="py-3 px-3 text-slate-400 font-mono">{{ idx + 1 }}</td>
             <td class="py-3 px-3 font-semibold text-slate-800 dark:text-slate-200">{{ item.wilker }}</td>
             <td class="py-3 px-3 font-mono text-slate-500">{{ formatDate(item.tanggal) }}</td>
-            <td class="py-3 px-3 font-bold text-indigo-600 dark:text-indigo-400">{{ item.jenis_vektor }}</td>
+            <td class="py-3 px-3 font-bold text-[#005851] dark:text-[#00A99D]">{{ item.jenis_vektor }}</td>
             <td class="py-3 px-3 text-slate-600 dark:text-slate-300">{{ item.lokasi || '-' }}</td>
             <td class="py-3 px-3 font-mono">
               <span class="text-slate-700 dark:text-slate-300 font-semibold">{{ item.parameter_utama }}</span>
@@ -310,7 +310,7 @@ const needsControl = (item) => {
                   type="button"
                   @click="emit('edit', item)"
                   aria-label="Edit Data Surveilans"
-                  class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-indigo-600 dark:text-indigo-400 transition cursor-pointer"
+                  class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-[#005851] dark:text-[#00A99D] transition cursor-pointer"
                   title="Edit Data"
                 >
                   <Edit class="w-3.5 h-3.5" />
@@ -356,7 +356,7 @@ const needsControl = (item) => {
           <select
             :value="perPage"
             @change="emit('change-per-page', $event.target.value)"
-            class="py-1 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            class="py-1 px-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-[#00A99D]"
           >
             <option :value="10">10 / hal</option>
             <option :value="25">25 / hal</option>
@@ -370,7 +370,7 @@ const needsControl = (item) => {
         :meta="meta"
         compact
         :preserve-scroll="false"
-        active-class="bg-indigo-600 text-white font-bold shadow-xs"
+        active-class="bg-[#00A99D] text-white font-bold shadow-xs"
       />
     </div>
   </div>
