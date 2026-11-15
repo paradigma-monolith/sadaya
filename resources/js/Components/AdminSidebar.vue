@@ -20,6 +20,7 @@ import {
   CalendarDays
 } from 'lucide-vue-next';
 import { useSidebar } from '@/composables/useSidebar';
+import { getUserInitials } from '@/utils/userAvatar';
 
 const props = defineProps({
   mode: {
@@ -50,6 +51,9 @@ const currentUser = computed(() => {
     return (typeof window !== 'undefined' && window.authUser) ? window.authUser : null;
   }
 });
+
+const avatarLoadError = ref(false);
+const userInitials = computed(() => getUserInitials(currentUser.value?.name, 'AD'));
 
 // Synchronized persistent sidebar state via composable
 const { isOpen, isCollapsed, toggleCollapse, closeMobile } = useSidebar();
@@ -570,10 +574,19 @@ const navSections = computed(() => {
             :title="isCollapsed ? (currentUser?.name || 'Profil Akun') : ''"
           >
             <img
-              :src="currentUser?.avatar_url || 'https://ui-avatars.com/api/?name=Admin&background=0f172a&color=fff'"
+              v-if="currentUser?.avatar_url && !avatarLoadError"
+              :src="currentUser.avatar_url"
               :alt="currentUser?.name || 'User'"
+              @error="avatarLoadError = true"
               class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0"
             />
+            <span
+              v-else
+              class="w-7 h-7 rounded-full bg-gradient-to-br from-[#005851] to-[#00A99D] text-white text-[10.5px] font-bold tracking-tight flex items-center justify-center border border-[#00A99D]/40 flex-shrink-0 select-none"
+              aria-hidden="true"
+            >
+              {{ userInitials }}
+            </span>
             <div v-if="!isCollapsed" class="overflow-hidden text-left leading-tight">
               <span class="block text-xs font-semibold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 dark:group-hover:text-white truncate">
                 {{ currentUser?.name || 'Administrator' }}

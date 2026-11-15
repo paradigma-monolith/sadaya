@@ -4,8 +4,10 @@ import { useTheme } from '@/composables/useTheme';
 import {
   computeRadarVectorMetrics,
   didSweepCrossBearing,
+  findMostRecentSweptBlip,
   getCompassSector,
   normalizeDeg,
+  resolveActiveRadarTarget,
 } from './radarTelemetryUtils';
 import {
   Radio,
@@ -60,6 +62,8 @@ const mapBearing = ref(0);
 const isOrbiting = ref(false);
 const isNodeCardMinimized = ref(false);
 const hoveredRadarBlip = ref(null);
+const isManualRadarLock = ref(false);
+const manualLockedNo = ref(null);
 
 // Real-time 60fps sweep synchronization & discrete target capture engine
 const blipHits = reactive({});
@@ -108,7 +112,17 @@ const radarFilterOptions = computed(() => {
   ];
 });
 
-const lockedRadarTarget = computed(() => hoveredRadarBlip.value || props.activeMapNode);
+const resolvedRadarTarget = computed(() => resolveActiveRadarTarget({
+  radarBlips: props.radarBlips,
+  hoveredBlip: hoveredRadarBlip.value,
+  isManualLock: isManualRadarLock.value,
+  pinnedNodeNo: manualLockedNo.value,
+  lastInterceptedNo: lastInterceptedNode.value?.no,
+  fallbackNode: props.activeMapNode,
+}));
+
+const lockedRadarTarget = computed(() => resolvedRadarTarget.value.target);
+const radarTargetMode = computed(() => resolvedRadarTarget.value.mode);
 
 const lockedRadarMeta = computed(() => {
   const target = lockedRadarTarget.value;
@@ -174,6 +188,37 @@ const networkStats = computed(() => {
 
 const isBlipHot = (no) => Boolean(blipHits[no]);
 
+const setLastInterceptedBlip = (blip) => {
+  if (!blip || blip.is_hq) return;
+  lastInterceptedNode.value = {
+    no: blip.no,
+    shortCode: blip.shortCode,
+    shortTitle: blip.shortTitle,
+    bearingDeg: blip.bearingDeg,
+    sector: getCompassSector(blip.bearingDeg),
+    distanceKm: blip.distanceKm,
+    totalDocs: Number(blip.total || 0),
+  };
+};
+
+const releaseManualRadarLock = () => {
+  isManualRadarLock.value = false;
+  manualLockedNo.value = null;
+};
+
+const selectRadarBlip = (blip) => {
+  if (!blip) return;
+  if (blip.is_hq) {
+    releaseManualRadarLock();
+  } else if (isManualRadarLock.value && manualLockedNo.value === blip.no) {
+    releaseManualRadarLock();
+  } else {
+    isManualRadarLock.value = true;
+    manualLockedNo.value = blip.no;
+  }
+  emit('select-office', blip);
+};
+
 const registerBlipCapture = (blip) => {
   const hitNo = blip.no;
   const seq = ++hitSeqCounter;
@@ -187,17 +232,7 @@ const registerBlipCapture = (blip) => {
   }, 1350);
   pendingTimers.add(clearTimer);
 
-  if (!blip.is_hq) {
-    lastInterceptedNode.value = {
-      no: blip.no,
-      shortCode: blip.shortCode,
-      shortTitle: blip.shortTitle,
-      bearingDeg: blip.bearingDeg,
-      sector: getCompassSector(blip.bearingDeg),
-      distanceKm: blip.distanceKm,
-      totalDocs: Number(blip.total || 0),
-    };
-  }
+  setLastInterceptedBlip(blip);
 };
 
 const runSweepFrame = (ts) => {
@@ -321,8 +356,24 @@ watch(
     const target = props.bkkMapMarkers.find((m) => m.no === no);
     if (target) {
       isNodeCardMinimized.value = false;
+      if (target.is_hq) {
+        releaseManualRadarLock();
+      }
     }
   }
+);
+
+watch(
+  () => props.radarBlips,
+  (blips) => {
+    if (!blips || blips.length === 0) return;
+    const stillVisible = lastInterceptedNode.value && blips.some((b) => b.no === lastInterceptedNode.value.no && !b.is_hq);
+    if (!stillVisible) {
+      const seed = findMostRecentSweptBlip(blips, currentSweepDeg);
+      if (seed) setLastInterceptedBlip(seed);
+    }
+  },
+  { immediate: true }
 );
 
 onMounted(() => {
@@ -340,8 +391,13 @@ onMounted(() => {
     shouldMountMap.value = true;
   }
 
+  currentSweepDeg = normalizeDeg(props.radarAngle || 0);
+  if (!lastInterceptedNode.value) {
+    const initialSeed = findMostRecentSweptBlip(props.radarBlips, currentSweepDeg);
+    if (initialSeed) setLastInterceptedBlip(initialSeed);
+  }
+
   if (typeof requestAnimationFrame !== 'undefined') {
-    currentSweepDeg = normalizeDeg(props.radarAngle || 0);
     lastRafTs = 0;
     sweepRafId = requestAnimationFrame(runSweepFrame);
   }
@@ -793,9 +849,35 @@ defineExpose({ flyToNode });
               <!-- RNG//02: Target Vector Distance & Link Quality -->
               <div v-if="lockedRadarMetrics" class="sci-fi-frame">
                 <div class="sci-fi-frame-inner bg-white/92 dark:bg-[#001614]/92 px-2 py-1.5 space-y-1">
-                  <div class="flex items-center justify-between text-[7.5px] font-bold tracking-wider text-[#007B72] dark:text-[#5eead4] uppercase">
-                    <span>RNG//02</span>
-                    <strong class="text-[#004640] dark:text-[#99CC33]">{{ lockedRadarTarget?.shortCode || 'BDG' }}</strong>
+                  <div class="flex items-center justify-between gap-1 text-[7.5px] font-bold tracking-wider text-[#007B72] dark:text-[#5eead4] uppercase">
+                    <span class="flex items-center gap-1 min-w-0">
+                      <span>RNG//02</span>
+                      <button
+                        v-if="radarTargetMode === 'pinned'"
+                        type="button"
+                        @click="releaseManualRadarLock"
+                        class="px-1 py-[0.5px] rounded-xs bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/45 text-[6.5px] leading-none hover:bg-amber-500/30 cursor-pointer"
+                        title="Lepas pin target dan kembali ikuti sapuan radar"
+                        aria-label="Lepas pin target radar"
+                      >
+                        PIN &times;
+                      </button>
+                      <span
+                        v-else-if="radarTargetMode === 'hover'"
+                        class="px-1 py-[0.5px] rounded-xs bg-[#00A99D]/20 text-[#005851] dark:text-[#5eead4] text-[6.5px] leading-none"
+                      >
+                        INSP
+                      </span>
+                      <span
+                        v-else-if="radarTargetMode === 'sweep'"
+                        class="inline-flex items-center gap-0.5 text-[6.5px] text-[#557A18] dark:text-[#99CC33]"
+                        title="Mengikuti sapuan radar secara otomatis"
+                      >
+                        <span class="w-1 h-1 rounded-full bg-[#7CA622] dark:bg-[#99CC33] animate-pulse"></span>
+                        TRK
+                      </span>
+                    </span>
+                    <strong class="text-[#004640] dark:text-[#99CC33] shrink-0">{{ lockedRadarTarget?.shortCode || 'BDG' }}</strong>
                   </div>
                   <div class="flex items-center justify-between text-[8.5px]">
                     <span class="text-slate-500 dark:text-slate-400">JARAK</span>
@@ -1036,7 +1118,7 @@ defineExpose({ flyToNode });
                       v-for="blip in radarBlips"
                       :key="`radar-blip-${blip.id}`"
                       type="button"
-                      @click="emit('select-office', blip)"
+                      @click="selectRadarBlip(blip)"
                       @mouseenter="hoveredRadarBlip = blip"
                       @mouseleave="hoveredRadarBlip = null"
                       class="absolute -translate-x-1/2 -translate-y-1/2 z-20 group/blip cursor-pointer focus:outline-none"
@@ -1139,7 +1221,7 @@ defineExpose({ flyToNode });
                       v-for="node in wingTransponders"
                       :key="`wing-rx-${node.id}`"
                       type="button"
-                      @click="emit('select-office', node)"
+                      @click="selectRadarBlip(node)"
                       @mouseenter="hoveredRadarBlip = node"
                       @mouseleave="hoveredRadarBlip = null"
                       class="w-full flex items-center justify-between gap-1 px-1.5 py-[3px] rounded-xs border text-left transition-all cursor-pointer"
@@ -1241,12 +1323,27 @@ defineExpose({ flyToNode });
                       {{ lockedRadarTarget.shortTitle }}
                     </strong>
                   </div>
-                  <div class="mt-0.5 text-[9px] text-slate-500 dark:text-[#99DFD6]/85 truncate tabular-nums">
-                    <span class="text-[#007B72] dark:text-[#5eead4] font-semibold">TGT LOCK</span>
-                    <span class="mx-1">&bull;</span>
-                    <span>{{ lockedRadarTarget.moda }}</span>
-                    <span class="mx-1">&bull;</span>
-                    <span>{{ lockedRadarMetrics.lat.toFixed(4) }}, {{ lockedRadarMetrics.lng.toFixed(4) }}</span>
+                  <div class="mt-0.5 text-[9px] text-slate-500 dark:text-[#99DFD6]/85 truncate tabular-nums flex items-center gap-1">
+                    <button
+                      v-if="radarTargetMode === 'pinned'"
+                      type="button"
+                      @click="releaseManualRadarLock"
+                      class="px-1 py-[0.5px] rounded-xs bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/45 font-bold hover:bg-amber-500/30 cursor-pointer shrink-0"
+                      title="Lepas kunci manual dan ikuti sapuan radar"
+                    >
+                      PIN LOCK &times;
+                    </button>
+                    <span
+                      v-else
+                      class="font-semibold shrink-0"
+                      :class="radarTargetMode === 'hover' ? 'text-[#007B72] dark:text-[#5eead4]' : 'text-[#557A18] dark:text-[#99CC33]'"
+                    >
+                      {{ radarTargetMode === 'hover' ? 'HOVER INSP' : (radarTargetMode === 'sweep' ? 'SWEEP TRK' : 'TGT LOCK') }}
+                    </span>
+                    <span>&bull;</span>
+                    <span class="truncate">{{ lockedRadarTarget.moda }}</span>
+                    <span>&bull;</span>
+                    <span class="shrink-0">{{ lockedRadarMetrics.lat.toFixed(4) }}, {{ lockedRadarMetrics.lng.toFixed(4) }}</span>
                   </div>
                 </div>
 

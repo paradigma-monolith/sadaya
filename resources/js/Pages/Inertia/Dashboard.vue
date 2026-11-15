@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useSidebar } from '@/composables/useSidebar';
+import { useTheme } from '@/composables/useTheme';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
 import BaseChart from '../../Components/BaseChart.vue';
 import DashboardKpiDeck from './components/DashboardKpiDeck.vue';
@@ -155,6 +156,7 @@ const refreshData = () => {
 };
 
 const { isCollapsed } = useSidebar();
+const { isDark } = useTheme();
 watch(isCollapsed, () => {
   [50, 120, 200, 280, 350].forEach((delay) => {
     setTimeout(() => {
@@ -282,16 +284,19 @@ const toggleSeries = (key) => {
 };
 
 const trendChartOption = computed(() => {
+  const dark = isDark.value;
   const dates = props.trend?.dates?.length ? props.trend.dates : ['1', '2', '3'];
   const seriesConfig = [
     {
       key: 'total',
       name: 'Total',
-      color: '#005851', // Kemenkes Turquoise Tua / Deep Teal
+      color: dark ? '#5eead4' : '#005851', // High-contrast Teal on Dark / Deep Teal on Light
       data: props.trend?.total || [],
       lineWidth: 2.5,
       area: true,
-      areaColor: ['rgba(0, 169, 157, 0.25)', 'rgba(0, 169, 157, 0.0)'],
+      areaColor: dark
+        ? ['rgba(94, 234, 212, 0.22)', 'rgba(94, 234, 212, 0.0)']
+        : ['rgba(0, 169, 157, 0.25)', 'rgba(0, 169, 157, 0.0)'],
     },
     {
       key: 'aircraft',
@@ -304,7 +309,7 @@ const trendChartOption = computed(() => {
     {
       key: 'ship',
       name: 'Kapal',
-      color: '#007D74', // Kemenkes Medium Teal
+      color: dark ? '#38bdf8' : '#007D74', // Distinct Cyan on Dark / Medium Teal on Light
       data: props.trend?.ship || [],
       lineWidth: 2.0,
       area: false,
@@ -385,15 +390,15 @@ const trendChartOption = computed(() => {
       type: 'category',
       data: dates,
       boundaryGap: trendViewMode.value === 'bar',
-      axisLine: { lineStyle: { color: '#e2e8f0' } },
+      axisLine: { lineStyle: { color: dark ? '#334155' : '#e2e8f0' } },
       axisTick: { show: false },
-      axisLabel: { color: '#64748b', fontSize: 10, fontWeight: 500 },
+      axisLabel: { color: dark ? '#94a3b8' : '#64748b', fontSize: 10, fontWeight: 500 },
     },
     yAxis: {
       type: 'value',
       minInterval: 1,
-      splitLine: { lineStyle: { color: '#f1f5f9', type: 'solid' } },
-      axisLabel: { color: '#64748b', fontSize: 10 },
+      splitLine: { lineStyle: { color: dark ? 'rgba(148, 163, 184, 0.12)' : '#f1f5f9', type: 'solid' } },
+      axisLabel: { color: dark ? '#94a3b8' : '#64748b', fontSize: 10 },
     },
     series,
   };
@@ -506,8 +511,12 @@ const radarBlips = computed(() => {
       <!-- ========================================================================= -->
       <!-- TOP COMMAND BAR: ENTERPRISE CLINICAL COMPACT HEADER                       -->
       <!-- ========================================================================= -->
-      <div class="rounded-xl bg-gradient-to-r from-[#003E38] to-[#005851] text-white px-4 py-3 border border-[#005851] shadow-xs font-sans">
-        <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#003631] via-[#004640] to-[#005851] text-white px-4 py-3 border border-[#00A99D]/30 shadow-sm font-sans">
+        <div
+          class="pointer-events-none absolute -right-12 -top-12 w-56 h-56 rounded-full opacity-25 blur-2xl"
+          style="background: radial-gradient(circle, rgba(0, 169, 157, 0.8), transparent 70%);"
+        ></div>
+        <div class="relative flex flex-wrap items-center justify-between gap-3">
           <!-- Left: Brand Telemetry Emblem & Status -->
           <div class="flex items-center gap-3 min-w-0">
             <button
@@ -515,7 +524,7 @@ const radarBlips = computed(() => {
               @click="triggerSonarPing"
               aria-label="Pancarkan sinyal ping sonar radar"
               title="Klik untuk memancarkan sinyal Ping Sonar Radar"
-              class="w-9 h-9 rounded-lg bg-[#002B27] hover:bg-[#00201D] flex items-center justify-center shrink-0 border border-[#00A99D]/40 cursor-pointer transition-colors"
+              class="relative w-9 h-9 rounded-lg bg-[#002B27] hover:bg-[#00201D] flex items-center justify-center shrink-0 border border-[#00A99D]/50 shadow-[0_0_12px_rgba(0,169,157,0.2)] cursor-pointer transition-all hover:scale-105"
             >
               <Radio class="w-4 h-4 text-[#99CC33]" />
             </button>
@@ -525,11 +534,14 @@ const radarBlips = computed(() => {
                 <h1 class="text-sm sm:text-[15px] font-bold tracking-tight text-white truncate">
                   Pusat Komando Surveilans &amp; Geospasial
                 </h1>
-                <span class="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#002B27]/80 text-[#99DFD6] border border-[#00A99D]/30">
-                  <span class="w-1.5 h-1.5 rounded-full bg-[#99CC33]"></span>
-                  <span>7 WILKER AKTIF</span>
+                <span class="hidden md:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-mono font-semibold bg-[#002B27]/85 text-[#99DFD6] border border-[#00A99D]/35">
+                  <span class="relative flex h-1.5 w-1.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#99CC33] opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-[#99CC33]"></span>
+                  </span>
+                  <span>{{ officesList.length || 7 }} WILKER AKTIF</span>
                 </span>
-                <span class="hidden xl:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium bg-[#002B27]/60 text-slate-200 border border-white/10 tabular-nums">
+                <span class="hidden xl:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-mono font-medium bg-[#002B27]/70 text-slate-200 border border-white/10 tabular-nums">
                   <Compass class="w-3 h-3 text-[#99CC33]" />
                   <span>AZM {{ String(radarAngle).padStart(3, '0') }}&deg;</span>
                 </span>
@@ -548,20 +560,20 @@ const radarBlips = computed(() => {
           <!-- Right: View Switcher & Sync -->
           <div class="flex flex-wrap items-center gap-1.5 shrink-0 text-xs">
             <!-- Unified View Mode Switcher -->
-            <div class="inline-flex items-center p-0.5 rounded-lg bg-[#002B27] border border-white/15 text-[11px] font-semibold">
+            <div class="inline-flex items-center p-0.5 rounded-lg bg-[#002B27]/90 border border-white/15 text-[11px] font-semibold">
               <button
                 type="button"
                 @click="dashboardViewMode = 'all'"
-                class="px-2.5 py-1 rounded-md transition-colors cursor-pointer"
-                :class="dashboardViewMode === 'all' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
+                class="px-2.5 py-1 rounded-md transition-all cursor-pointer"
+                :class="dashboardViewMode === 'all' ? 'bg-[#00A99D] text-white shadow-[0_0_12px_rgba(0,169,157,0.35)]' : 'text-slate-300 hover:text-white'"
               >
                 Semua
               </button>
               <button
                 type="button"
                 @click="dashboardViewMode = 'sinkarkes'"
-                class="px-2.5 py-1 rounded-md transition-colors cursor-pointer flex items-center gap-1"
-                :class="dashboardViewMode === 'sinkarkes' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
+                class="px-2.5 py-1 rounded-md transition-all cursor-pointer flex items-center gap-1"
+                :class="dashboardViewMode === 'sinkarkes' ? 'bg-[#00A99D] text-white shadow-[0_0_12px_rgba(0,169,157,0.35)]' : 'text-slate-300 hover:text-white'"
               >
                 <BarChart3 class="w-3 h-3 text-[#99CC33]" />
                 <span>SINKARKES</span>
@@ -569,8 +581,8 @@ const radarBlips = computed(() => {
               <button
                 type="button"
                 @click="dashboardViewMode = 'geospatial'"
-                class="px-2.5 py-1 rounded-md transition-colors cursor-pointer hidden sm:inline-flex items-center gap-1"
-                :class="dashboardViewMode === 'geospatial' ? 'bg-[#00A99D] text-white' : 'text-slate-300 hover:text-white'"
+                class="px-2.5 py-1 rounded-md transition-all cursor-pointer hidden sm:inline-flex items-center gap-1"
+                :class="dashboardViewMode === 'geospatial' ? 'bg-[#00A99D] text-white shadow-[0_0_12px_rgba(0,169,157,0.35)]' : 'text-slate-300 hover:text-white'"
               >
                 <Globe class="w-3 h-3 text-[#99DFD6]" />
                 <span>Peta</span>
@@ -580,7 +592,7 @@ const radarBlips = computed(() => {
             <button
               type="button"
               @click="triggerSonarPing"
-              class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-[#99CC33]/15 hover:bg-[#99CC33]/25 text-[#d9f99d] border border-[#99CC33]/35 transition-colors cursor-pointer"
+              class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-[#99CC33]/15 hover:bg-[#99CC33]/25 text-[#d9f99d] border border-[#99CC33]/40 transition-all cursor-pointer"
               title="Pancarkan Gelombang Sonar Radar"
             >
               <Zap class="w-3.5 h-3.5" :class="isSonarPinging ? 'animate-pulse' : ''" />
@@ -600,51 +612,73 @@ const radarBlips = computed(() => {
           </div>
         </div>
 
-        <!-- Quick Operational Module Launcher -->
-        <div class="mt-2.5 pt-2 border-t border-white/15 flex flex-wrap items-center gap-1.5 text-[11px]">
-          <span class="text-[10px] font-mono uppercase tracking-wider text-[#99DFD6]/80 mr-1 hidden sm:inline">Akses Cepat:</span>
-          <Link
-            :href="getUrl('/travel-consent')"
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-          >
-            <FileCheck class="w-3 h-3 text-[#99CC33]" />
-            <span>Travel Consent</span>
-          </Link>
-          <Link
-            :href="getUrl('/ship-surveillance')"
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-          >
-            <Ship class="w-3 h-3 text-[#99DFD6]" />
-            <span>TANGKAP Kapal</span>
-          </Link>
-          <Link
-            :href="getUrl('/sinkarkes-daily')"
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-          >
-            <CalendarDays class="w-3 h-3 text-[#99CC33]" />
-            <span>Rekap Harian</span>
-          </Link>
-          <Link
-            :href="getUrl('/sinkarkes')"
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-          >
-            <FileSpreadsheet class="w-3 h-3 text-[#99DFD6]" />
-            <span>Form SINKARKES</span>
-          </Link>
-          <Link
-            :href="getUrl('/sanitasi-lingkungan')"
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-          >
-            <ClipboardCheck class="w-3 h-3 text-[#99CC33]" />
-            <span>Sanitasi Lingkungan</span>
-          </Link>
-          <Link
-            :href="getUrl('/sivera')"
-            class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
-          >
-            <Bug class="w-3 h-3 text-rose-300" />
-            <span>SIVERA</span>
-          </Link>
+        <!-- Quick Operational Module Launcher + Readiness Telemetry -->
+        <div class="relative mt-2.5 pt-2 border-t border-white/15 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="text-[10px] font-mono uppercase tracking-wider text-[#99DFD6]/80 mr-1 hidden sm:inline">Akses Cepat:</span>
+            <Link
+              :href="getUrl('/travel-consent')"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+            >
+              <FileCheck class="w-3 h-3 text-[#99CC33]" />
+              <span>Travel Consent</span>
+            </Link>
+            <Link
+              :href="getUrl('/ship-surveillance')"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+            >
+              <Ship class="w-3 h-3 text-[#99DFD6]" />
+              <span>TANGKAP Kapal</span>
+            </Link>
+            <Link
+              :href="getUrl('/sinkarkes-daily')"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+            >
+              <CalendarDays class="w-3 h-3 text-[#99CC33]" />
+              <span>Rekap Harian</span>
+            </Link>
+            <Link
+              :href="getUrl('/sinkarkes')"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+            >
+              <FileSpreadsheet class="w-3 h-3 text-[#99DFD6]" />
+              <span>Form SINKARKES</span>
+            </Link>
+            <Link
+              :href="getUrl('/sanitasi-lingkungan')"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+            >
+              <ClipboardCheck class="w-3 h-3 text-[#99CC33]" />
+              <span>Sanitasi Lingkungan</span>
+            </Link>
+            <Link
+              :href="getUrl('/sivera')"
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white border border-white/15 transition-colors font-medium"
+            >
+              <Bug class="w-3 h-3 text-rose-300" />
+              <span>SIVERA</span>
+            </Link>
+          </div>
+
+          <div class="hidden xl:flex items-center gap-2 font-mono text-[10px] tabular-nums">
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#002B27]/80 border border-white/10 text-[#99DFD6]">
+              <span class="text-white/60">HARI INI</span>
+              <strong class="text-white">{{ kpi.today || 0 }}</strong>
+            </span>
+            <span
+              class="inline-flex items-center gap-1 px-2 py-0.5 rounded border"
+              :class="(kpi.pending || 0) > 0
+                ? 'bg-amber-500/15 border-amber-400/40 text-amber-200'
+                : 'bg-[#002B27]/80 border-white/10 text-emerald-200'"
+            >
+              <span class="opacity-75">ANTRE</span>
+              <strong>{{ kpi.pending || 0 }}</strong>
+            </span>
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#99CC33]/15 border border-[#99CC33]/35 text-[#d9f99d]">
+              <span class="opacity-75">LAIK</span>
+              <strong>{{ kpi.compliance_rate || 0 }}%</strong>
+            </span>
+          </div>
         </div>
       </div>
 

@@ -22,6 +22,7 @@ import ClinicalSkeleton from './ClinicalSkeleton.vue';
 import { Toaster } from 'vue-sonner';
 import { useSidebar } from '@/composables/useSidebar';
 import { useTheme } from '@/composables/useTheme';
+import { getUserInitials } from '@/utils/userAvatar';
 
 const props = defineProps({
   mode: {
@@ -157,6 +158,9 @@ const currentUser = computed(() => {
     return (typeof window !== 'undefined' && window.authUser) ? window.authUser : null;
   }
 });
+
+const avatarLoadError = ref(false);
+const userInitials = computed(() => getUserInitials(currentUser.value?.name, 'AD'));
 
 // Synchronized persistent sidebar & theme state via composables
 const { isOpen, isCollapsed, toggleCollapse, toggleOpen } = useSidebar();
@@ -412,11 +416,16 @@ const handleLogout = () => {
 
               <!-- Desktop Clean Dynamic Breadcrumb -->
               <div class="hidden lg:flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <span class="font-bold text-[#005851] dark:text-[#4fd1c5] tracking-tight">SADAYA</span>
+                <span class="inline-flex items-center gap-1.5 font-bold text-[#005851] dark:text-[#4fd1c5] tracking-tight">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#00A99D] dark:bg-[#99CC33]"></span>
+                  <span>SADAYA</span>
+                </span>
                 <span class="text-slate-300 dark:text-slate-700">/</span>
-                <span class="font-medium text-slate-700 dark:text-slate-200">{{ breadcrumbLabel }}</span>
-                <span class="text-slate-300 dark:text-slate-700">·</span>
-                <span class="text-[11px] text-slate-400 dark:text-slate-500">Wilayah Kerja Jawa Barat</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-200">{{ breadcrumbLabel }}</span>
+                <span class="text-slate-300 dark:text-slate-700">&bull;</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#16202a] text-[10px] font-mono text-slate-500 dark:text-slate-400 border border-slate-200/70 dark:border-slate-700/70">
+                  BKK Bandung
+                </span>
               </div>
             </div>
 
@@ -558,11 +567,23 @@ const handleLogout = () => {
                   title="Menu Akun Pengguna"
                   class="flex items-center gap-1.5 p-1 sm:pr-2.5 rounded-full bg-white dark:bg-[#16202a] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all group cursor-pointer max-w-[190px]"
                 >
-                  <img
-                    :src="currentUser?.avatar_url || 'https://ui-avatars.com/api/?name=Admin&background=0f172a&color=fff'"
-                    :alt="currentUser?.name || 'User'"
-                    class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700 shrink-0"
-                  />
+                  <span class="relative shrink-0">
+                    <img
+                      v-if="currentUser?.avatar_url && !avatarLoadError"
+                      :src="currentUser.avatar_url"
+                      :alt="currentUser?.name || 'User'"
+                      @error="avatarLoadError = true"
+                      class="w-7 h-7 rounded-full object-cover border border-slate-200 dark:border-slate-700"
+                    />
+                    <span
+                      v-else
+                      class="w-7 h-7 rounded-full bg-gradient-to-br from-[#005851] to-[#00A99D] text-white text-[10.5px] font-bold tracking-tight flex items-center justify-center border border-[#00A99D]/40 shadow-2xs select-none"
+                      aria-hidden="true"
+                    >
+                      {{ userInitials }}
+                    </span>
+                    <span class="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#99CC33] ring-1.5 ring-white dark:ring-[#16202a]"></span>
+                  </span>
                   <div class="hidden md:block text-left min-w-0 flex-1">
                     <span class="block font-semibold text-slate-800 dark:text-slate-100 group-hover:text-slate-950 dark:group-hover:text-white truncate text-xs leading-tight">
                       {{ currentUser?.name }}

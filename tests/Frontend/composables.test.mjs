@@ -22,6 +22,8 @@ import {
   getCompassSector,
   didSweepCrossBearing,
   computeRadarVectorMetrics,
+  findMostRecentSweptBlip,
+  resolveActiveRadarTarget,
 } from '../../resources/js/Pages/Inertia/components/radarTelemetryUtils.js';
 
 test('useDate formats valid dates and handles empty input', () => {
@@ -182,6 +184,65 @@ test('radarTelemetryUtils detects sweep crossings, compass sectors, and matches 
   assert.equal(dossier.sinkarkes.compliancePercent, 92);
   assert.equal(dossier.sinkarkes.filledMonths, 11);
   assert.equal(dossier.sinkarkes.alatAngkut, 145);
+});
+
+test('radarTelemetryUtils tracks active swept target by priority and handles wrap-around seeding', () => {
+  const hq = { no: 1, shortCode: 'BDG', is_hq: true, bearingDeg: 0, distanceKm: 0 };
+  const ptb = { no: 6, shortCode: 'PTB', is_hq: false, bearingDeg: 21, distanceKm: 80 };
+  const cbn = { no: 3, shortCode: 'CBN', is_hq: false, bearingDeg: 80, distanceKm: 106 };
+  const bdo = { no: 2, shortCode: 'BDO', is_hq: false, bearingDeg: 282, distanceKm: 4 };
+  const blips = [hq, bdo, cbn, ptb];
+
+  // Wrap-around seed at 0deg picks BDO (282deg, 78deg behind beam) over HQ
+  assert.equal(findMostRecentSweptBlip(blips, 0)?.no, 2);
+  assert.equal(findMostRecentSweptBlip(blips, 85)?.no, 3);
+  assert.equal(findMostRecentSweptBlip([hq], 45), null);
+
+  // Sweep mode automatically tracks lastInterceptedNo instead of staying stuck on HQ
+  const swept = resolveActiveRadarTarget({
+    radarBlips: blips,
+    hoveredBlip: null,
+    isManualLock: false,
+    pinnedNodeNo: null,
+    lastInterceptedNo: 3,
+    fallbackNode: hq,
+  });
+  assert.equal(swept.mode, 'sweep');
+  assert.equal(swept.target?.shortCode, 'CBN');
+
+  // Hover overrides manual pin & sweep
+  const hovered = resolveActiveRadarTarget({
+    radarBlips: blips,
+    hoveredBlip: ptb,
+    isManualLock: true,
+    pinnedNodeNo: 3,
+    lastInterceptedNo: 2,
+    fallbackNode: hq,
+  });
+  assert.equal(hovered.mode, 'hover');
+  assert.equal(hovered.target?.shortCode, 'PTB');
+
+  // Manual pin holds target until filtered out
+  const pinned = resolveActiveRadarTarget({
+    radarBlips: blips,
+    isManualLock: true,
+    pinnedNodeNo: 6,
+    lastInterceptedNo: 2,
+    fallbackNode: hq,
+  });
+  assert.equal(pinned.mode, 'pinned');
+  assert.equal(pinned.target?.shortCode, 'PTB');
+
+  // When pinned node is filtered out (e.g. mode filter), falls back cleanly to live sweep
+  const filteredSweep = resolveActiveRadarTarget({
+    radarBlips: [hq, cbn, bdo],
+    isManualLock: true,
+    pinnedNodeNo: 6,
+    lastInterceptedNo: 3,
+    fallbackNode: hq,
+  });
+  assert.equal(filteredSweep.mode, 'sweep');
+  assert.equal(filteredSweep.target?.shortCode, 'CBN');
 });
 
 

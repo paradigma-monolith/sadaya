@@ -525,7 +525,9 @@ html.dark ::-webkit-scrollbar-thumb:hover {
     color: #f1f5f9;
 }
 
-:where(html.dark) select option {
+html.dark select option,
+:where(html.dark) select option,
+:where(html.dark) select option.text-slate-900 {
     background-color: #111820;
     color: #e2e8f0;
 }

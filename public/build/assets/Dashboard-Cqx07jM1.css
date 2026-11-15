@@ -1,0 +1,1 @@
+@keyframes shimmer-glide-dc4cda88{0%{transform:translate(-100%)}to{transform:translate(200%)}}.shimmer-bar[data-v-dc4cda88]{position:relative;overflow:hidden}.shimmer-bar[data-v-dc4cda88]:after{content:"";position:absolute;inset:0;width:50%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);animation:shimmer-glide-dc4cda88 2.6s ease-in-out infinite}

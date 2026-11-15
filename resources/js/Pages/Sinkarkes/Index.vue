@@ -22,6 +22,7 @@ import {
   Info,
   UserCheck,
   Upload,
+  X,
 } from 'lucide-vue-next';
 
 const ImportModal = defineAsyncComponent(() => import('./components/ImportModal.vue'));
@@ -197,6 +198,24 @@ const onInputChange = (excelRow, value, dataType) => {
   isDirty.value = true;
 };
 
+// Helper to check whether an input row has an entered value
+const isInputFilled = (excelRow) => {
+  const val = localMonthlyData.value[activeMonth.value]?.[excelRow];
+  return val !== undefined && val !== null && val !== '';
+};
+
+// Move focus to the next visible numeric input row on Enter (spreadsheet ergonomics)
+const focusNextInputRow = (event) => {
+  const inputs = Array.from(document.querySelectorAll('input[data-sinkarkes-input="true"]'))
+    .filter((el) => el.offsetParent !== null);
+  const idx = inputs.indexOf(event.target);
+  if (idx >= 0 && idx + 1 < inputs.length) {
+    const next = inputs[idx + 1];
+    next.focus();
+    next.select?.();
+  }
+};
+
 // Filtered items in active section based on search and type filter
 const filteredItems = computed(() => {
   const items = currentSectionObj.value?.items || [];
@@ -206,6 +225,9 @@ const filteredItems = computed(() => {
     // Type filter
     if (filterType.value === 'input' && item.type !== 'input') return false;
     if (filterType.value === 'summary' && item.type !== 'summary') return false;
+    if (filterType.value === 'unfilled') {
+      if (item.type !== 'input' || isInputFilled(item.excel_row)) return false;
+    }
 
     // Search query filter
     if (q) {
@@ -219,6 +241,17 @@ const filteredItems = computed(() => {
     return true;
   });
 });
+
+// Count remaining blank input rows in the active section
+const activeSectionUnfilledCount = computed(() => {
+  const items = currentSectionObj.value?.items || [];
+  return items.filter((item) => item.type === 'input' && !isInputFilled(item.excel_row)).length;
+});
+
+const resetViewFilters = () => {
+  searchQuery.value = '';
+  filterType.value = 'all';
+};
 
 // Counts for each section
 const sectionStats = computed(() => {
@@ -445,7 +478,7 @@ onUnmounted(() => {
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
               title="Pilih Wilayah Kerja"
             >
-              <option v-for="w in wilkerOptions" :key="w" :value="w" class="text-slate-900">
+              <option v-for="w in wilkerOptions" :key="w" :value="w" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">
                 {{ w }}
               </option>
             </select>
@@ -460,7 +493,7 @@ onUnmounted(() => {
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
               title="Pilih Tahun"
             >
-              <option v-for="y in availableYears" :key="y" :value="y" class="text-slate-900">
+              <option v-for="y in availableYears" :key="y" :value="y" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">
                 Tahun {{ y }}
               </option>
             </select>
@@ -518,7 +551,7 @@ onUnmounted(() => {
       <div class="clinical-surface p-3.5">
         <div>
           <div class="flex items-center justify-between mb-2">
-            <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider flex items-center gap-1.5">
+            <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <Calendar class="w-3.5 h-3.5 text-[#00A99D]" />
               <span>Bulan Pelaporan ({{ selectedYear }})</span>
             </span>
@@ -526,19 +559,21 @@ onUnmounted(() => {
               <button
                 type="button"
                 @click="prevMonth"
-                class="p-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Bulan Sebelumnya"
+                aria-label="Bulan Sebelumnya"
               >
                 <ChevronLeft class="w-4 h-4" />
               </button>
-              <span class="text-xs font-bold text-[#005851] min-w-[70px] text-center">
+              <span class="text-xs font-bold text-[#005851] dark:text-[#5eead4] min-w-[74px] text-center">
                 {{ monthsList.find(m => m.id === activeMonth)?.label }} {{ selectedYear }}
               </span>
               <button
                 type="button"
                 @click="nextMonth"
-                class="p-1 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
+                class="p-1 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="Bulan Berikutnya"
+                aria-label="Bulan Berikutnya"
               >
                 <ChevronRight class="w-4 h-4" />
               </button>
@@ -555,8 +590,8 @@ onUnmounted(() => {
               class="relative flex flex-col items-center justify-center py-1.5 px-1 rounded-lg text-xs font-semibold transition-all border cursor-pointer select-none"
               :class="[
                 activeMonth === m.id
-                  ? 'bg-[#005851] text-white border-[#005851] shadow-xs font-bold'
-                  : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100',
+                  ? 'bg-[#005851] dark:bg-[#007B72] text-white border-[#005851] dark:border-[#00A99D] ring-2 ring-[#00A99D]/25 shadow-xs font-bold'
+                  : 'bg-slate-50 dark:bg-[#16202a] text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-[#00A99D]/50',
               ]"
             >
               <span class="text-[11px] sm:text-xs tracking-tight">{{ m.label }}</span>
@@ -566,13 +601,13 @@ onUnmounted(() => {
                   :class="[
                     monthStatuses[m.id]?.hasData
                       ? (activeMonth === m.id ? 'bg-[#99CC33]' : 'bg-emerald-500')
-                      : (activeMonth === m.id ? 'bg-white/40' : 'bg-slate-300')
+                      : (activeMonth === m.id ? 'bg-white/40' : 'bg-slate-300 dark:bg-slate-600')
                   ]"
                 ></span>
                 <span
                   v-if="monthStatuses[m.id]?.hasData"
                   class="text-[9px] font-mono leading-none clinical-num"
-                  :class="activeMonth === m.id ? 'text-white/90' : 'text-slate-500'"
+                  :class="activeMonth === m.id ? 'text-white/90' : 'text-slate-500 dark:text-slate-400'"
                 >
                   {{ monthStatuses[m.id].filledCount }}
                 </span>
@@ -582,24 +617,24 @@ onUnmounted(() => {
         </div>
 
         <!-- Progress & Status Mini Strip -->
-        <div class="mt-3 pt-2.5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+        <div class="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
           <div class="flex items-center gap-3">
             <div class="flex items-center gap-1.5">
-              <CheckCircle2 class="w-4 h-4 text-emerald-600" />
-              <span>Kelengkapan Bulan Ini: <strong class="text-slate-800 clinical-num">{{ overallStats.filledInputs }} / {{ overallStats.totalInputs }}</strong> (<span class="clinical-num">{{ overallStats.percent }}%</span>)</span>
+              <CheckCircle2 class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Kelengkapan Bulan Ini: <strong class="text-slate-800 dark:text-slate-100 clinical-num">{{ overallStats.filledInputs }} / {{ overallStats.totalInputs }}</strong> (<span class="clinical-num font-semibold text-[#005851] dark:text-[#5eead4]">{{ overallStats.percent }}%</span>)</span>
             </div>
-            <div class="hidden sm:flex w-24 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-              <div class="bg-[#00A99D] h-full rounded-full transition-all duration-300" :style="{ width: `${overallStats.percent}%` }"></div>
+            <div class="hidden sm:flex w-28 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div class="bg-gradient-to-r from-[#00A99D] to-[#99CC33] h-full rounded-full transition-all duration-300" :style="{ width: `${overallStats.percent}%` }"></div>
             </div>
           </div>
 
           <div class="flex items-center gap-3 text-[11px]">
             <span v-if="activeMonthMeta.updater" class="flex items-center gap-1">
               <UserCheck class="w-3.5 h-3.5 text-slate-400" />
-              <span>Petugas: <strong class="text-slate-700">{{ activeMonthMeta.updater }}</strong></span>
+              <span>Petugas: <strong class="text-slate-700 dark:text-slate-200">{{ activeMonthMeta.updater }}</strong></span>
             </span>
-            <span class="text-slate-400 font-mono">
-              Wilker: <strong>{{ selectedWilker }}</strong>
+            <span class="text-slate-400 dark:text-slate-500 font-mono">
+              Wilker: <strong class="text-slate-600 dark:text-slate-300">{{ selectedWilker }}</strong>
             </span>
           </div>
         </div>
@@ -607,9 +642,9 @@ onUnmounted(() => {
 
       <!-- Navigation Tabs: KSE, UKP, PRL & Filters -->
       <div class="clinical-surface p-2.5">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
+        <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-2.5">
           <!-- Section Switcher Buttons -->
-          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+          <div class="flex items-center gap-1.5 overflow-x-auto pb-1 xl:pb-0 scrollbar-none">
             <button
               v-for="sec in sections"
               :key="sec.section_code"
@@ -630,8 +665,8 @@ onUnmounted(() => {
                 class="px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold clinical-num"
                 :class="[
                   activeSection === sec.section_code
-                    ? 'bg-white/25 text-white'
-                    : 'bg-slate-200 text-slate-700'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200'
                 ]"
               >
                 {{ sectionStats[sec.section_code]?.filledInputs || 0 }}/{{ sectionStats[sec.section_code]?.totalInputs || 0 }}
@@ -639,36 +674,80 @@ onUnmounted(() => {
             </button>
           </div>
 
-          <!-- Quick Search & Type Filter -->
-          <div class="flex items-center gap-2">
-            <!-- Search -->
-            <div class="relative flex-1 sm:w-80 lg:w-96">
+          <!-- Quick Search, Segmented Row Filter & Reset -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Search with Clear Button -->
+            <div class="relative flex-1 min-w-[200px] sm:w-64 lg:w-72">
               <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 v-model="searchQuery"
                 type="text"
-                placeholder="Cari indikator / no..."
-                class="clinical-input w-full pl-8 pr-3"
+                placeholder="Cari indikator / kode / no..."
+                class="clinical-input w-full pl-8 pr-7 py-1.5"
               />
+              <button
+                v-if="searchQuery"
+                type="button"
+                @click="searchQuery = ''"
+                aria-label="Bersihkan pencarian"
+                title="Bersihkan pencarian"
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer"
+              >
+                <X class="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            <!-- Filter Type -->
-            <select
-              v-model="filterType"
-              class="px-2.5 py-1.5 rounded-xl text-xs font-medium bg-slate-50 dark:bg-[#1a2130] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer"
-              title="Filter Baris"
-            >
-              <option value="all">Semua Baris</option>
-              <option value="input">Hanya Input</option>
-              <option value="summary">Hanya Total (Summary)</option>
-            </select>
+            <!-- Segmented Quick Filter Pills -->
+            <div class="inline-flex items-center gap-0.5 p-0.5 rounded-lg bg-slate-100 dark:bg-[#16202a] border border-slate-200/80 dark:border-slate-700 text-[11px] font-semibold">
+              <Filter class="w-3 h-3 text-slate-400 mx-1.5 hidden sm:block shrink-0" />
+              <button
+                type="button"
+                @click="filterType = 'all'"
+                class="px-2 py-1 rounded-md transition-colors cursor-pointer"
+                :class="filterType === 'all' ? 'bg-white dark:bg-[#005851] text-[#005851] dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+              >
+                Semua
+              </button>
+              <button
+                type="button"
+                @click="filterType = 'input'"
+                class="px-2 py-1 rounded-md transition-colors cursor-pointer"
+                :class="filterType === 'input' ? 'bg-white dark:bg-[#005851] text-[#005851] dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+              >
+                Input
+              </button>
+              <button
+                type="button"
+                @click="filterType = 'summary'"
+                class="px-2 py-1 rounded-md transition-colors cursor-pointer"
+                :class="filterType === 'summary' ? 'bg-white dark:bg-[#005851] text-[#005851] dark:text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'"
+              >
+                Total
+              </button>
+              <button
+                type="button"
+                @click="filterType = 'unfilled'"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md transition-colors cursor-pointer"
+                :class="filterType === 'unfilled' ? 'bg-amber-500 text-white shadow-2xs font-bold' : 'text-slate-500 dark:text-slate-400 hover:text-amber-700 dark:hover:text-amber-300'"
+                title="Tampilkan hanya indikator yang belum terisi"
+              >
+                <span>Kosong</span>
+                <span
+                  class="px-1 rounded text-[9.5px] font-mono clinical-num"
+                  :class="filterType === 'unfilled' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
+                >
+                  {{ activeSectionUnfilledCount }}
+                </span>
+              </button>
+            </div>
 
             <!-- Reset Active Month Data -->
             <button
               type="button"
               @click="resetActiveMonth"
-              class="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 transition-colors cursor-pointer"
+              class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-slate-200/80 dark:border-slate-700 hover:border-rose-200 transition-colors cursor-pointer"
               title="Kosongkan Isian Bulan Ini"
+              aria-label="Kosongkan Isian Bulan Ini"
             >
               <RotateCcw class="w-4 h-4" />
             </button>
@@ -725,10 +804,19 @@ onUnmounted(() => {
             </div>
 
             <!-- Input Card -->
-            <div v-else class="p-3 space-y-2 bg-white dark:bg-[#111820]">
+            <div
+              v-else
+              class="p-3 space-y-2 bg-white dark:bg-[#111820] transition-colors"
+              :class="isInputFilled(item.excel_row) ? 'border-l-3 border-l-[#00A99D] bg-[#00A99D]/[0.02] dark:bg-[#00A99D]/[0.06]' : ''"
+            >
               <div class="flex items-start justify-between gap-2">
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5 text-[10px] font-mono text-slate-400">
+                    <span
+                      v-if="isInputFilled(item.excel_row)"
+                      class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"
+                      title="Sudah terisi"
+                    ></span>
                     <span>Row {{ item.excel_row }}</span>
                     <span v-if="item.no">&bull; {{ item.no }}</span>
                     <span class="px-1 py-0.2 rounded bg-slate-100 dark:bg-[#1b2733] text-slate-600 dark:text-slate-300">{{ item.unit || '-' }}</span>
@@ -739,11 +827,13 @@ onUnmounted(() => {
               <div class="flex items-center gap-2">
                 <input
                   type="number"
+                  data-sinkarkes-input="true"
                   :step="item.data_type === 'decimal' ? '0.01' : '1'"
                   min="0"
                   placeholder="0"
                   :value="getValue(item.excel_row, 'input')"
                   @input="onInputChange(item.excel_row, $event.target.value, item.data_type)"
+                  @keydown.enter.prevent="focusNextInputRow($event)"
                   :aria-label="`Nilai ${item.label}`"
                   class="flex-1 py-1.5 px-3 text-right font-mono text-xs font-semibold rounded-lg bg-slate-50 dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#00A99D] clinical-num"
                 />
@@ -752,8 +842,15 @@ onUnmounted(() => {
             </div>
           </template>
 
-          <div v-if="filteredItems.length === 0" class="py-10 px-4 text-center text-slate-400 text-xs">
-            Tidak ada baris data yang cocok.
+          <div v-if="filteredItems.length === 0" class="py-10 px-4 text-center text-slate-400 text-xs space-y-2">
+            <p class="font-medium text-slate-600 dark:text-slate-300">Tidak ada baris data yang cocok.</p>
+            <button
+              type="button"
+              @click="resetViewFilters"
+              class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-100 dark:bg-[#16202a] hover:bg-slate-200 dark:hover:bg-slate-800 text-[#005851] dark:text-[#5eead4] font-semibold transition-colors cursor-pointer"
+            >
+              Reset Filter &amp; Pencarian
+            </button>
           </div>
         </div>
 
@@ -859,6 +956,7 @@ onUnmounted(() => {
                 <tr
                   v-else
                   class="hover:bg-slate-50 dark:hover:bg-[#00A99D]/8 transition-colors group"
+                  :class="isInputFilled(item.excel_row) ? 'bg-[#00A99D]/[0.02] dark:bg-[#00A99D]/[0.05] border-l-2 border-l-[#00A99D]' : ''"
                 >
                   <!-- Excel Row -->
                   <td class="py-2 px-3 sm:px-4 text-center font-mono text-[10px] text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300">
@@ -876,6 +974,11 @@ onUnmounted(() => {
                     :style="{ paddingLeft: `${(item.level || 0) * 18 + 12}px` }"
                   >
                     <div class="flex items-center gap-1.5 flex-wrap">
+                      <span
+                        v-if="isInputFilled(item.excel_row)"
+                        class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"
+                        title="Indikator sudah terisi"
+                      ></span>
                       <span>{{ item.label }}</span>
                       <span class="text-[9px] font-mono text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
                         ({{ item.code }})
@@ -902,12 +1005,16 @@ onUnmounted(() => {
                     <div class="inline-flex items-center justify-end gap-1.5 w-full">
                       <input
                         type="number"
+                        data-sinkarkes-input="true"
                         :step="item.data_type === 'decimal' ? '0.01' : '1'"
                         min="0"
                         placeholder="0"
                         :value="getValue(item.excel_row, 'input')"
                         @input="onInputChange(item.excel_row, $event.target.value, item.data_type)"
-                        class="w-full max-w-[140px] sm:max-w-[165px] py-1 px-2.5 text-right font-mono text-xs font-semibold rounded-lg bg-white dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#00A99D] focus:border-transparent transition-all shadow-2xs clinical-num"
+                        @keydown.enter.prevent="focusNextInputRow($event)"
+                        :aria-label="`Nilai ${item.label}`"
+                        class="w-full max-w-[140px] sm:max-w-[165px] py-1 px-2.5 text-right font-mono text-xs font-semibold rounded-lg bg-white dark:bg-[#16202a] border text-slate-900 dark:text-white placeholder-slate-300 dark:placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-[#00A99D] focus:border-transparent transition-all shadow-2xs clinical-num"
+                        :class="isInputFilled(item.excel_row) ? 'border-[#00A99D]/55 dark:border-[#00A99D]/60' : 'border-slate-200 dark:border-slate-700'"
                       />
                       <span class="text-[11px] font-mono text-slate-400 w-9 text-left truncate">
                         {{ item.unit || '' }}
@@ -921,10 +1028,17 @@ onUnmounted(() => {
               <!-- Empty Filter Results -->
               <tr v-if="filteredItems.length === 0">
                 <td colspan="6" class="py-12 text-center text-slate-400 text-xs">
-                  <div class="max-w-xs mx-auto space-y-2">
-                    <Info class="w-8 h-8 mx-auto text-slate-300" />
+                  <div class="max-w-xs mx-auto space-y-2.5">
+                    <Info class="w-8 h-8 mx-auto text-slate-300 dark:text-slate-600" />
                     <p class="font-medium text-slate-600 dark:text-slate-300">Tidak ada baris data yang cocok.</p>
                     <p class="text-[11px] text-slate-400">Coba ubah kata kunci pencarian atau reset filter tipe baris.</p>
+                    <button
+                      type="button"
+                      @click="resetViewFilters"
+                      class="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-slate-100 dark:bg-[#16202a] hover:bg-slate-200 dark:hover:bg-slate-800 text-[#005851] dark:text-[#5eead4] font-semibold transition-colors cursor-pointer"
+                    >
+                      Reset Pencarian &amp; Filter
+                    </button>
                   </div>
                 </td>
               </tr>

@@ -134,3 +134,68 @@ export const computeRadarVectorMetrics = (
     },
   };
 };
+
+/**
+ * Find the non-HQ radar blip most recently crossed clockwise behind `sweepDeg`.
+ */
+export const findMostRecentSweptBlip = (blips = [], sweepDeg = 0) => {
+  const candidates = (blips || []).filter((b) => b && !b.is_hq);
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  const current = normalizeDeg(sweepDeg);
+  let best = candidates[0];
+  let bestLag = 361;
+
+  for (const blip of candidates) {
+    const lag = (current - normalizeDeg(blip.bearingDeg || 0) + 360) % 360;
+    if (lag < bestLag) {
+      bestLag = lag;
+      best = blip;
+    }
+  }
+
+  return best;
+};
+
+/**
+ * Resolve the active radar target node and tracking mode cleanly across
+ * hover inspection, explicit manual pin, and live sweep interception.
+ */
+export const resolveActiveRadarTarget = ({
+  radarBlips = [],
+  hoveredBlip = null,
+  isManualLock = false,
+  pinnedNodeNo = null,
+  lastInterceptedNo = null,
+  fallbackNode = null,
+} = {}) => {
+  const list = radarBlips || [];
+
+  if (hoveredBlip) {
+    const matchedHover = list.find((b) => b.no === hoveredBlip.no) || hoveredBlip;
+    return { target: matchedHover, mode: 'hover' };
+  }
+
+  if (isManualLock && pinnedNodeNo !== null && pinnedNodeNo !== undefined) {
+    const matchedPin = list.find((b) => b.no === pinnedNodeNo);
+    if (matchedPin && !matchedPin.is_hq) {
+      return { target: matchedPin, mode: 'pinned' };
+    }
+  }
+
+  if (lastInterceptedNo !== null && lastInterceptedNo !== undefined) {
+    const matchedSwept = list.find((b) => b.no === lastInterceptedNo && !b.is_hq);
+    if (matchedSwept) {
+      return { target: matchedSwept, mode: 'sweep' };
+    }
+  }
+
+  const firstRemote = list.find((b) => b && !b.is_hq);
+  if (firstRemote) {
+    return { target: firstRemote, mode: 'sweep' };
+  }
+
+  return { target: fallbackNode || list[0] || null, mode: 'standby' };
+};

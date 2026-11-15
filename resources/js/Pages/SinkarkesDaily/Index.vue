@@ -276,7 +276,7 @@ const formatDateId = (isoDate) => {
               @change="navigateFilters()"
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
             >
-              <option v-for="w in wilkerOptions" :key="w" :value="w" class="text-slate-900">{{ w }}</option>
+              <option v-for="w in wilkerOptions" :key="w" :value="w" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">{{ w }}</option>
             </select>
           </div>
 
@@ -288,7 +288,7 @@ const formatDateId = (isoDate) => {
               @change="navigateFilters()"
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
             >
-              <option v-for="m in MONTH_OPTIONS" :key="m.id" :value="m.id" class="text-slate-900">{{ m.label }}</option>
+              <option v-for="m in MONTH_OPTIONS" :key="m.id" :value="m.id" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">{{ m.label }}</option>
             </select>
           </div>
 
@@ -299,7 +299,7 @@ const formatDateId = (isoDate) => {
               @change="navigateFilters()"
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
             >
-              <option v-for="y in YEAR_OPTIONS" :key="y" :value="y" class="text-slate-900">{{ y }}</option>
+              <option v-for="y in YEAR_OPTIONS" :key="y" :value="y" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">{{ y }}</option>
             </select>
           </div>
 

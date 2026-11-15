@@ -455,8 +455,8 @@ const openMonthForm = (targetWilker, targetMonth) => {
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
               title="Pilih Wilayah Kerja"
             >
-              <option value="all" class="text-slate-900">Semua Wilayah Kerja (Konsolidasi)</option>
-              <option v-for="w in wilker_options" :key="w" :value="w" class="text-slate-900">
+              <option value="all" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">Semua Wilayah Kerja (Konsolidasi)</option>
+              <option v-for="w in wilker_options" :key="w" :value="w" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">
                 {{ w }}
               </option>
             </select>
@@ -472,7 +472,7 @@ const openMonthForm = (targetWilker, targetMonth) => {
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1 py-0.5"
               title="Pilih Tahun Laporan"
             >
-              <option v-for="y in availableYears" :key="y" :value="y" class="text-slate-900">
+              <option v-for="y in availableYears" :key="y" :value="y" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">
                 Tahun {{ y }}
               </option>
             </select>

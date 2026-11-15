@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import BaseChart from '../../../Components/BaseChart.vue';
 import SinkarkesSummaryCard from '../../Sinkarkes/components/SinkarkesSummaryCard.vue';
+import { useTheme } from '@/composables/useTheme';
 import {
   BarChart3,
   Building2,
@@ -30,6 +31,8 @@ const getUrl = (path) => {
   }
   return path;
 };
+
+const { isDark } = useTheme();
 
 const sinkarkesData = computed(() => props.sinkarkes || {});
 const selectedSinkarkesYear = ref(props.sinkarkes?.year || 2026);
@@ -79,6 +82,7 @@ const openSinkarkesMonthForm = (targetWilker, targetMonth) => {
 };
 
 const sinkarkesTrafficOption = computed(() => {
+  const dark = isDark.value;
   const tc = sinkarkesData.value.traffic_chart || {};
   const months = tc.months || ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   return {
@@ -92,7 +96,7 @@ const sinkarkesTrafficOption = computed(() => {
     legend: {
       data: ['Pesawat (Pswt)', 'Kapal Laut (Kpl)', 'Penumpang (Org)', 'Kru & ABK (Org)'],
       bottom: 0,
-      textStyle: { color: '#64748b', fontSize: 11 },
+      textStyle: { color: dark ? '#94a3b8' : '#64748b', fontSize: 11 },
     },
     grid: {
       left: '3%',
@@ -105,22 +109,24 @@ const sinkarkesTrafficOption = computed(() => {
       type: 'category',
       boundaryGap: false,
       data: months,
-      axisLine: { lineStyle: { color: '#cbd5e1' } },
-      axisLabel: { fontSize: 11, color: '#64748b' },
+      axisLine: { lineStyle: { color: dark ? '#334155' : '#cbd5e1' } },
+      axisLabel: { fontSize: 11, color: dark ? '#94a3b8' : '#64748b' },
     },
     yAxis: [
       {
         type: 'value',
         name: 'Alat Angkut',
-        splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.6)' } },
-        axisLabel: { fontSize: 10, color: '#64748b' },
+        nameTextStyle: { color: dark ? '#94a3b8' : '#64748b', fontSize: 10 },
+        splitLine: { lineStyle: { color: dark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(226, 232, 240, 0.6)' } },
+        axisLabel: { fontSize: 10, color: dark ? '#94a3b8' : '#64748b' },
       },
       {
         type: 'value',
         name: 'Orang (Penumpang/Kru)',
+        nameTextStyle: { color: dark ? '#94a3b8' : '#64748b', fontSize: 10 },
         position: 'right',
         splitLine: { show: false },
-        axisLabel: { fontSize: 10, color: '#64748b' },
+        axisLabel: { fontSize: 10, color: dark ? '#94a3b8' : '#64748b' },
       },
     ],
     series: [
@@ -152,8 +158,8 @@ const sinkarkesTrafficOption = computed(() => {
         smooth: true,
         yAxisIndex: 0,
         data: tc.ship || [],
-        itemStyle: { color: '#005851' },
-        lineStyle: { width: 2.5, color: '#005851' },
+        itemStyle: { color: dark ? '#38bdf8' : '#005851' },
+        lineStyle: { width: 2.5, color: dark ? '#38bdf8' : '#005851' },
       },
       {
         name: 'Penumpang (Org)',
@@ -170,60 +176,65 @@ const sinkarkesTrafficOption = computed(() => {
         smooth: true,
         yAxisIndex: 1,
         data: tc.crew || [],
-        itemStyle: { color: '#7CA622' },
-        lineStyle: { width: 2, color: '#7CA622' },
+        itemStyle: { color: dark ? '#99CC33' : '#7CA622' },
+        lineStyle: { width: 2, color: dark ? '#99CC33' : '#7CA622' },
       },
     ],
   };
 });
 
-const sinkarkesDocumentOption = computed(() => ({
-  tooltip: {
-    trigger: 'item',
-    formatter: '{b}: <strong>{c} dokumen</strong> ({d}%)',
-    backgroundColor: '#003B36',
-    borderColor: '#00A99D',
-    textStyle: { color: '#f8fafc', fontSize: 11 },
-  },
-  legend: {
-    orient: 'vertical',
-    right: '2%',
-    top: 'middle',
-    textStyle: { color: '#64748b', fontSize: 10 },
-    itemWidth: 12,
-    itemHeight: 12,
-  },
-  series: [
-    {
-      name: 'Dokumen Kekarantinaan',
-      type: 'pie',
-      radius: ['45%', '72%'],
-      center: ['35%', '50%'],
-      avoidLabelOverlap: true,
-      itemStyle: {
-        borderRadius: 6,
-        borderColor: '#fff',
-        borderWidth: 2,
-      },
-      label: {
-        show: false,
-        position: 'center',
-      },
-      emphasis: {
-        label: {
-          show: true,
-          fontSize: 13,
-          fontWeight: 'bold',
-          formatter: '{b}\n{c} ({d}%)',
-        },
-      },
-      color: ['#00A99D', '#005851', '#7CA622', '#0284c7', '#8b5cf6', '#f59e0b', '#ec4899', '#64748b'],
-      data: sinkarkesData.value.document_chart || [],
+const sinkarkesDocumentOption = computed(() => {
+  const dark = isDark.value;
+  return {
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: <strong>{c} dokumen</strong> ({d}%)',
+      backgroundColor: '#003B36',
+      borderColor: '#00A99D',
+      textStyle: { color: '#f8fafc', fontSize: 11 },
     },
-  ],
-}));
+    legend: {
+      orient: 'vertical',
+      right: '2%',
+      top: 'middle',
+      textStyle: { color: dark ? '#94a3b8' : '#64748b', fontSize: 10 },
+      itemWidth: 12,
+      itemHeight: 12,
+    },
+    series: [
+      {
+        name: 'Dokumen Kekarantinaan',
+        type: 'pie',
+        radius: ['45%', '72%'],
+        center: ['35%', '50%'],
+        avoidLabelOverlap: true,
+        itemStyle: {
+          borderRadius: 6,
+          borderColor: dark ? '#111820' : '#fff',
+          borderWidth: 2,
+        },
+        label: {
+          show: false,
+          position: 'center',
+        },
+        emphasis: {
+          label: {
+            show: true,
+            fontSize: 13,
+            fontWeight: 'bold',
+            color: dark ? '#f8fafc' : '#0f172a',
+            formatter: '{b}\n{c} ({d}%)',
+          },
+        },
+        color: ['#00A99D', dark ? '#14b8a6' : '#005851', '#7CA622', '#0284c7', '#8b5cf6', '#f59e0b', '#ec4899', '#64748b'],
+        data: sinkarkesData.value.document_chart || [],
+      },
+    ],
+  };
+});
 
 const sinkarkesWilkerOption = computed(() => {
+  const dark = isDark.value;
   const comparison = sinkarkesData.value.wilker_comparison || [];
   const categories = comparison.map((c) => c.short_name);
   const alatAngkut = comparison.map((c) => c.total_alat_angkut);
@@ -241,7 +252,7 @@ const sinkarkesWilkerOption = computed(() => {
     legend: {
       data: ['Alat Angkut', 'Orang (Penumpang & Kru)', 'Dokumen Karantina'],
       bottom: 0,
-      textStyle: { color: '#64748b', fontSize: 11 },
+      textStyle: { color: dark ? '#94a3b8' : '#64748b', fontSize: 11 },
     },
     grid: {
       left: '3%',
@@ -252,14 +263,14 @@ const sinkarkesWilkerOption = computed(() => {
     },
     xAxis: {
       type: 'value',
-      splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.6)' } },
-      axisLabel: { fontSize: 10, color: '#64748b' },
+      splitLine: { lineStyle: { color: dark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(226, 232, 240, 0.6)' } },
+      axisLabel: { fontSize: 10, color: dark ? '#94a3b8' : '#64748b' },
     },
     yAxis: {
       type: 'category',
       data: categories,
-      axisLine: { lineStyle: { color: '#cbd5e1' } },
-      axisLabel: { fontSize: 11, color: '#334155', fontWeight: 'bold' },
+      axisLine: { lineStyle: { color: dark ? '#334155' : '#cbd5e1' } },
+      axisLabel: { fontSize: 11, color: dark ? '#cbd5e1' : '#334155', fontWeight: 'bold' },
     },
     series: [
       {
@@ -279,13 +290,14 @@ const sinkarkesWilkerOption = computed(() => {
         name: 'Dokumen Karantina',
         type: 'bar',
         data: dokumen,
-        itemStyle: { color: '#005851', borderRadius: [0, 4, 4, 0] },
+        itemStyle: { color: dark ? '#38bdf8' : '#005851', borderRadius: [0, 4, 4, 0] },
       },
     ],
   };
 });
 
 const sinkarkesHealthOption = computed(() => {
+  const dark = isDark.value;
   const hc = sinkarkesData.value.health_chart || {};
   const months = hc.months || ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   return {
@@ -299,7 +311,7 @@ const sinkarkesHealthOption = computed(() => {
     legend: {
       data: ['Kunjungan Poliklinik BKK', 'Surat Berbadan Sehat', 'Vaksinasi ICV'],
       bottom: 0,
-      textStyle: { color: '#64748b', fontSize: 11 },
+      textStyle: { color: dark ? '#94a3b8' : '#64748b', fontSize: 11 },
     },
     grid: {
       left: '3%',
@@ -311,13 +323,13 @@ const sinkarkesHealthOption = computed(() => {
     xAxis: {
       type: 'category',
       data: months,
-      axisLine: { lineStyle: { color: '#cbd5e1' } },
-      axisLabel: { fontSize: 11, color: '#64748b' },
+      axisLine: { lineStyle: { color: dark ? '#334155' : '#cbd5e1' } },
+      axisLabel: { fontSize: 11, color: dark ? '#94a3b8' : '#64748b' },
     },
     yAxis: {
       type: 'value',
-      splitLine: { lineStyle: { color: 'rgba(226, 232, 240, 0.6)' } },
-      axisLabel: { fontSize: 10, color: '#64748b' },
+      splitLine: { lineStyle: { color: dark ? 'rgba(148, 163, 184, 0.12)' : 'rgba(226, 232, 240, 0.6)' } },
+      axisLabel: { fontSize: 10, color: dark ? '#94a3b8' : '#64748b' },
     },
     series: [
       {
@@ -346,7 +358,7 @@ const sinkarkesHealthOption = computed(() => {
 <template>
   <div id="sinkarkes-section" class="space-y-3 font-sans">
     <!-- SINKARKES Header & Filter Controls Banner -->
-    <div class="bg-white rounded-xl border border-slate-200/90 shadow-[0_1px_2px_rgba(15,23,42,0.03)] overflow-hidden">
+    <div class="bg-white dark:bg-[#111820] rounded-xl border border-slate-200/90 dark:border-slate-800 shadow-[0_1px_2px_rgba(15,23,42,0.03)] overflow-hidden">
       <div class="px-4 py-2.5 bg-[#004640] text-white flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 border-b border-[#003B36]">
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-7 h-7 rounded-md bg-[#00A99D] text-white flex items-center justify-center shrink-0">
@@ -376,8 +388,8 @@ const sinkarkesHealthOption = computed(() => {
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1"
               title="Filter Wilayah Kerja SINKARKES"
             >
-              <option value="all" class="text-slate-900">Semua Wilayah Kerja (Konsolidasi)</option>
-              <option v-for="w in sinkarkesWilkerOptions" :key="w" :value="w" class="text-slate-900">
+              <option value="all" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">Semua Wilayah Kerja (Konsolidasi)</option>
+              <option v-for="w in sinkarkesWilkerOptions" :key="w" :value="w" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">
                 {{ w }}
               </option>
             </select>
@@ -391,7 +403,7 @@ const sinkarkesHealthOption = computed(() => {
               class="bg-transparent text-xs font-semibold text-white border-none focus:ring-0 cursor-pointer outline-none pr-1"
               title="Pilih Tahun Laporan SINKARKES"
             >
-              <option v-for="y in availableSinkarkesYears" :key="y" :value="y" class="text-slate-900">
+              <option v-for="y in availableSinkarkesYears" :key="y" :value="y" class="text-slate-900 dark:text-slate-100 dark:bg-[#111820]">
                 Tahun {{ y }}
               </option>
             </select>
@@ -408,97 +420,97 @@ const sinkarkesHealthOption = computed(() => {
       </div>
 
       <!-- 6 Key Performance Metric Cards Grid -->
-      <div class="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 bg-slate-50/70">
-        <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-[#00A99D] transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
+      <div class="p-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 bg-slate-50/70 dark:bg-[#0d141b]/80">
+        <div class="bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 rounded-lg p-2.5 hover:border-[#00A99D] transition-all hover:-translate-y-0.5">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-mono font-semibold">
             <span>ALAT ANGKUT</span>
-            <div class="w-5 h-5 rounded bg-[#E6F7F5] text-[#005851] flex items-center justify-center">
+            <div class="w-5 h-5 rounded bg-[#E6F7F5] dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#5eead4] flex items-center justify-center">
               <Plane class="w-3 h-3" />
             </div>
           </div>
-          <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
+          <div class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 font-mono tabular-nums">
             {{ (sinkarkesKpi.total_alat_angkut || 0).toLocaleString('id-ID') }}
           </div>
-          <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1 truncate tabular-nums">
-            <span>Pswt: <strong class="text-slate-700">{{ (sinkarkesKpi.total_pesawat || 0).toLocaleString('id-ID') }}</strong></span>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1 truncate tabular-nums">
+            <span>Pswt: <strong class="text-slate-700 dark:text-slate-200">{{ (sinkarkesKpi.total_pesawat || 0).toLocaleString('id-ID') }}</strong></span>
             <span>&bull;</span>
-            <span>Kpl: <strong class="text-slate-700">{{ (sinkarkesKpi.total_kapal || 0).toLocaleString('id-ID') }}</strong></span>
+            <span>Kpl: <strong class="text-slate-700 dark:text-slate-200">{{ (sinkarkesKpi.total_kapal || 0).toLocaleString('id-ID') }}</strong></span>
           </div>
         </div>
 
-        <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-amber-400 transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
+        <div class="bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 rounded-lg p-2.5 hover:border-amber-400 transition-all hover:-translate-y-0.5">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-mono font-semibold">
             <span>ORANG TERAWASI</span>
-            <div class="w-5 h-5 rounded bg-amber-50 text-amber-600 flex items-center justify-center">
+            <div class="w-5 h-5 rounded bg-amber-50 dark:bg-amber-500/15 text-amber-600 dark:text-amber-300 flex items-center justify-center">
               <Users class="w-3 h-3" />
             </div>
           </div>
-          <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
+          <div class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 font-mono tabular-nums">
             {{ (sinkarkesKpi.total_orang || 0).toLocaleString('id-ID') }}
           </div>
-          <div class="text-[10px] text-slate-500 mt-0.5 flex items-center gap-1 truncate tabular-nums">
-            <span>Pnp: <strong class="text-slate-700">{{ (sinkarkesKpi.total_penumpang || 0).toLocaleString('id-ID') }}</strong></span>
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1 truncate tabular-nums">
+            <span>Pnp: <strong class="text-slate-700 dark:text-slate-200">{{ (sinkarkesKpi.total_penumpang || 0).toLocaleString('id-ID') }}</strong></span>
             <span>&bull;</span>
-            <span>Kru: <strong class="text-slate-700">{{ (sinkarkesKpi.total_crew || 0).toLocaleString('id-ID') }}</strong></span>
+            <span>Kru: <strong class="text-slate-700 dark:text-slate-200">{{ (sinkarkesKpi.total_crew || 0).toLocaleString('id-ID') }}</strong></span>
           </div>
         </div>
 
-        <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-[#005851] transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
+        <div class="bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 rounded-lg p-2.5 hover:border-[#005851] dark:hover:border-[#00A99D] transition-all hover:-translate-y-0.5">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-mono font-semibold">
             <span>DOKUMEN KARANTINA</span>
-            <div class="w-5 h-5 rounded bg-[#E0EFEF] text-[#005851] flex items-center justify-center">
+            <div class="w-5 h-5 rounded bg-[#E0EFEF] dark:bg-[#005851]/35 text-[#005851] dark:text-[#5eead4] flex items-center justify-center">
               <FileCheck class="w-3 h-3" />
             </div>
           </div>
-          <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
+          <div class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 font-mono tabular-nums">
             {{ (sinkarkesKpi.total_dokumen || 0).toLocaleString('id-ID') }}
           </div>
-          <div class="text-[10px] text-slate-500 mt-0.5 truncate">
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
             SSCEC, SSCC, P3K, Desinseksi
           </div>
         </div>
 
-        <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-sky-400 transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
+        <div class="bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 rounded-lg p-2.5 hover:border-sky-400 transition-all hover:-translate-y-0.5">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-mono font-semibold">
             <span>LAYANAN MEDIS</span>
-            <div class="w-5 h-5 rounded bg-sky-50 text-sky-600 flex items-center justify-center">
+            <div class="w-5 h-5 rounded bg-sky-50 dark:bg-sky-500/15 text-sky-600 dark:text-sky-300 flex items-center justify-center">
               <HeartPulse class="w-3 h-3" />
             </div>
           </div>
-          <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
+          <div class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 font-mono tabular-nums">
             {{ (sinkarkesKpi.total_layanan_kesehatan || 0).toLocaleString('id-ID') }}
           </div>
-          <div class="text-[10px] text-slate-500 mt-0.5 truncate">
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
             Poliklinik BKK &amp; Uji Laik
           </div>
         </div>
 
-        <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-[#7CA622] transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
+        <div class="bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 rounded-lg p-2.5 hover:border-[#7CA622] transition-all hover:-translate-y-0.5">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-mono font-semibold">
             <span>VAKSINASI ICV</span>
-            <div class="w-5 h-5 rounded bg-[#F7FCE8] text-[#557A18] flex items-center justify-center">
+            <div class="w-5 h-5 rounded bg-[#F7FCE8] dark:bg-[#7CA622]/20 text-[#557A18] dark:text-[#bef264] flex items-center justify-center">
               <ShieldCheck class="w-3 h-3" />
             </div>
           </div>
-          <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
+          <div class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 font-mono tabular-nums">
             {{ (sinkarkesKpi.total_vaksinasi || 0).toLocaleString('id-ID') }}
           </div>
-          <div class="text-[10px] text-slate-500 mt-0.5 truncate">
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">
             Yellow Fever, Meningitis, dll
           </div>
         </div>
 
-        <div class="bg-white border border-slate-200/90 rounded-lg p-2.5 hover:border-emerald-500 transition-colors">
-          <div class="flex items-center justify-between text-slate-500 text-[10px] font-mono font-semibold">
+        <div class="bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-800 rounded-lg p-2.5 hover:border-emerald-500 transition-all hover:-translate-y-0.5">
+          <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-[10px] font-mono font-semibold">
             <span>KELENGKAPAN</span>
-            <div class="w-5 h-5 rounded bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <div class="w-5 h-5 rounded bg-emerald-50 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 flex items-center justify-center">
               <CalendarCheck class="w-3 h-3" />
             </div>
           </div>
-          <div class="text-lg sm:text-xl font-bold text-slate-900 mt-1 font-mono tabular-nums">
+          <div class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-1 font-mono tabular-nums">
             {{ sinkarkesKpi.compliance_rate || 0 }}%
           </div>
-          <div class="text-[10px] text-slate-500 mt-0.5 truncate tabular-nums">
+          <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 truncate tabular-nums">
             {{ sinkarkesKpi.submitted_reports_count || 0 }} / {{ sinkarkesKpi.total_possible_reports || 84 }} bulan terisi
           </div>
         </div>
@@ -512,13 +524,13 @@ const sinkarkesHealthOption = computed(() => {
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-[#00A99D]"></span>
-              <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+              <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                 Tren Bulanan Pengawasan Alat Angkut &amp; Orang ({{ selectedSinkarkesYear }})
               </h3>
             </div>
             <span class="text-[11px] text-slate-400 font-mono">12 Bulan</span>
           </div>
-          <p class="text-[11px] text-slate-500 mb-2">
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
             Dinamika volume kedatangan/keberangkatan pesawat, kapal laut, penumpang, dan kru sepanjang tahun.
           </p>
         </div>
@@ -531,14 +543,14 @@ const sinkarkesHealthOption = computed(() => {
         <div>
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-[#005851]"></span>
-              <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+              <span class="w-2 h-2 rounded-full bg-[#005851] dark:bg-[#5eead4]"></span>
+              <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                 Komposisi Dokumen Kekarantinaan
               </h3>
             </div>
             <PieChartIcon class="w-3.5 h-3.5 text-slate-400" />
           </div>
-          <p class="text-[11px] text-slate-500 mb-2">
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
             Distribusi penerbitan SSCEC, SSCC, P3K, HAC, dan sertifikat penyehatan.
           </p>
         </div>
@@ -555,13 +567,13 @@ const sinkarkesHealthOption = computed(() => {
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-[#7CA622]"></span>
-              <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+              <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                 Perbandingan Volume Lintas 7 Wilayah Kerja
               </h3>
             </div>
             <span class="text-[11px] text-slate-400 font-mono">BKK Bandung</span>
           </div>
-          <p class="text-[11px] text-slate-500 mb-2">
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
             Komparasi beban aktivitas alat angkut, orang, dan dokumen antar pos dan wilayah kerja.
           </p>
         </div>
@@ -574,14 +586,14 @@ const sinkarkesHealthOption = computed(() => {
         <div>
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
-              <span class="w-2 h-2 rounded-full bg-sky-600"></span>
-              <h3 class="text-xs sm:text-sm font-bold text-slate-900">
+              <span class="w-2 h-2 rounded-full bg-sky-600 dark:bg-sky-400"></span>
+              <h3 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100">
                 Layanan Kesehatan Pelabuhan &amp; Vaksinasi ICV
               </h3>
             </div>
             <span class="text-[11px] text-slate-400 font-mono">UKP</span>
           </div>
-          <p class="text-[11px] text-slate-500 mb-2">
+          <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
             Kunjungan poliklinik BKK, penerbitan surat keterangan sehat, dan vaksinasi haji/umrah/internasional.
           </p>
         </div>
