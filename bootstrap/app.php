@@ -32,4 +32,26 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         \Sentry\Laravel\Integration::handles($exceptions);
+
+        $exceptions->respond(function (\Symfony\Component\HttpFoundation\Response $response, \Throwable $exception, \Illuminate\Http\Request $request) {
+            $status = $response->getStatusCode();
+
+            if (! in_array($status, [403, 404, 419, 500, 503], true)) {
+                return $response;
+            }
+
+            if ($request->expectsJson() && ! $request->header('X-Inertia')) {
+                return $response;
+            }
+
+            if ($status === 500 && app()->environment(['local', 'testing']) && config('app.debug') && ! $request->header('X-Inertia')) {
+                return $response;
+            }
+
+            return \Inertia\Inertia::render('Error', [
+                'status' => $status,
+                'message' => app()->environment(['local', 'testing']) ? $exception->getMessage() : null,
+                'isAuthenticated' => (bool) $request->user(),
+            ])->toResponse($request)->setStatusCode($status);
+        });
     })->create();

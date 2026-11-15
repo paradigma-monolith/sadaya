@@ -1,7 +1,31 @@
 <script setup>
 import { ref, shallowRef, onMounted, onUnmounted, watch } from 'vue';
-import * as echarts from 'echarts';
+import * as echarts from 'echarts/core';
+import { BarChart, LineChart, PieChart, RadarChart } from 'echarts/charts';
+import {
+  GridComponent,
+  RadarComponent,
+  TooltipComponent,
+  LegendComponent,
+  TitleComponent,
+  AxisPointerComponent,
+} from 'echarts/components';
+import { CanvasRenderer } from 'echarts/renderers';
 import { useSidebar } from '@/composables/useSidebar';
+
+echarts.use([
+  BarChart,
+  LineChart,
+  PieChart,
+  RadarChart,
+  GridComponent,
+  RadarComponent,
+  TooltipComponent,
+  LegendComponent,
+  TitleComponent,
+  AxisPointerComponent,
+  CanvasRenderer,
+]);
 
 const { isCollapsed, isOpen } = useSidebar();
 

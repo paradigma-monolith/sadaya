@@ -5,6 +5,7 @@ import { toast } from 'vue-sonner';
 import PaginationBar from '@/Components/PaginationBar.vue';
 import { useDate } from '../../../composables/useDate';
 import { useConfirm } from '@/composables/useConfirm';
+import { useDebouncedFn } from '@/composables/useDebouncedFn';
 import {
   formatCurrency,
   formatNumber,
@@ -74,6 +75,7 @@ const activeFilterCount = computed(() => {
 });
 
 const handleFilter = () => {
+  debouncedFilter.cancel();
   const payload = {
     tab: 'data',
     search: searchInput.value || undefined,
@@ -94,7 +96,16 @@ const handleFilter = () => {
   });
 };
 
+const debouncedFilter = useDebouncedFn(handleFilter, 350);
+
+watch(searchInput, (val) => {
+  if ((val || '') !== (props.filters?.search || '')) {
+    debouncedFilter();
+  }
+});
+
 const resetFilter = () => {
+  debouncedFilter.cancel();
   searchInput.value = '';
   selectedPelabuhan.value = '';
   selectedKategori.value = '';
@@ -285,7 +296,82 @@ const deleteItem = async (item) => {
         </span>
       </div>
 
-      <div class="overflow-x-auto">
+      <!-- Mobile Card View -->
+      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <div
+          v-for="item in surveillances.data"
+          :key="`mob-${item.id}`"
+          class="p-3.5 space-y-2.5 text-xs"
+        >
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <div class="font-mono text-[11px] text-slate-400">{{ item.registration_no }} &bull; {{ formatDate(item.tanggal_kedatangan) }}</div>
+              <div class="font-bold text-slate-900 dark:text-white truncate">{{ item.nama_kapal }}</div>
+              <div class="text-[11px] text-slate-500 dark:text-slate-400">
+                {{ item.datang_dari }} → <span class="text-[#00A99D] font-semibold">{{ item.pelabuhan }}</span>
+              </div>
+            </div>
+            <span :class="['px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0', getStatusBadgeClass(item.hasil_status)]">
+              {{ item.hasil_status }}
+            </span>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+            <div class="flex items-center gap-1.5">
+              <span :class="['px-2 py-0.5 rounded-full text-[10px] font-bold', getRiskBadgeClass(item.kresiko)]">
+                {{ item.kresiko }} ({{ item.skoring }})
+              </span>
+              <span class="font-mono text-slate-600 dark:text-slate-300">{{ formatNumber(item.gross_tonnage) }} GT</span>
+            </div>
+            <span class="font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+              {{ formatCurrency(item.estimasi_pnbp) }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <span class="text-[10.5px] text-slate-500">
+              {{ item.status_verifikasi === 'verified' ? 'Terverifikasi' : 'Pending Verifikasi' }}
+            </span>
+            <div class="inline-flex items-center gap-1">
+              <button
+                type="button"
+                @click="emit('open-detail', item)"
+                class="p-1.5 text-slate-600 hover:text-cyan-600 dark:text-slate-400 dark:hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/30 rounded-lg transition cursor-pointer"
+                title="Lihat Detail Lembar Karantina"
+                :aria-label="`Detail kedatangan ${item.nama_kapal}`"
+              >
+                <Eye class="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                @click="emit('open-verify', item)"
+                class="p-1.5 text-slate-600 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 rounded-lg transition cursor-pointer"
+                title="Verifikasi Rekomendasi Sandar / Karantina"
+                :aria-label="`Verifikasi ${item.nama_kapal}`"
+              >
+                <ShieldCheck class="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                @click="deleteItem(item)"
+                class="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30 rounded-lg transition cursor-pointer"
+                title="Hapus Data"
+                :aria-label="`Hapus ${item.nama_kapal}`"
+              >
+                <Trash2 class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="!surveillances.data || surveillances.data.length === 0" class="py-12 px-4 text-center text-slate-400">
+          <Ship class="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700 mb-2" />
+          <p class="font-medium text-xs">Tidak ada data pengawasan kedatangan kapal yang cocok dengan filter.</p>
+        </div>
+      </div>
+
+      <!-- Desktop Table View -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left text-xs">
           <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
             <tr>

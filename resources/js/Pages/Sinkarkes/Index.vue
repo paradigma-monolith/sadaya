@@ -1051,6 +1051,8 @@ onUnmounted(() => {
               <button
                 type="button"
                 @click="closeImportModal"
+                aria-label="Tutup modal import SINKARKES"
+                title="Tutup"
                 class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               >
                 <X class="w-4 h-4" />
@@ -1146,6 +1148,8 @@ onUnmounted(() => {
                   <button
                     type="button"
                     @click="clearImportFile"
+                    aria-label="Hapus file yang dipilih"
+                    title="Hapus file"
                     class="p-1 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors"
                   >
                     <X class="w-4 h-4" />

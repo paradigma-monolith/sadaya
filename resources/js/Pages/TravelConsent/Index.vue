@@ -146,9 +146,7 @@ const tabs = computed(() => [
           type="button"
           @click="switchTab(tab.id)"
           class="clinical-tab"
-          :class="currentTab === tab.id
-            ? 'bg-[#005851] text-white'
-            : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
+          :class="currentTab === tab.id ? 'clinical-tab-active' : 'clinical-tab-inactive'"
         >
           <component :is="tab.icon" class="w-3.5 h-3.5" />
           <span>{{ tab.label }}</span>
@@ -156,7 +154,7 @@ const tabs = computed(() => [
             class="px-1.5 py-0.2 rounded text-[10px] font-mono clinical-num"
             :class="currentTab === tab.id
               ? 'bg-white/20 text-white'
-              : 'bg-slate-100 text-slate-600'"
+              : 'bg-white/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
           >
             {{ tab.count }}
           </span>

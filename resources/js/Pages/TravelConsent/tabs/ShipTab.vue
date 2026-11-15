@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
 import { useConfirm } from '@/composables/useConfirm';
+import { useDebouncedFn } from '@/composables/useDebouncedFn';
 import SharePublicModal from '../components/SharePublicModal.vue';
 import PaginationBar from '@/Components/PaginationBar.vue';
 import ClinicalModal from '@/Components/ClinicalModal.vue';
@@ -66,6 +67,7 @@ watch(
 );
 
 const handleFilter = () => {
+  debouncedFilter.cancel();
   router.get('/travel-consent', {
     tab: 'ship',
     ship_search: searchInput.value || undefined,
@@ -79,7 +81,16 @@ const handleFilter = () => {
   });
 };
 
+const debouncedFilter = useDebouncedFn(handleFilter, 350);
+
+watch(searchInput, (val) => {
+  if ((val || '') !== (props.filters?.search || '')) {
+    debouncedFilter();
+  }
+});
+
 const resetFilter = () => {
+  debouncedFilter.cancel();
   searchInput.value = '';
   selectedPelabuhan.value = '';
   selectedSertifikat.value = '';
@@ -149,12 +160,22 @@ const closeDetail = () => {
   activeInspection.value = null;
 };
 
+const isSubmittingStatus = ref(false);
+
 const submitStatusUpdate = () => {
-  if (!activeInspection.value) return;
+  if (!activeInspection.value || isSubmittingStatus.value) return;
+  isSubmittingStatus.value = true;
   router.put(`/ship-inspections/${activeInspection.value.id}/status`, statusForm.value, {
     preserveScroll: true,
     onSuccess: () => {
+      toast.success(`Status inspeksi ${activeInspection.value?.nama_kapal || ''} diperbarui`);
       closeDetail();
+    },
+    onError: () => {
+      toast.error('Gagal menyimpan pembaruan status inspeksi kapal');
+    },
+    onFinish: () => {
+      isSubmittingStatus.value = false;
     },
   });
 };
@@ -342,7 +363,100 @@ const deleteInspection = async (id, regNo, shipName) => {
 
     <!-- Main Inspections Table Container -->
     <div class="clinical-surface overflow-hidden">
-      <div class="overflow-x-auto">
+      <!-- Mobile Card View -->
+      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <div
+          v-for="item in inspections.data"
+          :key="`mob-${item.id}`"
+          class="p-3.5 space-y-2.5 text-xs"
+        >
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <div class="font-mono font-bold text-[#005851] dark:text-[#4fd1c5]">{{ item.registration_no }} &bull; {{ item.imo_no }}</div>
+              <div class="font-bold text-slate-900 dark:text-slate-100 truncate">{{ item.nama_kapal }}</div>
+              <div class="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                <MapPin class="w-3 h-3 text-emerald-600 shrink-0" />
+                <span>{{ item.pelabuhan || '-' }}</span>
+              </div>
+            </div>
+            <span
+              class="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium uppercase border shrink-0"
+              :class="{
+                'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800': item.status === 'approved',
+                'bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800': item.status === 'verified',
+                'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800': item.status === 'submitted',
+                'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800': item.status === 'rejected'
+              }"
+            >
+              {{ item.status }}
+            </span>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+            <span>{{ formatDate(item.tanggal) }} &bull; {{ item.nama_pemeriksa }}</span>
+            <span
+              class="px-2 py-0.5 rounded-full text-[10.5px] font-bold border inline-flex items-center gap-1"
+              :class="item.sertifikat_mencatat === 'Pembebasan'
+                ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                : 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800'"
+            >
+              {{ item.sertifikat_mencatat === 'Pembebasan' ? 'SSCEC (Bebas)' : 'SSCC (Kendali)' }}
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <span class="text-[11px] text-slate-400">
+              {{ item.berat_gt ? Number(item.berat_gt).toLocaleString() + ' GT' : 'GT -' }}
+            </span>
+            <div class="inline-flex items-center gap-1">
+              <button
+                type="button"
+                @click="openShareModal(item)"
+                class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Salin / Lihat Link Publik Dokumen"
+                :aria-label="`Salin tautan publik ${item.nama_kapal}`"
+              >
+                <Link2 class="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                @click="openDetail(item)"
+                class="p-1.5 rounded-lg text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Lihat Detail & Verifikasi"
+                :aria-label="`Detail inspeksi kapal ${item.nama_kapal}`"
+              >
+                <Eye class="w-4 h-4" />
+              </button>
+              <a
+                :href="`/ship-inspections/${item.id}/pdf`"
+                target="_blank"
+                class="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Cetak Bukti Registrasi / Sertifikat"
+                :aria-label="`Unduh PDF ${item.nama_kapal}`"
+              >
+                <Download class="w-4 h-4" />
+              </a>
+              <button
+                type="button"
+                @click="deleteInspection(item.id, item.registration_no, item.nama_kapal)"
+                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Hapus Data"
+                :aria-label="`Hapus inspeksi ${item.nama_kapal}`"
+              >
+                <Trash2 class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="inspections.data.length === 0" class="px-5 py-12 text-center text-slate-400">
+          <Ship class="w-8 h-8 mx-auto mb-2 opacity-50 text-emerald-600" />
+          <p class="font-medium text-xs">Belum ada data inspeksi kapal yang sesuai dengan filter.</p>
+        </div>
+      </div>
+
+      <!-- Desktop Table View -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="border-b border-slate-200 bg-slate-50/90 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
@@ -516,6 +630,8 @@ const deleteInspection = async (id, regNo, shipName) => {
           <button
             type="button"
             @click="closeDetail"
+            aria-label="Tutup modal detail inspeksi kapal"
+            title="Tutup"
             class="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X class="w-5 h-5" />
@@ -759,11 +875,12 @@ const deleteInspection = async (id, regNo, shipName) => {
             <button
               v-if="activeModalTab === 'verify'"
               type="button"
+              :disabled="isSubmittingStatus"
               @click="submitStatusUpdate"
-              class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
+              class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
             >
               <Check class="w-4 h-4" />
-              <span>Simpan Pembaruan</span>
+              <span>{{ isSubmittingStatus ? 'Menyimpan...' : 'Simpan Pembaruan' }}</span>
             </button>
           </div>
         </div>

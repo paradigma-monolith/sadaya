@@ -34,6 +34,7 @@ export default defineConfig({
                     if (id.includes('maplibre-gl')) return 'vendor-maplibre';
                     if (id.includes('lucide-vue-next')) return 'vendor-icons';
                     if (id.includes('reka-ui') || id.includes('vue-sonner')) return 'vendor-ui';
+                    if (id.includes('laravel-echo') || id.includes('pusher-js')) return 'vendor-realtime';
                 },
             },
         },

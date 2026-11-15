@@ -710,7 +710,7 @@ const formatDateId = (isoDate) => {
               >Pesawat</button>
             </div>
 
-            <button type="button" @click="closeForm" class="p-1.5 rounded-lg hover:bg-white/20 transition cursor-pointer">
+            <button type="button" @click="closeForm" aria-label="Tutup formulir rekap harian" title="Tutup" class="p-1.5 rounded-lg hover:bg-white/20 transition cursor-pointer">
               <X class="w-4 h-4" />
             </button>
           </div>
@@ -974,7 +974,91 @@ const formatDateId = (isoDate) => {
           </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800/70">
+          <div v-if="currentTypeRecords.length === 0" class="px-4 py-10 text-center text-slate-400">
+            <div class="flex flex-col items-center gap-2">
+              <Ship v-if="activeTab === 'kapal'" class="w-8 h-8 opacity-40" />
+              <Plane v-else class="w-8 h-8 opacity-40" />
+              <p class="font-semibold text-xs text-slate-600 dark:text-slate-300">
+                Belum ada inputan harian {{ activeTab === 'kapal' ? 'kapal' : 'pesawat' }} pada {{ activeMonthLabel }} {{ selectedYear }} untuk {{ selectedWilker }}.
+              </p>
+              <p class="text-[11px]">Klik tombol Tambah di atas atau Import Excel untuk mengisi data.</p>
+            </div>
+          </div>
+
+          <div v-for="rec in currentTypeRecords" :key="`mob-rec-${rec.id}`" class="p-4 space-y-2.5 text-xs">
+            <div class="flex items-start justify-between gap-2">
+              <div>
+                <div class="font-bold text-slate-900 dark:text-white">{{ formatDateId(rec.tanggal) }}</div>
+                <div class="text-[11px] text-slate-400">{{ rec.updater_name }}</div>
+              </div>
+              <span
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0"
+                :title="rec.sinkarkes_synced_at ? `Disinkron pada ${rec.sinkarkes_synced_at}` : ''"
+              >
+                <CheckCircle2 class="w-3 h-3" />
+                SINKARKES
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] bg-slate-50 dark:bg-[#171d29] p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+              <div>
+                <span class="block text-[10px] font-semibold text-slate-400 mb-1">Kedatangan</span>
+                <div v-if="activeTab === 'kapal'" class="flex flex-wrap gap-1 font-mono">
+                  <span class="px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200 font-bold">DN: {{ rec.metrics?.kd_dn_kapal || 0 }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 font-bold">LN: {{ rec.metrics?.kd_ln_kapal || 0 }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-bold">TJK: {{ rec.metrics?.kd_lnt_kapal || 0 }}</span>
+                </div>
+                <div v-else class="flex flex-wrap gap-1 font-mono">
+                  <span class="px-1.5 py-0.5 rounded bg-cyan-50 text-cyan-800 border border-cyan-200 font-bold">DN: {{ rec.metrics?.kd_dn_pesawat || 0 }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-sky-50 text-sky-800 border border-sky-200 font-bold">LN: {{ rec.metrics?.kd_ln_pesawat || 0 }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-bold">TJK: {{ rec.metrics?.kd_lnt_pesawat || 0 }}</span>
+                </div>
+              </div>
+              <div>
+                <span class="block text-[10px] font-semibold text-slate-400 mb-1">Keberangkatan</span>
+                <div v-if="activeTab === 'kapal'" class="flex flex-wrap gap-1 font-mono">
+                  <span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold">DN: {{ rec.metrics?.kb_dn_kapal || 0 }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-orange-50 text-orange-800 border border-orange-200 font-bold">LN: {{ rec.metrics?.kb_ln_kapal || 0 }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-bold">TJK: {{ rec.metrics?.kb_lnt_kapal || 0 }}</span>
+                </div>
+                <div v-else class="flex flex-wrap gap-1 font-mono">
+                  <span class="px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-bold">DN: {{ rec.metrics?.kb_dn_pesawat || 0 }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-orange-50 text-orange-800 border border-orange-200 font-bold">LN: {{ rec.metrics?.kb_ln_pesawat || 0 }}</span>
+                  <span class="px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 font-bold">TJK: {{ rec.metrics?.kb_lnt_pesawat || 0 }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between gap-2 pt-1">
+              <div class="text-[11px] text-slate-600 dark:text-slate-300">
+                <strong class="text-slate-800 dark:text-slate-100">{{ (rec.total_penumpang || 0).toLocaleString('id-ID') }}</strong> Pnp •
+                <strong>{{ (rec.total_kru || 0).toLocaleString('id-ID') }}</strong> Kru
+              </div>
+              <div class="inline-flex items-center gap-1">
+                <button
+                  type="button"
+                  @click="openEditForm(rec)"
+                  class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 cursor-pointer"
+                >
+                  <Edit3 class="w-3.5 h-3.5" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  type="button"
+                  @click="deleteRecord(rec)"
+                  class="inline-flex items-center p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 cursor-pointer"
+                  aria-label="Hapus Entri Harian"
+                  title="Hapus Entri Harian"
+                >
+                  <Trash2 class="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-50 dark:bg-[#171d29] border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -1106,6 +1190,7 @@ const formatDateId = (isoDate) => {
                       type="button"
                       @click="deleteRecord(rec)"
                       class="inline-flex items-center p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/60 cursor-pointer"
+                      aria-label="Hapus Entri Harian"
                       title="Hapus Entri Harian"
                     >
                       <Trash2 class="w-3.5 h-3.5" />
@@ -1186,7 +1271,55 @@ const formatDateId = (isoDate) => {
             </div>
           </div>
 
-          <div class="overflow-x-auto">
+          <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800/70">
+            <div
+              v-for="ind in accumulation.indicators"
+              :key="`mob-acc-${ind.excel_row}`"
+              class="p-4 space-y-2 text-xs"
+              :class="ind.daily_total > 0 ? 'bg-rose-50/20 dark:bg-rose-950/10' : ''"
+            >
+              <div class="flex items-start justify-between gap-2">
+                <div class="min-w-0">
+                  <div class="flex items-center gap-1.5 flex-wrap">
+                    <span class="font-mono font-bold text-rose-600">Baris {{ ind.excel_row }}</span>
+                    <span class="font-mono text-[11px] font-semibold text-slate-600 dark:text-slate-300">{{ ind.code }}</span>
+                  </div>
+                  <p class="font-medium text-slate-800 dark:text-slate-100 mt-0.5 leading-snug">
+                    {{ ind.label }}
+                    <span v-if="ind.unit" class="text-[10px] text-slate-400">({{ ind.unit }})</span>
+                  </p>
+                </div>
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0"
+                  :class="ind.in_sync ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'"
+                >
+                  <CheckCircle2 v-if="ind.in_sync" class="w-3 h-3" />
+                  <AlertCircle v-else class="w-3 h-3" />
+                  {{ ind.in_sync ? 'Sinkron' : 'Selisih' }}
+                </span>
+              </div>
+              <div class="grid grid-cols-4 gap-2 pt-1.5 border-t border-slate-100 dark:border-slate-800/70 font-mono text-[11px]">
+                <div>
+                  <span class="block text-[10px] font-sans text-slate-400">Kapal</span>
+                  <span>{{ ind.kapal_total.toLocaleString('id-ID') }}</span>
+                </div>
+                <div>
+                  <span class="block text-[10px] font-sans text-slate-400">Pesawat</span>
+                  <span>{{ ind.pesawat_total.toLocaleString('id-ID') }}</span>
+                </div>
+                <div>
+                  <span class="block text-[10px] font-sans text-slate-400">Harian</span>
+                  <span class="font-extrabold text-slate-900 dark:text-white">{{ ind.daily_total.toLocaleString('id-ID') }}</span>
+                </div>
+                <div class="text-right">
+                  <span class="block text-[10px] font-sans text-slate-400">SINKARKES</span>
+                  <span class="font-bold text-[#005851] dark:text-[#00A99D]">{{ ind.saved_sinkarkes_value.toLocaleString('id-ID') }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hidden md:block overflow-x-auto">
             <table class="w-full text-left border-collapse">
               <thead>
                 <tr class="bg-slate-50 dark:bg-[#171d29] border-b border-slate-200 dark:border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -1255,7 +1388,7 @@ const formatDateId = (isoDate) => {
               <Upload class="w-5 h-5 text-[#00A99D]" />
               <h3 class="text-sm font-extrabold text-slate-900 dark:text-white">Import Excel Rekap Harian Kapal &amp; Pesawat</h3>
             </div>
-            <button type="button" @click="closeImportModal" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+            <button type="button" @click="closeImportModal" aria-label="Tutup modal import Excel" title="Tutup" class="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
               <X class="w-4 h-4 text-slate-500" />
             </button>
           </div>

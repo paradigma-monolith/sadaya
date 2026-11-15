@@ -4,6 +4,7 @@ import { router } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
 import { useConfirm } from '@/composables/useConfirm';
+import { useDebouncedFn } from '@/composables/useDebouncedFn';
 import SharePublicModal from '../components/SharePublicModal.vue';
 import PaginationBar from '@/Components/PaginationBar.vue';
 import ClinicalModal from '@/Components/ClinicalModal.vue';
@@ -150,6 +151,7 @@ watch(
 );
 
 const handleFilter = () => {
+  debouncedFilter.cancel();
   const tabKey = cfg.value.tabKey;
   router.get('/travel-consent', {
     tab: tabKey,
@@ -163,7 +165,16 @@ const handleFilter = () => {
   });
 };
 
+const debouncedFilter = useDebouncedFn(handleFilter, 350);
+
+watch(searchInput, (val) => {
+  if ((val || '') !== (props.filters?.search || '')) {
+    debouncedFilter();
+  }
+});
+
 const resetFilter = () => {
+  debouncedFilter.cancel();
   searchInput.value = '';
   selectedEmbarkasi.value = '';
   selectedStatus.value = '';
@@ -228,12 +239,22 @@ const closeDetail = () => {
   activeItem.value = null;
 };
 
+const isSubmittingStatus = ref(false);
+
 const submitStatusUpdate = () => {
-  if (!activeItem.value) return;
+  if (!activeItem.value || isSubmittingStatus.value) return;
+  isSubmittingStatus.value = true;
   router.put(`/flight-medical-inspections/${activeItem.value.id}/status`, statusForm.value, {
     preserveScroll: true,
     onSuccess: () => {
+      toast.success(`Status pemakaian ${cfg.value.nounLower} diperbarui`);
       closeDetail();
+    },
+    onError: () => {
+      toast.error(`Gagal menyimpan status pemakaian ${cfg.value.nounLower}`);
+    },
+    onFinish: () => {
+      isSubmittingStatus.value = false;
     },
   });
 };
@@ -416,7 +437,94 @@ const countUsed = (items) => {
 
     <!-- Main Table -->
     <div class="clinical-surface overflow-hidden">
-      <div class="overflow-x-auto">
+      <!-- Mobile Card View -->
+      <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+        <div
+          v-for="item in inspections.data"
+          :key="`mob-${item.id}`"
+          class="p-3.5 space-y-2.5 text-xs"
+        >
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <div class="font-mono font-bold text-[#005851] dark:text-[#4fd1c5]">{{ item.registration_no }}</div>
+              <div class="font-bold text-slate-900 dark:text-slate-100 truncate">{{ item.nomor_kloter }} &bull; {{ item.embarkasi }}</div>
+              <div class="text-[11px] text-slate-500">Haji: {{ item.penerbangan_haji_h }} H / {{ item.penerbangan_haji_m }} M</div>
+            </div>
+            <span
+              class="px-2 py-0.5 rounded-full text-[10px] font-mono font-medium uppercase border shrink-0"
+              :class="{
+                'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800': item.status === 'approved',
+                'bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800': item.status === 'verified',
+                'bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800': item.status === 'submitted',
+                'bg-rose-50 dark:bg-rose-950 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800': item.status === 'rejected'
+              }"
+            >
+              {{ item.status }}
+            </span>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded text-[10.5px] font-mono font-semibold border" :class="cfg.p3kPillClass">
+              P3K: {{ countUsed(item.items_p3k) }} Pcs
+            </span>
+            <span class="px-2 py-0.5 rounded text-[10.5px] font-mono font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800">
+              EMK: {{ countUsed(item.items_emergensi) }} Pcs
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div class="text-[11px] text-slate-500 truncate">
+              Crew: <strong class="text-slate-700 dark:text-slate-300">{{ item.crew_nama }}</strong>
+            </div>
+            <div class="inline-flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                @click="openShareModal(item)"
+                class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Salin / Lihat Link Publik Dokumen"
+                :aria-label="`Salin tautan publik ${item.registration_no}`"
+              >
+                <Link2 class="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                @click="openDetail(item)"
+                class="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Lihat Detail & Verifikasi"
+                :aria-label="`Detail ${item.registration_no}`"
+              >
+                <Eye class="w-4 h-4" />
+              </button>
+              <a
+                :href="`${cfg.receiptPrefix}${item.registration_no}`"
+                target="_blank"
+                class="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Lihat Tanda Terima"
+                :aria-label="`Lihat tanda terima ${item.registration_no}`"
+              >
+                <Download class="w-4 h-4" />
+              </a>
+              <button
+                type="button"
+                @click="deleteInspection(item.id, item.registration_no)"
+                class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Hapus Data"
+                :aria-label="`Hapus ${item.registration_no}`"
+              >
+                <Trash2 class="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="inspections.data.length === 0" class="px-5 py-12 text-center text-slate-400">
+          <component :is="cfg.mainIcon" class="w-8 h-8 mx-auto mb-2 opacity-50" :class="cfg.iconClass" />
+          <p class="font-medium text-xs">Belum ada data pemakaian {{ cfg.nounLower }} yang sesuai.</p>
+        </div>
+      </div>
+
+      <!-- Desktop Table View -->
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
             <tr class="border-b border-slate-200 bg-slate-50/90 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
@@ -579,6 +687,8 @@ const countUsed = (items) => {
           <button
             type="button"
             @click="closeDetail"
+            aria-label="Tutup modal detail pemakaian"
+            title="Tutup"
             class="p-2 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X class="w-5 h-5" />
@@ -812,12 +922,13 @@ const countUsed = (items) => {
             <button
               v-if="activeModalTab === 'verify'"
               type="button"
+              :disabled="isSubmittingStatus"
               @click="submitStatusUpdate"
-              class="px-5 py-2 rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer flex items-center gap-1.5"
+              class="px-5 py-2 rounded-xl text-xs font-bold transition-colors shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
               :class="cfg.primaryBtn"
             >
               <Check class="w-4 h-4" />
-              <span>Simpan Pembaruan</span>
+              <span>{{ isSubmittingStatus ? 'Menyimpan...' : 'Simpan Pembaruan' }}</span>
             </button>
           </div>
         </div>

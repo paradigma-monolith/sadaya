@@ -148,7 +148,9 @@ const handlePageChange = (page) => {
           v-if="searchQuery"
           type="button"
           @click="clearSearch"
-          class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-600"
+          aria-label="Hapus kata kunci pencarian"
+          title="Hapus pencarian"
+          class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
         >
           <X class="w-3.5 h-3.5" />
         </button>
@@ -160,8 +162,33 @@ const handlePageChange = (page) => {
       </div>
     </div>
 
-    <!-- Table Container -->
-    <div class="relative overflow-x-auto">
+    <!-- Mobile Card View -->
+    <div class="md:hidden relative divide-y divide-slate-100 dark:divide-slate-800">
+      <div v-if="processedRows.length === 0 && !loading" class="py-10 px-4 text-center text-slate-400">
+        <Inbox class="w-7 h-7 text-slate-300 dark:text-slate-600 mx-auto mb-1.5" />
+        <p class="text-xs">{{ emptyMessage }}</p>
+      </div>
+
+      <div
+        v-for="(row, rowIndex) in processedRows"
+        :key="`mob-${row.id || rowIndex}`"
+        class="p-3.5 space-y-2 text-xs bg-white dark:bg-[#111820]"
+      >
+        <slot name="mobile-card" :row="row" :index="rowIndex">
+          <div v-for="col in columns" :key="col.key" class="flex items-start justify-between gap-2">
+            <span class="text-[11px] font-medium text-slate-500 dark:text-slate-400 shrink-0">{{ col.label }}</span>
+            <span class="text-right font-medium text-slate-800 dark:text-slate-100 min-w-0 break-words">
+              <slot :name="`cell(${col.key})`" :row="row" :value="row[col.key]">
+                {{ row[col.key] !== null && row[col.key] !== undefined ? row[col.key] : '-' }}
+              </slot>
+            </span>
+          </div>
+        </slot>
+      </div>
+    </div>
+
+    <!-- Desktop Table Container -->
+    <div class="hidden md:block relative overflow-x-auto">
       <!-- Loading Overlay -->
       <div 
         v-if="loading" 
@@ -231,11 +258,11 @@ const handlePageChange = (page) => {
     <!-- Table Footer / Pagination -->
     <div 
       v-if="isPaginated && data.total > 0"
-      class="px-3.5 py-2.5 border-t border-slate-200/90 bg-slate-50/40 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 tabular-nums"
+      class="px-3.5 py-2.5 border-t border-slate-200/90 dark:border-slate-800 bg-slate-50/40 dark:bg-[#16202a]/70 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400 tabular-nums"
     >
       <div>
-        Menampilkan <span class="font-semibold text-slate-800">{{ data.from || 1 }}</span>–<span class="font-semibold text-slate-800">{{ data.to || data.total }}</span> dari 
-        <span class="font-semibold text-slate-800">{{ data.total }}</span> data
+        Menampilkan <span class="font-semibold text-slate-800 dark:text-slate-200">{{ data.from || 1 }}</span>–<span class="font-semibold text-slate-800 dark:text-slate-200">{{ data.to || data.total }}</span> dari 
+        <span class="font-semibold text-slate-800 dark:text-slate-200">{{ data.total }}</span> data
       </div>
 
       <!-- Pagination Buttons -->
@@ -244,12 +271,14 @@ const handlePageChange = (page) => {
           type="button"
           :disabled="!data.prev_page_url"
           @click="handlePageChange(data.current_page - 1)"
-          class="p-1.5 rounded-md border border-slate-200 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white transition-colors cursor-pointer"
+          aria-label="Halaman sebelumnya"
+          title="Halaman sebelumnya"
+          class="p-1.5 rounded-md border border-slate-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-white dark:hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <ChevronLeft class="w-3.5 h-3.5" />
         </button>
 
-        <span class="px-2.5 py-1 font-mono text-[11px] font-semibold text-slate-700">
+        <span class="px-2.5 py-1 font-mono text-[11px] font-semibold text-slate-700 dark:text-slate-300">
           Hal {{ data.current_page }} / {{ data.last_page }}
         </span>
 
@@ -257,6 +286,8 @@ const handlePageChange = (page) => {
           type="button"
           :disabled="!data.next_page_url"
           @click="handlePageChange(data.current_page + 1)"
+          aria-label="Halaman berikutnya"
+          title="Halaman berikutnya"
           class="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
         >
           <ChevronRight class="w-4 h-4" />

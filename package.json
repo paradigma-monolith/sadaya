@@ -4,7 +4,9 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "check": "node scripts/check-sfc.mjs",
+        "dev": "vite",
+        "test": "node --test tests/Frontend/*.test.mjs"
     },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",

@@ -111,6 +111,8 @@ const copyUrl = async () => {
         <button
           type="button"
           @click="emit('close')"
+          aria-label="Tutup modal tautan publik"
+          title="Tutup"
           class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
         >
           <X class="w-4 h-4" />

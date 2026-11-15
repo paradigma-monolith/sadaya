@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
-import 'dayjs/locale/id';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import localizedFormat from 'dayjs/plugin/localizedFormat';
+import 'dayjs/locale/id.js';
+import relativeTime from 'dayjs/plugin/relativeTime.js';
+import localizedFormat from 'dayjs/plugin/localizedFormat.js';
 
 // Setup Indonesian locale and plugins
 dayjs.extend(relativeTime);

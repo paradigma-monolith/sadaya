@@ -771,7 +771,50 @@ const openMonthForm = (targetWilker, targetMonth) => {
         </div>
 
         <!-- TAB 1: Tabel Indikator Utama (Jan - Des + Total Tahunan) -->
-        <div v-if="activeSummaryTab === 'indicators'" class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-[#232a36]">
+        <div v-if="activeSummaryTab === 'indicators'" class="md:hidden space-y-2.5">
+          <div
+            v-for="row in filteredSummaryItems"
+            :key="`mob-ind-${row.code}`"
+            class="p-3.5 rounded-2xl border border-slate-200 dark:border-[#232a36] bg-white dark:bg-[#12161f] space-y-2.5"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0 space-y-1">
+                <div class="flex items-center gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-[#1b2230] font-mono font-bold text-[10px] text-slate-700 dark:text-slate-300">{{ row.code }}</span>
+                  <span
+                    class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
+                    :class="{
+                      'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400': row.section === 'KSE',
+                      'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400': row.section === 'UKP',
+                      'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400': row.section === 'PRL',
+                    }"
+                  >{{ row.section }}</span>
+                  <span class="text-[10px] font-mono text-slate-400">{{ row.unit }}</span>
+                </div>
+                <p class="text-xs font-semibold text-slate-800 dark:text-slate-100 leading-snug">{{ row.label }}</p>
+              </div>
+              <div class="text-right shrink-0 px-2.5 py-1 rounded-xl bg-[#00A99D]/10">
+                <span class="block text-[9px] uppercase font-semibold text-slate-500 dark:text-slate-400">Total</span>
+                <span class="font-mono font-bold text-xs text-[#005851] dark:text-[#00A99D]">
+                  {{ row.total_year > 0 ? row.total_year.toLocaleString('id-ID') : '-' }}
+                </span>
+              </div>
+            </div>
+            <div class="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] font-mono">
+              <div v-for="(m, idx) in monthNames" :key="`mob-m-${row.code}-${idx}`" class="flex items-center justify-between px-1.5 py-0.5 rounded bg-slate-50 dark:bg-[#161c28]">
+                <span class="text-slate-400">{{ m }}</span>
+                <span :class="row.months[idx + 1] > 0 ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-300 dark:text-slate-600'">
+                  {{ row.months[idx + 1] > 0 ? row.months[idx + 1].toLocaleString('id-ID') : '-' }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div v-if="filteredSummaryItems.length === 0" class="py-8 text-center text-xs text-slate-400 italic">
+            Tidak ada indikator yang sesuai dengan filter pencarian.
+          </div>
+        </div>
+
+        <div v-if="activeSummaryTab === 'indicators'" class="hidden md:block overflow-x-auto rounded-2xl border border-slate-200 dark:border-[#232a36]">
           <table class="w-full min-w-[980px] text-left text-xs border-collapse">
             <thead>
               <tr class="bg-slate-50 dark:bg-[#161c28] text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
@@ -874,7 +917,42 @@ const openMonthForm = (targetWilker, targetMonth) => {
         </div>
 
         <!-- TAB 2: Tabel Rekapitulasi per Wilayah Kerja -->
-        <div v-else-if="activeSummaryTab === 'wilkers'" class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-[#232a36]">
+        <div v-else-if="activeSummaryTab === 'wilkers'" class="space-y-3">
+          <div class="md:hidden space-y-2.5">
+            <div
+              v-for="wRow in (wilker_summary?.items || [])"
+              :key="`mob-w-${wRow.wilker}`"
+              class="p-3.5 rounded-2xl border border-slate-200 dark:border-[#232a36] bg-white dark:bg-[#12161f] space-y-2.5"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0 font-semibold text-xs text-slate-800 dark:text-slate-100">
+                  <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+                  <span class="truncate">{{ wRow.wilker }}</span>
+                </div>
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <span
+                    class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold"
+                    :class="wRow.compliance_percent >= 80 ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600'"
+                  >
+                    {{ wRow.filled_months }}/12
+                  </span>
+                  <span class="px-2 py-0.5 rounded-lg bg-[#7CA622]/10 font-mono font-bold text-xs text-[#547313] dark:text-[#7CA622]">
+                    {{ wRow.total_year > 0 ? wRow.total_year.toLocaleString('id-ID') : '-' }}
+                  </span>
+                </div>
+              </div>
+              <div class="grid grid-cols-4 gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] font-mono">
+                <div v-for="(m, idx) in monthNames" :key="`mob-wm-${wRow.wilker}-${idx}`" class="flex items-center justify-between px-1.5 py-0.5 rounded bg-slate-50 dark:bg-[#161c28]">
+                  <span class="text-slate-400">{{ m }}</span>
+                  <span :class="wRow.months[idx + 1] > 0 ? 'font-bold text-slate-800 dark:text-slate-100' : 'text-slate-300 dark:text-slate-600'">
+                    {{ wRow.months[idx + 1] > 0 ? wRow.months[idx + 1].toLocaleString('id-ID') : '-' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hidden md:block overflow-x-auto rounded-2xl border border-slate-200 dark:border-[#232a36]">
           <table class="w-full min-w-[980px] text-left text-xs border-collapse">
             <thead>
               <tr class="bg-slate-50 dark:bg-[#161c28] text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
@@ -953,6 +1031,7 @@ const openMonthForm = (targetWilker, targetMonth) => {
               </tr>
             </tfoot>
           </table>
+          </div>
         </div>
 
         <!-- TAB 3: Status Pengisian (Matriks Kepatuhan Dot Table) -->
@@ -965,7 +1044,39 @@ const openMonthForm = (targetWilker, targetMonth) => {
             </div>
           </div>
 
-          <div class="overflow-x-auto rounded-2xl border border-slate-200 dark:border-[#232a36]">
+          <div class="md:hidden space-y-2.5">
+            <div
+              v-for="row in matrix"
+              :key="`mob-comp-${row.wilker}`"
+              class="p-3.5 rounded-2xl border border-slate-200 dark:border-[#232a36] bg-white dark:bg-[#12161f] space-y-2.5"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0 font-semibold text-xs text-slate-800 dark:text-slate-100">
+                  <Building2 class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+                  <span class="truncate">{{ row.wilker }}</span>
+                </div>
+                <span class="text-xs font-mono font-bold text-slate-700 dark:text-slate-300 shrink-0">{{ row.compliance_percent }}%</span>
+              </div>
+              <div class="grid grid-cols-6 gap-1.5">
+                <button
+                  v-for="(m, idx) in monthNames"
+                  :key="`mob-btn-${row.wilker}-${idx}`"
+                  type="button"
+                  @click="openMonthForm(row.wilker, idx + 1)"
+                  :aria-label="row.months[idx + 1]?.has_data ? `Buka ${row.wilker} bulan ${m}: ${row.months[idx + 1].filled_count} indikator terisi` : `Isi ${row.wilker} bulan ${m}`"
+                  class="py-1.5 rounded-lg flex flex-col items-center justify-center text-[10px] font-mono transition cursor-pointer border"
+                  :class="row.months[idx + 1]?.has_data
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60'
+                    : 'bg-slate-50 dark:bg-[#161c28] text-slate-400 border-slate-200/70 dark:border-slate-800'"
+                >
+                  <span>{{ m }}</span>
+                  <span class="text-[9px] font-bold">{{ row.months[idx + 1]?.has_data ? row.months[idx + 1].filled_count : '-' }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="hidden md:block overflow-x-auto rounded-2xl border border-slate-200 dark:border-[#232a36]">
             <table class="w-full min-w-[760px] text-left text-xs border-collapse">
               <thead>
                 <tr class="bg-slate-50 dark:bg-[#161c28] text-slate-700 dark:text-slate-300 font-bold uppercase tracking-wider text-[11px] border-b border-slate-200 dark:border-slate-800">
@@ -1004,6 +1115,7 @@ const openMonthForm = (targetWilker, targetMonth) => {
                           ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/60 hover:scale-105'
                           : 'bg-slate-50 dark:bg-[#161c28] text-slate-300 dark:text-slate-600 border border-slate-200/60 dark:border-slate-800 hover:border-slate-300'
                       ]"
+                      :aria-label="row.months[mId]?.has_data ? `${row.wilker} - Bulan ${mId}: ${row.months[mId].filled_count} indikator terisi.` : `${row.wilker} - Bulan ${mId}: Belum ada data.`"
                       :title="row.months[mId]?.has_data ? `${row.wilker} - Bulan ${mId}: ${row.months[mId].filled_count} indikator terisi.` : `${row.wilker} - Bulan ${mId}: Belum ada data.`"
                     >
                       <span

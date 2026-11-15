@@ -325,7 +325,41 @@ const pnbpTariffs = [
         <span class="text-xs text-slate-400">Breakdown Real-Time</span>
       </div>
 
-      <div class="overflow-x-auto">
+      <div class="md:hidden space-y-2.5">
+        <div
+          v-for="(pnbp, index) in pnbpPerPelabuhan"
+          :key="`mob-pnbp-${index}`"
+          class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 space-y-2 text-xs"
+        >
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 font-semibold text-slate-900 dark:text-white min-w-0">
+              <Anchor class="w-3.5 h-3.5 text-[#00A99D] shrink-0" />
+              <span class="truncate">{{ pnbp.pelabuhan }}</span>
+            </div>
+            <span class="font-mono font-bold text-slate-700 dark:text-slate-300 shrink-0">{{ pnbp.persentase }}%</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2 pt-1 border-t border-slate-200/70 dark:border-slate-700/70 font-mono text-[11px]">
+            <div>
+              <span class="block text-[10px] font-sans text-slate-400">Kapal</span>
+              <span>{{ pnbp.jumlah_kapal }} Kpl</span>
+            </div>
+            <div>
+              <span class="block text-[10px] font-sans text-slate-400">Bobot GT</span>
+              <span>{{ formatNumber(pnbp.total_gt) }} GT</span>
+            </div>
+            <div class="text-right">
+              <span class="block text-[10px] font-sans text-slate-400">Estimasi</span>
+              <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(pnbp.total_pnbp) }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50/50 dark:bg-emerald-950/20 flex items-center justify-between text-xs font-bold">
+          <span class="text-slate-800 dark:text-slate-100">TOTAL ({{ summary.total_kapal }} Kpl • {{ formatNumber(summary.total_gt) }} GT)</span>
+          <span class="font-mono text-emerald-700 dark:text-emerald-300">{{ formatCurrency(summary.total_pnbp) }}</span>
+        </div>
+      </div>
+
+      <div class="hidden md:block overflow-x-auto">
         <table class="w-full text-xs text-left">
           <thead class="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 font-semibold border-b border-slate-200 dark:border-slate-800">
             <tr>

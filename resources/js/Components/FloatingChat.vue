@@ -1,7 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { usePage } from '@inertiajs/vue3';
-import { getEcho } from '../echo.js';
 import { 
   MessageSquare, 
   Send, 
@@ -221,12 +220,18 @@ const sendMessage = async (textToSend = null) => {
   }
 };
 
-onMounted(() => {
+let isComponentMounted = true;
+let activeEcho = null;
+
+onMounted(async () => {
   fetchMessages();
 
-  // Initialize and listen to Reverb WebSocket channel 'chat-channel'
+  // Lazy-load and subscribe to Reverb WebSocket channel 'chat-channel'
   try {
+    const { getEcho } = await import('../echo.js');
+    if (!isComponentMounted) return;
     const echoInstance = getEcho();
+    activeEcho = echoInstance;
     if (echoInstance) {
       const channel = echoInstance.channel('chat-channel');
       wsConnected.value = true;
@@ -260,11 +265,11 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  isComponentMounted = false;
   stopPolling();
   try {
-    const echoInstance = getEcho();
-    if (echoInstance) {
-      echoInstance.leaveChannel('chat-channel');
+    if (activeEcho) {
+      activeEcho.leaveChannel('chat-channel');
     }
   } catch (e) {}
 });
@@ -445,6 +450,8 @@ onUnmounted(() => {
           <button 
             type="button" 
             @click="sendError = ''" 
+            aria-label="Tutup pesan error"
+            title="Tutup pesan error"
             class="text-rose-500 hover:text-rose-800 dark:hover:text-rose-300 p-0.5 rounded cursor-pointer"
           >
             <X class="w-3.5 h-3.5" />

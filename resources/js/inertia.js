@@ -1,8 +1,18 @@
 import { createApp, h } from 'vue';
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { initSentry } from './sentry';
-import './echo';
+
+const ensureAuthenticatedEcho = (pageProps) => {
+    if (typeof window === 'undefined' || !pageProps?.auth?.user || window.Echo) {
+        return;
+    }
+    import('./echo')
+        .then(({ getEcho }) => {
+            getEcho();
+        })
+        .catch(() => {});
+};
 
 createInertiaApp({
     title: (title) => {
@@ -23,6 +33,11 @@ createInertiaApp({
         app.use(plugin);
         initSentry(app);
         app.mount(el);
+
+        ensureAuthenticatedEcho(props?.initialPage?.props);
+        router.on('navigate', (event) => {
+            ensureAuthenticatedEcho(event?.detail?.page?.props);
+        });
     },
     progress: {
         color: '#00A99D',

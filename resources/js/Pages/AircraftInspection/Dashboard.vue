@@ -437,7 +437,44 @@ const actionsOption = computed(() => {
           </Link>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800/60">
+          <div v-if="recent.length === 0" class="py-8 text-center text-xs text-slate-400">
+            Belum ada riwayat pemeriksaan pesawat.
+          </div>
+          <div v-for="item in recent" :key="`mob-rec-${item.id}`" class="py-3 space-y-2 text-xs">
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="font-mono font-bold text-sky-600 dark:text-sky-400">{{ item.registration_no }}</div>
+                <div class="font-semibold text-slate-800 dark:text-slate-200 truncate">{{ item.pemilik }}</div>
+              </div>
+              <span
+                class="px-2 py-0.5 rounded-full text-[10.5px] font-semibold border shrink-0"
+                :class="item.kesimpulan === 'layak'
+                  ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                  : 'bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'"
+              >
+                {{ item.kesimpulan === 'layak' ? 'Layak' : 'Tidak Layak' }}
+              </span>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+              <span>Reg: <strong class="font-mono text-slate-700 dark:text-slate-300">{{ item.tanda_kebangsaan }}</strong></span>
+              <span>{{ formatDate(item.tanggal) }} ({{ item.waktu }} WIB)</span>
+            </div>
+            <div class="flex items-center justify-between gap-2 pt-1">
+              <span class="text-[11px] text-slate-600 dark:text-slate-300 truncate">Petugas: {{ item.petugas_bkk_nama }}</span>
+              <a
+                :href="`/aircraft-inspections/${item.id}/pdf`"
+                class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors inline-flex items-center gap-1 shrink-0"
+                title="Unduh PDF Resmi"
+              >
+                <Download class="w-3.5 h-3.5 text-emerald-500" />
+                <span>PDF</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
               <tr class="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-semibold uppercase text-[10.5px]">

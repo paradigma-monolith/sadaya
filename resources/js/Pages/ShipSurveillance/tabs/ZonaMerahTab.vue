@@ -253,7 +253,7 @@ const resetDefaultRedZones = async () => {
         <AlertTriangle class="w-4 h-4 shrink-0" />
         <span>{{ pdfImportError }}</span>
       </div>
-      <button type="button" @click="pdfImportError = ''" class="hover:opacity-75 cursor-pointer"><X class="w-4 h-4" /></button>
+      <button type="button" @click="pdfImportError = ''" aria-label="Tutup pesan error import PDF" title="Tutup" class="hover:opacity-75 cursor-pointer"><X class="w-4 h-4" /></button>
     </div>
 
     <div v-if="pdfImportSuccess" class="p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs flex items-center justify-between gap-2">
@@ -261,7 +261,7 @@ const resetDefaultRedZones = async () => {
         <CheckCircle2 class="w-4 h-4 shrink-0" />
         <span>{{ pdfImportSuccess }}</span>
       </div>
-      <button type="button" @click="pdfImportSuccess = ''" class="hover:opacity-75 cursor-pointer"><X class="w-4 h-4" /></button>
+      <button type="button" @click="pdfImportSuccess = ''" aria-label="Tutup pesan sukses import PDF" title="Tutup" class="hover:opacity-75 cursor-pointer"><X class="w-4 h-4" /></button>
     </div>
 
     <!-- Ringkasan & Aksi Cepat -->

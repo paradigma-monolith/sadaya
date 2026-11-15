@@ -170,6 +170,8 @@ const submit = () => {
               <button
                 type="button"
                 @click="showPassword = !showPassword"
+                :aria-label="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
+                :title="showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'"
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
                 tabindex="-1"
               >

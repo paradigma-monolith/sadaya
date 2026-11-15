@@ -680,29 +680,57 @@ onMounted(() => {
           </div>
 
           <!-- If ALL modules were migrated -->
-          <div v-if="migrationSummary.details" class="overflow-x-auto pt-1">
-            <table class="w-full text-left text-xs bg-white rounded-lg overflow-hidden border border-slate-200">
-              <thead class="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
-                <tr>
-                  <th class="p-2.5">Modul</th>
-                  <th class="p-2.5 text-center">Total Diproses</th>
-                  <th class="p-2.5 text-center">Berhasil Diimpor</th>
-                  <th class="p-2.5 text-center">Dilewati (Duplikat)</th>
-                  <th class="p-2.5 text-center">Gagal</th>
-                  <th class="p-2.5 text-right">Durasi</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-100">
-                <tr v-for="(det, k) in migrationSummary.details" :key="k" class="hover:bg-[#F4FBF9]">
-                  <td class="p-2.5 font-semibold text-slate-900">{{ det.module_name }}</td>
-                  <td class="p-2.5 text-center font-mono clinical-num">{{ formatNumber(det.total_processed) }}</td>
-                  <td class="p-2.5 text-center font-bold text-emerald-600 font-mono clinical-num">{{ formatNumber(det.imported) }}</td>
-                  <td class="p-2.5 text-center text-amber-600 font-mono clinical-num">{{ formatNumber(det.skipped) }}</td>
-                  <td class="p-2.5 text-center text-rose-600 font-mono clinical-num">{{ formatNumber(det.failed) }}</td>
-                  <td class="p-2.5 text-right font-mono text-slate-500 clinical-num">{{ det.duration }}s</td>
-                </tr>
-              </tbody>
-            </table>
+          <div v-if="migrationSummary.details" class="pt-1">
+            <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+              <div v-for="(det, k) in migrationSummary.details" :key="`mob-mig-${k}`" class="p-3 space-y-1.5 text-xs">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-semibold text-slate-900 dark:text-white">{{ det.module_name }}</span>
+                  <span class="font-mono text-[11px] text-slate-500 clinical-num">{{ det.duration }}s</span>
+                </div>
+                <div class="grid grid-cols-4 gap-1 text-[10px] font-mono pt-1 border-t border-slate-100 dark:border-slate-800">
+                  <div>
+                    <span class="block text-slate-400 font-sans">Proses</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-200">{{ formatNumber(det.total_processed) }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-slate-400 font-sans">Impor</span>
+                    <span class="font-bold text-emerald-600">{{ formatNumber(det.imported) }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-slate-400 font-sans">Lewat</span>
+                    <span class="text-amber-600">{{ formatNumber(det.skipped) }}</span>
+                  </div>
+                  <div>
+                    <span class="block text-slate-400 font-sans">Gagal</span>
+                    <span class="text-rose-600">{{ formatNumber(det.failed) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="hidden md:block overflow-x-auto">
+              <table class="w-full text-left text-xs bg-white rounded-lg overflow-hidden border border-slate-200">
+                <thead class="bg-slate-50 text-slate-600 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="p-2.5">Modul</th>
+                    <th class="p-2.5 text-center">Total Diproses</th>
+                    <th class="p-2.5 text-center">Berhasil Diimpor</th>
+                    <th class="p-2.5 text-center">Dilewati (Duplikat)</th>
+                    <th class="p-2.5 text-center">Gagal</th>
+                    <th class="p-2.5 text-right">Durasi</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  <tr v-for="(det, k) in migrationSummary.details" :key="k" class="hover:bg-[#F4FBF9]">
+                    <td class="p-2.5 font-semibold text-slate-900">{{ det.module_name }}</td>
+                    <td class="p-2.5 text-center font-mono clinical-num">{{ formatNumber(det.total_processed) }}</td>
+                    <td class="p-2.5 text-center font-bold text-emerald-600 font-mono clinical-num">{{ formatNumber(det.imported) }}</td>
+                    <td class="p-2.5 text-center text-amber-600 font-mono clinical-num">{{ formatNumber(det.skipped) }}</td>
+                    <td class="p-2.5 text-center text-rose-600 font-mono clinical-num">{{ formatNumber(det.failed) }}</td>
+                    <td class="p-2.5 text-right font-mono text-slate-500 clinical-num">{{ det.duration }}s</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
 
           <!-- If single module was migrated -->
@@ -759,7 +787,99 @@ onMounted(() => {
           </span>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+          <div
+            v-for="mod in modules"
+            :key="`mob-mod-${mod.id}`"
+            class="p-4 space-y-3"
+          >
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-9 h-9 rounded-2xl flex items-center justify-center shrink-0" :class="[mod.bg_color, mod.color]">
+                  <component :is="iconComponent(mod.icon)" class="w-4 h-4" />
+                </div>
+                <div class="min-w-0">
+                  <div class="font-bold text-slate-900 dark:text-white text-xs truncate">
+                    {{ mod.name }}
+                  </div>
+                  <div class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2">
+                    {{ mod.description }}
+                  </div>
+                </div>
+              </div>
+              <div class="text-right shrink-0 font-mono">
+                <span class="font-extrabold text-slate-900 dark:text-white text-sm block">
+                  {{ formatNumber(localSadayaStats[mod.id] || 0) }}
+                </span>
+                <span class="text-[10px] text-slate-400 font-sans">rekaman</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-1.5 text-[11px] bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700/60 font-mono">
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <span class="text-slate-500 dark:text-slate-400 font-sans">Sumber Simply</span>
+                <div class="flex items-center gap-1 flex-wrap justify-end">
+                  <span class="font-semibold text-slate-700 dark:text-slate-200">
+                    {{ moduleConfigs[mod.id]?.database || mod.source_db }}.{{ moduleConfigs[mod.id]?.table || mod.source_table }}
+                  </span>
+                  <span v-if="isModuleCustomized(mod.id)" class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                    Kustom
+                  </span>
+                </div>
+              </div>
+              <div class="flex items-center justify-between gap-2 flex-wrap">
+                <span class="text-slate-500 dark:text-slate-400 font-sans">Tujuan Sadaya</span>
+                <span class="text-indigo-600 dark:text-indigo-400 font-semibold">{{ mod.target_table }}</span>
+              </div>
+              <div class="flex items-center justify-between gap-2 flex-wrap pt-1 border-t border-slate-200/70 dark:border-slate-700">
+                <span class="text-slate-500 dark:text-slate-400 font-sans">Status</span>
+                <div v-if="testResults && testResults.modules && testResults.modules[mod.id]">
+                  <span v-if="testResults.modules[mod.id].connected && testResults.modules[mod.id].table_exists" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                    <Check class="w-3 h-3 text-emerald-600" />
+                    {{ formatNumber(testResults.modules[mod.id].count) }} data
+                  </span>
+                  <span v-else class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                    <X class="w-3 h-3 text-slate-400" />
+                    Belum Ada
+                  </span>
+                </div>
+                <span v-else class="text-slate-400">-</span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                @click="openConfigModal(mod)"
+                aria-label="Atur database sumber modul"
+                class="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <SlidersHorizontal class="w-3.5 h-3.5 text-indigo-500" />
+                <span>Atur DB</span>
+              </button>
+              <button
+                type="button"
+                @click="handleMigrate(mod.id)"
+                :disabled="isMigrating"
+                class="flex-1 justify-center px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                <RefreshCw class="w-3 h-3" :class="{ 'animate-spin': isMigrating && activeMigratingModule === mod.id }" />
+                <span>{{ isMigrating && activeMigratingModule === mod.id ? 'Memigrasikan...' : 'Migrasi MySQL' }}</span>
+              </button>
+              <button
+                type="button"
+                @click="openUploadModal(mod)"
+                aria-label="Import dari berkas backup (.sql, .json, .csv)"
+                title="Import dari berkas backup (.sql, .json, .csv)"
+                class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer"
+              >
+                <UploadCloud class="w-4 h-4 text-slate-500" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden md:block overflow-x-auto">
           <table class="w-full text-left text-xs">
             <thead class="bg-slate-50/80 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-100 dark:border-slate-800">
               <tr>
@@ -877,6 +997,7 @@ onMounted(() => {
                     <button
                       type="button"
                       @click="openUploadModal(mod)"
+                      aria-label="Import dari berkas backup (.sql, .json, .csv)"
                       title="Import dari berkas backup (.sql, .json, .csv)"
                       class="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition cursor-pointer"
                     >
@@ -920,6 +1041,8 @@ onMounted(() => {
           <button
             type="button"
             @click="closeUploadModal"
+            aria-label="Tutup modal upload backup"
+            title="Tutup"
             class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
           >
             <X class="w-5 h-5" />
@@ -1029,6 +1152,8 @@ onMounted(() => {
           <button
             type="button"
             @click="closeConfigModal"
+            aria-label="Tutup modal konfigurasi database"
+            title="Tutup"
             class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
           >
             <X class="w-5 h-5" />
@@ -1186,6 +1311,8 @@ onMounted(() => {
           <button
             type="button"
             @click="showAutoSyncModal = false"
+            aria-label="Tutup modal pengaturan auto-sync"
+            title="Tutup"
             class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
           >
             <X class="w-5 h-5" />

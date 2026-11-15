@@ -1,6 +1,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
+import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
 import ClinicalModal from '../../../Components/ClinicalModal.vue';
 import {
@@ -73,7 +74,11 @@ const submitVerify = () => {
     {
       preserveScroll: true,
       onSuccess: () => {
+        toast.success('Verifikasi kedatangan kapal diperbarui');
         emit('close-verify');
+      },
+      onError: () => {
+        toast.error('Gagal menyimpan verifikasi kedatangan kapal');
       },
       onFinish: () => {
         isSubmittingVerify.value = false;
@@ -109,6 +114,8 @@ const submitVerify = () => {
         <button
           type="button"
           @click="emit('close-detail')"
+          aria-label="Tutup detail pemeriksaan kapal"
+          title="Tutup"
           class="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition cursor-pointer"
         >
           <X class="w-4 h-4" />
@@ -268,6 +275,8 @@ const submitVerify = () => {
         <button
           type="button"
           @click="emit('close-verify')"
+          aria-label="Tutup modal verifikasi"
+          title="Tutup"
           class="text-white/80 hover:text-white cursor-pointer"
         >
           <X class="w-4 h-4" />

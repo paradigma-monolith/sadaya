@@ -366,29 +366,43 @@ const showLiveToast = (notification) => {
   }, 5000);
 };
 
-onMounted(() => {
+let isNavbarMounted = true;
+
+onMounted(async () => {
   fetchNotifications();
 
-  // Listen for real-time Reverb WebSocket notifications
-  if (typeof window !== 'undefined' && window.Echo && currentUser.value) {
-    window.Echo.private(`App.Models.User.${currentUser.value.id}`)
-      .notification((notification) => {
-        unreadCount.value++;
-        notifications.value.unshift({
-          id: notification.id,
-          data: {
-            title: notification.title,
-            message: notification.message,
-            type: notification.type || 'info',
-            action_url: notification.action_url || null,
-            time: 'baru saja',
-          },
-          read_at: null,
-          created_at: new Date().toISOString(),
+  // Lazy-load Echo & listen for real-time Reverb WebSocket notifications
+  if (typeof window !== 'undefined' && currentUser.value) {
+    let echoInstance = window.Echo || null;
+    if (!echoInstance) {
+      try {
+        const { getEcho } = await import('../echo.js');
+        if (isNavbarMounted) {
+          echoInstance = getEcho();
+        }
+      } catch (e) {}
+    }
+
+    if (echoInstance && isNavbarMounted && currentUser.value) {
+      echoInstance.private(`App.Models.User.${currentUser.value.id}`)
+        .notification((notification) => {
+          unreadCount.value++;
+          notifications.value.unshift({
+            id: notification.id,
+            data: {
+              title: notification.title,
+              message: notification.message,
+              type: notification.type || 'info',
+              action_url: notification.action_url || null,
+              time: 'baru saja',
+            },
+            read_at: null,
+            created_at: new Date().toISOString(),
+          });
+          showLiveToast(notification);
+          playNotificationChime();
         });
-        showLiveToast(notification);
-        playNotificationChime();
-      });
+    }
   }
 
   // Click outside listener to dismiss dropdowns
@@ -398,21 +412,27 @@ onMounted(() => {
 
   // Toggle sidebar via keyboard shortcut (Ctrl+B / Cmd+B) and close dropdowns (Escape)
   if (typeof window !== 'undefined') {
-    window.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-        e.preventDefault();
-        handleSidebarToggle();
-      }
-      if (e.key === 'Escape') {
-        closeAllDropdowns();
-      }
-    });
+    window.addEventListener('keydown', handleGlobalKeydown);
   }
 });
 
+const handleGlobalKeydown = (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+    e.preventDefault();
+    handleSidebarToggle();
+  }
+  if (e.key === 'Escape') {
+    closeAllDropdowns();
+  }
+};
+
 onUnmounted(() => {
+  isNavbarMounted = false;
   if (typeof document !== 'undefined') {
     document.removeEventListener('click', handleClickOutside);
+  }
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('keydown', handleGlobalKeydown);
   }
   if (toastTimeout) {
     clearTimeout(toastTimeout);
@@ -458,6 +478,7 @@ const handleLogout = () => {
                 @click="handleSidebarToggle"
                 class="p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-50 dark:bg-[#16202a] hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700 transition-colors cursor-pointer flex items-center justify-center shrink-0"
                 :title="isCollapsed ? 'Perluas Sidebar (Ctrl+B)' : 'Ciutkan Sidebar (Ctrl+B)'"
+                :aria-label="isCollapsed ? 'Perluas Sidebar (Ctrl+B)' : 'Ciutkan Sidebar (Ctrl+B)'"
               >
                 <Menu class="w-4 h-4" />
               </button>
@@ -522,6 +543,7 @@ const handleLogout = () => {
                   @click="toggleNotifications"
                   class="relative p-1.5 rounded-md text-slate-500 dark:text-slate-400 hover:text-[#005851] dark:hover:text-[#4fd1c5] bg-white dark:bg-[#16202a] hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200/90 dark:border-slate-700 transition-colors cursor-pointer"
                   title="Notifikasi Real-Time"
+                  aria-label="Buka Notifikasi Real-Time"
                 >
                   <Bell class="w-3.5 h-3.5" />
                   <span v-if="unreadCount > 0" class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[#00A99D] text-white rounded-full text-[9px] font-bold flex items-center justify-center ring-1 ring-white dark:ring-[#111820] tabular-nums">
@@ -570,6 +592,8 @@ const handleLogout = () => {
                         <button
                           type="button"
                           @click="showNotifications = false"
+                          aria-label="Tutup panel notifikasi"
+                          title="Tutup panel notifikasi"
                           class="sm:hidden p-1 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                         >
                           <X class="w-4 h-4" />
@@ -731,6 +755,8 @@ const handleLogout = () => {
           <button 
             type="button" 
             @click="liveToast = null" 
+            aria-label="Tutup notifikasi"
+            title="Tutup notifikasi"
             class="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
           >
             <X class="w-3.5 h-3.5" />

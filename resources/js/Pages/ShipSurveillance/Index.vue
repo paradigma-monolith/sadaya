@@ -235,15 +235,16 @@ onUnmounted(() => {
               @click="showPortalDropdown = !showPortalDropdown"
               class="px-2 py-1.5 rounded-r-lg bg-[#009388] hover:bg-[#007e74] text-white text-xs border-l border-white/20 transition-colors flex items-center justify-center cursor-pointer"
               title="Pilih Formulir Spesifik"
+              aria-label="Pilih Formulir Spesifik Portal TANGKAP"
             >
               <ChevronDown class="w-3.5 h-3.5 transition-transform" :class="{ 'rotate-180': showPortalDropdown }" />
             </button>
 
             <div
               v-if="showPortalDropdown"
-              class="absolute right-0 top-full mt-1.5 w-68 bg-white border border-slate-200 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 text-slate-800"
+              class="absolute right-0 top-full mt-1.5 w-68 bg-white dark:bg-[#111820] border border-slate-200 dark:border-slate-700/90 rounded-xl shadow-xl z-50 p-1.5 space-y-0.5 text-slate-800 dark:text-slate-100"
             >
-              <div class="px-2.5 py-1 text-[10px] font-mono uppercase text-slate-400 tracking-wider">
+              <div class="px-2.5 py-1 text-[10px] font-mono uppercase text-slate-400 dark:text-slate-500 tracking-wider">
                 Portal Karantina Kesehatan (TANGKAP)
               </div>
 
@@ -251,16 +252,16 @@ onUnmounted(() => {
                 href="/ship-surveillance/portal"
                 target="_blank"
                 @click="showPortalDropdown = false"
-                class="flex items-start gap-2 p-2 rounded-lg text-xs hover:bg-slate-50 text-slate-700 transition-colors group"
+                class="flex items-start gap-2 p-2 rounded-lg text-xs hover:bg-slate-50 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-200 transition-colors group"
               >
-                <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                <div class="w-6 h-6 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
                   <Globe class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
-                  <div class="font-semibold text-slate-900 group-hover:text-[#00A99D] transition-colors">
+                  <div class="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-[#00A99D] transition-colors">
                     Portal Utama TANGKAP ↗
                   </div>
-                  <div class="text-[10px] text-slate-500 line-clamp-1">
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1">
                     Pilihan formulir kedatangan kapal
                   </div>
                 </div>
@@ -270,16 +271,16 @@ onUnmounted(() => {
                 href="/ship-surveillance/assessment/domestic"
                 target="_blank"
                 @click="showPortalDropdown = false"
-                class="flex items-start gap-2 p-2 rounded-lg text-xs hover:bg-slate-50 text-slate-700 transition-colors group"
+                class="flex items-start gap-2 p-2 rounded-lg text-xs hover:bg-slate-50 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-200 transition-colors group"
               >
-                <div class="w-6 h-6 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+                <div class="w-6 h-6 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
                   <Flag class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
-                  <div class="font-semibold text-slate-900 group-hover:text-[#00A99D] transition-colors">
+                  <div class="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-[#00A99D] transition-colors">
                     Kapal Dari Dalam Negeri ↗
                   </div>
-                  <div class="text-[10px] text-slate-500 line-clamp-1">
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1">
                     Formulir self-assessment rute domestik
                   </div>
                 </div>
@@ -289,16 +290,16 @@ onUnmounted(() => {
                 href="/ship-surveillance/assessment/international"
                 target="_blank"
                 @click="showPortalDropdown = false"
-                class="flex items-start gap-2 p-2 rounded-lg text-xs hover:bg-slate-50 text-slate-700 transition-colors group"
+                class="flex items-start gap-2 p-2 rounded-lg text-xs hover:bg-slate-50 dark:hover:bg-slate-800/70 text-slate-700 dark:text-slate-200 transition-colors group"
               >
-                <div class="w-6 h-6 rounded-md bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0 mt-0.5">
+                <div class="w-6 h-6 rounded-md bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 dark:text-cyan-400 flex items-center justify-center shrink-0 mt-0.5">
                   <Ship class="w-3.5 h-3.5" />
                 </div>
                 <div class="min-w-0">
-                  <div class="font-semibold text-slate-900 group-hover:text-[#00A99D] transition-colors">
+                  <div class="font-semibold text-slate-900 dark:text-slate-100 group-hover:text-[#00A99D] transition-colors">
                     Ship Arriving from Abroad ↗
                   </div>
-                  <div class="text-[10px] text-slate-500 line-clamp-1">
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400 line-clamp-1">
                     Form English kapal luar negeri (TANGKAP)
                   </div>
                 </div>
@@ -316,9 +317,7 @@ onUnmounted(() => {
           type="button"
           @click="switchTab(tab.id)"
           class="clinical-tab"
-          :class="activeTab === tab.id
-            ? 'bg-[#005851] text-white'
-            : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
+          :class="activeTab === tab.id ? 'clinical-tab-active' : 'clinical-tab-inactive'"
         >
           <component :is="tab.icon" class="w-3.5 h-3.5" />
           <span>{{ tab.label }}</span>
@@ -327,8 +326,8 @@ onUnmounted(() => {
             :class="activeTab === tab.id
               ? 'bg-white/20 text-white'
               : tab.accent === 'rose'
-                ? 'bg-rose-50 text-rose-600'
-                : 'bg-slate-100 text-slate-600'"
+                ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300'
+                : 'bg-white/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300'"
           >
             {{ tab.count }}
           </span>

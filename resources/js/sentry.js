@@ -1,20 +1,21 @@
-import * as Sentry from '@sentry/vue';
-
 /**
- * Initialize Sentry for Vue 3 application (both Inertia and standalone SPA).
+ * Lazy-initialize Sentry for Vue 3 application only when VITE_SENTRY_DSN_PUBLIC is configured.
+ * Avoids eagerly bundling @sentry/vue when Sentry DSN is dormant.
  *
  * @param {import('vue').App} app - Vue application instance
  * @param {import('vue-router').Router|null} router - Optional Vue Router instance
  */
-export function initSentry(app, router = null) {
+export async function initSentry(app, router = null) {
   const dsn = import.meta.env.VITE_SENTRY_DSN_PUBLIC;
 
   if (!dsn || dsn.trim() === '') {
     if (import.meta.env.DEV) {
       console.info('[Sentry] VITE_SENTRY_DSN_PUBLIC is not configured. Frontend error tracking is currently dormant.');
     }
-    return;
+    return null;
   }
+
+  const Sentry = await import('@sentry/vue');
 
   const integrations = [
     router
@@ -44,6 +45,6 @@ export function initSentry(app, router = null) {
   if (import.meta.env.DEV) {
     console.info('[Sentry] Successfully initialized for Vue application.');
   }
-}
 
-export { Sentry };
+  return Sentry;
+}

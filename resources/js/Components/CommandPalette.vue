@@ -404,6 +404,8 @@ onUnmounted(() => {
           <button 
             type="button"
             @click="close"
+            aria-label="Tutup pencarian cepat"
+            title="Tutup (Esc)"
             class="shrink-0 p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
           >
             <X class="w-4 h-4" />
