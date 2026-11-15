@@ -29,38 +29,51 @@ class MediaIntegrationTest extends TestCase
         Storage::fake('public');
         $user = User::factory()->create();
 
-        $file = UploadedFile::fake()->create('sample-document.pdf', 200, 'application/pdf');
+        // Write temp file inside workspace testing storage so FileinfoMimeTypeGuesser
+        // can read it reliably even when host OS temp directories are restricted.
+        $tempDir = storage_path('framework/testing');
+        if (! is_dir($tempDir)) {
+            mkdir($tempDir, 0775, true);
+        }
+        $tempPath = $tempDir . DIRECTORY_SEPARATOR . 'sample-document-' . uniqid() . '.pdf';
+        file_put_contents($tempPath, "%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n");
 
-        $uploadResponse = $this->actingAs($user, 'sanctum')->postJson('/api/v1/media/upload', [
-            'file' => $file,
-            'collection' => 'documents',
-        ]);
+        $file = new UploadedFile($tempPath, 'sample-document.pdf', 'application/pdf', null, true);
 
-        $uploadResponse->assertStatus(201);
-        $uploadResponse->assertJsonStructure([
-            'message',
-            'media' => [
-                'id',
-                'name',
-                'file_name',
-                'mime_type',
-                'size',
-                'url',
-                'collection',
-            ],
-        ]);
+        try {
+            $uploadResponse = $this->actingAs($user, 'sanctum')->postJson('/api/v1/media/upload', [
+                'file' => $file,
+                'collection' => 'documents',
+            ]);
 
-        $this->assertEquals(1, $user->fresh()->getMedia('documents')->count());
+            $uploadResponse->assertStatus(201);
+            $uploadResponse->assertJsonStructure([
+                'message',
+                'media' => [
+                    'id',
+                    'name',
+                    'file_name',
+                    'mime_type',
+                    'size',
+                    'url',
+                    'collection',
+                ],
+            ]);
 
-        // Test listing media
-        $listResponse = $this->actingAs($user, 'sanctum')->getJson('/api/v1/media?collection=documents');
-        $listResponse->assertStatus(200);
-        $listResponse->assertJsonCount(1, 'media');
+            $this->assertEquals(1, $user->fresh()->getMedia('documents')->count());
 
-        // Test deleting media
-        $mediaId = $uploadResponse->json('media.id');
-        $deleteResponse = $this->actingAs($user, 'sanctum')->deleteJson("/api/v1/media/{$mediaId}");
-        $deleteResponse->assertStatus(200);
-        $this->assertEquals(0, $user->fresh()->getMedia('documents')->count());
+            // Test listing media
+            $listResponse = $this->actingAs($user, 'sanctum')->getJson('/api/v1/media?collection=documents');
+            $listResponse->assertStatus(200);
+            $listResponse->assertJsonCount(1, 'media');
+
+            // Test deleting media
+            $mediaId = $uploadResponse->json('media.id');
+            $deleteResponse = $this->actingAs($user, 'sanctum')->deleteJson("/api/v1/media/{$mediaId}");
+            $deleteResponse->assertStatus(200);
+            $this->assertEquals(0, $user->fresh()->getMedia('documents')->count());
+        } finally {
+            @unlink($tempPath);
+        }
     }
 }

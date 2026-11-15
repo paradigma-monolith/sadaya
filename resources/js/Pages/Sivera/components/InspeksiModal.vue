@@ -3,14 +3,14 @@ import { ref, computed, watch } from 'vue';
 import axios from 'axios';
 import { toast } from 'vue-sonner';
 import ClinicalModal from '../../../Components/ClinicalModal.vue';
+import InspeksiLalatSection from './InspeksiLalatSection.vue';
+import InspeksiAnophelesSection from './InspeksiAnophelesSection.vue';
 import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import {
   Bug,
   Droplets,
-  MapPin,
   Plus,
   Trash2,
-  Clock,
   Save,
   Utensils,
   Building2,
@@ -23,8 +23,6 @@ import {
   getLokasiLalatRata,
   getLokasiLalatStatus,
   standardSpesiesTikus,
-  standardHabitatAnopheles,
-  anophelesJamSlots,
 } from '../utils';
 
 const props = defineProps({
@@ -789,139 +787,15 @@ const submitInspeksi = async () => {
         </div>
 
         <!-- 4.2 LALAT -->
-        <div v-if="siveraActiveVektor === 'Lalat'" class="space-y-4">
-          <div class="p-3 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/50">
-            <span class="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
-              <Bug class="w-4 h-4 text-amber-600" />
-              <span>Surveilans Kepadatan Lalat (Metode Fly Grill - Multi-Lokasi &amp; Top 5 Tertinggi)</span>
-            </span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Wilayah Kerja *</label>
-              <select v-model="formSiveraLalat.wilker" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                <option v-for="w in wilkerOptions" :key="w" :value="w">{{ w }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal</label>
-              <input type="date" v-model="formSiveraLalat.tanggal" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Musim</label>
-              <select v-model="formSiveraLalat.musim" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                <option value="Hujan">Hujan</option>
-                <option value="Kemarau">Kemarau</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-3 gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-            <div>
-              <label class="block text-[11px] text-slate-500 mb-1">Temperatur (°C)</label>
-              <input type="number" step="0.1" v-model="formSiveraLalat.temperatur" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
-            </div>
-            <div>
-              <label class="block text-[11px] text-slate-500 mb-1">Kelembapan (%)</label>
-              <input type="number" step="0.1" v-model="formSiveraLalat.kelembapan" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
-            </div>
-            <div>
-              <label class="block text-[11px] text-slate-500 mb-1">Kecepatan Angin (m/s)</label>
-              <input type="number" step="0.1" v-model="formSiveraLalat.kecepatan_angin" class="w-full px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
-            </div>
-          </div>
-
-          <div class="space-y-4">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-              <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <MapPin class="w-4 h-4 text-amber-500" />
-                <span>Titik Lokasi Survei Fly Grill (10 Hitungan x 30 Detik)</span>
-              </h4>
-              <button
-                type="button"
-                @click="addLokasiLalat"
-                class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold flex items-center gap-1 shadow-xs cursor-pointer"
-              >
-                <Plus class="w-3.5 h-3.5" />
-                <span>Tambah Titik Lokasi</span>
-              </button>
-            </div>
-
-            <div
-              v-for="(locItem, lIdx) in formSiveraLalat.lokasi_items"
-              :key="lIdx"
-              class="p-4 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 space-y-3"
-            >
-              <div class="flex items-center justify-between gap-2">
-                <div class="flex items-center gap-2 flex-1 max-w-sm">
-                  <span class="w-6 h-6 rounded-full bg-amber-500 text-white font-bold text-xs flex items-center justify-center shrink-0">{{ lIdx + 1 }}</span>
-                  <input
-                    type="text"
-                    v-model="locItem.lokasi"
-                    placeholder="Nama Titik Lokasi (misal: Dapur, TPS, Kantin)"
-                    class="w-full px-3 py-1.5 text-xs font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
-                  />
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-xs font-mono font-bold text-slate-500 hidden sm:inline">Top 5: {{ getLokasiLalatTop5(locItem).join(', ') }}</span>
-                  <button
-                    v-if="formSiveraLalat.lokasi_items.length > 1"
-                    type="button"
-                    @click="removeLokasiLalat(lIdx)"
-                    aria-label="Hapus Titik Lokasi Lalat"
-                    class="p-1 rounded-lg hover:bg-rose-100 text-rose-500 transition cursor-pointer"
-                    title="Hapus Titik Ini"
-                  >
-                    <Trash2 class="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div class="grid grid-cols-5 sm:grid-cols-10 gap-2">
-                <div v-for="tIdx in 10" :key="tIdx" class="text-center">
-                  <label class="block text-[10px] text-slate-500 mb-0.5">T-{{ tIdx }}</label>
-                  <input
-                    type="number"
-                    min="0"
-                    v-model.number="locItem.t[tIdx - 1]"
-                    class="w-full py-1 text-center font-mono font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div class="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-amber-200/80 dark:border-amber-900 flex items-center justify-between text-xs">
-                <div>
-                  <span class="text-slate-500">Total Top 5: <strong class="font-mono text-slate-900 dark:text-white">{{ getLokasiLalatTotalTop5(locItem) }}</strong></span>
-                  <span class="mx-2">&bull;</span>
-                  <span class="text-slate-700 dark:text-slate-300 font-semibold">Fly Index: <strong class="text-amber-600 font-mono text-sm">{{ getLokasiLalatRata(locItem) }}</strong></span>
-                </div>
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border" :class="getRiskBadgeClass(getLokasiLalatStatus(locItem))">
-                  {{ getLokasiLalatStatus(locItem) }} (&lt; 2 MS)
-                </span>
-              </div>
-            </div>
-
-            <div class="p-3.5 rounded-2xl bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border border-amber-300 dark:border-amber-800 flex items-center justify-between text-xs">
-              <div>
-                <span class="text-slate-600 dark:text-slate-400 font-semibold">Total {{ formSiveraLalat.lokasi_items.length }} Titik Disurvei &bull; Rata-Rata Fly Index Gabungan:</span>
-                <div class="text-lg font-mono font-extrabold text-amber-700 dark:text-amber-400 mt-0.5">
-                  {{ flyIndexRata }} <span class="text-xs font-normal text-slate-500">ekor / block grill</span>
-                </div>
-              </div>
-              <div class="text-right">
-                <span class="px-3 py-1 rounded-full text-xs font-bold border" :class="getRiskBadgeClass(statusLalat)">
-                  Status Keseluruhan: {{ statusLalat }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tindakan Pengendalian Lalat</label>
-            <textarea v-model="formSiveraLalat.tindakan_pengendalian" rows="2" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"></textarea>
-          </div>
-        </div>
+        <InspeksiLalatSection
+          v-if="siveraActiveVektor === 'Lalat'"
+          :form="formSiveraLalat"
+          :wilker-options="wilkerOptions"
+          :fly-index-rata="flyIndexRata"
+          :status-lalat="statusLalat"
+          @add-lokasi="addLokasiLalat"
+          @remove-lokasi="removeLokasiLalat"
+        />
 
         <!-- 4.3 KECOA -->
         <div v-if="siveraActiveVektor === 'Kecoa'" class="space-y-4">
@@ -1158,234 +1032,25 @@ const submitInspeksi = async () => {
           </div>
         </div>
 
-        <!-- 4.6 JENTIK ANOPHELES -->
-        <div v-if="siveraActiveVektor === 'Jentik Anopheles'" class="space-y-4">
-          <div class="p-3 rounded-2xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200/60 dark:border-teal-800/50">
-            <span class="text-xs font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1.5">
-              <Bug class="w-4 h-4 text-teal-600" />
-              <span>Surveilans Jentik Anopheles (Vektor Malaria &amp; 10 Tipe Habitat Air)</span>
-            </span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Wilayah Kerja *</label>
-              <select v-model="formSiveraAnophelesJentik.wilker" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                <option v-for="w in wilkerOptions" :key="w" :value="w">{{ w }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal</label>
-              <input type="date" v-model="formSiveraAnophelesJentik.tanggal" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Lokasi Survei</label>
-              <input type="text" v-model="formSiveraAnophelesJentik.lokasi" placeholder="Contoh: PPI Karangsong Indramayu" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
-            </div>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-teal-50/30 dark:bg-teal-950/20 border border-teal-200 dark:border-teal-800/60 space-y-2">
-            <label class="block text-xs font-bold text-teal-900 dark:text-teal-300">Tipe Habitat Perkembangbiakan Disurvei (Pilih yang sesuai):</label>
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
-              <label
-                v-for="hab in standardHabitatAnopheles"
-                :key="hab"
-                class="flex items-center gap-2 p-2 rounded-xl border transition cursor-pointer text-xs"
-                :class="formSiveraAnophelesJentik.jenis_habitat.includes(hab) ? 'bg-teal-50 dark:bg-teal-900/40 border-teal-500 font-bold text-teal-800 dark:text-teal-200' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'"
-              >
-                <input type="checkbox" :value="hab" v-model="formSiveraAnophelesJentik.jenis_habitat" class="rounded text-teal-600 focus:ring-teal-500" />
-                <span>{{ hab }}</span>
-              </label>
-            </div>
-            <div class="pt-1">
-              <input
-                type="text"
-                v-model="formSiveraAnophelesJentik.jenis_habitat_lainnya"
-                placeholder="Ketik tipe habitat lainnya jika ada..."
-                class="w-full px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"
-              />
-            </div>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
-            <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200">Karakteristik &amp; Kondisi Lingkungan Perindukan Air</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              <div>
-                <label class="block text-[11px] text-slate-500 mb-1">Pencahayaan</label>
-                <select v-model="formSiveraAnophelesJentik.kondisi_pencahayaan[0]" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-                  <option value="Terkena sinar matahari">Terkena sinar matahari</option>
-                  <option value="Terlindung / Teduh">Terlindung / Teduh</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-[11px] text-slate-500 mb-1">Vegetasi / Lumut</label>
-                <select v-model="formSiveraAnophelesJentik.kondisi_vegetasi[0]" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-                  <option value="Ada vegetasi">Ada Vegetasi / Lumut</option>
-                  <option value="Tidak ada vegetasi">Tidak Ada Vegetasi</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-[11px] text-slate-500 mb-1">Sifat &amp; Salinitas Air</label>
-                <select v-model="formSiveraAnophelesJentik.kondisi_air[0]" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-                  <option value="Payau">Payau / Salin (Pesisir)</option>
-                  <option value="Tawar Jernih">Tawar Jernih</option>
-                  <option value="Keruh">Keruh / Berlumpur</option>
-                  <option value="Tergenang">Tergenang</option>
-                  <option value="Mengalir Lambat">Mengalir Lambat</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3 pt-2">
-              <div>
-                <label class="block text-[11px] text-slate-500 mb-1">Jumlah Habitat Disurvei</label>
-                <input type="number" min="1" v-model.number="formSiveraAnophelesJentik.jml_habitat_disurvei" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
-              </div>
-              <div>
-                <label class="block text-[11px] text-slate-500 mb-1">Jumlah Habitat Positif Jentik Anopheles</label>
-                <input type="number" min="0" v-model.number="formSiveraAnophelesJentik.jml_habitat_positif" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-rose-600 font-bold" />
-              </div>
-            </div>
-
-            <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-teal-200 dark:border-teal-800 flex items-center justify-between text-xs">
-              <div>
-                <span class="text-slate-500">Rumus: (Positif / Disurvei) &times; 100% &bull;</span>
-                <span class="ml-1 text-slate-700 dark:text-slate-300 font-semibold">Indeks Habitat: <strong class="text-teal-600 font-mono text-base">{{ indeksHabitatAnopheles }}%</strong></span>
-              </div>
-              <span class="px-3 py-1 rounded-full text-xs font-bold border" :class="getRiskBadgeClass(statusAnophelesJentik)">
-                {{ statusAnophelesJentik }} (&lt; 1% MS)
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tindakan Pengendalian</label>
-            <textarea v-model="formSiveraAnophelesJentik.tindakan_pengendalian" rows="2" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"></textarea>
-          </div>
-        </div>
-
-        <!-- 4.7 NYAMUK ANOPHELES DEWASA -->
-        <div v-if="siveraActiveVektor === 'Nyamuk Anopheles'" class="space-y-4">
-          <div class="p-3 rounded-2xl bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200/60 dark:border-purple-800/50">
-            <span class="text-xs font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
-              <Bug class="w-4 h-4 text-purple-600" />
-              <span>Surveilans Nyamuk Anopheles Dewasa (Penangkapan Umpan Orang Malam - Matriks 12 Jam)</span>
-            </span>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Wilayah Kerja *</label>
-              <select v-model="formSiveraAnophelesNyamuk.wilker" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                <option v-for="w in wilkerOptions" :key="w" :value="w">{{ w }}</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tanggal</label>
-              <input type="date" v-model="formSiveraAnophelesNyamuk.tanggal" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 font-mono" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Lokasi</label>
-              <input type="text" v-model="formSiveraAnophelesNyamuk.lokasi" placeholder="PPI Karangsong" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Spesies Target</label>
-              <input type="text" v-model="formSiveraAnophelesNyamuk.spesies" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-            <div>
-              <label class="block text-[11px] text-slate-500 mb-1">Kolektor Penangkap</label>
-              <input type="number" min="1" v-model.number="formSiveraAnophelesNyamuk.jml_penangkap" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
-            </div>
-            <div>
-              <label class="block text-[11px] text-slate-500 mb-1">Lama Survei (Jam)</label>
-              <input type="number" min="1" v-model.number="formSiveraAnophelesNyamuk.lama_penangkapan" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
-            </div>
-            <div>
-              <label class="block text-[11px] text-slate-500 mb-1">Suhu (°C)</label>
-              <input type="number" step="0.1" v-model.number="formSiveraAnophelesNyamuk.suhu" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
-            </div>
-            <div>
-              <label class="block text-[11px] text-slate-500 mb-1">Kelembaban (%)</label>
-              <input type="number" step="0.1" v-model.number="formSiveraAnophelesNyamuk.kelembaban" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono" />
-            </div>
-            <div>
-              <label class="block text-[11px] text-slate-500 mb-1">Kondisi Cuaca</label>
-              <input type="text" v-model="formSiveraAnophelesNyamuk.cuaca" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" />
-            </div>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-purple-50/40 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800 space-y-3">
-            <div class="flex items-center justify-between gap-2 flex-wrap">
-              <h4 class="text-xs font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5">
-                <Clock class="w-4 h-4 text-purple-600" />
-                <span>Matriks Penangkapan Nyamuk 12 Jam (18.00 - 06.00 WIB)</span>
-              </h4>
-              <span class="text-xs font-mono font-bold text-slate-500">Total Man-Hours: {{ manHours }} jam-orang</span>
-            </div>
-
-            <div class="overflow-x-auto rounded-xl border border-purple-200 dark:border-purple-800">
-              <table class="w-full text-xs text-center bg-white dark:bg-slate-900">
-                <thead>
-                  <tr class="bg-purple-100/70 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 text-[11px] font-bold">
-                    <th class="py-2 px-3 text-left">Jam Penangkapan</th>
-                    <th class="py-2 px-3">Dalam Rumah (D)</th>
-                    <th class="py-2 px-3">Luar Rumah (L)</th>
-                    <th class="py-2 px-3">Total Jam (D+L)</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-purple-100 dark:divide-purple-900/40 font-mono">
-                  <tr v-for="slot in anophelesJamSlots" :key="slot.key" class="hover:bg-purple-50/50 dark:hover:bg-purple-950/30">
-                    <td class="py-1.5 px-3 text-left font-sans font-semibold text-slate-700 dark:text-slate-300 text-xs">{{ slot.label }}</td>
-                    <td class="py-1 px-3">
-                      <input type="number" min="0" v-model.number="formSiveraAnophelesNyamuk.tangkapan_dalam[slot.key]" class="w-16 py-1 text-center font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs" />
-                    </td>
-                    <td class="py-1 px-3">
-                      <input type="number" min="0" v-model.number="formSiveraAnophelesNyamuk.tangkapan_luar[slot.key]" class="w-16 py-1 text-center font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-xs" />
-                    </td>
-                    <td class="py-1.5 px-3 font-bold text-slate-800 dark:text-slate-200">
-                      {{ Number(formSiveraAnophelesNyamuk.tangkapan_dalam[slot.key] || 0) + Number(formSiveraAnophelesNyamuk.tangkapan_luar[slot.key] || 0) }}
-                    </td>
-                  </tr>
-                  <tr class="bg-purple-50 dark:bg-purple-950/80 font-bold border-t-2 border-purple-200 dark:border-purple-800 text-xs">
-                    <td class="py-2.5 px-3 text-left font-sans">TOTAL TERTANGKAP</td>
-                    <td class="py-2.5 px-3 text-purple-700 dark:text-purple-300 font-extrabold">{{ totalDalamNyamuk }} ekor</td>
-                    <td class="py-2.5 px-3 text-purple-700 dark:text-purple-300 font-extrabold">{{ totalLuarNyamuk }} ekor</td>
-                    <td class="py-2.5 px-3 text-purple-900 dark:text-purple-100 font-black">{{ totalTertangkapNyamuk }} ekor</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800 text-xs">
-              <div>
-                <span class="text-slate-500 block text-[11px]">MHD Dalam Rumah (D):</span>
-                <strong class="text-purple-700 dark:text-purple-300 font-mono text-base">{{ mhdDalam }}</strong>
-                <span class="text-[10px] text-slate-400 block">(Total D / Man-Hours)</span>
-              </div>
-              <div>
-                <span class="text-slate-500 block text-[11px]">MHD Luar Rumah (L):</span>
-                <strong class="text-purple-700 dark:text-purple-300 font-mono text-base">{{ mhdLuar }}</strong>
-                <span class="text-[10px] text-slate-400 block">(Total L / Man-Hours)</span>
-              </div>
-              <div>
-                <span class="text-slate-500 block text-[11px]">MBR (Man Biting Rate):</span>
-                <div class="flex items-center justify-between">
-                  <strong class="text-purple-700 dark:text-purple-300 font-mono text-base">{{ mbrAnopheles }}</strong>
-                  <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border" :class="getRiskBadgeClass(statusAnophelesNyamuk)">{{ statusAnophelesNyamuk }}</span>
-                </div>
-                <span class="text-[10px] text-slate-400 block">Temuan Nyamuk: <strong>{{ adaAnopheles }}</strong></span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Tindakan Pengendalian</label>
-            <textarea v-model="formSiveraAnophelesNyamuk.tindakan_pengendalian" rows="2" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"></textarea>
-          </div>
-        </div>
+        <!-- 4.6 JENTIK ANOPHELES & 4.7 NYAMUK ANOPHELES DEWASA -->
+        <InspeksiAnophelesSection
+          v-if="siveraActiveVektor === 'Jentik Anopheles' || siveraActiveVektor === 'Nyamuk Anopheles'"
+          :active-vektor="siveraActiveVektor"
+          :wilker-options="wilkerOptions"
+          :form-jentik="formSiveraAnophelesJentik"
+          :form-nyamuk="formSiveraAnophelesNyamuk"
+          :indeks-habitat-anopheles="indeksHabitatAnopheles"
+          :status-anopheles-jentik="statusAnophelesJentik"
+          :man-hours="manHours"
+          :total-dalam-nyamuk="totalDalamNyamuk"
+          :total-luar-nyamuk="totalLuarNyamuk"
+          :total-tertangkap-nyamuk="totalTertangkapNyamuk"
+          :mhd-dalam="mhdDalam"
+          :mhd-luar="mhdLuar"
+          :mbr-anopheles="mbrAnopheles"
+          :ada-anopheles="adaAnopheles"
+          :status-anopheles-nyamuk="statusAnophelesNyamuk"
+        />
       </div>
 
       <!-- Modal Footer -->

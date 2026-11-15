@@ -35,16 +35,20 @@ class GlobalSearchController extends Controller
                 'title' => $user->name,
                 'subtitle' => $user->email,
                 'category' => 'Pengguna',
-                'url' => '/inertia/dashboard',
+                'url' => '/dashboard',
             ]);
 
-        // Built-in navigation suggestions
+        // Built-in navigation suggestions (mapped strictly to active Sadaya routes)
         $navItems = collect([
-            ['title' => 'Dashboard Utama', 'subtitle' => 'Halaman awal arsitektur hybrid', 'category' => 'Navigasi', 'url' => '/inertia/dashboard'],
-            ['title' => 'Traditional SPA', 'subtitle' => 'Client-side routing via REST API', 'category' => 'Navigasi', 'url' => '/spa'],
+            ['title' => 'Dashboard Utama', 'subtitle' => 'Command Center BKK Kelas I Bandung & 6 Wilker', 'category' => 'Navigasi', 'url' => '/dashboard'],
+            ['title' => 'Travel Consent Hub', 'subtitle' => 'Pesawat, Kapal (SSCC/SSCEC), Alkes & Obat P3K', 'category' => 'Alat Angkut & Barang', 'url' => '/travel-consent'],
+            ['title' => 'Pengawasan Kapal (TANGKAP)', 'subtitle' => 'Assessment karantina kedatangan & zona merah', 'category' => 'Alat Angkut & Barang', 'url' => '/ship-surveillance'],
+            ['title' => 'Formulir Laporan SINKARKES', 'subtitle' => 'Input & ekspor laporan bulanan terpadu', 'category' => 'Alat Angkut & Barang', 'url' => '/sinkarkes'],
+            ['title' => 'Sanitasi Lingkungan (TPP / SAB / HSBU)', 'subtitle' => 'Inspeksi tempat pengelolaan pangan, air & bangunan', 'category' => 'Kesehatan Lingkungan', 'url' => '/sanitasi-lingkungan'],
+            ['title' => 'SIVERA (Vektor & Reservoar)', 'subtitle' => 'Surveilans jentik, lalat, kecoa, tikus & pinjal', 'category' => 'Kesehatan Lingkungan', 'url' => '/sivera'],
+            ['title' => 'Audit Trail Logs', 'subtitle' => 'Riwayat audit trail aktivitas sistem', 'category' => 'Tata Kelola', 'url' => '/audit-logs'],
+            ['title' => 'Pusat Import Database', 'subtitle' => 'Migrasi & sinkronisasi database Simply', 'category' => 'Tata Kelola', 'url' => '/database-import'],
             ['title' => 'Dokumentasi API', 'subtitle' => 'OpenAPI Scramble Explorer', 'category' => 'Developer', 'url' => '/docs/api'],
-            ['title' => 'Laravel Pulse', 'subtitle' => 'Health monitoring & metrics', 'category' => 'Developer', 'url' => '/pulse'],
-            ['title' => 'Audit Trail Logs', 'subtitle' => 'Riwayat audit trail aktivitas', 'category' => 'Sistem', 'url' => '/inertia/audit-logs'],
         ])->filter(function ($item) use ($query) {
             return str_contains(strtolower($item['title']), strtolower($query))
                 || str_contains(strtolower($item['subtitle']), strtolower($query));

@@ -1,7 +1,10 @@
 <script setup>
 import { ref, computed } from 'vue';
 import BaseChart from '../../../Components/BaseChart.vue';
+import { useTheme } from '@/composables/useTheme';
 import { Crosshair, Search } from 'lucide-vue-next';
+
+const { isDark } = useTheme();
 
 const props = defineProps({
   officesList: { type: Array, default: () => [] },
@@ -78,7 +81,7 @@ const wilkerRadarOption = computed(() => {
     legend: {
       bottom: 0,
       data: displayRows.map((r) => r.name),
-      textStyle: { color: '#475569', fontSize: 10, fontWeight: 'bold' },
+      textStyle: { color: isDark.value ? '#cbd5e1' : '#475569', fontSize: 10, fontWeight: 'bold' },
       itemWidth: 10,
       itemHeight: 10,
     },
@@ -87,7 +90,7 @@ const wilkerRadarOption = computed(() => {
       center: ['50%', '46%'],
       radius: '64%',
       splitNumber: 4,
-      axisName: { color: '#005851', fontSize: 10, fontWeight: 'bold' },
+      axisName: { color: isDark.value ? '#5eead4' : '#005851', fontSize: 10, fontWeight: 'bold' },
       splitLine: {
         lineStyle: {
           color: [
@@ -100,7 +103,11 @@ const wilkerRadarOption = computed(() => {
       },
       splitArea: {
         show: true,
-        areaStyle: { color: ['rgba(230, 247, 245, 0.45)', 'rgba(255, 255, 255, 0.8)'] },
+        areaStyle: {
+          color: isDark.value
+            ? ['rgba(0, 169, 157, 0.08)', 'rgba(15, 23, 42, 0.35)']
+            : ['rgba(230, 247, 245, 0.45)', 'rgba(255, 255, 255, 0.8)'],
+        },
       },
       axisLine: { lineStyle: { color: 'rgba(0, 169, 157, 0.35)' } },
       indicator: [
@@ -154,7 +161,7 @@ const modaReadinessRadarOption = computed(() => {
     legend: {
       bottom: 0,
       data: ['Kesiapsiagaan Aktual (%)', 'Target Standar IHR (%)'],
-      textStyle: { color: '#475569', fontSize: 10, fontWeight: 'bold' },
+      textStyle: { color: isDark.value ? '#cbd5e1' : '#475569', fontSize: 10, fontWeight: 'bold' },
       itemWidth: 10,
       itemHeight: 10,
     },
@@ -163,7 +170,7 @@ const modaReadinessRadarOption = computed(() => {
       center: ['50%', '46%'],
       radius: '64%',
       splitNumber: 4,
-      axisName: { color: '#005851', fontSize: 10, fontWeight: 'bold' },
+      axisName: { color: isDark.value ? '#5eead4' : '#005851', fontSize: 10, fontWeight: 'bold' },
       splitLine: {
         lineStyle: {
           color: [
@@ -229,16 +236,16 @@ const modaReadinessRadarOption = computed(() => {
 <template>
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 font-sans">
     <!-- Panel 1: Wilker Telemetry Dock -->
-    <div class="lg:col-span-4 rounded-xl bg-white border border-slate-200/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+    <div class="lg:col-span-4 rounded-xl bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-700/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
       <div>
-        <div class="space-y-2 pb-2 border-b border-slate-200">
+        <div class="space-y-2 pb-2 border-b border-slate-200 dark:border-slate-800">
           <div class="flex items-center justify-between gap-1">
             <div class="flex items-center gap-1">
               <button
                 type="button"
                 @click="emit('update:activeOfficeFilter', 'all')"
                 class="px-2 py-0.5 rounded text-[11px] font-semibold transition-colors cursor-pointer"
-                :class="activeOfficeFilter === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
+                :class="activeOfficeFilter === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#5eead4] hover:bg-slate-50 dark:hover:bg-slate-800'"
               >
                 Semua (7)
               </button>
@@ -246,7 +253,7 @@ const modaReadinessRadarOption = computed(() => {
                 type="button"
                 @click="emit('update:activeOfficeFilter', 'udara')"
                 class="px-2 py-0.5 rounded text-[11px] font-semibold transition-colors cursor-pointer"
-                :class="activeOfficeFilter === 'udara' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
+                :class="activeOfficeFilter === 'udara' ? 'bg-[#005851] text-white' : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#5eead4] hover:bg-slate-50 dark:hover:bg-slate-800'"
               >
                 Udara (3)
               </button>
@@ -254,13 +261,13 @@ const modaReadinessRadarOption = computed(() => {
                 type="button"
                 @click="emit('update:activeOfficeFilter', 'laut')"
                 class="px-2 py-0.5 rounded text-[11px] font-semibold transition-colors cursor-pointer"
-                :class="activeOfficeFilter === 'laut' ? 'bg-[#005851] text-white' : 'text-slate-600 hover:text-[#005851] hover:bg-slate-50'"
+                :class="activeOfficeFilter === 'laut' ? 'bg-[#005851] text-white' : 'text-slate-600 dark:text-slate-300 hover:text-[#005851] dark:hover:text-[#5eead4] hover:bg-slate-50 dark:hover:bg-slate-800'"
               >
                 Laut (4)
               </button>
             </div>
 
-            <span class="text-[10px] font-mono font-semibold text-[#005851] bg-[#E6F7F5] px-1.5 py-0.2 rounded flex items-center gap-1">
+            <span class="text-[10px] font-mono font-semibold text-[#005851] dark:text-[#5eead4] bg-[#E6F7F5] dark:bg-[#00A99D]/15 px-1.5 py-0.2 rounded flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-[#00A99D]"></span>
               SIAGA
             </span>
@@ -273,7 +280,7 @@ const modaReadinessRadarOption = computed(() => {
               @input="emit('update:searchOffice', $event.target.value)"
               type="text"
               placeholder="Cari wilker / alamat..."
-              class="w-full pl-8 pr-2 py-1 rounded-md bg-slate-50 border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#00A99D] focus:bg-white"
+              class="w-full pl-8 pr-2 py-1 rounded-md bg-slate-50 dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-[#00A99D] focus:bg-white dark:focus:bg-[#1b2733]"
             />
           </div>
         </div>
@@ -285,8 +292,8 @@ const modaReadinessRadarOption = computed(() => {
             @click="emit('select-office', office)"
             class="py-1.5 px-2.5 rounded-lg transition-colors cursor-pointer flex flex-col gap-1 border"
             :class="selectedOffice?.no === office.no
-              ? 'bg-[#F4FBF9] border-[#00A99D] ring-1 ring-[#00A99D]'
-              : 'bg-slate-50/60 hover:bg-white border-slate-200/70'"
+              ? 'bg-[#F4FBF9] dark:bg-[#00A99D]/15 border-[#00A99D] ring-1 ring-[#00A99D]'
+              : 'bg-slate-50/60 dark:bg-[#16202a]/70 hover:bg-white dark:hover:bg-[#1b2733] border-slate-200/70 dark:border-slate-800'"
           >
             <div class="flex items-center justify-between gap-2">
               <div class="flex items-center gap-2 min-w-0">
@@ -294,35 +301,35 @@ const modaReadinessRadarOption = computed(() => {
                   {{ office.no }}
                 </span>
                 <div class="min-w-0">
-                  <div class="text-xs font-bold text-slate-900 truncate" :title="office.name">
+                  <div class="text-xs font-bold text-slate-900 dark:text-slate-100 truncate" :title="office.name">
                     {{ office.short_name || office.name }}
                   </div>
-                  <div class="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                  <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate flex items-center gap-1">
                     <span>{{ office.moda }}</span>
                     <span>&bull;</span>
-                    <span class="text-slate-400">{{ office.zone }}</span>
+                    <span class="text-slate-400 dark:text-slate-500">{{ office.zone }}</span>
                   </div>
                 </div>
               </div>
 
               <div class="flex items-center gap-2 shrink-0">
                 <div class="text-right">
-                  <span class="text-xs font-black text-[#005851] font-mono">{{ office.total || 0 }}</span>
-                  <span class="text-[9px] text-slate-400 ml-0.5">dok</span>
+                  <span class="text-xs font-black text-[#005851] dark:text-[#5eead4] font-mono">{{ office.total || 0 }}</span>
+                  <span class="text-[9px] text-slate-400 dark:text-slate-500 ml-0.5">dok</span>
                 </div>
                 <button
                   type="button"
                   @click.stop="emit('select-office', office)"
                   :aria-label="`Kunci radar ke ${office.short_name || office.name}`"
                   title="Kunci radar ke wilker ini"
-                  class="w-6 h-6 rounded-md bg-slate-100 hover:bg-[#00A99D] hover:text-white text-slate-400 flex items-center justify-center transition-colors cursor-pointer"
+                  class="w-6 h-6 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-[#00A99D] hover:text-white text-slate-400 dark:text-slate-300 flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <Crosshair class="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
 
-            <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
               <div
                 class="h-full rounded-full shimmer-bar transition-all duration-500"
                 :class="selectedOffice?.no === office.no ? 'bg-[#00A99D]' : 'bg-[#99CC33]/80'"
@@ -333,29 +340,29 @@ const modaReadinessRadarOption = computed(() => {
         </div>
       </div>
 
-      <div class="pt-2 mt-2 border-t border-slate-200 text-[11px] text-slate-500 flex items-center justify-between font-mono">
-        <span>Target: <strong class="text-[#005851] font-sans">{{ selectedOffice?.short_name || '-' }}</strong></span>
-        <span class="text-[#005851] font-bold">{{ selectedOffice?.total || 0 }} Dok</span>
+      <div class="pt-2 mt-2 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between font-mono">
+        <span>Target: <strong class="text-[#005851] dark:text-[#5eead4] font-sans">{{ selectedOffice?.short_name || '-' }}</strong></span>
+        <span class="text-[#005851] dark:text-[#5eead4] font-bold">{{ selectedOffice?.total || 0 }} Dok</span>
       </div>
     </div>
 
     <!-- Panel 2: Multi-Dimensional Wilker Radar -->
-    <div class="lg:col-span-4 rounded-xl bg-white border border-slate-200/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+    <div class="lg:col-span-4 rounded-xl bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-700/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
       <div>
         <div class="flex items-center justify-between gap-2 mb-1">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-[#00A99D]"></span>
-            <h3 class="text-xs sm:text-[13px] font-bold text-slate-900">
+            <h3 class="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100">
               Radar Performa 5-Dimensi Wilker
             </h3>
           </div>
 
-          <div class="inline-flex items-center p-0.5 rounded-md bg-slate-100 border border-slate-200 text-[10px] font-semibold">
+          <div class="inline-flex items-center p-0.5 rounded-md bg-slate-100 dark:bg-[#16202a] border border-slate-200 dark:border-slate-700 text-[10px] font-semibold">
             <button
               type="button"
               @click="selectedRadarCompareMode = 'top'"
               class="px-2 py-0.5 rounded cursor-pointer transition-colors"
-              :class="selectedRadarCompareMode === 'top' ? 'bg-[#005851] text-white' : 'text-slate-600'"
+              :class="selectedRadarCompareMode === 'top' ? 'bg-[#005851] text-white' : 'text-slate-600 dark:text-slate-300'"
             >
               Top 4
             </button>
@@ -363,13 +370,13 @@ const modaReadinessRadarOption = computed(() => {
               type="button"
               @click="selectedRadarCompareMode = 'all'"
               class="px-2 py-0.5 rounded cursor-pointer transition-colors"
-              :class="selectedRadarCompareMode === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600'"
+              :class="selectedRadarCompareMode === 'all' ? 'bg-[#005851] text-white' : 'text-slate-600 dark:text-slate-300'"
             >
               7 Wilker
             </button>
           </div>
         </div>
-        <p class="text-[11px] text-slate-500 mb-1">
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-1">
           Pemetaan poligon radar volume Alat Angkut, Orang, Dokumen, UKP &amp; Kepatuhan.
         </p>
       </div>
@@ -380,20 +387,20 @@ const modaReadinessRadarOption = computed(() => {
     </div>
 
     <!-- Panel 3: Biosecurity Readiness Radar -->
-    <div class="lg:col-span-4 rounded-xl bg-white border border-slate-200/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
+    <div class="lg:col-span-4 rounded-xl bg-white dark:bg-[#111820] border border-slate-200/90 dark:border-slate-700/90 p-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.03)] flex flex-col justify-between">
       <div>
         <div class="flex items-center justify-between gap-2 mb-1">
           <div class="flex items-center gap-2">
             <span class="w-2 h-2 rounded-full bg-[#7CA622]"></span>
-            <h3 class="text-xs sm:text-[13px] font-bold text-slate-900">
+            <h3 class="text-xs sm:text-[13px] font-bold text-slate-900 dark:text-slate-100">
               Kesiapsiagaan Biosecurity &amp; 4 Moda
             </h3>
           </div>
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#E6F7F5] text-[#005851] border border-[#99DFD6]/70">
+          <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#E6F7F5] dark:bg-[#00A99D]/15 text-[#005851] dark:text-[#5eead4] border border-[#99DFD6]/70 dark:border-[#00A99D]/40">
             IHR 2005
           </span>
         </div>
-        <p class="text-[11px] text-slate-500 mb-1">
+        <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-1">
           Indeks kesiapsiagaan aktual 6 parameter pengawasan vs standar IHR (95%).
         </p>
       </div>

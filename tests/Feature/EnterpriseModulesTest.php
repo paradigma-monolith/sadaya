@@ -128,14 +128,14 @@ class EnterpriseModulesTest extends TestCase
         $this->assertEquals(0, $user->unreadNotifications()->count());
     }
 
-    public function test_authenticated_user_can_access_spa_without_blade_parse_error(): void
+    public function test_authenticated_user_can_access_core_inertia_modules(): void
     {
         $user = User::where('email', 'admin@hybrid.local')->first();
 
-        $response = $this->actingAs($user)->get('/spa');
-        $response->assertStatus(200);
-        $response->assertSee('window.authUser = {', false);
-        $response->assertSee('admin@hybrid.local', false);
+        foreach (['/dashboard', '/travel-consent', '/sanitasi-lingkungan', '/sivera'] as $route) {
+            $response = $this->actingAs($user)->get($route);
+            $response->assertStatus(200);
+        }
     }
 
     public function test_scramble_api_docs_endpoint_is_accessible(): void

@@ -166,9 +166,9 @@ class AircraftInspectionTest extends TestCase
         $resIndex = $this->actingAs($admin)->get('/aircraft-inspections');
         $resIndex->assertStatus(200);
 
-        // 2. Analytics Dashboard
+        // 2. Legacy Analytics Dashboard redirects cleanly to unified Command Center
         $resDash = $this->actingAs($admin)->get('/aircraft-inspections/dashboard');
-        $resDash->assertStatus(200);
+        $resDash->assertRedirect('/dashboard');
     }
 
     public function test_authenticated_user_can_update_status_and_export(): void

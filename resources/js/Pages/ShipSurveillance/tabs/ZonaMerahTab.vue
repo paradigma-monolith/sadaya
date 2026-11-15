@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
 import { useConfirm } from '@/composables/useConfirm';
+import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import {
   AlertTriangle,
   CheckCircle2,
@@ -54,6 +55,11 @@ const newCountryName = ref('');
 const newCountryIsRed = ref(true);
 const isAddingCountry = ref(false);
 const isResettingCountries = ref(false);
+
+const isRedZoneDirty = computed(() =>
+  Boolean(!isApplyingRedZones.value && !isAddingCountry.value && (pdfPreview.value || newCountryName.value.trim()))
+);
+useUnsavedGuard(isRedZoneDirty);
 
 const filteredRedZoneCountries = computed(() => {
   const q = countrySearch.value.trim().toLowerCase();

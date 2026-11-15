@@ -1,43 +1,28 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { Head, router, Link, usePage } from '@inertiajs/vue3';
+import { ref, computed, onMounted, defineAsyncComponent } from 'vue';
+import { Head, router, usePage } from '@inertiajs/vue3';
 import HybridNavbar from '../../Components/HybridNavbar.vue';
-import ClinicalModal from '../../Components/ClinicalModal.vue';
 import { toast } from 'vue-sonner';
 import { useConfirm } from '@/composables/useConfirm';
+import { getModuleIcon, formatImportNumber } from './components/moduleIcons';
 import {
   Database,
-  Server,
   RefreshCw,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
   UploadCloud,
-  Ship,
-  Plane,
-  Anchor,
-  PackageCheck,
-  Pill,
-  Users,
-  Utensils,
-  Droplet,
-  Building,
-  Bug,
-  ArrowRight,
   Layers,
-  FileSpreadsheet,
   Check,
   X,
-  ExternalLink,
-  ShieldCheck,
   Clock,
   Sparkles,
   SlidersHorizontal,
-  Settings,
-  Key,
-  RotateCcw,
 } from 'lucide-vue-next';
 import axios from 'axios';
+
+const UploadBackupModal = defineAsyncComponent(() => import('./components/UploadBackupModal.vue'));
+const ModuleConfigModal = defineAsyncComponent(() => import('./components/ModuleConfigModal.vue'));
+const AutoSyncModal = defineAsyncComponent(() => import('./components/AutoSyncModal.vue'));
 
 const page = usePage();
 const isSuperAdmin = computed(() => {
@@ -130,23 +115,20 @@ const migrationSummary = ref(null);
 
 // Per-module Config Modal State
 const showConfigModal = ref(false);
+const configModalMounted = ref(false);
 const configTargetModule = ref(null);
-const isTestingSingleModule = ref(false);
-const singleModuleTestResult = ref(null);
-const isSavingConfig = ref(false);
 
 // File Upload Modal State
 const showUploadModal = ref(false);
+const uploadModalMounted = ref(false);
 const uploadTargetModule = ref(null);
-const uploadFile = ref(null);
-const isUploading = ref(false);
-const uploadResult = ref(null);
 
 // Live local stats
 const localSadayaStats = ref({ ...props.sadaya_stats });
 
 // Auto-Sync Modal & Schedule State
 const showAutoSyncModal = ref(false);
+const autoSyncModalMounted = ref(false);
 const autoSync = ref({
   enabled: props.auto_sync_config?.enabled || false,
   frequency: props.auto_sync_config?.frequency || 'hourly',
@@ -160,10 +142,6 @@ const autoSync = ref({
   last_message: props.auto_sync_config?.last_message || null,
 });
 
-const isSavingAutoSync = ref(false);
-const isRunningSyncNow = ref(false);
-const syncFeedback = ref(null);
-
 const formatFrequency = (freq) => {
   switch (freq) {
     case 'every_15_minutes': return 'Setiap 15 Menit';
@@ -175,78 +153,8 @@ const formatFrequency = (freq) => {
   }
 };
 
-const handleSaveAutoSync = async () => {
-  isSavingAutoSync.value = true;
-  syncFeedback.value = null;
-  try {
-    const res = await axios.post('/database-import/save-auto-sync', {
-      enabled: autoSync.value.enabled,
-      frequency: autoSync.value.frequency,
-      modules: autoSync.value.modules,
-    });
-    if (res.data.auto_sync_config) {
-      autoSync.value = { ...autoSync.value, ...res.data.auto_sync_config };
-    }
-    syncFeedback.value = {
-      success: true,
-      message: 'Jadwal sinkronisasi otomatis berhasil disimpan.',
-    };
-  } catch (err) {
-    syncFeedback.value = {
-      success: false,
-      message: err.response?.data?.message || err.message || 'Gagal menyimpan pengaturan auto-sync.',
-    };
-  } finally {
-    isSavingAutoSync.value = false;
-  }
-};
-
-const handleRunSyncNow = async () => {
-  isRunningSyncNow.value = true;
-  syncFeedback.value = null;
-  try {
-    const res = await axios.post('/database-import/sync-now');
-    if (res.data.auto_sync_config) {
-      autoSync.value = { ...autoSync.value, ...res.data.auto_sync_config };
-    }
-    if (res.data.sadaya_current) {
-      localSadayaStats.value = res.data.sadaya_current;
-    }
-    syncFeedback.value = {
-      success: true,
-      message: res.data.auto_sync_config?.last_message || 'Sinkronisasi berhasil dijalankan!',
-    };
-    router.reload({ only: ['sadaya_stats'] });
-  } catch (err) {
-    syncFeedback.value = {
-      success: false,
-      message: err.response?.data?.message || err.message || 'Gagal menjalankan sinkronisasi.',
-    };
-  } finally {
-    isRunningSyncNow.value = false;
-  }
-};
-
-const iconComponent = (iconName) => {
-  switch (iconName) {
-    case 'Ship': return Ship;
-    case 'Plane': return Plane;
-    case 'Anchor': return Anchor;
-    case 'PackageCheck': return PackageCheck;
-    case 'Pill': return Pill;
-    case 'Users': return Users;
-    case 'Utensils': return Utensils;
-    case 'Droplet': return Droplet;
-    case 'Building': return Building;
-    case 'Bug': return Bug;
-    default: return Database;
-  }
-};
-
-const formatNumber = (val) => {
-  if (val === undefined || val === null) return '0';
-  return Number(val).toLocaleString('id-ID');
-};
+const iconComponent = getModuleIcon;
+const formatNumber = formatImportNumber;
 
 const isModuleCustomized = (moduleId) => {
   const m = moduleConfigs.value[moduleId];
@@ -279,105 +187,22 @@ const applyGlobalToAllModules = () => {
   toast.success(`Kredensial host, port, username, dan password berhasil disalin ke seluruh ${props.modules.length} modul.`);
 };
 
-// Reset single module configuration back to global & default
-const resetModuleToDefault = async (moduleId) => {
-  const modDef = props.modules.find(x => x.id === moduleId);
-  if (!modDef) return;
-  moduleConfigs.value[moduleId] = {
-    host: credentials.value.host,
-    port: credentials.value.port,
-    username: credentials.value.username,
-    password: credentials.value.password,
-    database: modDef.source_db,
-    table: modDef.source_table,
-  };
-  singleModuleTestResult.value = null;
-
-  try {
-    localStorage.setItem('sadaya_import_module_configs', JSON.stringify(moduleConfigs.value));
-    await axios.post('/database-import/save-config', {
-      modules: moduleConfigs.value,
-    });
-  } catch (e) {}
-};
-
-// Open Module Config Modal
 const openConfigModal = (module) => {
   configTargetModule.value = module;
-  singleModuleTestResult.value = testResults.value?.modules?.[module.id] || null;
+  configModalMounted.value = true;
   showConfigModal.value = true;
 };
 
-const closeConfigModal = () => {
-  showConfigModal.value = false;
-  configTargetModule.value = null;
-  singleModuleTestResult.value = null;
-};
-
-// Save module configuration permanently to backend database/storage
-const saveModuleConfigAndClose = async () => {
-  isSavingConfig.value = true;
-  // 1. Simpan metadata ke browser localStorage (tanpa plaintext password untuk keamanan)
-  try {
-    const safeStorage = {};
-    Object.keys(moduleConfigs.value).forEach((k) => {
-      const { password, ...rest } = moduleConfigs.value[k] || {};
-      safeStorage[k] = { ...rest, password: '' };
-    });
-    localStorage.setItem('sadaya_import_module_configs', JSON.stringify(safeStorage));
-  } catch (e) {
-    console.warn('LocalStorage error:', e);
+const handleModuleTested = ({ moduleId, modResult, sadayaCurrent }) => {
+  if (!testResults.value) {
+    testResults.value = { success: true, modules: {} };
   }
-
-  // 2. Simpan permanen ke storage server Sadaya
-  try {
-    await axios.post('/database-import/save-config', {
-      modules: moduleConfigs.value,
-    });
-    if (configTargetModule.value?.id && moduleConfigs.value[configTargetModule.value.id]?.password) {
-      moduleConfigs.value[configTargetModule.value.id].has_password = true;
-      moduleConfigs.value[configTargetModule.value.id].password = '';
-    }
-  } catch (err) {
-    console.error('Gagal menyimpan konfigurasi ke server:', err);
-  } finally {
-    isSavingConfig.value = false;
-    closeConfigModal();
+  if (!testResults.value.modules) {
+    testResults.value.modules = {};
   }
-};
-
-// Test single module connection
-const handleTestSingleModule = async (moduleId) => {
-  isTestingSingleModule.value = true;
-  singleModuleTestResult.value = null;
-  try {
-    const payload = {
-      target_module: moduleId,
-      ...credentials.value,
-      modules: moduleConfigs.value,
-    };
-    const res = await axios.post('/database-import/test-connection', payload);
-    const modResult = res.data.modules?.[moduleId];
-    singleModuleTestResult.value = modResult;
-    if (!testResults.value) {
-      testResults.value = { success: true, modules: {} };
-    }
-    if (!testResults.value.modules) {
-      testResults.value.modules = {};
-    }
-    testResults.value.modules[moduleId] = modResult;
-    if (res.data.sadaya_current) {
-      localSadayaStats.value = res.data.sadaya_current;
-    }
-  } catch (err) {
-    singleModuleTestResult.value = {
-      connected: false,
-      table_exists: false,
-      count: 0,
-      error: err.response?.data?.message || err.message || 'Gagal menghubungi database modul.',
-    };
-  } finally {
-    isTestingSingleModule.value = false;
+  testResults.value.modules[moduleId] = modResult;
+  if (sadayaCurrent) {
+    localSadayaStats.value = sadayaCurrent;
   }
 };
 
@@ -450,56 +275,13 @@ const handleMigrate = async (moduleId) => {
 
 const openUploadModal = (module) => {
   uploadTargetModule.value = module;
-  uploadFile.value = null;
-  uploadResult.value = null;
+  uploadModalMounted.value = true;
   showUploadModal.value = true;
 };
 
-const closeUploadModal = () => {
-  showUploadModal.value = false;
-  uploadTargetModule.value = null;
-  uploadFile.value = null;
-};
-
-const handleFileSelect = (e) => {
-  const file = e.target.files[0];
-  if (file) {
-    uploadFile.value = file;
-  }
-};
-
-const handleExecuteUpload = async () => {
-  if (!uploadFile.value || !uploadTargetModule.value) {
-    toast.warning('Pilih file backup terlebih dahulu.');
-    return;
-  }
-
-  isUploading.value = true;
-  uploadResult.value = null;
-
-  try {
-    const formData = new FormData();
-    formData.append('module', uploadTargetModule.value.id);
-    formData.append('file', uploadFile.value);
-    formData.append('skip_duplicate', options.value.skip_duplicate ? '1' : '0');
-    formData.append('truncate_first', options.value.truncate_first ? '1' : '0');
-
-    const res = await axios.post('/database-import/import-file', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    uploadResult.value = res.data;
-    if (res.data.sadaya_current) {
-      localSadayaStats.value = res.data.sadaya_current;
-    }
-    router.reload({ only: ['sadaya_stats'] });
-  } catch (err) {
-    uploadResult.value = {
-      success: false,
-      message: err.response?.data?.message || err.message || 'Gagal memproses file.',
-    };
-  } finally {
-    isUploading.value = false;
-  }
+const openAutoSyncModal = () => {
+  autoSyncModalMounted.value = true;
+  showAutoSyncModal.value = true;
 };
 
 onMounted(() => {
@@ -559,7 +341,7 @@ onMounted(() => {
         <div class="flex flex-wrap items-center gap-1.5 shrink-0">
           <button
             type="button"
-            @click="showAutoSyncModal = true"
+            @click="openAutoSyncModal"
             class="px-2.5 py-1.5 rounded-lg border border-white/15 bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <Clock class="w-3.5 h-3.5 text-[#99DFD6]" />
@@ -655,7 +437,7 @@ onMounted(() => {
           </div>
           <button
             type="button"
-            @click="showAutoSyncModal = true"
+            @click="openAutoSyncModal"
             class="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline cursor-pointer"
           >
             Kelola Jadwal &rarr;
@@ -1013,470 +795,39 @@ onMounted(() => {
 
     </main>
 
-    <!-- ==================== MODAL UPLOAD FILE BACKUP ==================== -->
-    <ClinicalModal
-      :open="Boolean(showUploadModal && uploadTargetModule)"
-      :title="`Import Berkas Backup: ${uploadTargetModule?.name || ''}`"
-      max-width="max-w-lg"
-      :close-on-outside="!isUploading"
-      @close="closeUploadModal"
-    >
-      <div v-if="uploadTargetModule" class="bg-white dark:bg-slate-900 rounded-3xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-        
-        <!-- Header -->
-        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center" :class="[uploadTargetModule.bg_color, uploadTargetModule.color]">
-              <UploadCloud class="w-5 h-5" />
-            </div>
-            <div>
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white">
-                Import Berkas Backup: {{ uploadTargetModule.name }}
-              </h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400">
-                Upload berkas dump .sql, .json, atau .csv ke tabel {{ uploadTargetModule.target_table }}
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            @click="closeUploadModal"
-            aria-label="Tutup modal upload backup"
-            title="Tutup"
-            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-          >
-            <X class="w-5 h-5" />
-          </button>
-        </div>
+    <!-- Lazy-Loaded Modals -->
+    <UploadBackupModal
+      v-if="uploadModalMounted"
+      :open="showUploadModal"
+      :module="uploadTargetModule"
+      :skip-duplicate="options.skip_duplicate"
+      :truncate-first="options.truncate_first"
+      @close="showUploadModal = false"
+      @uploaded="localSadayaStats = $event"
+    />
 
-        <!-- Body -->
-        <div class="p-5 space-y-4">
-          <div class="p-6 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl text-center space-y-2 bg-slate-50 dark:bg-slate-800/30">
-            <UploadCloud class="w-8 h-8 text-indigo-500 mx-auto" />
-            <div class="text-xs font-semibold text-slate-700 dark:text-slate-200">
-              Pilih file backup database Simply
-            </div>
-            <p class="text-[11px] text-slate-400">
-              Format didukung: .sql (Dump INSERT), .json, atau .csv (Maks. 50MB)
-            </p>
-            <input
-              type="file"
-              accept=".sql,.json,.csv"
-              @change="handleFileSelect"
-              class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer pt-2"
-            />
-            <div v-if="uploadFile" class="text-xs font-bold text-indigo-600 dark:text-indigo-400 pt-1">
-              File: {{ uploadFile.name }} ({{ Math.round(uploadFile.size / 1024) }} KB)
-            </div>
-          </div>
+    <ModuleConfigModal
+      v-if="configModalMounted"
+      :open="showConfigModal"
+      :module="configTargetModule"
+      :module-configs="moduleConfigs"
+      :credentials="credentials"
+      :initial-test-result="configTargetModule ? (testResults?.modules?.[configTargetModule.id] || null) : null"
+      @close="showConfigModal = false"
+      @update:moduleConfigs="moduleConfigs = $event"
+      @tested="handleModuleTested"
+    />
 
-          <div v-if="uploadResult">
-            <div
-              v-if="uploadResult.success"
-              class="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300 space-y-1"
-            >
-              <div class="font-bold flex items-center gap-1.5">
-                <CheckCircle2 class="w-4 h-4 text-emerald-600" />
-                <span>Import File Berhasil!</span>
-              </div>
-              <p class="text-[11px]">
-                {{ uploadResult.imported }} data baru diimpor, {{ uploadResult.skipped }} dilewati, durasi {{ uploadResult.duration }}s.
-              </p>
-            </div>
-            <div
-              v-else
-              class="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-200 flex items-start gap-2"
-            >
-              <XCircle class="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <div>
-                <div class="font-bold">Import Gagal</div>
-                <p class="text-[11px] mt-0.5">{{ uploadResult.message }}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/40">
-          <button
-            type="button"
-            @click="closeUploadModal"
-            class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition cursor-pointer"
-          >
-            Tutup
-          </button>
-          <button
-            type="button"
-            @click="handleExecuteUpload"
-            :disabled="isUploading || !uploadFile"
-            class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-          >
-            <RefreshCw class="w-3.5 h-3.5" :class="{ 'animate-spin': isUploading }" />
-            <span>{{ isUploading ? 'Memproses Berkas...' : 'Mulai Import File' }}</span>
-          </button>
-        </div>
-
-      </div>
-    </ClinicalModal>
-
-    <!-- ==================== MODAL KONFIGURASI DATABASE PER MODUL ==================== -->
-    <ClinicalModal
-      :open="Boolean(showConfigModal && configTargetModule)"
-      :title="`Konfigurasi Basis Data: ${configTargetModule?.name || ''}`"
-      max-width="max-w-xl"
-      :close-on-outside="!isSavingConfig"
-      @close="closeConfigModal"
-    >
-      <div v-if="configTargetModule" class="bg-white dark:bg-slate-900 rounded-3xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-        
-        <!-- Modal Header -->
-        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center" :class="[configTargetModule.bg_color, configTargetModule.color]">
-              <component :is="iconComponent(configTargetModule.icon)" class="w-5 h-5" />
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <h3 class="font-bold text-sm text-slate-900 dark:text-white">
-                  Konfigurasi Basis Data: {{ configTargetModule.name }}
-                </h3>
-                <span v-if="isModuleCustomized(configTargetModule.id)" class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300 font-bold border border-indigo-200 dark:border-indigo-800">
-                  Kustom
-                </span>
-              </div>
-              <p class="text-xs text-slate-500 dark:text-slate-400">
-                Atur Host, Port, Database, Tabel, dan Kredensial khusus untuk modul ini
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            @click="closeConfigModal"
-            aria-label="Tutup modal konfigurasi database"
-            title="Tutup"
-            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-          >
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-
-        <!-- Modal Body: Inputs -->
-        <div class="p-5 space-y-4">
-          <div class="grid grid-cols-2 gap-3 text-xs">
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Host MySQL</label>
-              <input
-                type="text"
-                v-model="moduleConfigs[configTargetModule.id].host"
-                placeholder="127.0.0.1"
-                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Port</label>
-              <input
-                type="number"
-                v-model="moduleConfigs[configTargetModule.id].port"
-                placeholder="3306"
-                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Nama Database Sumber</label>
-              <input
-                type="text"
-                v-model="moduleConfigs[configTargetModule.id].database"
-                placeholder="bkkr3927_simply"
-                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Nama Tabel Sumber</label>
-              <input
-                type="text"
-                v-model="moduleConfigs[configTargetModule.id].table"
-                placeholder="tc_sanitasi_kapal"
-                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Username MySQL</label>
-              <input
-                type="text"
-                v-model="moduleConfigs[configTargetModule.id].username"
-                placeholder="root"
-                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1">Password MySQL</label>
-              <input
-                type="password"
-                v-model="moduleConfigs[configTargetModule.id].password"
-                :placeholder="moduleConfigs[configTargetModule.id]?.has_password ? '•••••••• (Tersimpan di Server)' : 'Masukkan Password'"
-                class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-              />
-              <p class="text-[10px] text-slate-400 dark:text-slate-500 mt-1">Kosongkan jika ingin tetap menggunakan password tersimpan di server.</p>
-            </div>
-          </div>
-
-          <!-- Single Module Test Connection Box -->
-          <div class="pt-2">
-            <div class="flex items-center justify-between pb-2">
-              <span class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Status Pemeriksaan Koneksi Modul</span>
-              <button
-                type="button"
-                @click="handleTestSingleModule(configTargetModule.id)"
-                :disabled="isTestingSingleModule"
-                class="px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
-                <RefreshCw class="w-3 h-3 text-indigo-500" :class="{ 'animate-spin': isTestingSingleModule }" />
-                <span>{{ isTestingSingleModule ? 'Menguji...' : 'Uji Koneksi Modul Ini' }}</span>
-              </button>
-            </div>
-
-            <div v-if="singleModuleTestResult" class="p-3.5 rounded-xl text-xs border" :class="singleModuleTestResult.connected && singleModuleTestResult.table_exists ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 text-emerald-800 dark:text-emerald-300' : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 text-rose-800 dark:text-rose-300'">
-              <div class="flex items-center gap-2 font-bold">
-                <CheckCircle2 v-if="singleModuleTestResult.connected && singleModuleTestResult.table_exists" class="w-4 h-4 text-emerald-600" />
-                <XCircle v-else class="w-4 h-4 text-rose-600" />
-                <span>{{ singleModuleTestResult.connected && singleModuleTestResult.table_exists ? 'Terkoneksi & Siap Dimigrasikan' : 'Koneksi atau Tabel Bermasalah' }}</span>
-              </div>
-              <div class="text-[11px] mt-1 space-y-0.5 font-mono">
-                <div v-if="singleModuleTestResult.connected && singleModuleTestResult.table_exists">
-                  Ditemukan: <strong>{{ formatNumber(singleModuleTestResult.count) }}</strong> baris data pada <code class="bg-black/5 dark:bg-white/10 px-1 rounded">{{ singleModuleTestResult.database }}.{{ singleModuleTestResult.table }}</code>.
-                  <span v-if="singleModuleTestResult.min_date" class="block font-sans text-slate-500">Rentang tanggal: {{ singleModuleTestResult.min_date }} s/d {{ singleModuleTestResult.max_date }}</span>
-                </div>
-                <div v-else class="text-rose-700 dark:text-rose-400 font-sans">
-                  {{ singleModuleTestResult.error || 'Tabel atau basis data tidak ditemukan.' }}
-                </div>
-              </div>
-            </div>
-            <div v-else class="text-[11px] text-slate-400 italic bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
-              Klik "Uji Koneksi Modul Ini" untuk memverifikasi apakah host, database, dan tabel valid.
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/40">
-          <button
-            type="button"
-            @click="resetModuleToDefault(configTargetModule.id)"
-            class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1.5"
-            title="Reset modul ini ke nilai bawaan global"
-          >
-            <RotateCcw class="w-3.5 h-3.5 text-slate-400" />
-            <span>Reset Bawaan</span>
-          </button>
-          <button
-            type="button"
-            @click="saveModuleConfigAndClose"
-            :disabled="isSavingConfig"
-            class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
-          >
-            <RefreshCw v-if="isSavingConfig" class="w-4 h-4 animate-spin" />
-            <Check v-else class="w-4 h-4" />
-            <span>{{ isSavingConfig ? 'Menyimpan...' : 'Simpan &amp; Tutup' }}</span>
-          </button>
-        </div>
-
-      </div>
-    </ClinicalModal>
-
-    <!-- ==================== MODAL PENGATURAN SINKRONISASI OTOMATIS ==================== -->
-    <ClinicalModal
+    <AutoSyncModal
+      v-if="autoSyncModalMounted"
       :open="showAutoSyncModal"
-      title="Pengaturan Sinkronisasi Otomatis"
-      max-width="max-w-xl"
-      :close-on-outside="!isSavingAutoSync && !isRunningSyncNow"
+      :auto-sync="autoSync"
+      :modules="modules"
+      :module-configs="moduleConfigs"
       @close="showAutoSyncModal = false"
-    >
-      <div class="bg-white dark:bg-slate-900 rounded-3xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-        
-        <!-- Header -->
-        <div class="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-              <Clock class="w-5 h-5" />
-            </div>
-            <div>
-              <h3 class="font-bold text-sm text-slate-900 dark:text-white">
-                Pengaturan Sinkronisasi Otomatis
-              </h3>
-              <p class="text-xs text-slate-500 dark:text-slate-400">
-                Jadwalkan penarikan data berkala Simply &rarr; Sadaya secara otomatis
-              </p>
-            </div>
-          </div>
-          <button
-            type="button"
-            @click="showAutoSyncModal = false"
-            aria-label="Tutup modal pengaturan auto-sync"
-            title="Tutup"
-            class="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition cursor-pointer"
-          >
-            <X class="w-5 h-5" />
-          </button>
-        </div>
-
-        <!-- Body -->
-        <div class="p-5 space-y-4 text-xs max-h-[75vh] overflow-y-auto">
-          
-          <!-- Toggle Aktif/Nonaktif -->
-          <div class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 flex items-center justify-between">
-            <div>
-              <div class="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-2">
-                <span>Status Sinkronisasi Otomatis</span>
-                <span
-                  class="px-2 py-0.5 rounded-md text-[10px] font-bold"
-                  :class="autoSync.enabled ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300'"
-                >
-                  {{ autoSync.enabled ? 'AKTIF' : 'NONAKTIF' }}
-                </span>
-              </div>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                {{ autoSync.enabled ? 'Data baru akan ditarik otomatis sesuai jadwal.' : 'Sinkronisasi hanya berjalan ketika tombol ditekan manual.' }}
-              </p>
-            </div>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" v-model="autoSync.enabled" class="sr-only peer" />
-              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-            </label>
-          </div>
-
-          <!-- Interval Frekuensi -->
-          <div>
-            <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300 mb-1.5">
-              Interval Frekuensi Sinkronisasi
-            </label>
-            <select
-              v-model="autoSync.frequency"
-              class="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            >
-              <option value="every_15_minutes">Setiap 15 Menit</option>
-              <option value="every_30_minutes">Setiap 30 Menit</option>
-              <option value="hourly">Setiap 1 Jam (Rekomendasi Standar)</option>
-              <option value="every_6_hours">Setiap 6 Jam</option>
-              <option value="daily">Setiap Hari (Pukul 00:00 WIB)</option>
-            </select>
-            <span class="text-[10px] text-slate-400 block mt-1">
-              Data ditarik secara cerdas dengan filter <code>skip_duplicate</code> sehingga tidak membebani server dan tidak menduplikat rekaman.
-            </span>
-          </div>
-
-          <!-- Pilihan Modul -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label class="block text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                Pilih Modul yang Disinkronkan
-              </label>
-              <span class="text-[10px] text-slate-400">
-                {{ autoSync.modules.length }} dari {{ modules.length }} modul dipilih
-              </span>
-            </div>
-            <div class="space-y-1.5 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-              <label
-                v-for="mod in modules"
-                :key="mod.id"
-                class="flex items-center gap-2.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer p-1.5 rounded-lg hover:bg-white dark:hover:bg-slate-800 transition"
-              >
-                <input
-                  type="checkbox"
-                  :value="mod.id"
-                  v-model="autoSync.modules"
-                  class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-4 h-4"
-                />
-                <span class="font-medium text-slate-900 dark:text-white">{{ mod.name }}</span>
-                <span class="text-[10px] text-slate-400 font-mono ml-auto">
-                  {{ moduleConfigs[mod.id]?.database || mod.source_db }}.{{ moduleConfigs[mod.id]?.table || mod.source_table }}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Status & Riwayat Eksekusi Terakhir -->
-          <div class="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 space-y-1.5">
-            <div class="flex items-center justify-between text-[11px]">
-              <span class="font-bold text-slate-600 dark:text-slate-300">Eksekusi Terakhir:</span>
-              <span class="font-mono text-slate-900 dark:text-white font-semibold">
-                {{ autoSync.last_run_at || 'Belum pernah dieksekusi' }}
-              </span>
-            </div>
-            <div v-if="autoSync.last_status" class="flex items-center justify-between text-[11px]">
-              <span class="font-bold text-slate-600 dark:text-slate-300">Status &amp; Data:</span>
-              <span
-                class="px-2 py-0.5 rounded text-[10px] font-bold"
-                :class="autoSync.last_status === 'success' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400' : 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-400'"
-              >
-                {{ autoSync.last_status === 'success' ? `Sukses (${autoSync.last_imported_count} data baru)` : 'Ada Catatan' }}
-              </span>
-            </div>
-            <p v-if="autoSync.last_message" class="text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-slate-200/60 dark:border-slate-700/60 leading-relaxed">
-              {{ autoSync.last_message }}
-            </p>
-          </div>
-
-          <!-- Notifikasi Feedback -->
-          <div
-            v-if="syncFeedback"
-            class="p-3 rounded-xl text-xs border"
-            :class="syncFeedback.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' : 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300'"
-          >
-            {{ syncFeedback.message }}
-          </div>
-
-          <!-- Panduan Cron Scheduler di Server -->
-          <div class="p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/50 text-[11px] space-y-1.5">
-            <span class="font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-              <Sparkles class="w-3.5 h-3.5" />
-              Satu Baris Cron Scheduler Server (cPanel / Linux):
-            </span>
-            <code class="block font-mono text-[10px] p-2 bg-white dark:bg-slate-900 rounded-lg border border-indigo-100 dark:border-indigo-900 text-slate-700 dark:text-slate-300 overflow-x-auto">
-              * * * * * cd /path/to/sadaya && php artisan schedule:run >> /dev/null 2>&1
-            </code>
-            <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-              Jika scheduler server sudah aktif, sinkronisasi berjalan otomatis di latar belakang tepat sesuai interval waktu yang Anda pilih di atas.
-            </p>
-          </div>
-
-        </div>
-
-        <!-- Footer -->
-        <div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/40">
-          <button
-            type="button"
-            @click="handleRunSyncNow"
-            :disabled="isRunningSyncNow"
-            class="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
-            title="Jalankan sinkronisasi sekarang juga tanpa menunggu putaran jadwal"
-          >
-            <RefreshCw class="w-3.5 h-3.5 text-indigo-500" :class="{ 'animate-spin': isRunningSyncNow }" />
-            <span>{{ isRunningSyncNow ? 'Menyinkronkan...' : 'Sinkronkan Sekarang' }}</span>
-          </button>
-
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              @click="showAutoSyncModal = false"
-              class="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition cursor-pointer"
-            >
-              Tutup
-            </button>
-            <button
-              type="button"
-              @click="handleSaveAutoSync"
-              :disabled="isSavingAutoSync"
-              class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
-            >
-              <Check class="w-4 h-4" />
-              <span>{{ isSavingAutoSync ? 'Menyimpan...' : 'Simpan Pengaturan' }}</span>
-            </button>
-          </div>
-        </div>
-
-      </div>
-    </ClinicalModal>
-
+      @update:autoSync="autoSync = $event"
+      @synced="localSadayaStats = $event"
+    />
 
   </HybridNavbar>
 </template>

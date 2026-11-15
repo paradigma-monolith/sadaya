@@ -1,8 +1,9 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
 import { useDate } from '../../../composables/useDate';
+import { useUnsavedGuard } from '@/composables/useUnsavedGuard';
 import ClinicalModal from '../../../Components/ClinicalModal.vue';
 import {
   formatCurrency,
@@ -50,6 +51,15 @@ const { formatDate } = useDate();
 const verifyDecision = ref('SANDAR');
 const verifyNotes = ref('');
 const isSubmittingVerify = ref(false);
+
+const isVerifyDirty = computed(() => {
+  if (!props.showVerifyModal || !props.verifyTarget || isSubmittingVerify.value) return false;
+  return (
+    verifyDecision.value !== (props.verifyTarget.hasil_status || 'SANDAR') ||
+    verifyNotes.value !== (props.verifyTarget.catatan_verifikasi || '')
+  );
+});
+useUnsavedGuard(isVerifyDirty);
 
 watch(
   () => props.verifyTarget,

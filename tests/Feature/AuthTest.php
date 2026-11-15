@@ -63,11 +63,12 @@ class AuthTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
-    public function test_unauthenticated_user_redirected_from_spa(): void
+    public function test_unauthenticated_user_redirected_from_protected_modules(): void
     {
-        $response = $this->get('/spa');
-
-        $response->assertRedirect(route('login'));
+        foreach (['/travel-consent', '/sanitasi-lingkungan', '/sivera', '/audit-logs'] as $path) {
+            $response = $this->get($path);
+            $response->assertRedirect(route('login'));
+        }
     }
 
     public function test_authenticated_user_can_access_protected_hub(): void

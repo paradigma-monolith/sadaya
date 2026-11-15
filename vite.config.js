@@ -10,7 +10,6 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/inertia.js',
-                'resources/js/spa.js',
             ],
             refresh: true,
         }),
